@@ -1,1 +1,1 @@
-# ibm-licensing-operator
+# IBM Licensing operator
