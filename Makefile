@@ -126,6 +126,7 @@ images: build build-push-images
 
 ifeq ($(BUILD_LOCALLY),0)
     export CONFIG_DOCKER_TARGET = config-docker
+config-docker:
 endif
 
 build-push-images: install-operator-sdk $(CONFIG_DOCKER_TARGET)
