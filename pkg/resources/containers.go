@@ -17,11 +17,12 @@
 package resources
 
 import (
+	"strconv"
+
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"strconv"
 )
 
 var licensingSecurityContext = corev1.SecurityContext{
@@ -40,7 +41,7 @@ var licensingSecurityContext = corev1.SecurityContext{
 func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.VolumeMount {
 	var volumeMounts = []corev1.VolumeMount{
 		{
-			Name:      ApiSecretTokenVolumeName,
+			Name:      APISecretTokenVolumeName,
 			MountPath: "/opt/ibm/licensing",
 			ReadOnly:  true,
 		},
@@ -48,7 +49,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 	if spec.HTTPSEnable {
 		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 			{
-				Name:      LicensingHttpsCertsVolumeName,
+				Name:      LicensingHTTPSCertsVolumeName,
 				MountPath: "/opt/licensing/certs/",
 				ReadOnly:  true,
 			},
@@ -57,7 +58,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 	if spec.IsMetering() {
 		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 			{
-				Name:      MeteringApiCertsVolumeName,
+				Name:      MeteringAPICertsVolumeName,
 				MountPath: "/opt/metering/certs/",
 				ReadOnly:  true,
 			},
@@ -67,7 +68,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 }
 
 func getLicensingEnvironmentVariables(namespace string, spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
-	var httpsEnableString string = strconv.FormatBool(spec.HTTPSEnable)
+	var httpsEnableString = strconv.FormatBool(spec.HTTPSEnable)
 	var environmentVariables = []corev1.EnvVar{
 		{
 			Name:  "NAMESPACE",

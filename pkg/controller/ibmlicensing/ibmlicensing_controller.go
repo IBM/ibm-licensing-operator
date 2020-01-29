@@ -40,7 +40,6 @@ import (
 // cannot set to const due to corev1 types
 var defaultSecretMode int32 = 420
 var seconds60 int64 = 60
-var nodeSelector = map[string]string{"licensing": "true"}
 
 var log = logf.Log.WithName("controller_ibmlicensing")
 
@@ -222,7 +221,7 @@ func (r *ReconcileIBMLicensing) newDeploymentForLicensingCR(instance *operatorv1
 	volumes := []corev1.Volume{}
 
 	apiSecretTokenVolume := corev1.Volume{
-		Name: res.ApiSecretTokenVolumeName,
+		Name: res.APISecretTokenVolumeName,
 		VolumeSource: corev1.VolumeSource{
 			Secret: &corev1.SecretVolumeSource{
 				SecretName: instance.Spec.APISecretToken,
@@ -233,8 +232,8 @@ func (r *ReconcileIBMLicensing) newDeploymentForLicensingCR(instance *operatorv1
 	volumes = append(volumes, apiSecretTokenVolume)
 
 	if instance.Spec.IsMetering() {
-		meteringApiCertVolume := corev1.Volume{
-			Name: res.MeteringApiCertsVolumeName,
+		meteringAPICertVolume := corev1.Volume{
+			Name: res.MeteringAPICertsVolumeName,
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "icp-metering-api-secret",
@@ -245,12 +244,12 @@ func (r *ReconcileIBMLicensing) newDeploymentForLicensingCR(instance *operatorv1
 			},
 		}
 
-		volumes = append(volumes, meteringApiCertVolume)
+		volumes = append(volumes, meteringAPICertVolume)
 	}
 
 	if instance.Spec.HTTPSEnable {
-		licensingHttpsCertsVolume := corev1.Volume{
-			Name: res.LicensingHttpsCertsVolumeName,
+		licensingHTTPSCertsVolume := corev1.Volume{
+			Name: res.LicensingHTTPSCertsVolumeName,
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: "ibm-licensing-certs",
@@ -261,7 +260,7 @@ func (r *ReconcileIBMLicensing) newDeploymentForLicensingCR(instance *operatorv1
 			},
 		}
 
-		volumes = append(volumes, licensingHttpsCertsVolume)
+		volumes = append(volumes, licensingHTTPSCertsVolume)
 	}
 
 	//TODO: add init containers later

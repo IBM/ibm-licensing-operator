@@ -21,21 +21,14 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-var TrueVar bool = true
-var FalseVar bool = false
-var user99 int64 = 99
-var cpu100m = resource.NewMilliQuantity(100, resource.DecimalSI)           // 100m
-var cpu200m = resource.NewMilliQuantity(100, resource.DecimalSI)           // 100m
-var cpu400m = resource.NewMilliQuantity(500, resource.DecimalSI)           // 500m
-var cpu1000m = resource.NewMilliQuantity(1000, resource.DecimalSI)         // 1000m
-var memory128Mi = resource.NewQuantity(128*1024*1024, resource.BinarySI)   // 128Mi
-var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)   // 256Mi
-var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)   // 512Mi
-var memory2560Mi = resource.NewQuantity(2560*1024*1024, resource.BinarySI) // 2560Mi
+var TrueVar = true
+var FalseVar = false
+var cpu200m = resource.NewMilliQuantity(100, resource.DecimalSI)         // 200m
+var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI) // 256Mi
 
-const ApiSecretTokenVolumeName = "api-token"
-const MeteringApiCertsVolumeName = "metering-api-certs"
-const LicensingHttpsCertsVolumeName = "licensing-https-certs"
+const APISecretTokenVolumeName = "api-token"
+const MeteringAPICertsVolumeName = "metering-api-certs"
+const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
 const LicensingResourceName = "licensing-service"
 
 var licensingContainerPort int32 = 8080
