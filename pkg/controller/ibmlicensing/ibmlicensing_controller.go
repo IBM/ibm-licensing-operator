@@ -138,7 +138,7 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	// Check if the service already exists
 	currentService := &corev1.Service{}
 
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.LicensingResourceName, Namespace: instance.Namespace}, currentService)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.GetNamespace()}, currentService)
 	// In case error is cause by non existing service we will create one:
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new service
@@ -160,7 +160,7 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	// Check if the deployment already exists, if not create a new one
 	currentDeployment := &appsv1.Deployment{}
 
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.LicensingResourceName, Namespace: instance.Namespace}, currentDeployment)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.GetNamespace()}, currentDeployment)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new deployment
 		newDeployment := r.newDeploymentForLicensingCR(instance)
@@ -183,18 +183,18 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 }
 
 func (r *ReconcileIBMLicensing) newServiceForLicensingCR(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
-	reqLogger := log.WithValues("serviceForLicensing", "Entry", "instance.Name", instance.Name)
-	metaLabels := res.LabelsForLicensingMeta(res.LicensingResourceName)
+	reqLogger := log.WithValues("serviceForLicensing", "Entry", "instance.GetName()", instance.GetName())
+	metaLabels := res.LabelsForLicensingMeta(instance)
 
 	reqLogger.Info("New Service Entry")
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      res.LicensingResourceName,
-			Namespace: instance.Namespace,
+			Name:      res.GetResourceName(instance),
+			Namespace: instance.GetNamespace(),
 			Labels:    metaLabels,
 			// Annotations: map[string]string{"prometheus.io/scrape": "false", "prometheus.io/scheme": "http"},
 		},
-		Spec: res.GetServiceSpec(instance.Name),
+		Spec: res.GetServiceSpec(instance),
 	}
 
 	// Set IBMLicensing instance as the owner and controller of the Service
@@ -208,11 +208,11 @@ func (r *ReconcileIBMLicensing) newServiceForLicensingCR(instance *operatorv1alp
 
 // deploymentForDataMgr returns a DataManager Deployment object
 func (r *ReconcileIBMLicensing) newDeploymentForLicensingCR(instance *operatorv1alpha1.IBMLicensing) *appsv1.Deployment {
-	reqLogger := log.WithValues("newDeploymentForLicensingCR", "Entry", "instance.Name", instance.Name)
+	reqLogger := log.WithValues("newDeploymentForLicensingCR", "Entry", "instance.GetName()", instance.GetName())
 
-	metaLabels := res.LabelsForLicensingMeta(res.LicensingResourceName)
-	selectorLabels := res.LabelsForLicensingSelector(instance.Name, res.LicensingResourceName)
-	podLabels := res.LabelsForLicensingPod(instance.Name, res.LicensingResourceName)
+	metaLabels := res.LabelsForLicensingMeta(instance)
+	selectorLabels := res.LabelsForLicensingSelector(instance)
+	podLabels := res.LabelsForLicensingPod(instance)
 
 	// TODO: maybe add to cr later
 	replicas := int32(1)
@@ -266,8 +266,8 @@ func (r *ReconcileIBMLicensing) newDeploymentForLicensingCR(instance *operatorv1
 	//TODO: add init containers later
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      res.LicensingResourceName,
-			Namespace: instance.Namespace,
+			Name:      res.GetResourceName(instance),
+			Namespace: instance.GetNamespace(),
 			Labels:    metaLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -315,7 +315,7 @@ func (r *ReconcileIBMLicensing) newDeploymentForLicensingCR(instance *operatorv1
 					// },
 					Volumes: volumes,
 					Containers: []corev1.Container{
-						res.GetLicensingContainer(instance.Namespace, instance.Spec),
+						res.GetLicensingContainer(instance.GetNamespace(), instance.Spec),
 					},
 				},
 			},

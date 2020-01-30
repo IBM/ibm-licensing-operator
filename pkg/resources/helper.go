@@ -17,6 +17,7 @@
 package resources
 
 import (
+	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -29,20 +30,26 @@ var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI) // 256M
 const APISecretTokenVolumeName = "api-token"
 const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
-const LicensingResourceName = "licensing-service"
+const LicensingResourceBase = "ibm-licensing-service"
+const LicensingComponentName = "ibmlicensingsvc"
+const LicensingReleaseName = "ibmlicensing"
+
+func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
+	return LicensingResourceBase + "-" + instance.GetName()
+}
 
 var licensingContainerPort int32 = 8080
 var licensingTargetPort intstr.IntOrString = intstr.FromInt(8080)
 
-func LabelsForLicensingSelector(instanceName string, deploymentName string) map[string]string {
-	return map[string]string{"app": deploymentName, "component": "ibmlicensingsvc", "licensing_cr": instanceName}
+func LabelsForLicensingSelector(instance *operatorv1alpha1.IBMLicensing) map[string]string {
+	return map[string]string{"app": GetResourceName(instance), "component": LicensingComponentName, "licensing_cr": instance.GetName()}
 }
 
-func LabelsForLicensingMeta(deploymentName string) map[string]string {
-	return map[string]string{"app.kubernetes.io/name": deploymentName, "app.kubernetes.io/component": "ibmlicensingsvc", "release": "licensing"}
+func LabelsForLicensingMeta(instance *operatorv1alpha1.IBMLicensing) map[string]string {
+	return map[string]string{"app.kubernetes.io/name": GetResourceName(instance), "app.kubernetes.io/component": LicensingComponentName, "release": LicensingReleaseName}
 }
 
-func LabelsForLicensingPod(instanceName string, deploymentName string) map[string]string {
-	return map[string]string{"app": deploymentName, "component": "ibmlicensingsvc", "licensing_cr": instanceName,
-		"app.kubernetes.io/name": deploymentName, "app.kubernetes.io/component": "ibmlicensingsvc", "release": "licensing"}
+func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {
+	return map[string]string{"app": GetResourceName(instance), "component": LicensingComponentName, "licensing_cr": instance.GetName(),
+		"app.kubernetes.io/name": GetResourceName(instance), "app.kubernetes.io/component": LicensingComponentName, "release": LicensingReleaseName}
 }

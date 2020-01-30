@@ -16,9 +16,12 @@
 
 package resources
 
-import corev1 "k8s.io/api/core/v1"
+import (
+	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
+)
 
-func GetServiceSpec(instanceName string) corev1.ServiceSpec {
+func GetServiceSpec(instance *operatorv1alpha1.IBMLicensing) corev1.ServiceSpec {
 	return corev1.ServiceSpec{
 		Type: corev1.ServiceTypeClusterIP,
 		Ports: []corev1.ServicePort{
@@ -29,6 +32,6 @@ func GetServiceSpec(instanceName string) corev1.ServiceSpec {
 				Protocol:   corev1.ProtocolTCP,
 			},
 		},
-		Selector: LabelsForLicensingSelector(instanceName, LicensingResourceName),
+		Selector: LabelsForLicensingSelector(instance),
 	}
 }
