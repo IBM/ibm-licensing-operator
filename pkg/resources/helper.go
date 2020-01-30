@@ -46,7 +46,8 @@ func LabelsForLicensingSelector(instance *operatorv1alpha1.IBMLicensing) map[str
 }
 
 func LabelsForLicensingMeta(instance *operatorv1alpha1.IBMLicensing) map[string]string {
-	return map[string]string{"app.kubernetes.io/name": GetResourceName(instance), "app.kubernetes.io/component": LicensingComponentName, "release": LicensingReleaseName}
+	return map[string]string{"app.kubernetes.io/name": GetResourceName(instance),
+		"app.kubernetes.io/component": LicensingComponentName, "release": LicensingReleaseName}
 }
 
 func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {
