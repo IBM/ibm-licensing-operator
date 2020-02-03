@@ -56,7 +56,7 @@ type IBMLicensingStatus struct {
 
 // IBMLicensing is the Schema for the ibmlicensings API
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:path=ibmlicensings,scope=Namespaced
+// +kubebuilder:resource:path=ibmlicensings,scope=Cluster
 type IBMLicensing struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
