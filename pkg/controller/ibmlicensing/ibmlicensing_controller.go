@@ -20,13 +20,13 @@ import (
 	"context"
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -37,8 +37,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-//TODO: determine if this should not be somewhere else in future:
-const licensingResourceName = "licensing-service"
+// cannot set to const due to corev1 types
+var defaultSecretMode int32 = 420
+var seconds60 int64 = 60
 
 var log = logf.Log.WithName("controller_ibmlicensing")
 
@@ -84,6 +85,14 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	// Watch for changes to secondary resource "Service" and requeue the owner IBMLicensing
 	err = c.Watch(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &operatorv1alpha1.IBMLicensing{},
+	})
+	if err != nil {
+		return err
+	}
+
+	err = c.Watch(&source.Kind{Type: &corev1.Secret{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &operatorv1alpha1.IBMLicensing{},
 	})
@@ -137,7 +146,7 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	// Check if the service already exists
 	currentService := &corev1.Service{}
 
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: licensingResourceName, Namespace: instance.Namespace}, currentService)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.GetNamespace()}, currentService)
 	// In case error is cause by non existing service we will create one:
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new service
@@ -157,57 +166,85 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	reqLogger.Info("got Service, checking Deployment")
 
 	// Check if the deployment already exists, if not create a new one
-	// currentDeployment := &appsv1.Deployment{}
+	currentDeployment := &appsv1.Deployment{}
 
-	// err = r.client.Get(context.TODO(), types.NamespacedName{Name: licensingResourceName, Namespace: instance.Namespace}, currentDeployment)
-	// if err != nil && errors.IsNotFound(err) {
-	// 	// Define a new deployment
-	// 	newDeployment := r.newDeploymentForLicensingCR(instance)
-	// 	reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", newDeployment.Namespace, "Deployment.Name", newDeployment.Name)
-	// 	err = r.client.Create(context.TODO(), newDeployment)
-	// 	if err != nil {
-	// 		reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", newDeployment.Namespace, "Deployment.Name", newDeployment.Name)
-	// 		return reconcile.Result{}, err
-	// 	}
-	// 	// Deployment created successfully - return and requeue
-	// 	return reconcile.Result{Requeue: true}, nil
-	// } else if err != nil {
-	// 	reqLogger.Error(err, "Failed to get Deployment")
-	// 	return reconcile.Result{}, err
-	// }
-	// reqLogger.Info("got Deployment")
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.GetNamespace()}, currentDeployment)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new deployment
+		newDeployment := r.newDeploymentForLicensingCR(instance)
+		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", newDeployment.Namespace, "Deployment.Name", newDeployment.Name)
+		err = r.client.Create(context.TODO(), newDeployment)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", newDeployment.Namespace, "Deployment.Name", newDeployment.Name)
+			return reconcile.Result{}, err
+		}
+		// Deployment created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get Deployment")
+		return reconcile.Result{}, err
+	}
+	reqLogger.Info("got Deployment, checking APISecretToken")
 
-	// OLD CODE VERSION WAS HERE
+	currentAPISecret := &corev1.Secret{}
+
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.APISecretToken, Namespace: instance.GetNamespace()}, currentAPISecret)
+	if err != nil && errors.IsNotFound(err) {
+		// APISecretToken does not exist
+		reqLogger.Info("APISecretToken does not exist, creating secret: " + instance.Spec.APISecretToken)
+		newAPISecret := r.newAPISecretToken(instance)
+		err = r.client.Create(context.TODO(), newAPISecret)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Secret", "Secret.Namespace", newAPISecret.Namespace, "Secret.Name", newAPISecret.Name)
+			return reconcile.Result{}, err
+		}
+		// Secret created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get Deployment APISecretToken")
+		return reconcile.Result{}, err
+	}
 
 	reqLogger.Info("all done")
 	return reconcile.Result{}, nil
 }
 
+func (r *ReconcileIBMLicensing) newAPISecretToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
+	reqLogger := log.WithValues("APISecretToken", "Entry", "instance.GetName()", instance.GetName())
+	metaLabels := res.LabelsForLicensingMeta(instance)
+
+	reqLogger.Info("New APISecretToken Entry")
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      instance.Spec.APISecretToken,
+			Namespace: instance.GetNamespace(),
+			Labels:    metaLabels,
+		},
+		Type:       corev1.SecretTypeOpaque,
+		StringData: map[string]string{"token": res.RandString(24)},
+	}
+	// Set IBMLicensing instance as the owner and controller of the Service
+	err := controllerutil.SetControllerReference(instance, secret, r.scheme)
+	if err != nil {
+		reqLogger.Error(err, "Failed to set owner for Secret APISecretToken")
+		return nil
+	}
+	return secret
+}
+
 func (r *ReconcileIBMLicensing) newServiceForLicensingCR(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
-	reqLogger := log.WithValues("serviceForLicensing", "Entry", "instance.Name", instance.Name)
-	metaLabels := labelsForLicensingMeta(licensingResourceName)
-	selectorLabels := labelsForLicensingSelector(instance.Name, licensingResourceName)
+	reqLogger := log.WithValues("serviceForLicensing", "Entry", "instance.GetName()", instance.GetName())
+	metaLabels := res.LabelsForLicensingMeta(instance)
 
 	reqLogger.Info("New Service Entry")
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      licensingResourceName,
-			Namespace: instance.Namespace,
+			Name:      res.GetResourceName(instance),
+			Namespace: instance.GetNamespace(),
 			Labels:    metaLabels,
 			// Annotations: map[string]string{"prometheus.io/scrape": "false", "prometheus.io/scheme": "http"},
 		},
-		Spec: corev1.ServiceSpec{
-			Type: corev1.ServiceTypeClusterIP,
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "http",
-					Port:       8080,
-					TargetPort: intstr.FromInt(8080),
-					Protocol:   corev1.ProtocolTCP,
-				},
-			},
-			Selector: selectorLabels,
-		},
+		Spec: res.GetServiceSpec(instance),
 	}
 
 	// Set IBMLicensing instance as the owner and controller of the Service
@@ -219,67 +256,126 @@ func (r *ReconcileIBMLicensing) newServiceForLicensingCR(instance *operatorv1alp
 	return service
 }
 
-func labelsForLicensingSelector(instanceName string, appName string) map[string]string {
-	return map[string]string{"app": appName, "component": "ibmlicensingsvc", "licensing_cr": instanceName}
+// deploymentForDataMgr returns a DataManager Deployment object
+func (r *ReconcileIBMLicensing) newDeploymentForLicensingCR(instance *operatorv1alpha1.IBMLicensing) *appsv1.Deployment {
+	reqLogger := log.WithValues("newDeploymentForLicensingCR", "Entry", "instance.GetName()", instance.GetName())
+
+	metaLabels := res.LabelsForLicensingMeta(instance)
+	selectorLabels := res.LabelsForLicensingSelector(instance)
+	podLabels := res.LabelsForLicensingPod(instance)
+
+	// TODO: maybe add to cr later
+	replicas := int32(1)
+	reqLogger.Info("image=" + instance.Spec.GetFullImage())
+
+	volumes := []corev1.Volume{}
+
+	apiSecretTokenVolume := corev1.Volume{
+		Name: res.APISecretTokenVolumeName,
+		VolumeSource: corev1.VolumeSource{
+			Secret: &corev1.SecretVolumeSource{
+				SecretName: instance.Spec.APISecretToken,
+			},
+		},
+	}
+
+	volumes = append(volumes, apiSecretTokenVolume)
+
+	if instance.Spec.IsMetering() {
+		meteringAPICertVolume := corev1.Volume{
+			Name: res.MeteringAPICertsVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: "icp-metering-api-secret",
+					// TODO: validate if good mode, not 0644?
+					DefaultMode: &defaultSecretMode,
+					Optional:    &res.TrueVar,
+				},
+			},
+		}
+
+		volumes = append(volumes, meteringAPICertVolume)
+	}
+
+	if instance.Spec.HTTPSEnable {
+		licensingHTTPSCertsVolume := corev1.Volume{
+			Name: res.LicensingHTTPSCertsVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: "ibm-licensing-certs",
+					// TODO: validate if good mode, not 0644?
+					DefaultMode: &defaultSecretMode,
+					Optional:    &res.TrueVar,
+				},
+			},
+		}
+
+		volumes = append(volumes, licensingHTTPSCertsVolume)
+	}
+
+	//TODO: add init containers later
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      res.GetResourceName(instance),
+			Namespace: instance.GetNamespace(),
+			Labels:    metaLabels,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: selectorLabels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: podLabels,
+				},
+				Spec: corev1.PodSpec{
+					// TODO: decide if needed:
+					// NodeSelector:                  nodeSelector,
+					// PriorityClassName:             "system-cluster-critical",
+					TerminationGracePeriodSeconds: &seconds60,
+					Affinity: &corev1.Affinity{
+						NodeAffinity: &corev1.NodeAffinity{
+							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+								NodeSelectorTerms: []corev1.NodeSelectorTerm{
+									{
+										MatchExpressions: []corev1.NodeSelectorRequirement{
+											{
+												Key:      "beta.kubernetes.io/arch",
+												Operator: corev1.NodeSelectorOpIn,
+												Values:   []string{"amd64"},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					// TODO: decide if neeeded:
+					// Tolerations: []corev1.Toleration{
+					// 	{
+					// 		Key:      "dedicated",
+					// 		Operator: corev1.TolerationOpExists,
+					// 		Effect:   corev1.TaintEffectNoSchedule,
+					// 	},
+					// 	{
+					// 		Key:      "CriticalAddonsOnly",
+					// 		Operator: corev1.TolerationOpExists,
+					// 	},
+					// },
+					Volumes: volumes,
+					Containers: []corev1.Container{
+						res.GetLicensingContainer(instance.GetNamespace(), instance.Spec),
+					},
+				},
+			},
+		},
+	}
+	// Set Metering instance as the owner and controller of the Deployment
+	err := controllerutil.SetControllerReference(instance, deployment, r.scheme)
+	if err != nil {
+		reqLogger.Error(err, "Failed to set owner for Deployment")
+		return nil
+	}
+	return deployment
 }
-
-func labelsForLicensingMeta(appName string) map[string]string {
-	return map[string]string{"app.kubernetes.io/name": appName, "app.kubernetes.io/component": "ibmlicensingsvc", "release": "licensing"}
-}
-
-// !! OLD CODE with Pod creation
-// // Define a new Pod object
-// nonsense logic because newPod is only when pod does not exists
-// pod := newPodForCR(instance)
-
-// // Set IBMLicensing instance as the owner and controller
-// if err := controllerutil.SetControllerReference(instance, pod, r.scheme); err != nil {
-// 	return reconcile.Result{}, err
-// }
-
-// // Check if this Pod already exists
-// found := &corev1.Pod{}
-// err = r.client.Get(context.TODO(), types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, found)
-// if err != nil && errors.IsNotFound(err) {
-// 	reqLogger.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
-// 	err = r.client.Create(context.TODO(), pod)
-// 	if err != nil {
-// 		return reconcile.Result{}, err
-// 	}
-
-// 	// Pod created successfully - don't requeue
-// 	return reconcile.Result{}, nil
-// } else if err != nil {
-// 	return reconcile.Result{}, err
-// }
-
-// // Pod already exists - don't requeue
-// reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
-// return reconcile.Result{}, nil
-
-// }
-
-// // newPodForCR returns a busybox pod with the same name/namespace as the cr
-// func newPodForCR(cr *operatorv1alpha1.IBMLicensing) *corev1.Pod {
-// 	labels := map[string]string{
-// 		"app": cr.Name,
-// 	}
-// 	return &corev1.Pod{
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name:      cr.Name + "-pod",
-// 			Namespace: cr.Namespace,
-// 			Labels:    labels,
-// 		},
-// 		Spec: corev1.PodSpec{
-// 			Containers: []corev1.Container{
-// 				{
-// 					Name:    "busybox",
-// 					Image:   "busybox",
-// 					Command: []string{"sleep", "3600"},
-// 				},
-// 			},
-// 		},
-// 	}
-// }
-
-// !! END OLD CODE with Pod creation

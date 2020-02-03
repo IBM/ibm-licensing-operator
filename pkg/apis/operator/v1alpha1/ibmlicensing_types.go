@@ -28,14 +28,18 @@ type IBMLicensingSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	OperatorVersion  string `json:"operatorVersion,omitempty"`
-	ImageRegistry    string `json:"imageRegistry,omitempty"`
-	ImageTagPostfix  string `json:"imageTagPostfix,omitempty"`
-	APISecretToken   string `json:"apiSecretToken,omitempty"`
-	Datasource       string `json:"datasource,omitempty"`
-	HTTPSEnable      bool   `json:"httpsEnable,omitempty"`
+	OperatorVersion string `json:"operatorVersion,omitempty"`
+	ImageRegistry   string `json:"imageRegistry,omitempty"`
+	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
+	APISecretToken  string `json:"apiSecretToken,omitempty"`
+	// ?TODO: maybe change to enum in future:
+	Datasource  string `json:"datasource,omitempty"`
+	HTTPSEnable bool   `json:"httpsEnable,omitempty"`
+	// ?TODO: maybe change to enum in future:
 	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
-	LogLevel         string `json:"logLevel,omitempty"`
+	// ?TODO: maybe change to enum in future:
+	LogLevel           string `json:"logLevel,omitempty"`
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }
 
 // IBMLicensingStatus defines the observed state of IBMLicensing
@@ -44,6 +48,7 @@ type IBMLicensingStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	// Nodes are the names of the licensing pods
+	// ?TODO: validate what is needed here for appropriate status
 	Nodes []string `json:"nodes"`
 }
 

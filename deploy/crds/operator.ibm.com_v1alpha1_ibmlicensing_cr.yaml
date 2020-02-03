@@ -8,8 +8,7 @@ spec:
   datasource: datacollector
   httpsCertsSource: self-signed
   httpsEnable: false
-  imageRegistry: quay.io/opencloudio/ibm-licensing-operator
-  imageTagPostfix: latest
-  logLevel: DEBUG
+  imageRegistry: quay.io/opencloudio/ibm-licensing
+  imageTagPostfix: 1.0.0
+  logLevel: INFO
   operatorVersion: v1.0
-  
