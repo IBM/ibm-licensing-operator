@@ -27,8 +27,10 @@ import (
 
 var TrueVar = true
 var FalseVar = false
-var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)         // 200m
-var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI) // 256Mi
+var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
+var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
+var cpu500m = resource.NewMilliQuantity(200, resource.DecimalSI)
+var memory512Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 
 const APISecretTokenVolumeName = "api-token"
 const MeteringAPICertsVolumeName = "metering-api-certs"

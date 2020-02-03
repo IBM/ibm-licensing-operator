@@ -160,8 +160,8 @@ func GetLicensingContainer(namespace string, spec operatorv1alpha1.IBMLicensingS
 		},
 		Resources: corev1.ResourceRequirements{
 			Limits: map[corev1.ResourceName]resource.Quantity{
-				corev1.ResourceCPU:    *cpu200m,
-				corev1.ResourceMemory: *memory256Mi},
+				corev1.ResourceCPU:    *cpu500m,
+				corev1.ResourceMemory: *memory512Mi},
 			Requests: map[corev1.ResourceName]resource.Quantity{
 				corev1.ResourceCPU:    *cpu200m,
 				corev1.ResourceMemory: *memory256Mi},
