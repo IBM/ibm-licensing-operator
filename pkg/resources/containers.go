@@ -135,7 +135,7 @@ func GetLicensingContainer(namespace string, spec operatorv1alpha1.IBMLicensingS
 	var probeHandler = getProbeHandler(spec)
 	return corev1.Container{
 		Image:           spec.GetFullImage(),
-		Name:            LicensingResourceBase + "-container",
+		Name:            "license-service",
 		ImagePullPolicy: corev1.PullAlways,
 		VolumeMounts:    getLicensingVolumeMounts(spec),
 		Env:             getLicensingEnvironmentVariables(namespace, spec),

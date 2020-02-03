@@ -91,6 +91,14 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
+
+	err = c.Watch(&source.Kind{Type: &corev1.Secret{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &operatorv1alpha1.IBMLicensing{},
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -176,10 +184,52 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		reqLogger.Error(err, "Failed to get Deployment")
 		return reconcile.Result{}, err
 	}
-	reqLogger.Info("got Deployment")
+	reqLogger.Info("got Deployment, checking APISecretToken")
+
+	currentAPISecret := &corev1.Secret{}
+
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.APISecretToken, Namespace: instance.GetNamespace()}, currentAPISecret)
+	if err != nil && errors.IsNotFound(err) {
+		// APISecretToken does not exist
+		reqLogger.Info("APISecretToken does not exist, creating secret: " + instance.Spec.APISecretToken)
+		newAPISecret := r.newAPISecretToken(instance)
+		err = r.client.Create(context.TODO(), newAPISecret)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Secret", "Secret.Namespace", newAPISecret.Namespace, "Secret.Name", newAPISecret.Name)
+			return reconcile.Result{}, err
+		}
+		// Secret created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get Deployment APISecretToken")
+		return reconcile.Result{}, err
+	}
 
 	reqLogger.Info("all done")
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileIBMLicensing) newAPISecretToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
+	reqLogger := log.WithValues("APISecretToken", "Entry", "instance.GetName()", instance.GetName())
+	metaLabels := res.LabelsForLicensingMeta(instance)
+
+	reqLogger.Info("New APISecretToken Entry")
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      instance.Spec.APISecretToken,
+			Namespace: instance.GetNamespace(),
+			Labels:    metaLabels,
+		},
+		Type:       corev1.SecretTypeOpaque,
+		StringData: map[string]string{"token": res.RandString(24)},
+	}
+	// Set IBMLicensing instance as the owner and controller of the Service
+	err := controllerutil.SetControllerReference(instance, secret, r.scheme)
+	if err != nil {
+		reqLogger.Error(err, "Failed to set owner for Secret APISecretToken")
+		return nil
+	}
+	return secret
 }
 
 func (r *ReconcileIBMLicensing) newServiceForLicensingCR(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {

@@ -17,6 +17,9 @@
 package resources
 
 import (
+	"math/rand"
+	"time"
+
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -24,7 +27,7 @@ import (
 
 var TrueVar = true
 var FalseVar = false
-var cpu200m = resource.NewMilliQuantity(100, resource.DecimalSI)         // 200m
+var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)         // 200m
 var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI) // 256Mi
 
 const APISecretTokenVolumeName = "api-token"
@@ -33,6 +36,18 @@ const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
 const LicensingResourceBase = "ibm-licensing-service"
 const LicensingComponentName = "ibmlicensingsvc"
 const LicensingReleaseName = "ibmlicensing"
+
+const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const randStringCharsetLength = len(randStringCharset)
+
+func RandString(length int) string {
+	randFunc := rand.New(rand.NewSource(time.Now().UnixNano()))
+	outputStringByte := make([]byte, length)
+	for i := 0; i < length; i++ {
+		outputStringByte[i] = randStringCharset[randFunc.Intn(randStringCharsetLength)]
+	}
+	return string(outputStringByte)
+}
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
