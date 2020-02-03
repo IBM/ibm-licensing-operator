@@ -29,8 +29,8 @@ var TrueVar = true
 var FalseVar = false
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
-var cpu500m = resource.NewMilliQuantity(200, resource.DecimalSI)
-var memory512Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
+var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
+var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)
 
 const APISecretTokenVolumeName = "api-token"
 const MeteringAPICertsVolumeName = "metering-api-certs"
