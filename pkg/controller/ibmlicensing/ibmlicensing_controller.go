@@ -110,7 +110,7 @@ type ReconcileIBMLicensing struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	reqLogger := log.WithValues("Request.Name", request.Name)
 	reqLogger.Info("Reconciling IBMLicensing")
 
 	// Fetch the IBMLicensing instance
@@ -129,81 +129,41 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{}, err
 	}
 
+	// TODO: check if opVersion is needed at spec
 	opVersion := instance.Spec.OperatorVersion
 	reqLogger.Info("got IBMLicensing instance, version=" + opVersion + ", checking Service")
 
-	// Check if the service already exists
-	currentService := &corev1.Service{}
+	var recResult reconcile.Result
+	var recErr error
 
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.GetNamespace()}, currentService)
-	// In case error is cause by non existing service we will create one:
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new service
-		newService := r.newServiceForLicensingCR(instance)
-		reqLogger.Info("Creating a new Service", "Service.Namespace", newService.Namespace, "Service.Name", newService.Name)
-		err = r.client.Create(context.TODO(), newService)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", newService.Namespace, "Service.Name", newService.Name)
-			return reconcile.Result{}, err
-		}
-		// Service created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-	} else if err != nil {
-		reqLogger.Error(err, "Failed to get Service")
-		return reconcile.Result{}, err
-	}
-	reqLogger.Info("got Service, checking Deployment")
-
-	// Check if the deployment already exists, if not create a new one
-	currentDeployment := &appsv1.Deployment{}
-
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.GetNamespace()}, currentDeployment)
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new deployment
-		newDeployment := r.newDeploymentForLicensingCR(instance)
-		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", newDeployment.Namespace, "Deployment.Name", newDeployment.Name)
-		err = r.client.Create(context.TODO(), newDeployment)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", newDeployment.Namespace, "Deployment.Name", newDeployment.Name)
-			return reconcile.Result{}, err
-		}
-		// Deployment created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-	} else if err != nil {
-		reqLogger.Error(err, "Failed to get Deployment")
-		return reconcile.Result{}, err
-	}
-	reqLogger.Info("got Deployment, checking APISecretToken")
-
-	currentAPISecret := &corev1.Secret{}
-
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.APISecretToken, Namespace: instance.GetNamespace()}, currentAPISecret)
-	if err != nil && errors.IsNotFound(err) {
-		// APISecretToken does not exist
-		reqLogger.Info("APISecretToken does not exist, creating secret: " + instance.Spec.APISecretToken)
-		newAPISecret := r.newAPISecretToken(instance)
-		err = r.client.Create(context.TODO(), newAPISecret)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new Secret", "Secret.Namespace", newAPISecret.Namespace, "Secret.Name", newAPISecret.Name)
-			return reconcile.Result{}, err
-		}
-		// Secret created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-	} else if err != nil {
-		reqLogger.Error(err, "Failed to get Deployment APISecretToken")
-		return reconcile.Result{}, err
+	// Reconcile the expected deployment
+	recResult, recErr = r.reconcileDeployment(instance)
+	if recErr != nil || recResult.Requeue {
+		return recResult, recErr
 	}
 
-	reqLogger.Info("all done")
+	// Reconcile the expected service
+	recResult, recErr = r.reconcileService(instance)
+	if recErr != nil || recResult.Requeue {
+		return recResult, recErr
+	}
+
+	// Reconcile the expected APISecretToken
+	recResult, recErr = r.reconcileAPISecretToken(instance)
+	if recErr != nil || recResult.Requeue {
+		return recResult, recErr
+	}
+
+	reqLogger.Info("reconcile all done")
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileIBMLicensing) newAPISecretToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
+func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := log.WithValues("APISecretToken", "Entry", "instance.GetName()", instance.GetName())
 	metaLabels := res.LabelsForLicensingMeta(instance)
 
 	reqLogger.Info("New APISecretToken Entry")
-	secret := &corev1.Secret{
+	expectedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Spec.APISecretToken,
 			Namespace: instance.GetNamespace(),
@@ -213,39 +173,90 @@ func (r *ReconcileIBMLicensing) newAPISecretToken(instance *operatorv1alpha1.IBM
 		StringData: map[string]string{"token": res.RandString(24)},
 	}
 	// Set IBMLicensing instance as the owner and controller of the Service
-	err := controllerutil.SetControllerReference(instance, secret, r.scheme)
+	err := controllerutil.SetControllerReference(instance, expectedSecret, r.scheme)
 	if err != nil {
 		reqLogger.Error(err, "Failed to set owner for Secret APISecretToken")
-		return nil
+		return reconcile.Result{}, err
 	}
-	return secret
+
+	currentAPISecret := &corev1.Secret{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.APISecretToken, Namespace: instance.GetNamespace()}, currentAPISecret)
+	if err != nil && errors.IsNotFound(err) {
+		// APISecretToken does not exist
+		reqLogger.Info("APISecretToken does not exist, creating secret: " + instance.Spec.APISecretToken)
+		err = r.client.Create(context.TODO(), expectedSecret)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Secret", "Secret.Namespace", expectedSecret.Namespace, "Secret.Name", expectedSecret.Name)
+			return reconcile.Result{}, err
+		}
+		// Secret created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get secret APISecretToken")
+		return reconcile.Result{}, err
+	} // do not compare stringdata and update secret as it is generated
+
+	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileIBMLicensing) newServiceForLicensingCR(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
-	reqLogger := log.WithValues("serviceForLicensing", "Entry", "instance.GetName()", instance.GetName())
+func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	reqLogger := log.WithValues("reconcileService", "Entry", "instance.GetName()", instance.GetName())
 
-	service := res.GetLicensingService(instance)
+	expectedService := res.GetLicensingService(instance)
 
 	// Set IBMLicensing instance as the owner and controller of the Service
-	err := controllerutil.SetControllerReference(instance, service, r.scheme)
+	err := controllerutil.SetControllerReference(instance, expectedService, r.scheme)
 	if err != nil {
 		reqLogger.Error(err, "Failed to set owner for Service")
-		return nil
+		return reconcile.Result{}, err
 	}
-	return service
+
+	foundService := &corev1.Service{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.GetNamespace()}, foundService)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new Service", "Service.Namespace", expectedService.Namespace, "Service.Name", expectedService.Name)
+		err = r.client.Create(context.TODO(), expectedService)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Service", "Service.Namespace", expectedService.Namespace, "Service.Name", expectedService.Name)
+			return reconcile.Result{}, err
+		}
+		// Service created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get Service")
+		return reconcile.Result{}, err
+	}
+
+	return reconcile.Result{}, nil
 }
 
-// deploymentForDataMgr returns a DataManager Deployment object
-func (r *ReconcileIBMLicensing) newDeploymentForLicensingCR(instance *operatorv1alpha1.IBMLicensing) *appsv1.Deployment {
-	reqLogger := log.WithValues("newDeploymentForLicensingCR", "Entry", "instance.GetName()", instance.GetName())
+func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	reqLogger := log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
 
-	deployment := res.GetLicensingDeployment(instance)
+	expectedDeployment := res.GetLicensingDeployment(instance)
 
 	// Set instance as the owner and controller of the Deployment
-	err := controllerutil.SetControllerReference(instance, deployment, r.scheme)
+	err := controllerutil.SetControllerReference(instance, expectedDeployment, r.scheme)
 	if err != nil {
 		reqLogger.Error(err, "Failed to set owner for Deployment")
-		return nil
+		return reconcile.Result{}, err
 	}
-	return deployment
+
+	foundDeployment := &appsv1.Deployment{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.GetNamespace()}, foundDeployment)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", expectedDeployment.Namespace, "Deployment.Name", expectedDeployment.Name)
+		err = r.client.Create(context.TODO(), expectedDeployment)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Deployment", "Deployment.Namespace", expectedDeployment.Namespace, "Deployment.Name", expectedDeployment.Name)
+			return reconcile.Result{}, err
+		}
+		// Deployment created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get Deployment")
+		return reconcile.Result{}, err
+	}
+
+	return reconcile.Result{}, nil
 }
