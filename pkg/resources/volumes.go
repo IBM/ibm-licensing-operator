@@ -61,7 +61,8 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 		Name: APISecretTokenVolumeName,
 		VolumeSource: corev1.VolumeSource{
 			Secret: &corev1.SecretVolumeSource{
-				SecretName: spec.APISecretToken,
+				SecretName:  spec.APISecretToken,
+				DefaultMode: &defaultSecretMode,
 			},
 		},
 	}

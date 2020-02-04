@@ -111,7 +111,10 @@ func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Contai
 		VolumeMounts:    getLicensingVolumeMounts(spec),
 		Env:             getLicensingEnvironmentVariables(spec.APINamespace, spec),
 		Ports: []corev1.ContainerPort{
-			{ContainerPort: licensingContainerPort},
+			{
+				ContainerPort: licensingContainerPort,
+				Protocol:      corev1.ProtocolTCP,
+			},
 		},
 		LivenessProbe: &corev1.Probe{
 			Handler:             probeHandler,

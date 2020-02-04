@@ -18,6 +18,7 @@ package ibmlicensing
 
 import (
 	"context"
+	"reflect"
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
@@ -162,7 +163,6 @@ func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alph
 	reqLogger := log.WithValues("APISecretToken", "Entry", "instance.GetName()", instance.GetName())
 	metaLabels := res.LabelsForLicensingMeta(instance)
 
-	reqLogger.Info("New APISecretToken Entry")
 	expectedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Spec.APISecretToken,
@@ -242,6 +242,7 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 		return reconcile.Result{}, err
 	}
 
+	shouldUpdate := false
 	foundDeployment := &appsv1.Deployment{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.GetNamespace()}, foundDeployment)
 	if err != nil && errors.IsNotFound(err) {
@@ -256,6 +257,55 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get Deployment")
 		return reconcile.Result{}, err
+	} else if !reflect.DeepEqual(foundDeployment.Spec.Template.Spec.Volumes, expectedDeployment.Spec.Template.Spec.Volumes) {
+		reqLogger.Info("Deployment has wrong volumes", "Deployment.Namespace", foundDeployment.Namespace,
+			"Deployment.Name", foundDeployment.Name, "Deployment.Volumes", foundDeployment.Spec.Template.Spec.Volumes,
+			"ExpectedDeployment.Volumes", expectedDeployment.Spec.Template.Spec.Volumes)
+		shouldUpdate = true
+	} else if len(foundDeployment.Spec.Template.Spec.Containers) != len(expectedDeployment.Spec.Template.Spec.Containers) {
+		reqLogger.Info("Deployment has number of containers", "Deployment.Namespace", foundDeployment.Namespace,
+			"Deployment.Name", foundDeployment.Name, "Deployment.Containers", foundDeployment.Spec.Template.Spec.Containers,
+			"ExpectedDeployment.Containers", expectedDeployment.Spec.Template.Spec.Containers)
+		shouldUpdate = true
+	} else if !reflect.DeepEqual(foundDeployment.Spec.Template.Spec.Containers[0].Name, expectedDeployment.Spec.Template.Spec.Containers[0].Name) {
+		reqLogger.Info("Deployment wrong spec error 3", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name)
+		shouldUpdate = true
+	} else if !reflect.DeepEqual(foundDeployment.Spec.Template.Spec.Containers[0].Image, expectedDeployment.Spec.Template.Spec.Containers[0].Image) {
+		reqLogger.Info("Deployment wrong spec error 4", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name)
+		shouldUpdate = true
+	} else if !reflect.DeepEqual(foundDeployment.Spec.Template.Spec.Containers[0].Ports, expectedDeployment.Spec.Template.Spec.Containers[0].Ports) {
+		reqLogger.Info("Deployment wrong containers ports", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name,
+			"Found Container Ports", foundDeployment.Spec.Template.Spec.Containers[0].Ports,
+			"Expected Container Ports", expectedDeployment.Spec.Template.Spec.Containers[0].Ports)
+		shouldUpdate = true
+	} else if !reflect.DeepEqual(foundDeployment.Spec.Template.Spec.Containers[0].VolumeMounts, expectedDeployment.Spec.Template.Spec.Containers[0].VolumeMounts) {
+		reqLogger.Info("Deployment wrong spec error 6", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name)
+		shouldUpdate = true
+	}
+
+	if shouldUpdate {
+		// Spec is incorrect, update it and requeue
+		reqLogger.Info("Found deployment spec is incorrect", "Found", foundDeployment.Name, "Expected", expectedDeployment.Name)
+		refreshedDeployment := foundDeployment.DeepCopy()
+		refreshedDeployment.Spec.Template.Spec.Volumes = expectedDeployment.Spec.Template.Spec.Volumes
+		refreshedDeployment.Spec.Template.Spec.Containers = expectedDeployment.Spec.Template.Spec.Containers
+		reqLogger.Info("Updating Deployment volumes to:", "RefreshedDeployment.Volumes", refreshedDeployment.Spec.Template.Spec.Volumes)
+		err = r.client.Update(context.TODO(), refreshedDeployment)
+		if err != nil {
+			// only need to delete deployment as new will be recreated on next reconciliation
+			reqLogger.Error(err, "Failed to update Deployment, deleting...", "Namespace", foundDeployment.Namespace, "Name", foundDeployment.Name)
+			err = r.client.Delete(context.TODO(), foundDeployment)
+			if err != nil {
+				reqLogger.Error(err, "Failed to delete Deployment during recreation", "Namespace", foundDeployment.Namespace, "Name", foundDeployment.Name)
+				return reconcile.Result{}, err
+			}
+			// Deployment deleted successfully - return and requeue to create new one
+			reqLogger.Info("Deleted deployment successfully", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name)
+			return reconcile.Result{Requeue: true}, nil
+		}
+		reqLogger.Info("Updated deployment successfully", "Deployment.Namespace", refreshedDeployment.Namespace, "Deployment.Name", refreshedDeployment.Name)
+		// Spec updated - return and requeue
+		return reconcile.Result{Requeue: true}, nil
 	}
 
 	return reconcile.Result{}, nil
