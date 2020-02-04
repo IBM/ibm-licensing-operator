@@ -12,3 +12,4 @@ spec:
   imageTagPostfix: 1.0.0
   logLevel: INFO
   operatorVersion: v1.0
+  apiNamespace: kube-system

@@ -22,8 +22,9 @@ import (
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/apimachinery/pkg/util/intstr"
 )
+
+// cannot set to const due to k8s struct needing pointers to primitive types
 
 var TrueVar = true
 var FalseVar = false
@@ -32,9 +33,10 @@ var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
 var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)
 
-const APISecretTokenVolumeName = "api-token"
-const MeteringAPICertsVolumeName = "metering-api-certs"
-const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
+// TODO: validate if good mode, in helm chart was 0644
+var defaultSecretMode int32 = 420
+var seconds60 int64 = 60
+
 const LicensingResourceBase = "ibm-licensing-service"
 const LicensingComponentName = "ibmlicensingsvc"
 const LicensingReleaseName = "ibmlicensing"
@@ -54,9 +56,6 @@ func RandString(length int) string {
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
 }
-
-var licensingContainerPort int32 = 8080
-var licensingTargetPort intstr.IntOrString = intstr.FromInt(8080)
 
 func LabelsForLicensingSelector(instance *operatorv1alpha1.IBMLicensing) map[string]string {
 	return map[string]string{"app": GetResourceName(instance), "component": LicensingComponentName, "licensing_cr": instance.GetName()}

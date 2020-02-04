@@ -37,10 +37,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-// cannot set to const due to corev1 types
-var defaultSecretMode int32 = 420
-var seconds60 int64 = 60
-
 var log = logf.Log.WithName("controller_ibmlicensing")
 
 /**
@@ -75,30 +71,23 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource "Deployment" and requeue the owner IBMLicensing
-	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &operatorv1alpha1.IBMLicensing{},
-	})
-	if err != nil {
-		return err
+	secondaryResourceTypes := []runtime.Object{
+		&appsv1.Deployment{},
+		&corev1.Service{},
+		&corev1.Secret{},
 	}
 
-	// Watch for changes to secondary resource "Service" and requeue the owner IBMLicensing
-	err = c.Watch(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &operatorv1alpha1.IBMLicensing{},
-	})
-	if err != nil {
-		return err
+	for _, restype := range secondaryResourceTypes {
+		log.Info("Watching", "restype", restype)
+		err = c.Watch(&source.Kind{Type: restype}, &handler.EnqueueRequestForOwner{
+			IsController: true,
+			OwnerType:    &operatorv1alpha1.IBMLicensing{},
+		})
+		if err != nil {
+			return err
+		}
 	}
 
-	err = c.Watch(&source.Kind{Type: &corev1.Secret{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &operatorv1alpha1.IBMLicensing{},
-	})
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -234,18 +223,8 @@ func (r *ReconcileIBMLicensing) newAPISecretToken(instance *operatorv1alpha1.IBM
 
 func (r *ReconcileIBMLicensing) newServiceForLicensingCR(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
 	reqLogger := log.WithValues("serviceForLicensing", "Entry", "instance.GetName()", instance.GetName())
-	metaLabels := res.LabelsForLicensingMeta(instance)
 
-	reqLogger.Info("New Service Entry")
-	service := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      res.GetResourceName(instance),
-			Namespace: instance.GetNamespace(),
-			Labels:    metaLabels,
-			// Annotations: map[string]string{"prometheus.io/scrape": "false", "prometheus.io/scheme": "http"},
-		},
-		Spec: res.GetServiceSpec(instance),
-	}
+	service := res.GetLicensingService(instance)
 
 	// Set IBMLicensing instance as the owner and controller of the Service
 	err := controllerutil.SetControllerReference(instance, service, r.scheme)
@@ -260,118 +239,9 @@ func (r *ReconcileIBMLicensing) newServiceForLicensingCR(instance *operatorv1alp
 func (r *ReconcileIBMLicensing) newDeploymentForLicensingCR(instance *operatorv1alpha1.IBMLicensing) *appsv1.Deployment {
 	reqLogger := log.WithValues("newDeploymentForLicensingCR", "Entry", "instance.GetName()", instance.GetName())
 
-	metaLabels := res.LabelsForLicensingMeta(instance)
-	selectorLabels := res.LabelsForLicensingSelector(instance)
-	podLabels := res.LabelsForLicensingPod(instance)
+	deployment := res.GetLicensingDeployment(instance)
 
-	// TODO: maybe add to cr later
-	replicas := int32(1)
-	reqLogger.Info("image=" + instance.Spec.GetFullImage())
-
-	volumes := []corev1.Volume{}
-
-	apiSecretTokenVolume := corev1.Volume{
-		Name: res.APISecretTokenVolumeName,
-		VolumeSource: corev1.VolumeSource{
-			Secret: &corev1.SecretVolumeSource{
-				SecretName: instance.Spec.APISecretToken,
-			},
-		},
-	}
-
-	volumes = append(volumes, apiSecretTokenVolume)
-
-	if instance.Spec.IsMetering() {
-		meteringAPICertVolume := corev1.Volume{
-			Name: res.MeteringAPICertsVolumeName,
-			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{
-					SecretName: "icp-metering-api-secret",
-					// TODO: validate if good mode, not 0644?
-					DefaultMode: &defaultSecretMode,
-					Optional:    &res.TrueVar,
-				},
-			},
-		}
-
-		volumes = append(volumes, meteringAPICertVolume)
-	}
-
-	if instance.Spec.HTTPSEnable {
-		licensingHTTPSCertsVolume := corev1.Volume{
-			Name: res.LicensingHTTPSCertsVolumeName,
-			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{
-					SecretName: "ibm-licensing-certs",
-					// TODO: validate if good mode, not 0644?
-					DefaultMode: &defaultSecretMode,
-					Optional:    &res.TrueVar,
-				},
-			},
-		}
-
-		volumes = append(volumes, licensingHTTPSCertsVolume)
-	}
-
-	//TODO: add init containers later
-	deployment := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      res.GetResourceName(instance),
-			Namespace: instance.GetNamespace(),
-			Labels:    metaLabels,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: &replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: selectorLabels,
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: podLabels,
-				},
-				Spec: corev1.PodSpec{
-					// TODO: decide if needed:
-					// NodeSelector:                  nodeSelector,
-					// PriorityClassName:             "system-cluster-critical",
-					TerminationGracePeriodSeconds: &seconds60,
-					Affinity: &corev1.Affinity{
-						NodeAffinity: &corev1.NodeAffinity{
-							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-								NodeSelectorTerms: []corev1.NodeSelectorTerm{
-									{
-										MatchExpressions: []corev1.NodeSelectorRequirement{
-											{
-												Key:      "beta.kubernetes.io/arch",
-												Operator: corev1.NodeSelectorOpIn,
-												Values:   []string{"amd64"},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					// TODO: decide if neeeded:
-					// Tolerations: []corev1.Toleration{
-					// 	{
-					// 		Key:      "dedicated",
-					// 		Operator: corev1.TolerationOpExists,
-					// 		Effect:   corev1.TaintEffectNoSchedule,
-					// 	},
-					// 	{
-					// 		Key:      "CriticalAddonsOnly",
-					// 		Operator: corev1.TolerationOpExists,
-					// 	},
-					// },
-					Volumes: volumes,
-					Containers: []corev1.Container{
-						res.GetLicensingContainer(instance.GetNamespace(), instance.Spec),
-					},
-				},
-			},
-		},
-	}
-	// Set Metering instance as the owner and controller of the Deployment
+	// Set instance as the owner and controller of the Deployment
 	err := controllerutil.SetControllerReference(instance, deployment, r.scheme)
 	if err != nil {
 		reqLogger.Error(err, "Failed to set owner for Deployment")

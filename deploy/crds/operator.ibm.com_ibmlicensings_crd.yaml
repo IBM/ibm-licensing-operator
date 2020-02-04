@@ -9,7 +9,7 @@ spec:
     listKind: IBMLicensingList
     plural: ibmlicensings
     singular: ibmlicensing
-  scope: Namespaced
+  scope: Cluster
   subresources:
     status: {}
   validation:
@@ -31,11 +31,15 @@ spec:
         spec:
           description: IBMLicensingSpec defines the desired state of IBMLicensing
           properties:
+            apiNamespace:
+              type: string
             apiSecretToken:
               type: string
             datasource:
+              description: '?TODO: maybe change to enum in future:'
               type: string
             httpsCertsSource:
+              description: '?TODO: maybe change to enum in future:'
               type: string
             httpsEnable:
               type: boolean
@@ -44,6 +48,7 @@ spec:
             imageTagPostfix:
               type: string
             logLevel:
+              description: '?TODO: maybe change to enum in future:'
               type: string
             operatorVersion:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -53,6 +58,8 @@ spec:
               type: string
             serviceAccountName:
               type: string
+          required:
+          - apiNamespace
           type: object
         status:
           description: IBMLicensingStatus defines the observed state of IBMLicensing
@@ -62,7 +69,8 @@ spec:
                 of cluster Important: Run "operator-sdk generate k8s" to regenerate
                 code after modifying this file Add custom validation using kubebuilder
                 tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-                Nodes are the names of the licensing pods'
+                Nodes are the names of the licensing pods ?TODO: validate what is
+                needed here for appropriate status'
               items:
                 type: string
               type: array
