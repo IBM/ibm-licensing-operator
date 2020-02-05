@@ -27,7 +27,3 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 func (spec *IBMLicensingSpec) GetFullImage() string {
 	return spec.ImageRegistry + ":" + spec.ImageTagPostfix
 }
-
-func (instance *IBMLicensing) GetNamespace() string {
-	return instance.Spec.APINamespace
-}

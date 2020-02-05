@@ -73,9 +73,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource "Deployment" and requeue the owner IBMLicensing
 	secondaryResourceTypes := []runtime.Object{
+		&corev1.Secret{},
 		&appsv1.Deployment{},
 		&corev1.Service{},
-		&corev1.Secret{},
 	}
 
 	for _, restype := range secondaryResourceTypes {
@@ -111,7 +111,7 @@ type ReconcileIBMLicensing struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Request.Name", request.Name)
+	reqLogger := log.WithValues("Request", request)
 	reqLogger.Info("Reconciling IBMLicensing")
 
 	// Fetch the IBMLicensing instance
@@ -119,23 +119,54 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
+			// request.NamespacedName.Namespace =
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			reqLogger.Info("IBMLicensing resource not found. Ignoring since object must be deleted")
+			// reqLogger.Info("IBMLicensing resource not found. Ignoring since object must be deleted")
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
-		reqLogger.Error(err, "Failed to get IBMLicensing")
+		// reqLogger.Error(err, "Failed to get IBMLicensing")
 		return reconcile.Result{}, err
 	}
-
 	// TODO: check if opVersion is needed at spec
 	opVersion := instance.Spec.OperatorVersion
 	reqLogger.Info("got IBMLicensing instance, version=" + opVersion + ", checking Service")
 
 	var recResult reconcile.Result
 	var recErr error
+
+	// Reconcile instance namespace
+
+	expectedNamespace := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: instance.Spec.APINamespace,
+		},
+	}
+
+	namespace := &corev1.Namespace{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: expectedNamespace.GetName()}, namespace)
+	if err != nil && errors.IsNotFound(err) {
+		// APISecretToken does not exist
+		reqLogger.Info("Namespace does not exist, creating namespace: ", expectedNamespace)
+		err = r.client.Create(context.TODO(), expectedNamespace)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new Namespace", "Namespace", expectedNamespace)
+			return reconcile.Result{}, err
+		}
+		// Secret created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get namespace", expectedNamespace)
+		return reconcile.Result{}, err
+	}
+
+	// Reconcile the expected APISecretToken
+	recResult, recErr = r.reconcileAPISecretToken(instance)
+	if recErr != nil || recResult.Requeue {
+		return recResult, recErr
+	}
 
 	// Reconcile the expected deployment
 	recResult, recErr = r.reconcileDeployment(instance)
@@ -145,12 +176,6 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 
 	// Reconcile the expected service
 	recResult, recErr = r.reconcileService(instance)
-	if recErr != nil || recResult.Requeue {
-		return recResult, recErr
-	}
-
-	// Reconcile the expected APISecretToken
-	recResult, recErr = r.reconcileAPISecretToken(instance)
 	if recErr != nil || recResult.Requeue {
 		return recResult, recErr
 	}
@@ -166,7 +191,7 @@ func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alph
 	expectedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Spec.APISecretToken,
-			Namespace: instance.GetNamespace(),
+			Namespace: instance.Spec.APINamespace,
 			Labels:    metaLabels,
 		},
 		Type:       corev1.SecretTypeOpaque,
@@ -180,7 +205,7 @@ func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alph
 	}
 
 	currentAPISecret := &corev1.Secret{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.APISecretToken, Namespace: instance.GetNamespace()}, currentAPISecret)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.APISecretToken, Namespace: instance.Spec.APINamespace}, currentAPISecret)
 	if err != nil && errors.IsNotFound(err) {
 		// APISecretToken does not exist
 		reqLogger.Info("APISecretToken does not exist, creating secret: " + instance.Spec.APISecretToken)
@@ -212,7 +237,7 @@ func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBML
 	}
 
 	foundService := &corev1.Service{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.GetNamespace()}, foundService)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.Spec.APINamespace}, foundService)
 	if err != nil && errors.IsNotFound(err) {
 		reqLogger.Info("Creating a new Service", "Service.Namespace", expectedService.Namespace, "Service.Name", expectedService.Name)
 		err = r.client.Create(context.TODO(), expectedService)
@@ -244,7 +269,7 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 
 	shouldUpdate := false
 	foundDeployment := &appsv1.Deployment{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.GetNamespace()}, foundDeployment)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: res.GetResourceName(instance), Namespace: instance.Spec.APINamespace}, foundDeployment)
 	if err != nil && errors.IsNotFound(err) {
 		reqLogger.Info("Creating a new Deployment", "Deployment.Namespace", expectedDeployment.Namespace, "Deployment.Name", expectedDeployment.Name)
 		err = r.client.Create(context.TODO(), expectedDeployment)
@@ -268,10 +293,14 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 			"ExpectedDeployment.Containers", expectedDeployment.Spec.Template.Spec.Containers)
 		shouldUpdate = true
 	} else if !reflect.DeepEqual(foundDeployment.Spec.Template.Spec.Containers[0].Name, expectedDeployment.Spec.Template.Spec.Containers[0].Name) {
-		reqLogger.Info("Deployment wrong spec error 3", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name)
+		reqLogger.Info("Deployment wrong container name", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name,
+			"Container.Name", foundDeployment.Spec.Template.Spec.Containers[0].Name,
+			"ExpectedContainer.Name", expectedDeployment.Spec.Template.Spec.Containers[0].Name)
 		shouldUpdate = true
 	} else if !reflect.DeepEqual(foundDeployment.Spec.Template.Spec.Containers[0].Image, expectedDeployment.Spec.Template.Spec.Containers[0].Image) {
-		reqLogger.Info("Deployment wrong spec error 4", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name)
+		reqLogger.Info("Deployment wrong container image", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name,
+			"Container.Image", foundDeployment.Spec.Template.Spec.Containers[0].Image,
+			"ExpectedContainer.Image", expectedDeployment.Spec.Template.Spec.Containers[0].Image)
 		shouldUpdate = true
 	} else if !reflect.DeepEqual(foundDeployment.Spec.Template.Spec.Containers[0].Ports, expectedDeployment.Spec.Template.Spec.Containers[0].Ports) {
 		reqLogger.Info("Deployment wrong containers ports", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name,
@@ -279,7 +308,12 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 			"Expected Container Ports", expectedDeployment.Spec.Template.Spec.Containers[0].Ports)
 		shouldUpdate = true
 	} else if !reflect.DeepEqual(foundDeployment.Spec.Template.Spec.Containers[0].VolumeMounts, expectedDeployment.Spec.Template.Spec.Containers[0].VolumeMounts) {
-		reqLogger.Info("Deployment wrong spec error 6", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name)
+		reqLogger.Info("Deployment wrong VolumeMounts in container", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name)
+		shouldUpdate = true
+	} else if !reflect.DeepEqual(foundDeployment.Spec.Template.Spec.Containers[0].Env, expectedDeployment.Spec.Template.Spec.Containers[0].Env) {
+		reqLogger.Info("Deployment wrong env variables in container", "Deployment.Namespace", foundDeployment.Namespace,
+			"Deployment.Name", foundDeployment.Name, "Deployment.Containers", foundDeployment.Spec.Template.Spec.Containers,
+			"ExpectedDeployment.Containers", expectedDeployment.Spec.Template.Spec.Containers)
 		shouldUpdate = true
 	}
 
@@ -290,6 +324,7 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 		refreshedDeployment.Spec.Template.Spec.Volumes = expectedDeployment.Spec.Template.Spec.Volumes
 		refreshedDeployment.Spec.Template.Spec.Containers = expectedDeployment.Spec.Template.Spec.Containers
 		reqLogger.Info("Updating Deployment volumes to:", "RefreshedDeployment.Volumes", refreshedDeployment.Spec.Template.Spec.Volumes)
+		reqLogger.Info("Updating Deployment containers to:", "RefreshedDeployment.Containers", refreshedDeployment.Spec.Template.Spec.Containers)
 		err = r.client.Update(context.TODO(), refreshedDeployment)
 		if err != nil {
 			// only need to delete deployment as new will be recreated on next reconciliation
