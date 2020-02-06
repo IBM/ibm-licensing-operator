@@ -15,6 +15,8 @@ rules:
   - events
   - configmaps
   - secrets
+  - namespaces
+  - serviceaccounts
   verbs:
   - create
   - delete
@@ -70,6 +72,21 @@ rules:
   - operator.ibm.com
   resources:
   - '*'
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - "rbac.authorization.k8s.io"
+  resources:
+  - clusterroles
+  - clusterrolebindings
+  - roles
+  - rolebindings
   verbs:
   - create
   - delete

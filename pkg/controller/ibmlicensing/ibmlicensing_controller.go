@@ -24,6 +24,7 @@ import (
 	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -73,6 +74,10 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource "Deployment" and requeue the owner IBMLicensing
 	secondaryResourceTypes := []runtime.Object{
+		&rbacv1.Role{},
+		&rbacv1.RoleBinding{},
+		&rbacv1.ClusterRole{},
+		&rbacv1.ClusterRoleBinding{},
 		&corev1.Secret{},
 		&appsv1.Deployment{},
 		&corev1.Service{},

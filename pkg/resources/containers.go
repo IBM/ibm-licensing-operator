@@ -38,12 +38,12 @@ var licensingSecurityContext = corev1.SecurityContext{
 	},
 }
 
-func getLicensingEnvironmentVariables(namespace string, spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
+func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
 	var httpsEnableString = strconv.FormatBool(spec.HTTPSEnable)
 	var environmentVariables = []corev1.EnvVar{
 		{
 			Name:  "NAMESPACE",
-			Value: namespace,
+			Value: spec.APINamespace,
 		},
 		{
 			Name:  "DATASOURCE",
@@ -109,7 +109,7 @@ func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Contai
 		Name:            "license-service",
 		ImagePullPolicy: corev1.PullAlways,
 		VolumeMounts:    getLicensingVolumeMounts(spec),
-		Env:             getLicensingEnvironmentVariables(spec.APINamespace, spec),
+		Env:             getLicensingEnvironmentVariables(spec),
 		Ports: []corev1.ContainerPort{
 			{
 				ContainerPort: licensingContainerPort,

@@ -91,6 +91,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	log.Info("Main started with namespace: " + namespace)
+
 	// Get a config to talk to the apiserver
 	cfg, err := config.GetConfig()
 	if err != nil {
