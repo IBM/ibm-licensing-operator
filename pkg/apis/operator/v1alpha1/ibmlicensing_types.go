@@ -38,9 +38,8 @@ type IBMLicensingSpec struct {
 	// ?TODO: maybe change to enum in future:
 	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
 	// ?TODO: maybe change to enum in future:
-	LogLevel           string `json:"logLevel,omitempty"`
-	ServiceAccountName string `json:"serviceAccountName,omitempty"`
-	APINamespace       string `json:"apiNamespace"`
+	LogLevel     string `json:"logLevel,omitempty"`
+	APINamespace string `json:"apiNamespace"`
 }
 
 // IBMLicensingStatus defines the observed state of IBMLicensing

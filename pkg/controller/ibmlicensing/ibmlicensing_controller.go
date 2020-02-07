@@ -41,6 +41,8 @@ import (
 
 var log = logf.Log.WithName("controller_ibmlicensing")
 
+type reconcileFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
+
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
 * business logic.  Delete these comments after modifying this file.*
@@ -78,6 +80,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&rbacv1.RoleBinding{},
 		&rbacv1.ClusterRole{},
 		&rbacv1.ClusterRoleBinding{},
+		&corev1.ServiceAccount{},
 		&corev1.Secret{},
 		&appsv1.Deployment{},
 		&corev1.Service{},
@@ -142,51 +145,205 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	var recResult reconcile.Result
 	var recErr error
 
-	// Reconcile instance namespace
+	reconcileFunctions := []interface{}{
+		r.reconcileNamespace,
+		r.reconcileServiceAccount,
+		r.reconcileAPISecretToken,
+		r.reconcileDeployment,
+		r.reconcileService,
+	}
 
+	for _, reconcileFunction := range reconcileFunctions {
+		// For each resource
+		recResult, recErr = reconcileFunction.(reconcileFunctionType)(instance)
+		if recErr != nil || recResult.Requeue {
+			return recResult, recErr
+		}
+	}
+
+	reqLogger.Info("reconcile all done")
+	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileIBMLicensing) reconcileServiceAccount(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	expectedSA := res.GetLicensingServiceAccount(instance)
+	foundSA := &corev1.ServiceAccount{}
+	return r.reconcileResourceNamespacedExistance(instance, expectedSA, foundSA)
+}
+
+// func (r *ReconcileIBMLicensing) reconcileRole(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+// 	reqLogger := log.WithValues("instance.Name", instance.Name)
+
+// 	expectedRole := res.GetLicensingRole(instance)
+
+// 	err := controllerutil.SetControllerReference(instance, expectedRole, r.scheme)
+// 	if err != nil {
+// 		reqLogger.Error(err, "Failed to define expected resource")
+// 		return reconcile.Result{}, err
+// 	}
+
+// 	// If Role does not exist, create it and requeue
+// 	foundRole := &rbacv1.Role{}
+// 	// Note: clusterroles are cluster-scoped, so this does not search using namespace (unlike other resources above)
+// 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: expectedRes.Name}, foundRole)
+// 	if err != nil && errors.IsNotFound(err) {
+// 		reqLogger.Info("Creating a new "+reflect.TypeOf(expectedRes).String(), "Name", expectedRes.Name)
+// 		err = r.client.Create(context.TODO(), expectedRes)
+// 		if err != nil && errors.IsAlreadyExists(err) {
+// 			// Already exists from previous reconcile, requeue.
+// 			return reconcile.Result{Requeue: true}, nil
+// 		} else if err != nil {
+// 			reqLogger.Error(err, "Failed to create new "+reflect.TypeOf(expectedRes).String(), "Name", expectedRes.Name)
+// 			return reconcile.Result{}, err
+// 		}
+// 		// Created successfully - return and requeue
+// 		return reconcile.Result{Requeue: true}, nil
+// 	} else if err != nil {
+// 		reqLogger.Error(err, "Failed to get "+reflect.TypeOf(expectedRes).String())
+// 		return reconcile.Result{}, err
+// 	} else if !reflect.DeepEqual(foundRole.Rules, expectedRes.Rules) {
+// 		// Spec is incorrect, update it and requeue
+// 		reqLogger.Info("Found role is incorrect", "Found", foundRole.Rules, "Expected", expectedRes.Rules)
+// 		foundRole.Rules = expectedRes.Rules
+// 		err = r.client.Update(context.TODO(), foundRole)
+// 		if err != nil {
+// 			reqLogger.Error(err, "Failed to update role", "Name", foundRole.Name)
+// 			return reconcile.Result{}, err
+// 		}
+// 		// Updated - return and requeue
+// 		return reconcile.Result{Requeue: true}, nil
+// 	}
+
+// 	// No reconcile was necessary
+// 	return reconcile.Result{}, nil
+// }
+
+// IBMDEV rolebindingForCR returns (reconcile.Result, error)
+// func (r *ReconcileGroupResourceQuotaEnforcer) roleBindingForCR(cr *operatorv1alpha1.GroupResourceQuotaEnforcer) (reconcile.Result, error) {
+// 	reqLogger := log.WithValues("cr.Name", cr.Name)
+
+// 	expectedRes := &rbacv1.ClusterRoleBinding{
+// 		ObjectMeta: metav1.ObjectMeta{
+// 			Name: cr.Name + suffix.clusterRoleBinding,
+// 		},
+// 		Subjects: []rbacv1.Subject{{
+// 			APIGroup:  "",
+// 			Kind:      "ServiceAccount",
+// 			Name:      cr.Name + suffix.serviceAccount,
+// 			Namespace: cr.Spec.InstanceNamespace,
+// 		}},
+// 		RoleRef: rbacv1.RoleRef{
+// 			APIGroup: "rbac.authorization.k8s.io",
+// 			Kind:     "ClusterRole",
+// 			Name:     cr.Name + suffix.clusterRole,
+// 		},
+// 	}
+// 	// Set CR instance as the owner and controller
+// 	err := controllerutil.SetControllerReference(cr, expectedRes, r.scheme)
+// 	if err != nil {
+// 		reqLogger.Error(err, "Failed to define expected resource")
+// 		return reconcile.Result{}, err
+// 	}
+
+// 	// If RoleBinding does not exist, create it and requeue
+// 	foundRoleBinding := &rbacv1.ClusterRoleBinding{}
+// 	// Note: clusterrolebindings are cluster-scoped, so this does not search using namespace (unlike other resources above)
+// 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: expectedRes.Name}, foundRoleBinding)
+// 	if err != nil && errors.IsNotFound(err) {
+// 		reqLogger.Info("Creating a new "+reflect.TypeOf(expectedRes).String(), "Name", expectedRes.Name)
+// 		err = r.client.Create(context.TODO(), expectedRes)
+// 		if err != nil && errors.IsAlreadyExists(err) {
+// 			// Already exists from previous reconcile, requeue.
+// 			return reconcile.Result{Requeue: true}, nil
+// 		} else if err != nil {
+// 			reqLogger.Error(err, "Failed to create new "+reflect.TypeOf(expectedRes).String(), "Name", expectedRes.Name)
+// 			return reconcile.Result{}, err
+// 		}
+// 		// Created successfully - return and requeue
+// 		return reconcile.Result{Requeue: true}, nil
+// 	} else if err != nil {
+// 		reqLogger.Error(err, "Failed to get "+reflect.TypeOf(expectedRes).String())
+// 		return reconcile.Result{}, err
+// 	} else if !reflect.DeepEqual(foundRoleBinding.Subjects, expectedRes.Subjects) ||
+// 		!reflect.DeepEqual(foundRoleBinding.RoleRef, expectedRes.RoleRef) {
+// 		// Spec is incorrect, update it and requeue
+// 		reqLogger.Info("Found rolebinding is incorrect", "Found", foundRoleBinding, "Expected", expectedRes)
+// 		err = r.client.Delete(context.TODO(), foundRoleBinding)
+// 		if err != nil {
+// 			reqLogger.Error(err, "Failed to delete rolebinding", "Name", foundRoleBinding.Name)
+// 			return reconcile.Result{}, err
+// 		}
+// 		// Deleted - return and requeue
+// 		return reconcile.Result{Requeue: true}, nil
+// 	}
+
+// 	// No reconcile was necessary
+// 	return reconcile.Result{}, nil
+// }
+
+type ResourceObject interface {
+	metav1.Object
+	runtime.Object
+}
+
+func (r *ReconcileIBMLicensing) reconcileResourceNamespacedExistance(
+	instance *operatorv1alpha1.IBMLicensing, expectedRes ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+
+	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
+	return r.reconcileResourceExistance(instance, expectedRes, foundRes, namespacedName)
+}
+
+func (r *ReconcileIBMLicensing) reconcileResourceClusterExistance(
+	instance *operatorv1alpha1.IBMLicensing, expectedRes ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+
+	namespacedName := types.NamespacedName{Name: expectedRes.GetName()}
+	return r.reconcileResourceExistance(instance, expectedRes, foundRes, namespacedName)
+}
+
+func (r *ReconcileIBMLicensing) reconcileResourceExistance(
+	instance *operatorv1alpha1.IBMLicensing, expectedRes ResourceObject, foundRes runtime.Object, namespacedName types.NamespacedName) (reconcile.Result, error) {
+
+	resType := reflect.TypeOf(expectedRes)
+	reqLogger := log.WithValues(resType, "Entry", "instance.GetName()", instance.GetName())
+
+	// expectedRes already set before and passed via parameter
+	err := controllerutil.SetControllerReference(instance, expectedRes, r.scheme)
+	if err != nil {
+		reqLogger.Error(err, "Failed to define expected resource")
+		return reconcile.Result{}, err
+	}
+
+	// foundRes already initialized before and passed via parameter
+	err = r.client.Get(context.TODO(), namespacedName, foundRes)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
+			"Namespace", expectedRes.GetNamespace())
+		err = r.client.Create(context.TODO(), expectedRes)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
+				"Namespace", expectedRes.GetNamespace())
+			return reconcile.Result{}, err
+		}
+		// Created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
+			"Namespace", expectedRes.GetNamespace())
+		return reconcile.Result{}, err
+	} else {
+		reqLogger.Info(resType.String() + " is correct")
+	}
+	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileIBMLicensing) reconcileNamespace(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	expectedNamespace := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: instance.Spec.APINamespace,
 		},
 	}
-
-	namespace := &corev1.Namespace{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: expectedNamespace.GetName()}, namespace)
-	if err != nil && errors.IsNotFound(err) {
-		// APISecretToken does not exist
-		reqLogger.Info("Namespace does not exist, creating namespace: ", expectedNamespace)
-		err = r.client.Create(context.TODO(), expectedNamespace)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new Namespace", "Namespace", expectedNamespace)
-			return reconcile.Result{}, err
-		}
-		// Secret created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-	} else if err != nil {
-		reqLogger.Error(err, "Failed to get namespace", expectedNamespace)
-		return reconcile.Result{}, err
-	}
-
-	// Reconcile the expected APISecretToken
-	recResult, recErr = r.reconcileAPISecretToken(instance)
-	if recErr != nil || recResult.Requeue {
-		return recResult, recErr
-	}
-
-	// Reconcile the expected deployment
-	recResult, recErr = r.reconcileDeployment(instance)
-	if recErr != nil || recResult.Requeue {
-		return recResult, recErr
-	}
-
-	// Reconcile the expected service
-	recResult, recErr = r.reconcileService(instance)
-	if recErr != nil || recResult.Requeue {
-		return recResult, recErr
-	}
-
-	reqLogger.Info("reconcile all done")
-	return reconcile.Result{}, nil
+	foundNamespace := &corev1.Namespace{}
+	return r.reconcileResourceClusterExistance(instance, expectedNamespace, foundNamespace)
 }
 
 func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -210,6 +367,7 @@ func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alph
 	}
 
 	currentAPISecret := &corev1.Secret{}
+	reqLogger.Info("APISecretToken GET", "get", types.NamespacedName{Name: instance.Spec.APISecretToken, Namespace: instance.Spec.APINamespace})
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.APISecretToken, Namespace: instance.Spec.APINamespace}, currentAPISecret)
 	if err != nil && errors.IsNotFound(err) {
 		// APISecretToken does not exist
