@@ -36,10 +36,8 @@ spec:
             apiSecretToken:
               type: string
             datasource:
-              description: '?TODO: maybe change to enum in future:'
               type: string
             httpsCertsSource:
-              description: '?TODO: maybe change to enum in future:'
               type: string
             httpsEnable:
               type: boolean
@@ -48,7 +46,6 @@ spec:
             imageTagPostfix:
               type: string
             logLevel:
-              description: '?TODO: maybe change to enum in future:'
               type: string
             operatorVersion:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -56,10 +53,9 @@ spec:
                 modifying this file Add custom validation using kubebuilder tags:
                 https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
               type: string
-            serviceAccountName:
-              type: string
           required:
           - apiNamespace
+          - datasource
           type: object
         status:
           description: IBMLicensingStatus defines the observed state of IBMLicensing

@@ -33,7 +33,7 @@ type IBMLicensingSpec struct {
 	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
 	APISecretToken  string `json:"apiSecretToken,omitempty"`
 	// ?TODO: maybe change to enum in future:
-	Datasource  string `json:"datasource,omitempty"`
+	Datasource  string `json:"datasource"`
 	HTTPSEnable bool   `json:"httpsEnable,omitempty"`
 	// ?TODO: maybe change to enum in future:
 	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
