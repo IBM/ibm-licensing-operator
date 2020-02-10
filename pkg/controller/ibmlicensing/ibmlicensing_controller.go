@@ -137,9 +137,6 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		// reqLogger.Error(err, "Failed to get IBMLicensing")
 		return reconcile.Result{}, err
 	}
-	// TODO: check if opVersion is needed at spec
-	opVersion := instance.Spec.OperatorVersion
-	reqLogger.Info("got IBMLicensing instance, version=" + opVersion + ", checking Service")
 
 	var recResult reconcile.Result
 	var recErr error
@@ -168,9 +165,40 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 }
 
 func (r *ReconcileIBMLicensing) reconcileServiceAccount(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	reqLogger := log.WithValues("reconcileServiceAccount", "Entry", "instance.GetName()", instance.GetName())
 	expectedSA := res.GetLicensingServiceAccount(instance)
 	foundSA := &corev1.ServiceAccount{}
-	return r.reconcileResourceNamespacedExistance(instance, expectedSA, foundSA)
+	reconcileResult, err := r.reconcileResourceNamespacedExistance(instance, expectedSA, foundSA)
+	if err != nil || reconcileResult.Requeue {
+		return reconcileResult, err
+	}
+	// Check if found SA has all necessary Pull Secrets
+	shouldUpdate := false
+	for _, imagePullSecret := range expectedSA.ImagePullSecrets {
+		if !res.Contains(foundSA.ImagePullSecrets, imagePullSecret) {
+			foundSA.ImagePullSecrets = append(foundSA.ImagePullSecrets, imagePullSecret)
+			shouldUpdate = true
+		}
+	}
+	if shouldUpdate {
+		//TODO: add updating deployment here
+		reqLogger.Info("Updating ServiceAccount", "Updated ServiceAccount", foundSA)
+		err = r.client.Update(context.TODO(), foundSA)
+		if err != nil {
+			reqLogger.Error(err, "Failed to update ServiceAccount, deleting...")
+			err = r.client.Delete(context.TODO(), foundSA)
+			if err != nil {
+				reqLogger.Error(err, "Failed to delete ServiceAccount during recreation")
+				return reconcile.Result{}, err
+			}
+			reqLogger.Info("Deleted ServiceAccount successfully")
+			return reconcile.Result{Requeue: true}, nil
+		}
+		reqLogger.Info("Updated ServiceAccount successfully")
+		// Spec updated - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	}
+	return reconcile.Result{}, nil
 }
 
 func (r *ReconcileIBMLicensing) reconcileRole(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -237,7 +265,6 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 	if err != nil || reconcileResult.Requeue {
 		return reconcileResult, err
 	}
-	reqLogger.Info("Found deployment", "Dep", foundDeployment)
 	foundSpec := foundDeployment.Spec.Template.Spec
 	expectedSpec := expectedDeployment.Spec.Template.Spec
 	if !reflect.DeepEqual(foundSpec.Volumes, expectedSpec.Volumes) {
@@ -278,7 +305,13 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 			"Deployment.Name", foundDeployment.Name, "Deployment.SA", foundSpec.ServiceAccountName,
 			"ExpectedDeployment.SA", expectedSpec.ServiceAccountName)
 		shouldUpdate = true
+	} else if !reflect.DeepEqual(foundSpec.Containers[0].SecurityContext, expectedSpec.Containers[0].SecurityContext) {
+		reqLogger.Info("Deployment wrong container security context", "Deployment.Namespace", foundDeployment.Namespace,
+			"Deployment.Name", foundDeployment.Name, "Deployment.SC", foundSpec.Containers[0].SecurityContext,
+			"ExpectedDeployment.SC", expectedSpec.Containers[0].SecurityContext)
+		shouldUpdate = true
 	}
+
 	if shouldUpdate {
 		// Spec is incorrect, update it and requeue
 		reqLogger.Info("Found deployment spec is incorrect", "Found", foundDeployment.Name, "Expected", expectedDeployment.Name)

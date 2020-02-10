@@ -36,26 +36,43 @@ spec:
             apiSecretToken:
               type: string
             datasource:
+              description: '?TODO: maybe change to enum in future:'
               type: string
             httpsCertsSource:
+              description: '?TODO: maybe change to enum in future:'
               type: string
             httpsEnable:
               type: boolean
+            imagePullSecrets:
+              items:
+                type: string
+              type: array
             imageRegistry:
-              type: string
-            imageTagPostfix:
-              type: string
-            logLevel:
-              type: string
-            operatorVersion:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                 Important: Run "operator-sdk generate k8s" to regenerate code after
                 modifying this file Add custom validation using kubebuilder tags:
                 https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
               type: string
+            imageTagPostfix:
+              type: string
+            logLevel:
+              description: '?TODO: maybe change to enum in future:'
+              type: string
+            securityContext:
+              properties:
+                runAsUser:
+                  format: int64
+                  type: integer
+              required:
+              - runAsUser
+              type: object
           required:
           - apiNamespace
+          - apiSecretToken
           - datasource
+          - httpsEnable
+          - imageRegistry
+          - imageTagPostfix
           type: object
         status:
           description: IBMLicensingStatus defines the observed state of IBMLicensing

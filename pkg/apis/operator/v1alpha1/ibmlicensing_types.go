@@ -28,18 +28,23 @@ type IBMLicensingSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	OperatorVersion string `json:"operatorVersion,omitempty"`
-	ImageRegistry   string `json:"imageRegistry,omitempty"`
-	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
-	APISecretToken  string `json:"apiSecretToken,omitempty"`
+	ImageRegistry   string `json:"imageRegistry"`
+	ImageTagPostfix string `json:"imageTagPostfix"`
+	APISecretToken  string `json:"apiSecretToken"`
 	// ?TODO: maybe change to enum in future:
 	Datasource  string `json:"datasource"`
-	HTTPSEnable bool   `json:"httpsEnable,omitempty"`
+	HTTPSEnable bool   `json:"httpsEnable"`
 	// ?TODO: maybe change to enum in future:
 	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
 	// ?TODO: maybe change to enum in future:
-	LogLevel     string `json:"logLevel,omitempty"`
-	APINamespace string `json:"apiNamespace"`
+	LogLevel         string                      `json:"logLevel,omitempty"`
+	APINamespace     string                      `json:"apiNamespace"`
+	SecurityContext  IBMLicensingSecurityContext `json:"securityContext,omitempty"`
+	ImagePullSecrets []string                    `json:"imagePullSecrets,omitempty"`
+}
+
+type IBMLicensingSecurityContext struct {
+	RunAsUser int64 `json:"runAsUser"`
 }
 
 // IBMLicensingStatus defines the observed state of IBMLicensing

@@ -11,5 +11,4 @@ spec:
   imageRegistry: quay.io/opencloudio/ibm-licensing
   imageTagPostfix: 1.0.0
   logLevel: INFO
-  operatorVersion: v1.0
   apiNamespace: kube-system

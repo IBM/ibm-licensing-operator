@@ -21,6 +21,7 @@ import (
 	"time"
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
@@ -69,4 +70,13 @@ func LabelsForLicensingMeta(instance *operatorv1alpha1.IBMLicensing) map[string]
 func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {
 	return map[string]string{"app": GetResourceName(instance), "component": LicensingComponentName, "licensing_cr": instance.GetName(),
 		"app.kubernetes.io/name": GetResourceName(instance), "app.kubernetes.io/component": LicensingComponentName, "release": LicensingReleaseName}
+}
+
+func Contains(s []corev1.LocalObjectReference, e corev1.LocalObjectReference) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }

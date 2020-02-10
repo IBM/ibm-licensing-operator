@@ -25,17 +25,22 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-var licensingSecurityContext = corev1.SecurityContext{
-	AllowPrivilegeEscalation: &FalseVar,
-	Privileged:               &FalseVar,
-	ReadOnlyRootFilesystem:   &FalseVar,
-	// RunAsNonRoot:             &TrueVar,
-	// RunAsUser:                &user99,
-	Capabilities: &corev1.Capabilities{
-		Drop: []corev1.Capability{
-			"ALL",
+func getLicensingSecurityContext(spec operatorv1alpha1.IBMLicensingSpec) *corev1.SecurityContext {
+	securityContext := &corev1.SecurityContext{
+		AllowPrivilegeEscalation: &FalseVar,
+		Privileged:               &FalseVar,
+		ReadOnlyRootFilesystem:   &FalseVar,
+		RunAsNonRoot:             &TrueVar,
+		Capabilities: &corev1.Capabilities{
+			Drop: []corev1.Capability{
+				"ALL",
+			},
 		},
-	},
+	}
+	if spec.SecurityContext.RunAsUser != 0 {
+		securityContext.RunAsUser = &spec.SecurityContext.RunAsUser
+	}
+	return securityContext
 }
 
 func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
@@ -140,6 +145,6 @@ func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Contai
 				corev1.ResourceCPU:    *cpu200m,
 				corev1.ResourceMemory: *memory256Mi},
 		},
-		SecurityContext: &licensingSecurityContext,
+		SecurityContext: getLicensingSecurityContext(spec),
 	}
 }

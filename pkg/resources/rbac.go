@@ -28,12 +28,19 @@ func GetServiceAccountName(instance *operatorv1alpha1.IBMLicensing) string {
 }
 
 func GetLicensingServiceAccount(instance *operatorv1alpha1.IBMLicensing) *corev1.ServiceAccount {
-	return &corev1.ServiceAccount{
+	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetServiceAccountName(instance),
 			Namespace: instance.Spec.APINamespace,
 		},
 	}
+	if instance.Spec.ImagePullSecrets != nil {
+		serviceAccount.ImagePullSecrets = []corev1.LocalObjectReference{}
+		for _, imagePullSecret := range instance.Spec.ImagePullSecrets {
+			serviceAccount.ImagePullSecrets = append(serviceAccount.ImagePullSecrets, corev1.LocalObjectReference{Name: imagePullSecret})
+		}
+	}
+	return serviceAccount
 }
 
 func GetLicensingRole(instance *operatorv1alpha1.IBMLicensing) *rbacv1.Role {
