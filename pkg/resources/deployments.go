@@ -47,6 +47,7 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
+					ServiceAccountName:            GetServiceAccountName(instance),
 					TerminationGracePeriodSeconds: &seconds60,
 					Affinity: &corev1.Affinity{
 						NodeAffinity: &corev1.NodeAffinity{
