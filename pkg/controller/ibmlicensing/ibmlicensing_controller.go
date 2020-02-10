@@ -160,6 +160,30 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		}
 	}
 
+	podList := &corev1.PodList{}
+	listOpts := []client.ListOption{
+		client.InNamespace(instance.Spec.APINamespace),
+		client.MatchingLabels(res.LabelsForLicensingPod(instance)),
+	}
+	if err = r.client.List(context.TODO(), podList, listOpts...); err != nil {
+		reqLogger.Error(err, "Failed to list pods")
+		return reconcile.Result{}, err
+	}
+	podNames := []string{}
+	for _, pod := range podList.Items {
+		podNames = append(podNames, pod.Name)
+	}
+
+	if !reflect.DeepEqual(podNames, instance.Status.Nodes) {
+		reqLogger.Info("Updating IBMLicensing status", "Name", instance.Name)
+		instance.Status.Nodes = podNames
+		err := r.client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			reqLogger.Error(err, "Failed to update status")
+			return reconcile.Result{}, err
+		}
+	}
+
 	reqLogger.Info("reconcile all done")
 	return reconcile.Result{}, nil
 }
