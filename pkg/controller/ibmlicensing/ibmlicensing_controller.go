@@ -174,9 +174,9 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		podNames = append(podNames, pod.Name)
 	}
 
-	if !reflect.DeepEqual(podNames, instance.Status.Nodes) {
+	if !reflect.DeepEqual(podNames, instance.Status.Pods) {
 		reqLogger.Info("Updating IBMLicensing status", "Name", instance.Name)
-		instance.Status.Nodes = podNames
+		instance.Status.Pods = podNames
 		err := r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
 			reqLogger.Error(err, "Failed to update status")

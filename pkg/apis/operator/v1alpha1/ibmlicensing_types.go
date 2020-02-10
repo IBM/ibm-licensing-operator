@@ -52,9 +52,9 @@ type IBMLicensingStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	// Nodes are the names of the licensing pods
+	// Pods are the names of the licensing pods
 	// ?TODO: validate what is needed here for appropriate status
-	Nodes []string `json:"nodes"`
+	Pods []string `json:"pods"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
