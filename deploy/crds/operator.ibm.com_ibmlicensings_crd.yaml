@@ -31,8 +31,6 @@ spec:
         spec:
           description: IBMLicensingSpec defines the desired state of IBMLicensing
           properties:
-            instanceNamespace:
-              type: string
             apiSecretToken:
               type: string
             datasource:
@@ -55,6 +53,8 @@ spec:
               type: string
             imageTagPostfix:
               type: string
+            instanceNamespace:
+              type: string
             logLevel:
               description: '?TODO: maybe change to enum in future:'
               type: string
@@ -67,12 +67,12 @@ spec:
               - runAsUser
               type: object
           required:
-          - instanceNamespace
           - apiSecretToken
           - datasource
           - httpsEnable
           - imageRegistry
           - imageTagPostfix
+          - instanceNamespace
           type: object
         status:
           description: IBMLicensingStatus defines the observed state of IBMLicensing
