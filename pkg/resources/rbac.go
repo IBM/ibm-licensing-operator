@@ -31,7 +31,7 @@ func GetLicensingServiceAccount(instance *operatorv1alpha1.IBMLicensing) *corev1
 	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetServiceAccountName(instance),
-			Namespace: instance.Spec.APINamespace,
+			Namespace: instance.Spec.InstanceNamespace,
 		},
 	}
 	if instance.Spec.ImagePullSecrets != nil {
@@ -47,7 +47,7 @@ func GetLicensingRole(instance *operatorv1alpha1.IBMLicensing) *rbacv1.Role {
 	return &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetResourceName(instance),
-			Namespace: instance.Spec.APINamespace,
+			Namespace: instance.Spec.InstanceNamespace,
 		},
 		Rules: []rbacv1.PolicyRule{{
 			Verbs:     []string{"create", "get", "list", "update"},
@@ -61,13 +61,13 @@ func GetLicensingRoleBinding(instance *operatorv1alpha1.IBMLicensing) *rbacv1.Ro
 	return &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetResourceName(instance),
-			Namespace: instance.Spec.APINamespace,
+			Namespace: instance.Spec.InstanceNamespace,
 		},
 		Subjects: []rbacv1.Subject{{
 			APIGroup:  "",
 			Kind:      "ServiceAccount",
 			Name:      GetServiceAccountName(instance),
-			Namespace: instance.Spec.APINamespace,
+			Namespace: instance.Spec.InstanceNamespace,
 		}},
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
@@ -99,7 +99,7 @@ func GetLicensingClusterRoleBinding(instance *operatorv1alpha1.IBMLicensing) *rb
 			APIGroup:  "",
 			Kind:      "ServiceAccount",
 			Name:      GetServiceAccountName(instance),
-			Namespace: instance.Spec.APINamespace,
+			Namespace: instance.Spec.InstanceNamespace,
 		}},
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",

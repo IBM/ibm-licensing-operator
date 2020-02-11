@@ -37,10 +37,10 @@ type IBMLicensingSpec struct {
 	// ?TODO: maybe change to enum in future:
 	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
 	// ?TODO: maybe change to enum in future:
-	LogLevel         string                      `json:"logLevel,omitempty"`
-	APINamespace     string                      `json:"apiNamespace"`
-	SecurityContext  IBMLicensingSecurityContext `json:"securityContext,omitempty"`
-	ImagePullSecrets []string                    `json:"imagePullSecrets,omitempty"`
+	LogLevel          string                      `json:"logLevel,omitempty"`
+	InstanceNamespace string                      `json:"instanceNamespace"`
+	SecurityContext   IBMLicensingSecurityContext `json:"securityContext,omitempty"`
+	ImagePullSecrets  []string                    `json:"imagePullSecrets,omitempty"`
 }
 
 type IBMLicensingSecurityContext struct {

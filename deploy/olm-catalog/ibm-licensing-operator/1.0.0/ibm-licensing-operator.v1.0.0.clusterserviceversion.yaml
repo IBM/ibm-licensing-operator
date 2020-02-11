@@ -11,7 +11,7 @@ metadata:
             "name": "example-ibmlicensing"
           },
           "spec": {
-            "apiNamespace": "kube-system",
+            "instanceNamespace": "kube-system",
             "apiSecretToken": "ibm-licensing-token",
             "datasource": "datacollector",
             "httpsCertsSource": "self-signed",
@@ -24,7 +24,7 @@ metadata:
       ]
     capabilities: Basic Install
   name: ibm-licensing-operator.v1.0.0
-  namespace: placeholder
+  namespace: licensing-operator
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
@@ -33,8 +33,8 @@ spec:
       kind: IBMLicensing
       name: ibmlicensings.operator.ibm.com
       version: v1alpha1
-  description: Placeholder description
-  displayName: Ibm Licensing Operator
+  description: This operator deploys and reconcile IBM Licensing Service which collects licensing information inside cluster
+  displayName: IBM Licensing Operator
   install:
     spec:
       clusterPermissions:
@@ -172,7 +172,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: ibm-licensing-operator
-                image: quay.io/opencloudio/ibm-licensing-image:1.0.0
+                image: quay.io/opencloudio/ibm-licensing-operator:1.0.0
                 imagePullPolicy: Always
                 name: ibm-licensing-operator
                 resources: {}

@@ -34,7 +34,7 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetResourceName(instance),
-			Namespace: instance.Spec.APINamespace,
+			Namespace: instance.Spec.InstanceNamespace,
 			Labels:    metaLabels,
 		},
 		Spec: appsv1.DeploymentSpec{

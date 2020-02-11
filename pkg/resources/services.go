@@ -47,7 +47,7 @@ func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servic
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetResourceName(instance),
-			Namespace: instance.Spec.APINamespace,
+			Namespace: instance.Spec.InstanceNamespace,
 			Labels:    metaLabels,
 			// TODO: check if needed:
 			// Annotations: map[string]string{"prometheus.io/scrape": "false", "prometheus.io/scheme": "http"},

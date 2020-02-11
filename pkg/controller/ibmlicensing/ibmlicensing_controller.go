@@ -162,7 +162,7 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 
 	podList := &corev1.PodList{}
 	listOpts := []client.ListOption{
-		client.InNamespace(instance.Spec.APINamespace),
+		client.InNamespace(instance.Spec.InstanceNamespace),
 		client.MatchingLabels(res.LabelsForLicensingPod(instance)),
 	}
 	if err = r.client.List(context.TODO(), podList, listOpts...); err != nil {
@@ -252,7 +252,7 @@ func (r *ReconcileIBMLicensing) reconcileClusterRoleBinding(instance *operatorv1
 func (r *ReconcileIBMLicensing) reconcileNamespace(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	expectedNamespace := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: instance.Spec.APINamespace,
+			Name: instance.Spec.InstanceNamespace,
 		},
 	}
 	foundNamespace := &corev1.Namespace{}
@@ -264,7 +264,7 @@ func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alph
 	expectedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Spec.APISecretToken,
-			Namespace: instance.Spec.APINamespace,
+			Namespace: instance.Spec.InstanceNamespace,
 			Labels:    metaLabels,
 		},
 		Type:       corev1.SecretTypeOpaque,

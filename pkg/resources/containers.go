@@ -48,7 +48,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 	var environmentVariables = []corev1.EnvVar{
 		{
 			Name:  "NAMESPACE",
-			Value: spec.APINamespace,
+			Value: spec.InstanceNamespace,
 		},
 		{
 			Name:  "DATASOURCE",

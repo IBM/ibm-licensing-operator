@@ -31,7 +31,7 @@ spec:
         spec:
           description: IBMLicensingSpec defines the desired state of IBMLicensing
           properties:
-            apiNamespace:
+            instanceNamespace:
               type: string
             apiSecretToken:
               type: string
@@ -67,7 +67,7 @@ spec:
               - runAsUser
               type: object
           required:
-          - apiNamespace
+          - instanceNamespace
           - apiSecretToken
           - datasource
           - httpsEnable
