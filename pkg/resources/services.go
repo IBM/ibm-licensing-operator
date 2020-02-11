@@ -19,9 +19,15 @@ package resources
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func GetServiceSpec(instance *operatorv1alpha1.IBMLicensing) corev1.ServiceSpec {
+const licensingContainerPort int32 = 8080
+
+var licensingTargetPort intstr.IntOrString = intstr.FromInt(8080)
+
+func getServiceSpec(instance *operatorv1alpha1.IBMLicensing) corev1.ServiceSpec {
 	return corev1.ServiceSpec{
 		Type: corev1.ServiceTypeClusterIP,
 		Ports: []corev1.ServicePort{
@@ -33,5 +39,19 @@ func GetServiceSpec(instance *operatorv1alpha1.IBMLicensing) corev1.ServiceSpec 
 			},
 		},
 		Selector: LabelsForLicensingSelector(instance),
+	}
+}
+
+func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
+	metaLabels := LabelsForLicensingMeta(instance)
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      GetResourceName(instance),
+			Namespace: instance.Spec.InstanceNamespace,
+			Labels:    metaLabels,
+			// TODO: check if needed:
+			// Annotations: map[string]string{"prometheus.io/scrape": "false", "prometheus.io/scheme": "http"},
+		},
+		Spec: getServiceSpec(instance),
 	}
 }

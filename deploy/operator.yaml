@@ -15,16 +15,13 @@ spec:
       serviceAccountName: ibm-licensing-operator
       containers:
         - name: ibm-licensing-operator
-          # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: quay.io/opencloudio/ibm-licensing-operator:1.0.0
           command:
           - ibm-licensing-operator
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: ""
             - name: POD_NAME
               valueFrom:
                 fieldRef:

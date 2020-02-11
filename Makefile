@@ -1,16 +1,17 @@
-# Copyright 2019 The Kubernetes Authors.
+#
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -52,8 +53,10 @@ endif
 
 all: fmt check test coverage build images
 
-ifneq ("$(realpath $(DEST))", "$(realpath $(PWD))")
-    $(error Please run 'make' from $(DEST). Current directory is $(PWD))
+ifeq ($(BUILD_LOCALLY),0)
+    ifneq ("$(realpath $(DEST))", "$(realpath $(PWD))")
+        $(error Please run 'make' from $(DEST). Current directory is $(PWD))
+    endif
 endif
 
 include common/Makefile.common.mk
@@ -82,6 +85,7 @@ fmt: format-go format-protos format-python
 
 check: lint
 
+
 # All available linters: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-python lint-helm lint-markdown lint-sass lint-typescript lint-protos
 # Default value will run all linters, override these make target with your requirements:
 #    eg: lint: lint-go lint-yaml
@@ -99,13 +103,13 @@ test:
 ############################################################
 
 coverage:
-	@common/scripts/codecov.sh
+	@common/scripts/codecov.sh ${BUILD_LOCALLY}
 
 ############################################################
 # install operator sdk section
 ############################################################
 
-install-operator-sdk: 
+install-operator-sdk:
 	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then ./common/scripts/install-operator-sdk.sh; fi
 
 ############################################################

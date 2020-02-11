@@ -25,54 +25,30 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-var licensingSecurityContext = corev1.SecurityContext{
-	AllowPrivilegeEscalation: &FalseVar,
-	Privileged:               &FalseVar,
-	ReadOnlyRootFilesystem:   &FalseVar,
-	// RunAsNonRoot:             &TrueVar,
-	// RunAsUser:                &user99,
-	Capabilities: &corev1.Capabilities{
-		Drop: []corev1.Capability{
-			"ALL",
-		},
-	},
-}
-
-func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.VolumeMount {
-	var volumeMounts = []corev1.VolumeMount{
-		{
-			Name:      APISecretTokenVolumeName,
-			MountPath: "/opt/ibm/licensing",
-			ReadOnly:  true,
+func getLicensingSecurityContext(spec operatorv1alpha1.IBMLicensingSpec) *corev1.SecurityContext {
+	securityContext := &corev1.SecurityContext{
+		AllowPrivilegeEscalation: &FalseVar,
+		Privileged:               &FalseVar,
+		ReadOnlyRootFilesystem:   &FalseVar,
+		RunAsNonRoot:             &TrueVar,
+		Capabilities: &corev1.Capabilities{
+			Drop: []corev1.Capability{
+				"ALL",
+			},
 		},
 	}
-	if spec.HTTPSEnable {
-		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
-			{
-				Name:      LicensingHTTPSCertsVolumeName,
-				MountPath: "/opt/licensing/certs/",
-				ReadOnly:  true,
-			},
-		}...)
+	if spec.SecurityContext.RunAsUser != 0 {
+		securityContext.RunAsUser = &spec.SecurityContext.RunAsUser
 	}
-	if spec.IsMetering() {
-		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
-			{
-				Name:      MeteringAPICertsVolumeName,
-				MountPath: "/opt/metering/certs/",
-				ReadOnly:  true,
-			},
-		}...)
-	}
-	return volumeMounts
+	return securityContext
 }
 
-func getLicensingEnvironmentVariables(namespace string, spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
+func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
 	var httpsEnableString = strconv.FormatBool(spec.HTTPSEnable)
 	var environmentVariables = []corev1.EnvVar{
 		{
 			Name:  "NAMESPACE",
-			Value: namespace,
+			Value: spec.InstanceNamespace,
 		},
 		{
 			Name:  "DATASOURCE",
@@ -131,16 +107,19 @@ func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.Handler {
 	}
 }
 
-func GetLicensingContainer(namespace string, spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
+func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
 	var probeHandler = getProbeHandler(spec)
 	return corev1.Container{
 		Image:           spec.GetFullImage(),
 		Name:            "license-service",
 		ImagePullPolicy: corev1.PullAlways,
 		VolumeMounts:    getLicensingVolumeMounts(spec),
-		Env:             getLicensingEnvironmentVariables(namespace, spec),
+		Env:             getLicensingEnvironmentVariables(spec),
 		Ports: []corev1.ContainerPort{
-			{ContainerPort: licensingContainerPort},
+			{
+				ContainerPort: licensingContainerPort,
+				Protocol:      corev1.ProtocolTCP,
+			},
 		},
 		LivenessProbe: &corev1.Probe{
 			Handler:             probeHandler,
@@ -166,6 +145,6 @@ func GetLicensingContainer(namespace string, spec operatorv1alpha1.IBMLicensingS
 				corev1.ResourceCPU:    *cpu200m,
 				corev1.ResourceMemory: *memory256Mi},
 		},
-		SecurityContext: &licensingSecurityContext,
+		SecurityContext: getLicensingSecurityContext(spec),
 	}
 }

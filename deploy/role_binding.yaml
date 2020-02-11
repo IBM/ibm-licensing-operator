@@ -1,11 +1,13 @@
-kind: RoleBinding
+kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: ibm-licensing-operator
 subjects:
 - kind: ServiceAccount
   name: ibm-licensing-operator
+# TODO: is this good namespace, can it be parametrized
+  namespace: kube-system
 roleRef:
-  kind: Role
+  kind: ClusterRole
   name: ibm-licensing-operator
   apiGroup: rbac.authorization.k8s.io

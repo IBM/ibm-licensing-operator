@@ -9,7 +9,7 @@ spec:
     listKind: IBMLicensingList
     plural: ibmlicensings
     singular: ibmlicensing
-  scope: Namespaced
+  scope: Cluster
   subresources:
     status: {}
   validation:
@@ -34,40 +34,56 @@ spec:
             apiSecretToken:
               type: string
             datasource:
+              description: '?TODO: maybe change to enum in future:'
               type: string
             httpsCertsSource:
+              description: '?TODO: maybe change to enum in future:'
               type: string
             httpsEnable:
               type: boolean
+            imagePullSecrets:
+              items:
+                type: string
+              type: array
             imageRegistry:
-              type: string
-            imageTagPostfix:
-              type: string
-            logLevel:
-              type: string
-            operatorVersion:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                 Important: Run "operator-sdk generate k8s" to regenerate code after
                 modifying this file Add custom validation using kubebuilder tags:
                 https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
               type: string
-            serviceAccountName:
+            imageTagPostfix:
               type: string
+            instanceNamespace:
+              type: string
+            logLevel:
+              description: '?TODO: maybe change to enum in future:'
+              type: string
+            securityContext:
+              properties:
+                runAsUser:
+                  format: int64
+                  type: integer
+              required:
+              - runAsUser
+              type: object
+          required:
+          - apiSecretToken
+          - datasource
+          - httpsEnable
+          - imageRegistry
+          - imageTagPostfix
+          - instanceNamespace
           type: object
         status:
           description: IBMLicensingStatus defines the observed state of IBMLicensing
           properties:
-            nodes:
-              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                of cluster Important: Run "operator-sdk generate k8s" to regenerate
-                code after modifying this file Add custom validation using kubebuilder
-                tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-                Nodes are the names of the licensing pods'
+            licensingPods:
+              description: LicensingPods are the names of the licensing pods
               items:
                 type: string
               type: array
           required:
-          - nodes
+          - licensingPods
           type: object
       type: object
   version: v1alpha1
