@@ -172,7 +172,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: ibm-licensing-operator
-                image: REPLACE_IMAGE
+                image: quay.io/opencloudio/ibm-licensing-image:1.0.0
                 imagePullPolicy: Always
                 name: ibm-licensing-operator
                 resources: {}

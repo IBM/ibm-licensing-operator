@@ -15,8 +15,7 @@ spec:
       serviceAccountName: ibm-licensing-operator
       containers:
         - name: ibm-licensing-operator
-          # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: quay.io/opencloudio/ibm-licensing-image:1.0.0
           command:
           - ibm-licensing-operator
           imagePullPolicy: Always
