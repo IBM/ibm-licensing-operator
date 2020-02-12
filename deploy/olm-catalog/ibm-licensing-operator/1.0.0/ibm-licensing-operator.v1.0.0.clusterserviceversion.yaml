@@ -39,6 +39,7 @@ spec:
     owned:
     - description: IBMLicensing is the Schema for the ibmlicensings API
       kind: IBMLicensing
+      displayName: IBM Licensing
       name: ibmlicensings.operator.ibm.com
       version: v1alpha1
   description: This operator deploys and reconcile IBM Licensing Service which collects licensing information inside cluster
