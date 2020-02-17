@@ -32,33 +32,43 @@ spec:
           description: IBMLicensingSpec defines the desired state of IBMLicensing
           properties:
             apiSecretToken:
+              description: Secret name used to store application token, either one
+                that exists, or one that will be created
               type: string
             datasource:
-              description: '?TODO: maybe change to enum in future:'
+              description: 'Where should data be collected, options: metering, datacollector'
               type: string
             httpsCertsSource:
-              description: '?TODO: maybe change to enum in future:'
+              description: 'options: self-signed or custom'
               type: string
             httpsEnable:
+              description: Enables https access at pod level, httpsCertsSource needed
+                if true
               type: boolean
             imagePullSecrets:
+              description: Array of pull secrets which should include existing at
+                InstanceNamespace secret to allow pulling IBM Licensing image
               items:
                 type: string
               type: array
             imageRegistry:
-              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                Important: Run "operator-sdk generate k8s" to regenerate code after
-                modifying this file Add custom validation using kubebuilder tags:
-                https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              description: Registry and image to IBM Licensing application
               type: string
             imageTagPostfix:
+              description: IBM Licensing application tag
               type: string
             instanceNamespace:
+              description: Existing or to be created namespace where application will
+                start. In case metering datacollection is used, should be the same
+                namespace as metering components
               type: string
             logLevel:
-              description: '?TODO: maybe change to enum in future:'
+              description: 'Should application pod show additional information, options:
+                DEBUG, INFO'
               type: string
             securityContext:
+              description: If default SCC user ID fails, you can set runAsUser option
+                to fix that
               properties:
                 runAsUser:
                   format: int64

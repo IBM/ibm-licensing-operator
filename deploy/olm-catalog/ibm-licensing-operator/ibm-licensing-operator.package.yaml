@@ -1,5 +1,5 @@
 channels:
-- currentCSV: ibm-licensing-operator.v1.0.0
+- currentCSV: ibm-licensing-operator.v1.0.1
   name: alpha
 defaultChannel: alpha
 packageName: ibm-licensing-operator-app

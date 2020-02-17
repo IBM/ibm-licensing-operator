@@ -25,22 +25,28 @@ import (
 
 // IBMLicensingSpec defines the desired state of IBMLicensing
 type IBMLicensingSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	ImageRegistry   string `json:"imageRegistry"`
+	// Registry and image to IBM Licensing application
+	ImageRegistry string `json:"imageRegistry"`
+	// IBM Licensing application tag
 	ImageTagPostfix string `json:"imageTagPostfix"`
-	APISecretToken  string `json:"apiSecretToken"`
-	// ?TODO: maybe change to enum in future:
-	Datasource  string `json:"datasource"`
-	HTTPSEnable bool   `json:"httpsEnable"`
-	// ?TODO: maybe change to enum in future:
+	// Secret name used to store application token, either one that exists, or one that will be created
+	APISecretToken string `json:"apiSecretToken"`
+	// Where should data be collected, options: metering, datacollector
+	Datasource string `json:"datasource"`
+	// Enables https access at pod level, httpsCertsSource needed if true
+	HTTPSEnable bool `json:"httpsEnable"`
+	// options: self-signed or custom
 	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
-	// ?TODO: maybe change to enum in future:
-	LogLevel          string                      `json:"logLevel,omitempty"`
-	InstanceNamespace string                      `json:"instanceNamespace"`
-	SecurityContext   IBMLicensingSecurityContext `json:"securityContext,omitempty"`
-	ImagePullSecrets  []string                    `json:"imagePullSecrets,omitempty"`
+	// Should application pod show additional information, options: DEBUG, INFO
+	LogLevel string `json:"logLevel,omitempty"`
+	// Existing or to be created namespace where application will start. In case metering datacollection is used,
+	// should be the same namespace as metering components
+	InstanceNamespace string `json:"instanceNamespace"`
+	// If default SCC user ID fails, you can set runAsUser option to fix that
+	SecurityContext IBMLicensingSecurityContext `json:"securityContext,omitempty"`
+	// Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing image
+	// +listType=set
+	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
 }
 
 type IBMLicensingSecurityContext struct {
