@@ -1,14 +1,13 @@
 apiVersion: operator.ibm.com/v1alpha1
 kind: IBMLicensing
 metadata:
-  name: example-ibmlicensing
+  name: instance
 spec:
-  # Add fields here
   apiSecretToken: ibm-licensing-token
   datasource: datacollector
-  httpsCertsSource: self-signed
   httpsEnable: false
-  imageRegistry: quay.io/opencloudio/ibm-licensing
+  imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom/ibm-licensing-amd64
   imageTagPostfix: 1.0.0
-  logLevel: INFO
-  instanceNamespace: kube-system
+  instanceNamespace: ibm-common-services
+  imagePullSecrets:
+    - artifactory-token

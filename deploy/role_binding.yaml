@@ -5,8 +5,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: ibm-licensing-operator
-# TODO: is this good namespace, can it be parametrized
-  namespace: kube-system
+  namespace: ibm-common-services
 roleRef:
   kind: ClusterRole
   name: ibm-licensing-operator

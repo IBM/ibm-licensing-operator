@@ -19,9 +19,11 @@ package ibmlicensing
 import (
 	"context"
 	"reflect"
+	"time"
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
+	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -73,8 +75,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create that are owned by the primary resource
-	// Watch for changes to secondary resource "Deployment" and requeue the owner IBMLicensing
+	// Watch for changes to secondary resources
 	secondaryResourceTypes := []runtime.Object{
 		&rbacv1.Role{},
 		&rbacv1.RoleBinding{},
@@ -84,6 +85,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&corev1.Secret{},
 		&appsv1.Deployment{},
 		&corev1.Service{},
+		//TODO: add validation if route resource exists
+		&routev1.Route{},
 	}
 
 	for _, restype := range secondaryResourceTypes {
@@ -151,6 +154,7 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		r.reconcileAPISecretToken,
 		r.reconcileDeployment,
 		r.reconcileService,
+		r.reconcileRoute,
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
@@ -169,14 +173,25 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		reqLogger.Error(err, "Failed to list pods")
 		return reconcile.Result{}, err
 	}
-	podNames := []string{}
+
+	podStatuses := []corev1.PodStatus{}
 	for _, pod := range podList.Items {
-		podNames = append(podNames, pod.Name)
+		if pod.Status.Conditions != nil {
+			for _, podCondition := range pod.Status.Conditions {
+				if (podCondition.LastProbeTime == metav1.Time{Time: time.Time{}}) {
+					// Time{} is treated as null and causes error at status update so value so need to change it to some other default empty value
+					podCondition.LastProbeTime = metav1.Time{
+						Time: time.Unix(0, 1),
+					}
+				}
+			}
+		}
+		podStatuses = append(podStatuses, pod.Status)
 	}
 
-	if !reflect.DeepEqual(podNames, instance.Status.LicensingPods) {
+	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) {
 		reqLogger.Info("Updating IBMLicensing status", "Name", instance.Name)
-		instance.Status.LicensingPods = podNames
+		instance.Status.LicensingPods = podStatuses
 		err := r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
 			reqLogger.Error(err, "Failed to update status")
@@ -289,6 +304,7 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 	if err != nil || reconcileResult.Requeue {
 		return reconcileResult, err
 	}
+	// TODO: this should be refactored in some nice way where you only declare which parameters needs to be correct between resources
 	foundSpec := foundDeployment.Spec.Template.Spec
 	expectedSpec := expectedDeployment.Spec.Template.Spec
 	if !reflect.DeepEqual(foundSpec.Volumes, expectedSpec.Volumes) {
@@ -365,6 +381,12 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileIBMLicensing) reconcileRoute(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	expectedRoute := res.GetLicensingRoute(instance)
+	foundRoute := &routev1.Route{}
+	return r.reconcileResourceNamespacedExistance(instance, expectedRoute, foundRoute)
 }
 
 type ResourceObject interface {

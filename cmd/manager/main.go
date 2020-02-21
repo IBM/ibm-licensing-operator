@@ -45,6 +45,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+
+	routev1 "github.com/openshift/api/route/v1"
 )
 
 // Change below variables to serve metrics on different host or port.
@@ -124,6 +126,11 @@ func main() {
 	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
+	}
+
+	// Add Route resource for OpenShift clusters
+	if err := routev1.AddToScheme(mgr.GetScheme()); err != nil {
+		log.Error(err, "Not exiting, since Route can be not available at not OpenShift cluster")
 	}
 
 	// Setup all Controllers

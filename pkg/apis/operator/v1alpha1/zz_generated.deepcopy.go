@@ -21,6 +21,7 @@
 package v1alpha1
 
 import (
+	v1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -128,8 +129,10 @@ func (in *IBMLicensingStatus) DeepCopyInto(out *IBMLicensingStatus) {
 	*out = *in
 	if in.LicensingPods != nil {
 		in, out := &in.LicensingPods, &out.LicensingPods
-		*out = make([]string, len(*in))
-		copy(*out, *in)
+		*out = make([]v1.PodStatus, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 	return
 }

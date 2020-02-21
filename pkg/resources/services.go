@@ -26,13 +26,14 @@ import (
 const licensingContainerPort int32 = 8080
 
 var licensingTargetPort intstr.IntOrString = intstr.FromInt(8080)
+var licensingTargetPortName intstr.IntOrString = intstr.FromString("http")
 
 func getServiceSpec(instance *operatorv1alpha1.IBMLicensing) corev1.ServiceSpec {
 	return corev1.ServiceSpec{
 		Type: corev1.ServiceTypeClusterIP,
 		Ports: []corev1.ServicePort{
 			{
-				Name:       "http",
+				Name:       licensingTargetPortName.String(),
 				Port:       licensingContainerPort,
 				TargetPort: licensingTargetPort,
 				Protocol:   corev1.ProtocolTCP,
