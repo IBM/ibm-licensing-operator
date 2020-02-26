@@ -26,6 +26,7 @@ import (
 )
 
 func getLicensingSecurityContext(spec operatorv1alpha1.IBMLicensingSpec) *corev1.SecurityContext {
+	procMount := corev1.DefaultProcMount
 	securityContext := &corev1.SecurityContext{
 		AllowPrivilegeEscalation: &FalseVar,
 		Privileged:               &FalseVar,
@@ -36,6 +37,7 @@ func getLicensingSecurityContext(spec operatorv1alpha1.IBMLicensingSpec) *corev1
 				"ALL",
 			},
 		},
+		ProcMount: &procMount,
 	}
 	if spec.SecurityContext.RunAsUser != 0 {
 		securityContext.RunAsUser = &spec.SecurityContext.RunAsUser

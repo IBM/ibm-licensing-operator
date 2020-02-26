@@ -128,11 +128,24 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Try to fetch Routes to check if on OpenShift cluster
+	// var isOpenshiftCluster = true
+	// routeTestInstance := &routev1.Route{}
+	// err = mgr.GetClient().Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
+	// if err != nil {
+	// 	log.Error(err, "Not exiting, since Route can be not available at non OpenShift cluster")
+	// 	isOpenshiftCluster = false
+	// }
+
+	// if isOpenshiftCluster {
 	// Add Route resource for OpenShift clusters
 	if err := routev1.AddToScheme(mgr.GetScheme()); err != nil {
-		log.Error(err, "Not exiting, since Route can be not available at not OpenShift cluster")
+		log.Error(err, "")
+		os.Exit(1)
 	}
+	// }
 
+	log.Info("Controller", "Controller", mgr.GetConfig().GoString())
 	// Setup all Controllers
 	if err := controller.AddToManager(mgr); err != nil {
 		log.Error(err, "")

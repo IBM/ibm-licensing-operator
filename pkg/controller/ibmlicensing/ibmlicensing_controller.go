@@ -28,6 +28,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -42,6 +43,7 @@ import (
 )
 
 var log = logf.Log.WithName("controller_ibmlicensing")
+var isOpenshiftCluster = true
 
 type reconcileFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
 
@@ -85,8 +87,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&corev1.Secret{},
 		&appsv1.Deployment{},
 		&corev1.Service{},
-		//TODO: add validation if route resource exists
-		&routev1.Route{},
 	}
 
 	for _, restype := range secondaryResourceTypes {
@@ -100,6 +100,30 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		}
 	}
 
+	routeTestInstance := &routev1.Route{}
+	err = mgr.GetClient().Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
+	if err != nil && metaErrors.IsNoMatchError(err) {
+		log.Error(err, "Not exiting, since Route can be not available at non OpenShift cluster")
+		isOpenshiftCluster = false
+	}
+
+	if isOpenshiftCluster {
+		// Watch for changes to openshift resources if on OC
+		openshiftResourceTypes := []runtime.Object{
+			&routev1.Route{},
+		}
+
+		for _, restype := range openshiftResourceTypes {
+			log.Info("Watching", "OC restype", restype)
+			err = c.Watch(&source.Kind{Type: restype}, &handler.EnqueueRequestForOwner{
+				IsController: true,
+				OwnerType:    &operatorv1alpha1.IBMLicensing{},
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -154,13 +178,25 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		r.reconcileAPISecretToken,
 		r.reconcileDeployment,
 		r.reconcileService,
-		r.reconcileRoute,
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
 		recResult, recErr = reconcileFunction.(reconcileFunctionType)(instance)
 		if recErr != nil || recResult.Requeue {
 			return recResult, recErr
+		}
+	}
+
+	if isOpenshiftCluster {
+		reconcileOpenShiftFunctions := []interface{}{
+			r.reconcileRoute,
+		}
+
+		for _, reconcileFunction := range reconcileOpenShiftFunctions {
+			recResult, recErr = reconcileFunction.(reconcileFunctionType)(instance)
+			if recErr != nil || recResult.Requeue {
+				return recResult, recErr
+			}
 		}
 	}
 
@@ -177,13 +213,15 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	podStatuses := []corev1.PodStatus{}
 	for _, pod := range podList.Items {
 		if pod.Status.Conditions != nil {
+			i := 0
 			for _, podCondition := range pod.Status.Conditions {
 				if (podCondition.LastProbeTime == metav1.Time{Time: time.Time{}}) {
-					// Time{} is treated as null and causes error at status update so value so need to change it to some other default empty value
-					podCondition.LastProbeTime = metav1.Time{
+					// Time{} is treated as null and causes error at status update so value need to be changed to some other default empty value
+					pod.Status.Conditions[i].LastProbeTime = metav1.Time{
 						Time: time.Unix(0, 1),
 					}
 				}
+				i++
 			}
 		}
 		podStatuses = append(podStatuses, pod.Status)
@@ -194,8 +232,7 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		instance.Status.LicensingPods = podStatuses
 		err := r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
-			reqLogger.Error(err, "Failed to update status")
-			return reconcile.Result{}, err
+			reqLogger.Info("Failed to update pod status")
 		}
 	}
 

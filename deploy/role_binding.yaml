@@ -5,7 +5,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: ibm-licensing-operator
-  namespace: ibm-common-services
+  namespace: kube-system
 roleRef:
   kind: ClusterRole
   name: ibm-licensing-operator
