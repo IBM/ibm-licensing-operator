@@ -35,9 +35,9 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) {
 	if spec.RouteEnabled == nil {
 		spec.RouteEnabled = &isOpenshiftCluster
 	}
-	isNotOnOpenshiftClsuter := !isOpenshiftCluster
+	isNotOnOpenshiftCluster := !isOpenshiftCluster
 	if spec.IngressEnabled == nil {
-		spec.IngressEnabled = &isNotOnOpenshiftClsuter
+		spec.IngressEnabled = &isNotOnOpenshiftCluster
 	}
 	if spec.ImageRegistry == "" {
 		spec.ImageRegistry = "quay.io/opencloudio/ibm-licensing-service"

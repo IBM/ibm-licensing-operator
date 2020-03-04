@@ -17,6 +17,7 @@
 package v1alpha1
 
 import (
+	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,6 +34,10 @@ type IBMLicensingIngressOptions struct {
 	TLS []extensionsv1.IngressTLS `json:"tls,omitempty"`
 	// If you use non-default host include it here
 	Host *string `json:"host,omitempty"`
+}
+
+type IBMLicensingRouteOptions struct {
+	TLS *routev1.TLSConfig `json:"tls,omitempty"`
 }
 
 // IBMLicensingSpec defines the desired state of IBMLicensing
@@ -65,6 +70,8 @@ type IBMLicensingSpec struct {
 	IngressEnabled *bool `json:"ingressEnabled,omitempty"`
 	// If ingress is enabled, you can set its parameters
 	IngressOptions *IBMLicensingIngressOptions `json:"ingressOptions,omitempty"`
+	// If route is enabled, you can set its parameters
+	RouteOptions *IBMLicensingRouteOptions `json:"routeOptions,omitempty"`
 }
 
 type IBMLicensingSecurityContext struct {

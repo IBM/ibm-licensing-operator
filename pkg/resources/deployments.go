@@ -47,8 +47,15 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 					Labels: podLabels,
 				},
 				Spec: corev1.PodSpec{
-					ServiceAccountName:            GetServiceAccountName(instance),
+					Volumes: getLicensingVolumes(instance.Spec),
+					Containers: []corev1.Container{
+						GetLicensingContainer(instance.Spec),
+					},
 					TerminationGracePeriodSeconds: &seconds60,
+					NodeSelector: map[string]string{
+						"master": "true",
+					},
+					ServiceAccountName: GetServiceAccountName(instance),
 					Affinity: &corev1.Affinity{
 						NodeAffinity: &corev1.NodeAffinity{
 							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
@@ -66,9 +73,16 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 							},
 						},
 					},
-					Volumes: getLicensingVolumes(instance.Spec),
-					Containers: []corev1.Container{
-						GetLicensingContainer(instance.Spec),
+					Tolerations: []corev1.Toleration{
+						{
+							Key:      "dedicated",
+							Operator: corev1.TolerationOpExists,
+							Effect:   corev1.TaintEffectNoSchedule,
+						},
+						{
+							Key:      "CriticalAddonsOnly",
+							Operator: corev1.TolerationOpExists,
+						},
 					},
 				},
 			},

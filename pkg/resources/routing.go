@@ -24,7 +24,19 @@ import (
 )
 
 func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing) *routev1.Route {
-	// TODO: make sure https and certification is correct
+	var tls *routev1.TLSConfig
+	if instance.Spec.RouteOptions != nil {
+		if instance.Spec.RouteOptions.TLS == nil {
+			if instance.Spec.HTTPSEnable {
+				tls = &routev1.TLSConfig{
+					Termination:                   routev1.TLSTerminationPassthrough,
+					InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
+				}
+			}
+		} else {
+			tls = instance.Spec.RouteOptions.TLS
+		}
+	}
 	return &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetResourceName(instance),
@@ -38,18 +50,18 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing) *routev1.Route {
 			Port: &routev1.RoutePort{
 				TargetPort: licensingTargetPortName,
 			},
+			TLS: tls,
 		},
 	}
 }
 
 func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *extensionsv1.Ingress {
-	// TODO: make sure https and certification is correct
-	options := instance.Spec.IngressOptions
 	var (
 		tls         []extensionsv1.IngressTLS
 		path, host  string
 		annotations map[string]string
 	)
+	options := instance.Spec.IngressOptions
 	if options != nil {
 		tls = options.TLS
 		if options.Path != nil {
