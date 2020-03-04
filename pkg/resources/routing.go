@@ -19,11 +19,12 @@ package resources
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	routev1 "github.com/openshift/api/route/v1"
+	extensionsv1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing) *routev1.Route {
-	// TODO: get host name from openshift looking like "apps.something.com"
+	// TODO: make sure https and certification is correct
 	return &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetResourceName(instance),
@@ -36,6 +37,56 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing) *routev1.Route {
 			},
 			Port: &routev1.RoutePort{
 				TargetPort: licensingTargetPortName,
+			},
+		},
+	}
+}
+
+func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *extensionsv1.Ingress {
+	// TODO: make sure https and certification is correct
+	options := instance.Spec.IngressOptions
+	var (
+		tls         []extensionsv1.IngressTLS
+		path, host  string
+		annotations map[string]string
+	)
+	if options != nil {
+		tls = options.TLS
+		if options.Path != nil {
+			path = *options.Path
+		} else {
+			path = "/" + GetResourceName(instance)
+		}
+		if options.Host != nil {
+			host = *options.Host
+		}
+		annotations = options.Annotations
+	}
+	return &extensionsv1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        GetResourceName(instance),
+			Namespace:   instance.Spec.InstanceNamespace,
+			Annotations: annotations,
+		},
+		Spec: extensionsv1.IngressSpec{
+			TLS: tls,
+			Rules: []extensionsv1.IngressRule{
+				{
+					Host: host,
+					IngressRuleValue: extensionsv1.IngressRuleValue{
+						HTTP: &extensionsv1.HTTPIngressRuleValue{
+							Paths: []extensionsv1.HTTPIngressPath{
+								{
+									Path: path,
+									Backend: extensionsv1.IngressBackend{
+										ServiceName: GetLicensingServiceName(instance),
+										ServicePort: licensingServicePort,
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}

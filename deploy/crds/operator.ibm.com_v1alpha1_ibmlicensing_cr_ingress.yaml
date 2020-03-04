@@ -7,6 +7,12 @@ spec:
   datasource: datacollector
   httpsEnable: false
   imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom/ibm-licensing-amd64
-  instanceNamespace: ibm-common-services
+  instanceNamespace: kube-system
   imagePullSecrets:
     - artifactory-token
+  ingressEnabled: true
+  ingressOptions:
+    path: "/some-licensing-path"
+    annotations:
+      "icp.management.ibm.com/rewrite-target": "/"
+      "kubernetes.io/ingress.class": "ibm-icp-management"

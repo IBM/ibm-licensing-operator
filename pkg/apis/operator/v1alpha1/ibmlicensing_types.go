@@ -18,20 +18,31 @@ package v1alpha1
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	extensionsv1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+
+type IBMLicensingIngressOptions struct {
+	// Path after host where API will be available f.e. https://<hostname>:<port>/ibm-licensing-service-instance
+	Path *string `json:"path,omitempty"`
+	// Additional annotations that should include f.e. ingress class if using not default ingress controller
+	Annotations map[string]string `json:"annotations,omitempty"`
+	// TLS Options to enable secure connection
+	TLS []extensionsv1.IngressTLS `json:"tls,omitempty"`
+	// If you use non-default host include it here
+	Host *string `json:"host,omitempty"`
+}
 
 // IBMLicensingSpec defines the desired state of IBMLicensing
 type IBMLicensingSpec struct {
 	// Registry and image to IBM Licensing application
-	ImageRegistry string `json:"imageRegistry"`
+	ImageRegistry string `json:"imageRegistry,omitempty"`
 	// IBM Licensing application tag
-	ImageTagPostfix string `json:"imageTagPostfix"`
+	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
 	// Secret name used to store application token, either one that exists, or one that will be created
-	APISecretToken string `json:"apiSecretToken"`
+	APISecretToken string `json:"apiSecretToken,omitempty"`
 	// Where should data be collected, options: metering, datacollector
 	Datasource string `json:"datasource"`
 	// Enables https access at pod level, httpsCertsSource needed if true
@@ -40,14 +51,20 @@ type IBMLicensingSpec struct {
 	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
 	// Should application pod show additional information, options: DEBUG, INFO
 	LogLevel string `json:"logLevel,omitempty"`
-	// Existing or to be created namespace where application will start. In case metering datacollection is used,
+	// Existing or to be created namespace where application will start. In case metering data collection is used,
 	// should be the same namespace as metering components
 	InstanceNamespace string `json:"instanceNamespace"`
 	// If default SCC user ID fails, you can set runAsUser option to fix that
-	SecurityContext IBMLicensingSecurityContext `json:"securityContext,omitempty"`
+	SecurityContext *IBMLicensingSecurityContext `json:"securityContext,omitempty"`
 	// Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing image
 	// +listType=set
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
+	// Should Route be created to expose IBM Licensing Service API? (only on OpenShift cluster)
+	RouteEnabled *bool `json:"routeEnabled,omitempty"`
+	// Should Ingress be created to expose IBM Licensing Service API?
+	IngressEnabled *bool `json:"ingressEnabled,omitempty"`
+	// If ingress is enabled, you can set its parameters
+	IngressOptions *IBMLicensingIngressOptions `json:"ingressOptions,omitempty"`
 }
 
 type IBMLicensingSecurityContext struct {

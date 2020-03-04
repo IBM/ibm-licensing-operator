@@ -27,3 +27,33 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 func (spec *IBMLicensingSpec) GetFullImage() string {
 	return spec.ImageRegistry + ":" + spec.ImageTagPostfix
 }
+
+func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) {
+	if spec.HTTPSCertsSource == "" {
+		spec.HTTPSCertsSource = "self-signed"
+	}
+	if spec.RouteEnabled == nil {
+		spec.RouteEnabled = &isOpenshiftCluster
+	}
+	isNotOnOpenshiftClsuter := !isOpenshiftCluster
+	if spec.IngressEnabled == nil {
+		spec.IngressEnabled = &isNotOnOpenshiftClsuter
+	}
+	if spec.ImageRegistry == "" {
+		spec.ImageRegistry = "quay.io/opencloudio/ibm-licensing-service"
+	}
+	if spec.ImageTagPostfix == "" {
+		spec.ImageTagPostfix = "1.0.0"
+	}
+	if spec.APISecretToken == "" {
+		spec.APISecretToken = "ibm-licensing-token"
+	}
+}
+
+func (spec *IBMLicensingSpec) IsRouteEnabled() bool {
+	return spec.RouteEnabled != nil && *spec.RouteEnabled
+}
+
+func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
+	return spec.IngressEnabled != nil && *spec.IngressEnabled
+}

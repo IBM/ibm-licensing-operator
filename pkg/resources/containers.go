@@ -39,7 +39,7 @@ func getLicensingSecurityContext(spec operatorv1alpha1.IBMLicensingSpec) *corev1
 		},
 		ProcMount: &procMount,
 	}
-	if spec.SecurityContext.RunAsUser != 0 {
+	if spec.SecurityContext != nil {
 		securityContext.RunAsUser = &spec.SecurityContext.RunAsUser
 	}
 	return securityContext
@@ -102,7 +102,7 @@ func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.Handler {
 			Path: "/",
 			Port: intstr.IntOrString{
 				Type:   intstr.Int,
-				IntVal: licensingContainerPort,
+				IntVal: licensingServicePort.IntVal,
 			},
 			Scheme: probeScheme,
 		},
@@ -119,7 +119,7 @@ func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Contai
 		Env:             getLicensingEnvironmentVariables(spec),
 		Ports: []corev1.ContainerPort{
 			{
-				ContainerPort: licensingContainerPort,
+				ContainerPort: licensingServicePort.IntVal,
 				Protocol:      corev1.ProtocolTCP,
 			},
 		},

@@ -26,6 +26,7 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extensionsv1 "k8s.io/api/extensions/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metaErrors "k8s.io/apimachinery/pkg/api/meta"
@@ -42,15 +43,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logf.Log.WithName("controller_ibmlicensing")
-var isOpenshiftCluster = true
+var (
+	log                = logf.Log.WithName("controller_ibmlicensing")
+	isOpenshiftCluster = true
+)
+
+//var isOldIngressVersion = false
 
 type reconcileFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
-
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
 
 // Add creates a new IBMLicensing Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -61,6 +61,25 @@ func Add(mgr manager.Manager) error {
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcileIBMLicensing{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+}
+
+type ResourceObject interface {
+	metav1.Object
+	runtime.Object
+}
+
+func watchForResources(c controller.Controller, watchTypes []ResourceObject) error {
+	for _, restype := range watchTypes {
+		log.Info("Watching", "restype", restype)
+		err := c.Watch(&source.Kind{Type: restype}, &handler.EnqueueRequestForOwner{
+			IsController: true,
+			OwnerType:    &operatorv1alpha1.IBMLicensing{},
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -78,7 +97,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to secondary resources
-	secondaryResourceTypes := []runtime.Object{
+	err = watchForResources(c, []ResourceObject{
 		&rbacv1.Role{},
 		&rbacv1.RoleBinding{},
 		&rbacv1.ClusterRole{},
@@ -87,43 +106,29 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&corev1.Secret{},
 		&appsv1.Deployment{},
 		&corev1.Service{},
+		&extensionsv1.Ingress{},
+	})
+	if err != nil {
+		return err
 	}
 
-	for _, restype := range secondaryResourceTypes {
-		log.Info("Watching", "restype", restype)
-		err = c.Watch(&source.Kind{Type: restype}, &handler.EnqueueRequestForOwner{
-			IsController: true,
-			OwnerType:    &operatorv1alpha1.IBMLicensing{},
+	routeTestInstance := &routev1.Route{}
+	err = mgr.GetClient().Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
+	if err != nil && metaErrors.IsNoMatchError(err) {
+		log.Error(err, "Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
+		isOpenshiftCluster = false
+	}
+
+	if isOpenshiftCluster {
+		// Watch for changes to openshift resources if on OC
+		err = watchForResources(c, []ResourceObject{
+			&routev1.Route{},
 		})
 		if err != nil {
 			return err
 		}
 	}
 
-	routeTestInstance := &routev1.Route{}
-	err = mgr.GetClient().Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
-	if err != nil && metaErrors.IsNoMatchError(err) {
-		log.Error(err, "Not exiting, since Route can be not available at non OpenShift cluster")
-		isOpenshiftCluster = false
-	}
-
-	if isOpenshiftCluster {
-		// Watch for changes to openshift resources if on OC
-		openshiftResourceTypes := []runtime.Object{
-			&routev1.Route{},
-		}
-
-		for _, restype := range openshiftResourceTypes {
-			log.Info("Watching", "OC restype", restype)
-			err = c.Watch(&source.Kind{Type: restype}, &handler.EnqueueRequestForOwner{
-				IsController: true,
-				OwnerType:    &operatorv1alpha1.IBMLicensing{},
-			})
-			if err != nil {
-				return err
-			}
-		}
-	}
 	return nil
 }
 
@@ -140,8 +145,6 @@ type ReconcileIBMLicensing struct {
 
 // Reconcile reads that state of the cluster for a IBMLicensing object and makes changes based on the state read
 // and what is in the IBMLicensing.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Deployment and Service for IBM Licensing
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
@@ -164,6 +167,9 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		// reqLogger.Error(err, "Failed to get IBMLicensing")
 		return reconcile.Result{}, err
 	}
+	log.Info("Reconcile before default fill", "Spec:", instance.Spec)
+	instance.Spec.FillDefaultValues(isOpenshiftCluster)
+	log.Info("Reconcile after default fill", "Spec:", instance.Spec)
 
 	var recResult reconcile.Result
 	var recErr error
@@ -178,6 +184,7 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		r.reconcileAPISecretToken,
 		r.reconcileDeployment,
 		r.reconcileService,
+		r.reconcileIngress,
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
@@ -210,7 +217,7 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{}, err
 	}
 
-	podStatuses := []corev1.PodStatus{}
+	var podStatuses []corev1.PodStatus
 	for _, pod := range podList.Items {
 		if pod.Status.Conditions != nil {
 			i := 0
@@ -228,7 +235,7 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	}
 
 	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) {
-		reqLogger.Info("Updating IBMLicensing status", "Name", instance.Name)
+		reqLogger.Info("Updating IBMLicensing status", "Instance", instance)
 		instance.Status.LicensingPods = podStatuses
 		err := r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
@@ -244,7 +251,7 @@ func (r *ReconcileIBMLicensing) reconcileServiceAccount(instance *operatorv1alph
 	reqLogger := log.WithValues("reconcileServiceAccount", "Entry", "instance.GetName()", instance.GetName())
 	expectedSA := res.GetLicensingServiceAccount(instance)
 	foundSA := &corev1.ServiceAccount{}
-	reconcileResult, err := r.reconcileResourceNamespacedExistance(instance, expectedSA, foundSA)
+	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedSA, foundSA)
 	if err != nil || reconcileResult.Requeue {
 		return reconcileResult, err
 	}
@@ -280,25 +287,25 @@ func (r *ReconcileIBMLicensing) reconcileServiceAccount(instance *operatorv1alph
 func (r *ReconcileIBMLicensing) reconcileRole(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	expectedRole := res.GetLicensingRole(instance)
 	foundRole := &rbacv1.Role{}
-	return r.reconcileResourceNamespacedExistance(instance, expectedRole, foundRole)
+	return r.reconcileResourceNamespacedExistence(instance, expectedRole, foundRole)
 }
 
 func (r *ReconcileIBMLicensing) reconcileRoleBinding(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	expectedRoleBinding := res.GetLicensingRoleBinding(instance)
 	foundRoleBinding := &rbacv1.RoleBinding{}
-	return r.reconcileResourceNamespacedExistance(instance, expectedRoleBinding, foundRoleBinding)
+	return r.reconcileResourceNamespacedExistence(instance, expectedRoleBinding, foundRoleBinding)
 }
 
 func (r *ReconcileIBMLicensing) reconcileClusterRole(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	expectedClusterRole := res.GetLicensingClusterRole(instance)
 	foundClusterRole := &rbacv1.ClusterRole{}
-	return r.reconcileResourceClusterExistance(instance, expectedClusterRole, foundClusterRole)
+	return r.reconcileResourceClusterExistence(instance, expectedClusterRole, foundClusterRole)
 }
 
 func (r *ReconcileIBMLicensing) reconcileClusterRoleBinding(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	expectedClusterRoleBinding := res.GetLicensingClusterRoleBinding(instance)
 	foundClusterRoleBinding := &rbacv1.ClusterRoleBinding{}
-	return r.reconcileResourceClusterExistance(instance, expectedClusterRoleBinding, foundClusterRoleBinding)
+	return r.reconcileResourceClusterExistence(instance, expectedClusterRoleBinding, foundClusterRoleBinding)
 }
 
 func (r *ReconcileIBMLicensing) reconcileNamespace(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -308,7 +315,7 @@ func (r *ReconcileIBMLicensing) reconcileNamespace(instance *operatorv1alpha1.IB
 		},
 	}
 	foundNamespace := &corev1.Namespace{}
-	return r.reconcileResourceClusterExistance(instance, expectedNamespace, foundNamespace)
+	return r.reconcileResourceClusterExistence(instance, expectedNamespace, foundNamespace)
 }
 
 func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -323,13 +330,13 @@ func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alph
 		StringData: map[string]string{"token": res.RandString(24)},
 	}
 	foundSecret := &corev1.Secret{}
-	return r.reconcileResourceNamespacedExistance(instance, expectedSecret, foundSecret)
+	return r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
 }
 
 func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	expectedService := res.GetLicensingService(instance)
 	foundService := &corev1.Service{}
-	return r.reconcileResourceNamespacedExistance(instance, expectedService, foundService)
+	return r.reconcileResourceNamespacedExistence(instance, expectedService, foundService)
 }
 
 func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -337,7 +344,7 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 	expectedDeployment := res.GetLicensingDeployment(instance)
 	shouldUpdate := false
 	foundDeployment := &appsv1.Deployment{}
-	reconcileResult, err := r.reconcileResourceNamespacedExistance(instance, expectedDeployment, foundDeployment)
+	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedDeployment, foundDeployment)
 	if err != nil || reconcileResult.Requeue {
 		return reconcileResult, err
 	}
@@ -354,7 +361,7 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 			"Deployment.Name", foundDeployment.Name, "Deployment.Containers", foundSpec.Containers,
 			"ExpectedDeployment.Containers", expectedSpec.Containers)
 		shouldUpdate = true
-	} else if !reflect.DeepEqual(foundSpec.Containers[0].Name, expectedSpec.Containers[0].Name) {
+	} else if foundSpec.Containers[0].Name != expectedSpec.Containers[0].Name {
 		reqLogger.Info("Deployment wrong container name", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name,
 			"Container.Name", foundSpec.Containers[0].Name,
 			"ExpectedContainer.Name", expectedSpec.Containers[0].Name)
@@ -421,31 +428,38 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 }
 
 func (r *ReconcileIBMLicensing) reconcileRoute(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	expectedRoute := res.GetLicensingRoute(instance)
-	foundRoute := &routev1.Route{}
-	return r.reconcileResourceNamespacedExistance(instance, expectedRoute, foundRoute)
+	if instance.Spec.IsRouteEnabled() {
+		expectedRoute := res.GetLicensingRoute(instance)
+		foundRoute := &routev1.Route{}
+		return r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
+	}
+	return reconcile.Result{}, nil
 }
 
-type ResourceObject interface {
-	metav1.Object
-	runtime.Object
+func (r *ReconcileIBMLicensing) reconcileIngress(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	if instance.Spec.IsIngressEnabled() {
+		expectedIngress := res.GetLicensingIngress(instance)
+		foundIngress := &extensionsv1.Ingress{}
+		return r.reconcileResourceNamespacedExistence(instance, expectedIngress, foundIngress)
+	}
+	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileIBMLicensing) reconcileResourceNamespacedExistance(
+func (r *ReconcileIBMLicensing) reconcileResourceNamespacedExistence(
 	instance *operatorv1alpha1.IBMLicensing, expectedRes ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
-	return r.reconcileResourceExistance(instance, expectedRes, foundRes, namespacedName)
+	return r.reconcileResourceExistence(instance, expectedRes, foundRes, namespacedName)
 }
 
-func (r *ReconcileIBMLicensing) reconcileResourceClusterExistance(
+func (r *ReconcileIBMLicensing) reconcileResourceClusterExistence(
 	instance *operatorv1alpha1.IBMLicensing, expectedRes ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName()}
-	return r.reconcileResourceExistance(instance, expectedRes, foundRes, namespacedName)
+	return r.reconcileResourceExistence(instance, expectedRes, foundRes, namespacedName)
 }
 
-func (r *ReconcileIBMLicensing) reconcileResourceExistance(
+func (r *ReconcileIBMLicensing) reconcileResourceExistence(
 	instance *operatorv1alpha1.IBMLicensing, expectedRes ResourceObject, foundRes runtime.Object, namespacedName types.NamespacedName) (reconcile.Result, error) {
 
 	resType := reflect.TypeOf(expectedRes)

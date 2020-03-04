@@ -241,6 +241,19 @@ spec:
           - patch
           - update
           - watch
+        - apiGroups:
+          - extensions
+          - networking.k8s.io
+          resources:
+          - ingresses
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
         serviceAccountName: ibm-licensing-operator
       deployments:
       - name: ibm-licensing-operator
