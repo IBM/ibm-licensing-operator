@@ -15,7 +15,7 @@ spec:
       serviceAccountName: ibm-licensing-operator
       containers:
         - name: ibm-licensing-operator
-          image: quay.io/opencloudio/ibm-licensing-operator:latest
+          image: quay.io/opencloudio/ibm-licensing-operator:1.0.0
           command:
           - ibm-licensing-operator
           imagePullPolicy: Always
