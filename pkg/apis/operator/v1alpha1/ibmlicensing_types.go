@@ -17,30 +17,61 @@
 package v1alpha1
 
 import (
+	routev1 "github.com/openshift/api/route/v1"
+	corev1 "k8s.io/api/core/v1"
+	extensionsv1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+
+type IBMLicensingIngressOptions struct {
+	// Path after host where API will be available f.e. https://<hostname>:<port>/ibm-licensing-service-instance
+	Path *string `json:"path,omitempty"`
+	// Additional annotations that should include f.e. ingress class if using not default ingress controller
+	Annotations map[string]string `json:"annotations,omitempty"`
+	// TLS Options to enable secure connection
+	TLS []extensionsv1.IngressTLS `json:"tls,omitempty"`
+	// If you use non-default host include it here
+	Host *string `json:"host,omitempty"`
+}
+
+type IBMLicensingRouteOptions struct {
+	TLS *routev1.TLSConfig `json:"tls,omitempty"`
+}
 
 // IBMLicensingSpec defines the desired state of IBMLicensing
 type IBMLicensingSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	ImageRegistry   string `json:"imageRegistry"`
-	ImageTagPostfix string `json:"imageTagPostfix"`
-	APISecretToken  string `json:"apiSecretToken"`
-	// ?TODO: maybe change to enum in future:
-	Datasource  string `json:"datasource"`
-	HTTPSEnable bool   `json:"httpsEnable"`
-	// ?TODO: maybe change to enum in future:
+	// Registry and image to IBM Licensing application
+	ImageRegistry string `json:"imageRegistry,omitempty"`
+	// IBM Licensing application tag
+	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
+	// Secret name used to store application token, either one that exists, or one that will be created
+	APISecretToken string `json:"apiSecretToken,omitempty"`
+	// Where should data be collected, options: metering, datacollector
+	Datasource string `json:"datasource"`
+	// Enables https access at pod level, httpsCertsSource needed if true
+	HTTPSEnable bool `json:"httpsEnable"`
+	// options: self-signed or custom
 	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
-	// ?TODO: maybe change to enum in future:
-	LogLevel          string                      `json:"logLevel,omitempty"`
-	InstanceNamespace string                      `json:"instanceNamespace"`
-	SecurityContext   IBMLicensingSecurityContext `json:"securityContext,omitempty"`
-	ImagePullSecrets  []string                    `json:"imagePullSecrets,omitempty"`
+	// Should application pod show additional information, options: DEBUG, INFO
+	LogLevel string `json:"logLevel,omitempty"`
+	// Existing or to be created namespace where application will start. In case metering data collection is used,
+	// should be the same namespace as metering components
+	InstanceNamespace string `json:"instanceNamespace"`
+	// If default SCC user ID fails, you can set runAsUser option to fix that
+	SecurityContext *IBMLicensingSecurityContext `json:"securityContext,omitempty"`
+	// Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing image
+	// +listType=set
+	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
+	// Should Route be created to expose IBM Licensing Service API? (only on OpenShift cluster)
+	RouteEnabled *bool `json:"routeEnabled,omitempty"`
+	// Should Ingress be created to expose IBM Licensing Service API?
+	IngressEnabled *bool `json:"ingressEnabled,omitempty"`
+	// If ingress is enabled, you can set its parameters
+	IngressOptions *IBMLicensingIngressOptions `json:"ingressOptions,omitempty"`
+	// If route is enabled, you can set its parameters
+	RouteOptions *IBMLicensingRouteOptions `json:"routeOptions,omitempty"`
 }
 
 type IBMLicensingSecurityContext struct {
@@ -55,7 +86,7 @@ type IBMLicensingStatus struct {
 
 	// LicensingPods are the names of the licensing pods
 	// +listType=set
-	LicensingPods []string `json:"licensingPods"`
+	LicensingPods []corev1.PodStatus `json:"licensingPods"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -45,6 +45,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+
+	routev1 "github.com/openshift/api/route/v1"
 )
 
 // Change below variables to serve metrics on different host or port.
@@ -126,6 +128,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Add Route resource for OpenShift clusters
+	if err := routev1.Install(mgr.GetScheme()); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	log.Info("Controller", "Controller", mgr.GetConfig().GoString())
 	// Setup all Controllers
 	if err := controller.AddToManager(mgr); err != nil {
 		log.Error(err, "")
