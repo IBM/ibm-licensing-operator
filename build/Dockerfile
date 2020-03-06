@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.1-328
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.1-407
 
 ENV OPERATOR=/usr/local/bin/ibm-licensing-operator \
     USER_UID=1001 \
