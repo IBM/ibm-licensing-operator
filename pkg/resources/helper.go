@@ -41,9 +41,12 @@ var seconds60 int64 = 60
 const LicensingResourceBase = "ibm-licensing-service"
 const LicensingComponentName = "ibm-licensing-service-svc"
 const LicensingReleaseName = "ibm-licensing-service"
+
+// Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"
-const LicensingProductID = "1234-567"
-const LicensingProductVersion = "1.0.0"
+const LicensingProductID = "068a62892a1e4db39641342e592daa25"
+const LicensingProductMetric = "FREE"
+const LicensingProductVersion = "3.3.0"
 
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const randStringCharsetLength = len(randStringCharset)
@@ -72,7 +75,7 @@ func LabelsForLicensingMeta(instance *operatorv1alpha1.IBMLicensing) map[string]
 
 func AnnotationsForPod() map[string]string {
 	return map[string]string{"productName": LicensingProductName,
-		"productID": LicensingProductID, "productVersion": LicensingProductVersion,
+		"productID": LicensingProductID, "productVersion": LicensingProductVersion, "productMetric": LicensingProductMetric,
 		"clusterhealth.ibm.com/dependencies": "ibm-common-services.metering"}
 }
 
