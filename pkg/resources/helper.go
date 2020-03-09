@@ -39,8 +39,8 @@ var defaultSecretMode int32 = 420
 var seconds60 int64 = 60
 
 const LicensingResourceBase = "ibm-licensing-service"
-const LicensingComponentName = "ibmlicensingsvc"
-const LicensingReleaseName = "ibmlicensing"
+const LicensingComponentName = "ibm-licensing-service-svc"
+const LicensingReleaseName = "ibm-licensing-service"
 const LicensingProductName = "IBM Cloud Platform Common Services"
 const LicensingProductID = "1234-567"
 const LicensingProductVersion = "1.0.0"
@@ -72,7 +72,8 @@ func LabelsForLicensingMeta(instance *operatorv1alpha1.IBMLicensing) map[string]
 
 func AnnotationsForPod() map[string]string {
 	return map[string]string{"productName": LicensingProductName,
-		"productID": LicensingProductID, "productVersion": LicensingProductVersion}
+		"productID": LicensingProductID, "productVersion": LicensingProductVersion,
+		"clusterhealth.ibm.com/dependencies": "ibm-common-services.metering"}
 }
 
 func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {
