@@ -76,7 +76,7 @@ func LabelsForLicensingMeta(instance *operatorv1alpha1.IBMLicensing) map[string]
 func AnnotationsForPod() map[string]string {
 	return map[string]string{"productName": LicensingProductName,
 		"productID": LicensingProductID, "productVersion": LicensingProductVersion, "productMetric": LicensingProductMetric,
-		"clusterhealth.ibm.com/dependencies": "ibm-common-services.metering"}
+		"clusterhealth.ibm.com/dependencies": "metering"}
 }
 
 func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {
