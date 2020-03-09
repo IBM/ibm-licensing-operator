@@ -33,10 +33,9 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 	// TODO: add init containers later
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        GetResourceName(instance),
-			Namespace:   instance.Spec.InstanceNamespace,
-			Labels:      metaLabels,
-			Annotations: AnnotationsForPod(),
+			Name:      GetResourceName(instance),
+			Namespace: instance.Spec.InstanceNamespace,
+			Labels:    metaLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
@@ -45,7 +44,8 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: podLabels,
+					Labels:      podLabels,
+					Annotations: AnnotationsForPod(),
 				},
 				Spec: corev1.PodSpec{
 					Volumes: getLicensingVolumes(instance.Spec),
