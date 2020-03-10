@@ -43,11 +43,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) {
 		spec.ImageRegistry = "quay.io/opencloudio"
 	}
 	if spec.ImageName == "" {
-		if spec.ImageRegistry == "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom" {
-			spec.ImageName = "ibm-licensing-amd64"
-		} else {
-			spec.ImageName = "ibm-licensing"
-		}
+		spec.ImageName = "ibm-licensing"
 	}
 	if spec.ImageTagPostfix == "" {
 		spec.ImageTagPostfix = "1.0.0"
