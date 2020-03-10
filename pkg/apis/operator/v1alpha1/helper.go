@@ -40,7 +40,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) {
 		spec.IngressEnabled = &isNotOnOpenshiftCluster
 	}
 	if spec.ImageRegistry == "" {
-		spec.ImageRegistry = "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
+		spec.ImageRegistry = "quay.io/opencloudio"
 	}
 	if spec.ImageName == "" {
 		if spec.ImageRegistry == "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom" {
