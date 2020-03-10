@@ -14,9 +14,6 @@ metadata:
             "apiSecretToken": "ibm-licensing-token",
             "datasource": "metering",
             "httpsEnable": true,
-            "imagePullSecrets": [
-              "artifactory-token"
-            ],
             "instanceNamespace": "ibm-common-services"
           }
         }
