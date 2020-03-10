@@ -3,6 +3,7 @@ module github.com/ibm/ibm-licensing-operator
 go 1.13
 
 require (
+	github.com/go-logr/logr v0.1.0
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
 	github.com/operator-framework/operator-sdk v0.14.0
 	github.com/spf13/pflag v1.0.5

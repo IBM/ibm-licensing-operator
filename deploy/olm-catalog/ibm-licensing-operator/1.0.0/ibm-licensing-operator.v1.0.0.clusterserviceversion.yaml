@@ -14,10 +14,6 @@ metadata:
             "apiSecretToken": "ibm-licensing-token",
             "datasource": "metering",
             "httpsEnable": true,
-            "imagePullSecrets": [
-              "artifactory-token"
-            ],
-            "imageRegistry": "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom/ibm-licensing-amd64",
             "instanceNamespace": "ibm-common-services"
           }
         }

@@ -39,8 +39,14 @@ var defaultSecretMode int32 = 420
 var seconds60 int64 = 60
 
 const LicensingResourceBase = "ibm-licensing-service"
-const LicensingComponentName = "ibmlicensingsvc"
-const LicensingReleaseName = "ibmlicensing"
+const LicensingComponentName = "ibm-licensing-service-svc"
+const LicensingReleaseName = "ibm-licensing-service"
+
+// Important product values needed for annotations
+const LicensingProductName = "IBM Cloud Platform Common Services"
+const LicensingProductID = "068a62892a1e4db39641342e592daa25"
+const LicensingProductMetric = "FREE"
+const LicensingProductVersion = "3.3.0"
 
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const randStringCharsetLength = len(randStringCharset)
@@ -63,13 +69,23 @@ func LabelsForLicensingSelector(instance *operatorv1alpha1.IBMLicensing) map[str
 }
 
 func LabelsForLicensingMeta(instance *operatorv1alpha1.IBMLicensing) map[string]string {
-	return map[string]string{"app.kubernetes.io/name": GetResourceName(instance),
-		"app.kubernetes.io/component": LicensingComponentName, "release": LicensingReleaseName}
+	return map[string]string{"app.kubernetes.io/name": GetResourceName(instance), "app.kubernetes.io/component": LicensingComponentName,
+		"app.kubernetes.io/managed-by": "operator", "app.kubernetes.io/instance": LicensingReleaseName, "release": LicensingReleaseName}
+}
+
+func AnnotationsForPod() map[string]string {
+	return map[string]string{"productName": LicensingProductName,
+		"productID": LicensingProductID, "productVersion": LicensingProductVersion, "productMetric": LicensingProductMetric,
+		"clusterhealth.ibm.com/dependencies": "metering"}
 }
 
 func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {
-	return map[string]string{"app": GetResourceName(instance), "component": LicensingComponentName, "licensing_cr": instance.GetName(),
-		"app.kubernetes.io/name": GetResourceName(instance), "app.kubernetes.io/component": LicensingComponentName, "release": LicensingReleaseName}
+	podLabels := LabelsForLicensingMeta(instance)
+	selectorLabels := LabelsForLicensingSelector(instance)
+	for key, value := range selectorLabels {
+		podLabels[key] = value
+	}
+	return podLabels
 }
 
 func Contains(s []corev1.LocalObjectReference, e corev1.LocalObjectReference) bool {

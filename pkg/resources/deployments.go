@@ -44,7 +44,8 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: podLabels,
+					Labels:      podLabels,
+					Annotations: AnnotationsForPod(),
 				},
 				Spec: corev1.PodSpec{
 					Volumes: getLicensingVolumes(instance.Spec),
@@ -52,10 +53,7 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 						GetLicensingContainer(instance.Spec),
 					},
 					TerminationGracePeriodSeconds: &seconds60,
-					NodeSelector: map[string]string{
-						"master": "true",
-					},
-					ServiceAccountName: GetServiceAccountName(instance),
+					ServiceAccountName:            GetServiceAccountName(instance),
 					Affinity: &corev1.Affinity{
 						NodeAffinity: &corev1.NodeAffinity{
 							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{

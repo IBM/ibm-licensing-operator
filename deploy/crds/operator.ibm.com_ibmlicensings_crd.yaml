@@ -45,6 +45,9 @@ spec:
               description: Enables https access at pod level, httpsCertsSource needed
                 if true
               type: boolean
+            imageName:
+              description: Docker Image Name for IBM Licensing Service application
+              type: string
             imagePullSecrets:
               description: Array of pull secrets which should include existing at
                 InstanceNamespace secret to allow pulling IBM Licensing image
@@ -52,10 +55,10 @@ spec:
                 type: string
               type: array
             imageRegistry:
-              description: Registry and image to IBM Licensing application
+              description: Registry from where to pull IBM Licensing Service application
               type: string
             imageTagPostfix:
-              description: IBM Licensing application tag
+              description: IBM Licensing Service Docker Image Tag
               type: string
             ingressEnabled:
               description: Should Ingress be created to expose IBM Licensing Service

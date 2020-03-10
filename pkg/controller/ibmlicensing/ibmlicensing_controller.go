@@ -21,6 +21,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/go-logr/logr"
+
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
 	routev1 "github.com/openshift/api/route/v1"
@@ -153,8 +155,8 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	reqLogger.Info("Reconciling IBMLicensing")
 
 	// Fetch the IBMLicensing instance
-	instance := &operatorv1alpha1.IBMLicensing{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
+	foundInstance := &operatorv1alpha1.IBMLicensing{}
+	err := r.client.Get(context.TODO(), request.NamespacedName, foundInstance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -167,9 +169,8 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		// reqLogger.Error(err, "Failed to get IBMLicensing")
 		return reconcile.Result{}, err
 	}
-	log.Info("Reconcile before default fill", "Spec:", instance.Spec)
+	instance := foundInstance.DeepCopy()
 	instance.Spec.FillDefaultValues(isOpenshiftCluster)
-	log.Info("Reconcile after default fill", "Spec:", instance.Spec)
 
 	var recResult reconcile.Result
 	var recErr error
@@ -207,12 +208,17 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		}
 	}
 
+	// Update status logic, using foundInstance, because we do not want to add filled default values to yaml
+	return r.updateStatus(foundInstance, reqLogger)
+}
+
+func (r *ReconcileIBMLicensing) updateStatus(instance *operatorv1alpha1.IBMLicensing, reqLogger logr.Logger) (reconcile.Result, error) {
 	podList := &corev1.PodList{}
 	listOpts := []client.ListOption{
 		client.InNamespace(instance.Spec.InstanceNamespace),
 		client.MatchingLabels(res.LabelsForLicensingPod(instance)),
 	}
-	if err = r.client.List(context.TODO(), podList, listOpts...); err != nil {
+	if err := r.client.List(context.TODO(), podList, listOpts...); err != nil {
 		reqLogger.Error(err, "Failed to list pods")
 		return reconcile.Result{}, err
 	}

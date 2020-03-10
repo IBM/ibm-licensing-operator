@@ -42,9 +42,11 @@ type IBMLicensingRouteOptions struct {
 
 // IBMLicensingSpec defines the desired state of IBMLicensing
 type IBMLicensingSpec struct {
-	// Registry and image to IBM Licensing application
+	// Registry from where to pull IBM Licensing Service application
 	ImageRegistry string `json:"imageRegistry,omitempty"`
-	// IBM Licensing application tag
+	// Docker Image Name for IBM Licensing Service application
+	ImageName string `json:"imageName,omitempty"`
+	// IBM Licensing Service Docker Image Tag
 	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
 	// Secret name used to store application token, either one that exists, or one that will be created
 	APISecretToken string `json:"apiSecretToken,omitempty"`

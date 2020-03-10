@@ -25,7 +25,7 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 }
 
 func (spec *IBMLicensingSpec) GetFullImage() string {
-	return spec.ImageRegistry + ":" + spec.ImageTagPostfix
+	return spec.ImageRegistry + "/" + spec.ImageName + ":" + spec.ImageTagPostfix
 }
 
 func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) {
@@ -40,7 +40,10 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) {
 		spec.IngressEnabled = &isNotOnOpenshiftCluster
 	}
 	if spec.ImageRegistry == "" {
-		spec.ImageRegistry = "quay.io/opencloudio/ibm-licensing-service"
+		spec.ImageRegistry = "quay.io/opencloudio"
+	}
+	if spec.ImageName == "" {
+		spec.ImageName = "ibm-licensing"
 	}
 	if spec.ImageTagPostfix == "" {
 		spec.ImageTagPostfix = "1.0.0"
