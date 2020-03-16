@@ -251,8 +251,6 @@ Watch IBM Licensing Operator being deployed by OLM from the catalog source creat
 $ kubectl get clusterserviceversion -n ibm-common-services
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
 ibm-licensing-operator.v1.0.0   IBM Licensing Operator   1.0.0     ibm-licensing-operator.v0.0.0   Succeeded
-
-
 ```
 
 > The above command assumes you have created the `Subscription` in the `ibm-common-services` namespace.
