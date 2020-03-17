@@ -1,4 +1,5 @@
 #
+# Copyright 2020 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,6 +52,24 @@ else ifeq ($(LOCAL_OS),Darwin)
 else
     $(error "This system's OS $(LOCAL_OS) isn't recognized/supported")
 endif
+
+# Setup DOCKER_BUILD_OPTS after all includes complete
+#Variables for redhat ubi certification required labels
+IMAGE_NAME=$(IMG)
+IMAGE_DISPLAY_NAME=IBM Licensing Operator
+IMAGE_MAINTAINER=talk2sam@us.ibm.com
+IMAGE_VENDOR=IBM
+IMAGE_VERSION=$(VERSION)
+IMAGE_DESCRIPTION=Operator used to install a service to measure VPC license use of IBM products deployed in the cluster.
+IMAGE_SUMMARY=$(IMAGE_DESCRIPTION)
+IMAGE_OPENSHIFT_TAGS=licensing
+$(eval WORKING_CHANGES := $(shell git status --porcelain))
+$(eval BUILD_DATE := $(shell date +%m/%d@%H:%M:%S))
+$(eval GIT_COMMIT := $(shell git rev-parse --short HEAD))
+$(eval VCS_REF := $(GIT_COMMIT))
+IMAGE_RELEASE=$(VCS_REF)
+GIT_REMOTE_URL = $(shell git config --get remote.origin.url)
+$(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "VCS_URL=$(GIT_REMOTE_URL)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-amd64")
 
 all: fmt check test coverage build images
 
@@ -135,9 +154,9 @@ config-docker:
 endif
 
 build-push-images: install-operator-sdk $(CONFIG_DOCKER_TARGET)
-	@operator-sdk build $(REGISTRY)/$(IMG):$(VERSION)
-	@docker tag $(REGISTRY)/$(IMG):$(VERSION) $(REGISTRY)/$(IMG)
-	@if [ $(BUILD_LOCALLY) -ne 1 ]; then docker push $(REGISTRY)/$(IMG):$(VERSION); docker push $(REGISTRY)/$(IMG); fi
+	operator-sdk build $(REGISTRY)/$(IMG):$(VERSION) --image-build-args '$(DOCKER_BUILD_OPTS)'
+	docker tag $(REGISTRY)/$(IMG):$(VERSION) $(REGISTRY)/$(IMG)
+	if [ $(BUILD_LOCALLY) -ne 1 ]; then docker push $(REGISTRY)/$(IMG):$(VERSION); docker push $(REGISTRY)/$(IMG); fi
 
 ############################################################
 # clean section
