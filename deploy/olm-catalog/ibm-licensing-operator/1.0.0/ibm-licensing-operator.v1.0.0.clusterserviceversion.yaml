@@ -299,10 +299,10 @@ spec:
   - name: GitHub
     url: https://github.com/IBM/ibm-licensing-operator
   maintainers:
-  - email: Adam.Dyszy@ibm.com
-    name: Adam Dyszy
+  - email: talk2sam@us.ibm.com
+    name: talk2sam
   maturity: alpha
   provider:
     name: IBM
-  replaces: ibm-licensing-operator.v0.0.0
+#  replaces: ibm-licensing-operator.v0.0.0
   version: 1.0.0

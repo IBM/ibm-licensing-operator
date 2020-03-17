@@ -201,6 +201,7 @@ func serveCRMetrics(cfg *rest.Config) error {
 	if err != nil {
 		return err
 	}
+	// Using empty string as IBM Licensing Operator is cluster scoped
 	// Get the namespace the operator is currently deployed in.
 	// operatorNs, err := k8sutil.GetOperatorNamespace()
 	// if err != nil {

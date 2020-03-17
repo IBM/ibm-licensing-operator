@@ -1,18 +1,19 @@
 #!/bin/bash
 #
-# Copyright 2019 The Kubernetes Authors.
+# Copyright 2020 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
 set -e
 set -u
@@ -29,6 +30,8 @@ ROOTDIR="$(cd "$(dirname "$0")"/../.. ; pwd -P)"
 REPORT_PATH=${REPORT_PATH:-"${GOPATH}/out/codecov"}
 #CODECOV_SKIP=${GOPATH}/out/codecov/codecov.skip
 MAXPROCS="${MAXPROCS:-}"
+BUILD_LOCALLY=${1:?0}
+shift
 
 mkdir -p "${GOPATH}"/out/codecov
 
@@ -148,6 +151,6 @@ fi
 ######################################################
 
 # Upload to codecov.io in post submit only for visualization
-if [ "${TRAVIS}" == true ]; then
+if [ "${BUILD_LOCALLY}" == 0 ]; then
   bash <(curl -s https://codecov.io/bash) -t "${CODECOV_TOKEN}" -f "${REPORT_PATH}/coverage.cov"
 fi

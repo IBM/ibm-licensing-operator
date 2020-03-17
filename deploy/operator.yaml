@@ -27,3 +27,7 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "ibm-licensing-operator"
+            - name: SA_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.serviceAccountName

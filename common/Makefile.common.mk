@@ -21,11 +21,11 @@ CLUSTER ?= prow
 
 activate-serviceaccount:
 ifdef GOOGLE_APPLICATION_CREDENTIALS
-	gcloud auth activate-service-account --key-file="$(GOOGLE_APPLICATION_CREDENTIALS)"
+	@gcloud auth activate-service-account --key-file="$(GOOGLE_APPLICATION_CREDENTIALS)"
 endif
 
 get-cluster-credentials: activate-serviceaccount
-	gcloud container clusters get-credentials "$(CLUSTER)" --project="$(PROJECT)" --zone="$(ZONE)"
+	@gcloud container clusters get-credentials "$(CLUSTER)" --project="$(PROJECT)" --zone="$(ZONE)"
 
 config-docker: get-cluster-credentials
 	@common/scripts/config_docker.sh
@@ -85,16 +85,16 @@ endif
 
 lint-all: lint-dockerfiles lint-scripts lint-yaml lint-helm lint-copyright-banner lint-go lint-python lint-markdown
 
-# format-go:
-# 	@${FINDFILES} -name '*.go' \( ! \( -name '*.gen.go' -o -name '*.pb.go' \) \) -print0 | ${XARGS} goimports -w -local "github.com/IBM"
+format-go:
+	@${FINDFILES} -name '*.go' \( ! \( -name '*.gen.go' -o -name '*.pb.go' \) \) -print0 | ${XARGS} goimports -w -local "github.com/IBM"
 
-# format-python:
-# 	@${FINDFILES} -name '*.py' -print0 | ${XARGS} autopep8 --max-line-length 160 --aggressive --aggressive -i
+format-python:
+	@${FINDFILES} -name '*.py' -print0 | ${XARGS} autopep8 --max-line-length 160 --aggressive --aggressive -i
 
-# format-protos:
-# 	@$(FINDFILES) -name '*.proto' -print0 | $(XARGS) -L 1 prototool format -w
+format-protos:
+	@$(FINDFILES) -name '*.proto' -print0 | $(XARGS) -L 1 prototool format -w
 
-.PHONY: lint-dockerfiles lint-scripts lint-yaml lint-helm lint-copyright-banner lint-go lint-python lint-markdown lint-all
+.PHONY: lint-dockerfiles lint-scripts lint-yaml lint-helm lint-copyright-banner lint-go lint-python lint-markdown lint-all format-go
 
 ############################################################
 # multiarch image section

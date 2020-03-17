@@ -39,7 +39,7 @@ IBM Licensing Operator can be installed either on vanilla kubernetes, or on [Ope
 It is also a part of bigger project called IBM Cloud Platform Common Services, and could be installed with other Services using [operand-deployment-lifecycle-manager](https://github.com/IBM/operand-deployment-lifecycle-manager)
 
 - If You have OpenShift Container Platform with Version 4.2+ install with [this](#install-the-ibm-licensing-operator-on-ocp-42)
-- Otherwise on you can install it with [this]()
+- Otherwise on you can install it with [this](#install-the-ibm-licensing-operator-on-kubernetes-from-scratch)
 
 ### Install the IBM Licensing Operator On OCP 4.2+
 
