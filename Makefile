@@ -21,6 +21,7 @@ BUILD_LOCALLY ?= 1
 # Use your own docker registry and image name for dev/test by overridding the IMG and REGISTRY environment variable.
 IMG ?= ibm-licensing-operator
 REGISTRY ?= quay.io/opencloudio
+MARKDOWN_LINT_WHITELIST ?= https://quay.io/cnr
 
 # Github host to use for checking the source tree;
 # Override this variable ue with your own value if you're working on forked repo.

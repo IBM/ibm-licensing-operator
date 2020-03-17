@@ -34,13 +34,15 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 		},
 	}
 	if spec.HTTPSEnable {
-		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
-			{
-				Name:      LicensingHTTPSCertsVolumeName,
-				MountPath: "/opt/licensing/certs/",
-				ReadOnly:  true,
-			},
-		}...)
+		if spec.HTTPSCertsSource == "custom" {
+			volumeMounts = append(volumeMounts, []corev1.VolumeMount{
+				{
+					Name:      LicensingHTTPSCertsVolumeName,
+					MountPath: "/opt/licensing/certs/",
+					ReadOnly:  true,
+				},
+			}...)
+		}
 	}
 	if spec.IsMetering() {
 		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
@@ -85,18 +87,20 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 	}
 
 	if spec.HTTPSEnable {
-		licensingHTTPSCertsVolume := corev1.Volume{
-			Name: LicensingHTTPSCertsVolumeName,
-			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{
-					SecretName:  "ibm-licensing-certs",
-					DefaultMode: &defaultSecretMode,
-					Optional:    &TrueVar,
+		if spec.HTTPSCertsSource == "custom" {
+			licensingHTTPSCertsVolume := corev1.Volume{
+				Name: LicensingHTTPSCertsVolumeName,
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName:  "ibm-licensing-certs",
+						DefaultMode: &defaultSecretMode,
+						Optional:    &TrueVar,
+					},
 				},
-			},
-		}
+			}
 
-		volumes = append(volumes, licensingHTTPSCertsVolume)
+			volumes = append(volumes, licensingHTTPSCertsVolume)
+		}
 	}
 
 	return volumes
