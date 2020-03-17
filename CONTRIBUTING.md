@@ -51,4 +51,4 @@ Make sure your code build passed.
 make
 ```
 
-Now, you can follow the [getting started guide](./README.md#getting-started) to work with the ibm-mt-grqenforcer-operator.
+Now, you can follow the [README](./README.md) to work with the ibm-licensing-operator.

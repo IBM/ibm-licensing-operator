@@ -4,10 +4,10 @@ go 1.13
 
 require (
 	github.com/go-logr/logr v0.1.0
+	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
 	github.com/operator-framework/operator-sdk v0.14.0
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/tools v0.0.0-20200129045341-207d3de1faaf // indirect
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v12.0.0+incompatible
