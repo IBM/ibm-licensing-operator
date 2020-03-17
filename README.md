@@ -113,15 +113,25 @@ git clone --single-branch --branch release-4.6 https://github.com/operator-frame
 Then we need to change `marketplace` namespace to `olm` in order to be able to create subscriptions to our operatorsource/catalogsource from different namespace.
 In case your cluster's `global catalog namespace` is different than `olm`, change it below. You can check it at OLM `packageserver*` pod yaml somewhere in your cluster, using `grep global-namespace`.
 
+For linux users:
+
 ```bash
 export GLOBAL_CATALOG_NAMESPACE=olm
 # change all resources namespace to olm
-sed -i 's/namespace: .*/namespace: "$GLOBAL_CATALOG_NAMESPACE"/g' operator-marketplace/deploy/upstream/*
+sed -i 's/namespace: .*/namespace: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-marketplace/deploy/upstream/*
 # change namespace to olm
-sed -i 's/name: .*/name: "$GLOBAL_CATALOG_NAMESPACE"/g' operator-marketplace/deploy/upstream/01_namespace.yaml
+sed -i 's/name: .*/name: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-marketplace/deploy/upstream/01_namespace.yaml
 ```
 
-Install Operator Marketplace into the cluster in the `$GLOBAL_CATALOG_NAMESPACE` namespace.
+For MAC users:
+
+```bash
+export GLOBAL_CATALOG_NAMESPACE=olm
+sed -i "" 's/namespace: .*/namespace: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-marketplace/deploy/upstream/*
+sed -i "" 's/name: .*/name: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-marketplace/deploy/upstream/01_namespace.yaml
+```
+
+Install Operator Marketplace into the cluster in the `$GLOBAL_CATALOG_NAMESPACE` namespace:
 
 ```bash
 kubectl apply -f operator-marketplace/deploy/upstream
@@ -129,8 +139,17 @@ kubectl apply -f operator-marketplace/deploy/upstream
 
 If you get `unknown field "preserveUnknownFields"` error, try to delete preserveUnknownFields from yaml files inside `operator-marketplace/deploy/upstream/` catalog or consider upgrading kubernetes server version:
 
+For linux users:
+
 ```bash
 sed -i '/.*preserveUnknownFields.*/d' operator-marketplace/deploy/upstream/*
+kubectl apply -f operator-marketplace/deploy/upstream
+```
+
+For MAC users:
+
+```bash
+sed -i "" '/.*preserveUnknownFields.*/d' operator-marketplace/deploy/upstream/*
 kubectl apply -f operator-marketplace/deploy/upstream
 ```
 
