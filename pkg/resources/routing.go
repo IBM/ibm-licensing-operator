@@ -66,13 +66,12 @@ func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *extensionsv1.
 		path, host  string
 		annotations map[string]string
 	)
+	path = "/" + GetResourceName(instance)
 	options := instance.Spec.IngressOptions
 	if options != nil {
 		tls = options.TLS
 		if options.Path != nil {
 			path = *options.Path
-		} else {
-			path = "/" + GetResourceName(instance)
 		}
 		if options.Host != nil {
 			host = *options.Host
