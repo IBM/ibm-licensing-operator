@@ -313,7 +313,7 @@ Make sure to use `metering` datasource if IBM Metering Service exits in your clu
 Otherwise you <b>need</b> to change datasource to `datacollector`:
 ![OCP instance datacollector](images/ocp_instance_datacollector.png)
 
-More about parameters from IBMLicensing instance are described here: [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.ods)
+More about parameters from IBMLicensing instance are described here: [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.csv)
 
 If you are sure about your parameters click create.
 Later if you want to edit your instance go to:
@@ -329,7 +329,7 @@ First edit your custom resource at [deploy/crds/operator.ibm.com_v1alpha1_ibmlic
 
 Make sure to use `metering` datasource if IBM Metering Service exits in your cluster.
 Otherwise you <b>need</b> to change datasource to `datacollector`
-More about parameters from IBMLicensing instance are described here: [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.ods)
+More about parameters from IBMLicensing instance are described here: [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.csv)
 
 Apply it using:
 
