@@ -17,6 +17,21 @@
             - [5. Create an OperatorGroup](#5-create-an-operatorgroup)
             - [6. Create a Subscription](#6-create-a-subscription)
             - [7. Verify Operator health](#7-verify-operator-health)
+    - [Using IBM Licensing Service](#using-ibm-licensing-service)
+        - [Create instance on OCP 4.2+](#create-instance-on-ocp-42)
+        - [Create instance from console](#create-instance-from-console)
+        - [Check Components](#check-components)
+        - [Show and use API](#show-and-use-api)
+    - [Uninstall](#uninstall)
+        - [Uninstall from any kubernetes cluster](#uninstall-from-any-kubernetes-cluster)
+            - [1. Delete IBMLicensing custom resource](#1-delete-ibmlicensing-custom-resource)
+            - [2. Delete subscription](#2-delete-subscription)
+            - [3. Delete CSV](#3-delete-csv)
+            - [4. Delete CRD](#4-delete-crd)
+            - [5. Delete OperatorGroup](#5-delete-operatorgroup)
+            - [6. Delete OperatorSource](#6-delete-operatorsource)
+            - [7. Delete OperatorMarketplace](#7-delete-operatormarketplace)
+            - [8. Uninstall OLM](#8-uninstall-olm)
     - [Troubleshoot](#troubleshoot)
         - [CreateContainerConfigError Marketplace Operator error](#createcontainerconfigerror-marketplace-operator-error)
 
@@ -278,6 +293,209 @@ Optional also check your Operator's deployment:
 
 ```bash
 kubectl get deployment -n ibm-common-services | grep ibm-licensing-operator
+```
+
+## Using IBM Licensing Service
+
+After you successfully installed IBM Licensing Operator you can create IBMLicensing instance that will make IBM Licensing Service running in cluster.
+
+### Create instance on OCP 4.2+
+
+If you have OCP 4.2+ you can create the instance from the OCP UI->Installed Operators->IBM Licensing Operator->IBM Licensing tab->Create IBMLicensing
+
+This should look like this:
+![OCP click Create IBM Licensing](images/ocp_create_instance.png)
+
+Then after clicking `Create IBMLicensing` you can edit your parameters:
+![OCP create IBM Licensing instance](images/ocp_creating_instance.png)
+
+Make sure to use `metering` datasource if IBM Metering Service exits in your cluster.
+Otherwise you <b>need</b> to change datasource to `datacollector`:
+![OCP instance datacollector](images/ocp_instance_datacollector.png)
+
+More about parameters from IBMLicensing instance are described here: [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.ods)
+
+If you are sure about your parameters click create.
+Later if you want to edit your instance go to:
+OCP UI->Administration->Custom Resource Definitions->select IBMLicensing->instances->Edit IBMLicensing
+
+![OCP Edit Instance](images/ocp_edit_instance.png)
+
+In case instance is not updated properly try deleting the instance and creating new one with new parameters.
+
+### Create instance from console
+
+First edit your custom resource at [deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml](deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml)
+
+Make sure to use `metering` datasource if IBM Metering Service exits in your cluster.
+Otherwise you <b>need</b> to change datasource to `datacollector`
+More about parameters from IBMLicensing instance are described here: [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.ods)
+
+Apply it using:
+
+```bash
+kubectl apply -f deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
+```
+
+### Check Components
+
+First check if pod is created.
+You can see the logs at OCP UI->Workloads->Pods->search for `licensing` in `ibm-common-services` project:
+
+![OCP Pod](images/ocp_pod.png)
+
+Check if pod is running, for further investigating you can click it to check logs, and events.
+
+From console you can use:
+
+```bash
+podName=`kubectl get pod -n ibm-common-services -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}" | grep ibm-licensing-service-instance`
+kubectl logs $podName -n ibm-common-services
+kubectl describe pod $podName -n ibm-common-services
+```
+
+You can also check OCP UI->Networking->Service,Route*
+
+\* or Ingress if you changed instance parameters
+
+From console you can use for example this to check Ingress:
+
+```bash
+kubectl get ingress -n ibm-common-services -o yaml
+```
+
+### Show and use API
+
+First you need to get your URL from Route or Ingress, if you use default options the route should be created:
+Go to OCP UI->Networking->Route and search for `ibm-licensing-service-instance` in project `ibm-common-services`:
+![OCP Route](images/ocp_route.png)
+
+Here you can just click the `Location` and you should be redirected to IBM Licensing Service API.
+
+To use API you need to get token, you can get it at OCP UI->Workloads->Secret->ibm-licensing-token.
+Click ibm-licensing-token and get token from `Data` token field:
+![OCP Token](images/ocp_token_gen.png)
+
+You can copy it from console using:
+
+```bash
+kubectl get secret -n ibm-common-services ibm-licensing-token -o jsonpath="{.data.token}" | base64 --decode | grep ""
+```
+
+If everything works you can see your IBM Licensing Service UI at URL from your Ingress or Route:
+![IBM Licensing Service UI](images/ibm_licensing_service_ui.png)
+
+## Uninstall
+
+### Uninstall from any kubernetes cluster
+
+These steps assume you have deployed IBM Licensing Service in ibm-common-services namespace
+
+#### 1. Delete IBMLicensing custom resource
+
+Delete instance after which operator should clean its resources.
+Check what ibmlicensing instances you have:
+
+```bash
+licensingNamespace=ibm-common-services
+kubectl get ibmlicensing -n ${licensingNamespace} -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}"
+```
+
+Above command should return one instance. Delete it if exists:
+
+```bash
+licensingNamespace=ibm-common-services
+instanceName=`kubectl get ibmlicensing -n ${licensingNamespace} -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}"`
+kubectl delete ibmlicensing ${instanceName} -n ${licensingNamespace}
+```
+
+#### 2. Delete subscription
+
+Show subscriptions with:
+
+```bash
+licensingNamespace=ibm-common-services
+kubectl get subscription -n ${licensingNamespace} -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}"
+```
+
+Delete ibm-licensing-operator-app subscription:
+
+```bash
+licensingNamespace=ibm-common-services
+subName=ibm-licensing-operator-app
+kubectl delete subscription ${subName} -n ${licensingNamespace}
+```
+
+#### 3. Delete CSV
+
+Delete CSV that manages Operator image.
+Get your CSV name, look for ibm-licensing-operator:
+
+```bash
+licensingNamespace=ibm-common-services
+kubectl get clusterserviceversion -n ${licensingNamespace} -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}"
+kubectl get clusterserviceversion -n ${licensingNamespace} -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}" | grep ibm-licensing-operator
+```
+
+Delete it:
+
+```bash
+licensingNamespace=ibm-common-services
+csvName=`kubectl get clusterserviceversion -n ${licensingNamespace} -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}" | grep ibm-licensing-operator`
+kubectl delete clusterserviceversion ${csvName} -n ${licensingNamespace}
+```
+
+#### 4. Delete CRD
+
+Delete custom resource definition
+
+```bash
+kubectl delete CustomResourceDefinition ibmlicensings.operator.ibm.com
+```
+
+#### 5. Delete OperatorGroup
+
+If you also have other subscriptions tied with that operatorGroup do not delete it.
+IBM Licensing Operator should be uninstalled now but you can also cleanup operatorgroup you created for subscription:
+
+```bash
+licensingNamespace=ibm-common-services
+operatoGroupName=operatorgroup
+kubectl delete OperatorGroup ${operatorGroupName} -n ${licensingNamespace}
+```
+
+#### 6. Delete OperatorSource
+
+If you have other services using opencloudio catalog source do not delete the OperatorSource.
+Otherwise if you want to delete it use:
+
+```bash
+export GLOBAL_CATALOG_NAMESPACE=olm
+opencloudioSourceName=opencloud-operators
+kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
+```
+
+#### 7. Delete OperatorMarketplace
+
+WARNING!!! Make sure you are not using it elsewhere.
+
+```bash
+export GLOBAL_CATALOG_NAMESPACE=olm
+kubectl delete -f operator-marketplace/deploy/upstream
+```
+
+#### 8. Uninstall OLM
+
+WARNING!!! Make sure you are not using it elsewhere.
+
+```bash
+export GLOBAL_CATALOG_NAMESPACE=olm
+kubectl delete crd clusterserviceversions.operators.coreos.com \
+installplans.operators.coreos.com \
+subscriptions.operators.coreos.com \
+catalogsources.operators.coreos.com \
+operatorgroups.operators.coreos.com
+kubectl delete namespace ${GLOBAL_CATALOG_NAMESPACE}
 ```
 
 ## Troubleshoot
