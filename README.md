@@ -18,7 +18,10 @@
             - [6. Create a Subscription](#6-create-a-subscription)
             - [7. Verify Operator health](#7-verify-operator-health)
     - [Using IBM Licensing Service](#using-ibm-licensing-service)
-        - [Creating the Instance on OCP 4.2+](#creating-the-instance-on-ocp-42)
+        - [Create instance on OCP 4.2+](#create-instance-on-ocp-42)
+        - [Create instance from console](#create-instance-from-console)
+        - [Check Components](#check-components)
+        - [Show and use API](#show-and-use-api)
     - [Uninstall](#uninstall)
         - [Uninstall from any kubernetes cluster](#uninstall-from-any-kubernetes-cluster)
             - [1. Delete IBMLicensing custom resource](#1-delete-ibmlicensing-custom-resource)
@@ -296,21 +299,91 @@ kubectl get deployment -n ibm-common-services | grep ibm-licensing-operator
 
 After you successfully installed IBM Licensing Operator you can create IBMLicensing instance that will make IBM Licensing Service running in cluster.
 
-### Creating the Instance on OCP 4.2+
+### Create instance on OCP 4.2+
 
 If you have OCP 4.2+ you can create the instance from the OCP UI->Installed Operators->IBM Licensing Operator->IBM Licensing tab->Create IBMLicensing
 
 This should look like this:
 ![OCP click Create IBM Licensing](images/ocp_create_instance.png)
 
-Then after clicking create you can edit your parameters:
+Then after clicking `Create IBMLicensing` you can edit your parameters:
 ![OCP create IBM Licensing instance](images/ocp_creating_instance.png)
 
 Make sure to use `metering` datasource if IBM Metering Service exits in your cluster.
 Otherwise you <b>need</b> to change datasource to `datacollector`:
 ![OCP instance datacollector](images/ocp_instance_datacollector.png)
 
-Other parameters are described here: [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.ods)
+More about parameters from IBMLicensing instance are described here: [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.ods)
+
+If you are sure about your parameters click create.
+Later if you want to edit your instance go to:
+OCP UI->Administration->Custom Resource Definitions->select IBMLicensing->instances->Edit IBMLicensing
+
+![OCP Edit Instance](images/ocp_edit_instance.png)
+
+In case instance is not updated properly try deleting the instance and creating new one with new parameters.
+
+### Create instance from console
+
+First edit your custom resource at [deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml](deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml)
+
+Make sure to use `metering` datasource if IBM Metering Service exits in your cluster.
+Otherwise you <b>need</b> to change datasource to `datacollector`
+More about parameters from IBMLicensing instance are described here: [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.ods)
+
+Apply it using:
+
+```bash
+kubectl apply -f deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
+```
+
+### Check Components
+
+First check if pod is created.
+You can see the logs at OCP UI->Workloads->Pods->search for `licensing` in `ibm-common-services` project:
+
+![OCP Pod](images/ocp_pod.png)
+
+Check if pod is running, for further investigating you can click it to check logs, and events.
+
+From console you can use:
+
+```bash
+podName=`kubectl get pod -n ibm-common-services -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}" | grep ibm-licensing-service-instance`
+kubectl logs $podName -n ibm-common-services
+kubectl describe pod $podName -n ibm-common-services
+```
+
+You can also check OCP UI->Networking->Service,Route*
+
+\* or Ingress if you changed instance parameters
+
+From console you can use for example this to check Ingress:
+
+```bash
+kubectl get ingress -n ibm-common-services -o yaml
+```
+
+### Show and use API
+
+First you need to get your URL from Route or Ingress, if you use default options the route should be created:
+Go to OCP UI->Networking->Route and search for `ibm-licensing-service-instance` in project `ibm-common-services`:
+![OCP Route](images/ocp_route.png)
+
+Here you can just click the `Location` and you should be redirected to IBM Licensing Service API.
+
+To use API you need to get token, you can get it at OCP UI->Workloads->Secret->ibm-licensing-token.
+Click ibm-licensing-token and get token from `Data` token field:
+![OCP Token](images/ocp_token_gen.png)
+
+You can copy it from console using:
+
+```bash
+kubectl get secret -n ibm-common-services ibm-licensing-token -o jsonpath="{.data.token}" | base64 --decode | grep ""
+```
+
+If everything works you can see your IBM Licensing Service UI at URL from your Ingress or Route:
+![IBM Licensing Service UI](images/ibm_licensing_service_ui.png)
 
 ## Uninstall
 
