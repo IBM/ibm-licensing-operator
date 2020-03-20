@@ -11,13 +11,18 @@ spec:
     metadata:
       labels:
         name: ibm-licensing-operator
+      annotations:
+        productName: IBM Cloud Platform Common Services
+        productID: "068a62892a1e4db39641342e592daa25"
+        productVersion: "3.3.0"
+        productMetric: FREE
     spec:
       serviceAccountName: ibm-licensing-operator
       containers:
         - name: ibm-licensing-operator
           image: quay.io/opencloudio/ibm-licensing-operator:1.0.0
           command:
-          - ibm-licensing-operator
+            - ibm-licensing-operator
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
