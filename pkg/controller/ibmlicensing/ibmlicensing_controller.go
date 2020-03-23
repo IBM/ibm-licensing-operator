@@ -284,8 +284,8 @@ func (r *ReconcileIBMLicensing) reconcileServiceAccount(instance *operatorv1alph
 			return reconcile.Result{Requeue: true}, nil
 		}
 		reqLogger.Info("Updated ServiceAccount successfully")
-		// Spec updated - return and requeue
-		return reconcile.Result{Requeue: true}, nil
+		// Spec updated - return and do not requeue as it might not consider extra values
+		return reconcile.Result{}, nil
 	}
 	return reconcile.Result{}, nil
 }
@@ -426,8 +426,8 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 			return reconcile.Result{Requeue: true}, nil
 		}
 		reqLogger.Info("Updated deployment successfully", "Deployment.Namespace", refreshedDeployment.Namespace, "Deployment.Name", refreshedDeployment.Name)
-		// Spec updated - return and requeue
-		return reconcile.Result{Requeue: true}, nil
+		// Spec updated - return and do not requeue as it might not consider extra values
+		return reconcile.Result{}, nil
 	}
 
 	return reconcile.Result{}, nil
