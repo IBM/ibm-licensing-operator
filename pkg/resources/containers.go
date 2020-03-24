@@ -109,11 +109,39 @@ func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.Handler {
 	}
 }
 
-func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
-	var probeHandler = getProbeHandler(spec)
+func getMeteringSecretCheckScript() string {
+	script := `while true; do
+  echo "$(date): Checking for metering secret"
+  ls /opt/metering/certs/* && break
+  echo "$(date): Required metering secret not found ... try again in 30s"
+  sleep 30
+done
+echo "$(date): All required secrets exist"
+`
+	return script
+}
+
+func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Container {
+	if !spec.IsMetering() {
+		return nil
+	}
+	baseContainer := getLicensingContainerBase(spec)
+	meteringSecretCheckContainer := corev1.Container{}
+	baseContainer.DeepCopyInto(&meteringSecretCheckContainer)
+	meteringSecretCheckContainer.Name = "metering-check-secret"
+	meteringSecretCheckContainer.Command = []string{
+		"sh",
+		"-c",
+		getMeteringSecretCheckScript(),
+	}
+	return []corev1.Container{
+		meteringSecretCheckContainer,
+	}
+}
+
+func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
 	return corev1.Container{
 		Image:           spec.GetFullImage(),
-		Name:            "license-service",
 		ImagePullPolicy: corev1.PullAlways,
 		VolumeMounts:    getLicensingVolumeMounts(spec),
 		Env:             getLicensingEnvironmentVariables(spec),
@@ -122,22 +150,6 @@ func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Contai
 				ContainerPort: licensingServicePort.IntVal,
 				Protocol:      corev1.ProtocolTCP,
 			},
-		},
-		LivenessProbe: &corev1.Probe{
-			Handler:             probeHandler,
-			InitialDelaySeconds: 120,
-			TimeoutSeconds:      10,
-			PeriodSeconds:       300,
-			// SuccessThreshold:    1,
-			// FailureThreshold:    3,
-		},
-		ReadinessProbe: &corev1.Probe{
-			Handler:             probeHandler,
-			InitialDelaySeconds: 60,
-			TimeoutSeconds:      10,
-			PeriodSeconds:       60,
-			// SuccessThreshold:    1,
-			// FailureThreshold:    3,
 		},
 		Resources: corev1.ResourceRequirements{
 			Limits: map[corev1.ResourceName]resource.Quantity{
@@ -149,4 +161,23 @@ func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Contai
 		},
 		SecurityContext: getLicensingSecurityContext(spec),
 	}
+}
+
+func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
+	container := getLicensingContainerBase(spec)
+	probeHandler := getProbeHandler(spec)
+	container.Name = "license-service"
+	container.LivenessProbe = &corev1.Probe{
+		Handler:             probeHandler,
+		InitialDelaySeconds: 120,
+		TimeoutSeconds:      10,
+		PeriodSeconds:       300,
+	}
+	container.ReadinessProbe = &corev1.Probe{
+		Handler:             probeHandler,
+		InitialDelaySeconds: 60,
+		TimeoutSeconds:      10,
+		PeriodSeconds:       60,
+	}
+	return container
 }
