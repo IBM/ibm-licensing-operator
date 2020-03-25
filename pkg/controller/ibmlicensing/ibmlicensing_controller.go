@@ -348,7 +348,7 @@ func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBML
 func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
 	expectedDeployment := res.GetLicensingDeployment(instance)
-	shouldUpdate := false
+	shouldUpdate := true
 	foundDeployment := &appsv1.Deployment{}
 	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedDeployment, foundDeployment)
 	if err != nil || reconcileResult.Requeue {
@@ -358,60 +358,61 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 	foundSpec := foundDeployment.Spec.Template.Spec
 	expectedSpec := expectedDeployment.Spec.Template.Spec
 	if !reflect.DeepEqual(foundSpec.Volumes, expectedSpec.Volumes) {
-		reqLogger.Info("Deployment has wrong volumes", "Deployment.Namespace", foundDeployment.Namespace,
-			"Deployment.Name", foundDeployment.Name, "Deployment.Volumes", foundSpec.Volumes,
-			"ExpectedDeployment.Volumes", expectedSpec.Volumes)
-		shouldUpdate = true
-	} else if len(foundSpec.Containers) != len(expectedSpec.Containers) {
-		reqLogger.Info("Deployment has number of containers", "Deployment.Namespace", foundDeployment.Namespace,
-			"Deployment.Name", foundDeployment.Name, "Deployment.Containers", foundSpec.Containers,
-			"ExpectedDeployment.Containers", expectedSpec.Containers)
-		shouldUpdate = true
-	} else if foundSpec.Containers[0].Name != expectedSpec.Containers[0].Name {
-		reqLogger.Info("Deployment wrong container name", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name,
-			"Container.Name", foundSpec.Containers[0].Name,
-			"ExpectedContainer.Name", expectedSpec.Containers[0].Name)
-		shouldUpdate = true
-	} else if !reflect.DeepEqual(foundSpec.Containers[0].Image, expectedSpec.Containers[0].Image) {
-		reqLogger.Info("Deployment wrong container image", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name,
-			"Container.Image", foundSpec.Containers[0].Image,
-			"ExpectedContainer.Image", expectedSpec.Containers[0].Image)
-		shouldUpdate = true
-	} else if !reflect.DeepEqual(foundSpec.Containers[0].Ports, expectedSpec.Containers[0].Ports) {
-		reqLogger.Info("Deployment wrong containers ports", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name,
-			"Found Container Ports", foundSpec.Containers[0].Ports,
-			"Expected Container Ports", expectedSpec.Containers[0].Ports)
-		shouldUpdate = true
-	} else if !reflect.DeepEqual(foundSpec.Containers[0].VolumeMounts, expectedSpec.Containers[0].VolumeMounts) {
-		reqLogger.Info("Deployment wrong VolumeMounts in container", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name)
-		shouldUpdate = true
-	} else if !reflect.DeepEqual(foundSpec.Containers[0].Env, expectedSpec.Containers[0].Env) {
-		reqLogger.Info("Deployment wrong env variables in container", "Deployment.Namespace", foundDeployment.Namespace,
-			"Deployment.Name", foundDeployment.Name, "Deployment.Containers", foundSpec.Containers,
-			"ExpectedDeployment.Containers", expectedSpec.Containers)
-		shouldUpdate = true
+		reqLogger.Info("Deployment has wrong volumes")
 	} else if foundSpec.ServiceAccountName != expectedSpec.ServiceAccountName {
-		reqLogger.Info("Deployment wrong service account name", "Deployment.Namespace", foundDeployment.Namespace,
-			"Deployment.Name", foundDeployment.Name, "Deployment.SA", foundSpec.ServiceAccountName,
-			"ExpectedDeployment.SA", expectedSpec.ServiceAccountName)
-		shouldUpdate = true
-	} else if !reflect.DeepEqual(foundSpec.Containers[0].SecurityContext, expectedSpec.Containers[0].SecurityContext) {
-		reqLogger.Info("Deployment wrong container security context", "Deployment.Namespace", foundDeployment.Namespace,
-			"Deployment.Name", foundDeployment.Name, "Deployment.SC", foundSpec.Containers[0].SecurityContext,
-			"ExpectedDeployment.SC", expectedSpec.Containers[0].SecurityContext)
-		shouldUpdate = true
+		reqLogger.Info("Deployment wrong service account name")
+	} else if len(foundSpec.Containers) != len(expectedSpec.Containers) {
+		reqLogger.Info("Deployment has wrong number of containers")
+	} else if len(foundSpec.InitContainers) != len(expectedSpec.InitContainers) {
+		reqLogger.Info("Deployment has wrong number of init containers")
+	} else {
+		shouldUpdate = false
+		containersToBeChecked := map[*corev1.Container]corev1.Container{&foundSpec.Containers[0]: expectedSpec.Containers[0]}
+		if instance.Spec.IsMetering() {
+			containersToBeChecked[&foundSpec.InitContainers[0]] = expectedSpec.InitContainers[0]
+		}
+		for foundContainer, expectedContainer := range containersToBeChecked {
+			if shouldUpdate {
+				break
+			}
+			shouldUpdate = true
+			if foundContainer.Name != expectedContainer.Name {
+				reqLogger.Info("Deployment wrong container name")
+			} else if foundContainer.Image != expectedContainer.Image {
+				reqLogger.Info("Deployment wrong container image")
+			} else if foundContainer.ImagePullPolicy != expectedContainer.ImagePullPolicy {
+				reqLogger.Info("Deployment wrong image pull policy")
+			} else if !reflect.DeepEqual(foundContainer.Command, expectedContainer.Command) {
+				reqLogger.Info("Deployment wrong container command")
+			} else if !reflect.DeepEqual(foundContainer.Ports, expectedContainer.Ports) {
+				reqLogger.Info("Deployment wrong containers ports")
+			} else if !reflect.DeepEqual(foundContainer.VolumeMounts, expectedContainer.VolumeMounts) {
+				reqLogger.Info("Deployment wrong VolumeMounts in container")
+			} else if !reflect.DeepEqual(foundContainer.Env, expectedContainer.Env) {
+				reqLogger.Info("Deployment wrong env variables in container")
+			} else if !reflect.DeepEqual(foundContainer.SecurityContext, expectedContainer.SecurityContext) {
+				reqLogger.Info("Deployment wrong container security context")
+			} else if (foundContainer.Resources.Limits == nil) || (foundContainer.Resources.Requests == nil) {
+				reqLogger.Info("Deployment wrong container Resources")
+			} else if !(foundContainer.Resources.Limits.Cpu().Equal(*expectedContainer.Resources.Limits.Cpu()) &&
+				foundContainer.Resources.Limits.Memory().Equal(*expectedContainer.Resources.Limits.Memory())) {
+				reqLogger.Info("Deployment wrong container Resources Limits")
+			} else if !(foundContainer.Resources.Requests.Cpu().Equal(*expectedContainer.Resources.Requests.Cpu()) &&
+				foundContainer.Resources.Requests.Memory().Equal(*expectedContainer.Resources.Requests.Memory())) {
+				reqLogger.Info("Deployment wrong container Resources Requests")
+			} else {
+				shouldUpdate = false
+			}
+		}
 	}
 
 	if shouldUpdate {
-		// Spec is incorrect, update it and requeue
-		reqLogger.Info("Found deployment spec is incorrect", "Found", foundDeployment.Name, "Expected", expectedDeployment.Name)
 		refreshedDeployment := foundDeployment.DeepCopy()
 		refreshedDeployment.Spec.Template.Spec.Volumes = expectedDeployment.Spec.Template.Spec.Volumes
 		refreshedDeployment.Spec.Template.Spec.Containers = expectedDeployment.Spec.Template.Spec.Containers
+		refreshedDeployment.Spec.Template.Spec.InitContainers = expectedDeployment.Spec.Template.Spec.InitContainers
 		refreshedDeployment.Spec.Template.Spec.ServiceAccountName = expectedDeployment.Spec.Template.Spec.ServiceAccountName
-		reqLogger.Info("Updating Deployment volumes to", "RefreshedDeployment.Volumes", refreshedDeployment.Spec.Template.Spec.Volumes)
-		reqLogger.Info("Updating Deployment containers to", "RefreshedDeployment.Containers", refreshedDeployment.Spec.Template.Spec.Containers)
-		reqLogger.Info("Updating Deployment SA to", "RefreshedDeployment.ServiceAccount", refreshedDeployment.Spec.Template.Spec.ServiceAccountName)
+		reqLogger.Info("Updating Deployment Spec to", "RefreshedDeployment.Spec", refreshedDeployment.Spec)
 		err = r.client.Update(context.TODO(), refreshedDeployment)
 		if err != nil {
 			// only need to delete deployment as new will be recreated on next reconciliation

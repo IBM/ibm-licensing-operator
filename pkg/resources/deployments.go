@@ -48,7 +48,8 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 					Annotations: AnnotationsForPod(),
 				},
 				Spec: corev1.PodSpec{
-					Volumes: getLicensingVolumes(instance.Spec),
+					Volumes:        getLicensingVolumes(instance.Spec),
+					InitContainers: GetLicensingInitContainers(instance.Spec),
 					Containers: []corev1.Container{
 						GetLicensingContainer(instance.Spec),
 					},

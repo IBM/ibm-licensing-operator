@@ -460,7 +460,7 @@ IBM Licensing Operator should be uninstalled now but you can also cleanup operat
 
 ```bash
 licensingNamespace=ibm-common-services
-operatoGroupName=operatorgroup
+operatorGroupName=operatorgroup
 kubectl delete OperatorGroup ${operatorGroupName} -n ${licensingNamespace}
 ```
 
