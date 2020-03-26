@@ -26,7 +26,7 @@ import (
 var (
 	licensingServicePort    = intstr.FromInt(8080)
 	licensingTargetPort     = intstr.FromInt(8080)
-	licensingTargetPortName = intstr.FromString("APIPort")
+	licensingTargetPortName = intstr.FromString("api-port")
 )
 
 func getServiceSpec(instance *operatorv1alpha1.IBMLicensing) corev1.ServiceSpec {
