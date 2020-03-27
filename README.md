@@ -9,38 +9,40 @@ Using an API call, you can retrieve the license usage of your products and gener
 ## Operator versions and supported platforms
 
 List the platforms and operation systems on which the operator is supported.
+
 |Operator version|Date|Supported operating systems|Supported platforms|Details|
 |---|---|---|---|---|
 |1.0.0| 03/2020|AMD64|<ul><li>[OpenShift Container Platform](https://www.openshift.com/) 4.2 or higher</li><br></br><li>Kubernetes 1.11.3 or higher</li></ul>|First release |
 
 ## Documentation
+
 For information about installation and configuration as a part of IBM Cloud Platform Services, see the [IBM Cloud Platform Common Services documentation](http://ibm.biz/cpcsdocs)
-## Developer guide 
+
+## Developer guide
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Overview](#overview)
-    - [Documentation for IBM Certified Containers](#documentation-for-ibm-certified-containers)
-        - [Install](#install)
-            - [Install the IBM Licensing Operator On OCP 4.2+](#install-the-ibm-licensing-operator-on-ocp-42)
-            - [Install the IBM Licensing Operator on Kubernetes from scratch](#install-the-ibm-licensing-operator-on-kubernetes-from-scratch)
-        - [Using IBM Licensing Service](#using-ibm-licensing-service)
-            - [Create instance on OCP 4.2+](#create-instance-on-ocp-42)
-            - [Create instance from console](#create-instance-from-console)
-            - [Check Components](#check-components)
-            - [Show and use API](#show-and-use-api)
-        - [Uninstall from any kubernetes cluster](#uninstall-from-any-kubernetes-cluster)
-        - [Troubleshoot](#troubleshoot)
-            - [CreateContainerConfigError Marketplace Operator error](#createcontainerconfigerror-marketplace-operator-error)
+- [Installing IBM Licensing Operator as a part of IBM Cloud Platform Common Services on OpenShift](#installing-ibm-licensing-operator-as-a-part-of-ibm-cloud-platform-common-services-on-openshift)
+- [Installing IBM Licensing Operator with stand-alone containerized IBM products using `Operator Lifecycle Manager`(OLM)](#installing-ibm-licensing-operator-with-stand-alone-containerized-ibm-products-using-operator-lifecycle-managerolm)
+    - [Install the IBM Licensing Operator On OCP 4.2+](#install-the-ibm-licensing-operator-on-ocp-42)
+    - [Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`](#install-the-ibm-licensing-operator-on-kubernetes-from-scratch-with-kubectl)
+- [Post-installation steps](#post-installation-steps)
+    - [Create instance on OCP 4.2+](#create-instance-on-ocp-42)
+    - [Creating an instance from console](#creating-an-instance-from-console)
+    - [Check Components](#check-components)
+- [Using IBM License Service to retrieve license usage information](#using-ibm-license-service-to-retrieve-license-usage-information)
+- [Uninstalling from any kubernetes cluster](#uninstalling-from-any-kubernetes-cluster)
+- [Troubleshoot](#troubleshoot)
+    - [CreateContainerConfigError Marketplace Operator error](#createcontainerconfigerror-marketplace-operator-error)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ### Installing IBM Licensing Operator as a part of IBM Cloud Platform Common Services on OpenShift
 
 **Prerequisites**
-Install all the following operators that IBM Licensing Operator depands on:
+Install all the following operators that IBM Licensing Operator depends on:
 - ibm-cert-manager-operator
 - ibm-licensing-operator
 - ibm-metering-operator
@@ -49,14 +51,14 @@ Install all the following operators that IBM Licensing Operator depands on:
 **Installation**
 For the installation steps, see: [Installing IBM Cloud Platform Services in your OpenShift Container Platform cluster](https://www-03preprod.ibm.com/support/knowledgecenter/SSHKN6/installer/3.3.0/install_operator.html).
 
-### Installing IBM Licensing Operator with stand-alone containarized IBM products using `Operator Lifecycle Manager`(OLM)
+### Installing IBM Licensing Operator with stand-alone containerized IBM products using `Operator Lifecycle Manager`(OLM)
 
 #### Install the IBM Licensing Operator On OCP 4.2+
 
 **Prerequisites**
 - Administrator permissions for the cluster
 
-1. **Create OperatorSource**
+1\. **Create OperatorSource**
 
 Before you install IBM Licensing Operator, the following `operator source` should be created to get operator bundles from `quay.io`.
 
@@ -77,15 +79,15 @@ spec:
 
 To add the OpenSource, log in to OpenShift Console and click the plus button on the right hand site of the header, and then copy the above operator source into the editor.
 
-2. **Create the `ibm-common-services` namespace**
+2\. **Create the `ibm-common-services` namespace**
 
 Open the `OperatorHub` page in the OCP console left menu, and `Create Project` named `ibm-common-services`.
 ![Create Project](images/create-project.png)
 
-3. **Install `IBM Licensing Operator` package in OperatorHub**
+3\. **Install `IBM Licensing Operator` package in OperatorHub**
 
-    a. Open `OperatorHub` and search for `IBM Licensing Operator`. 
-    
+    a. Open `OperatorHub` and search for `IBM Licensing Operator`.
+
     b. Select `IBM Licensing Operator` and click **Install**.
 ![Operator Hub IBM Licensing](images/operator-hub-licensing.png)
 
@@ -103,12 +105,11 @@ Waite for about 1 minute, and click **Installed operators**. You should see IBM 
 - Linux or iOS
     **Note**: To install on Windows, change the commands to fit the Windows standard.
 
-1. **Install the Operator Lifecycle Manager**
+1\. **Install the Operator Lifecycle Manager**
 
 Make sure that you are connected to your cluster. You can, for example, run the following command:
 
-```
-bash
+```bash
 kubectl get node
 ```
 
@@ -116,7 +117,7 @@ You should get a list of your nodes in response.
 
 Download OLM Release from [here](https://github.com/operator-framework/operator-lifecycle-manager/releases)
 
-**Nore:** For versions newer than 13.0 process might differ. Use the following script to install OLM v13.0:
+**Note:** For versions newer than 13.0 process might differ. Use the following script to install OLM v13.0:
 
 ```bash
 curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.13.0/install.sh | bash -s 0.13.0
@@ -124,7 +125,7 @@ curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releas
 
 If you get an error, you might have old Kubernetes version. You can try either upgrading your kubernetes server version or using older version of OLM.
 
-2. **Install the Operator Marketplace**
+2\. **Install the Operator Marketplace**
 
 Clone the following github repo:
 
@@ -177,7 +178,7 @@ sed -i "" '/.*preserveUnknownFields.*/d' operator-marketplace/deploy/upstream/*
 kubectl apply -f operator-marketplace/deploy/upstream
 ```
 
-3. **Create the OperatorSource**
+3\. **Create the OperatorSource**
 
 An `OperatorSource` object is used to define the external datastore that is used to store operator bundles. More information including examples can be found in the documentation included in the `operator-marketplace` [repository](https://github.com/operator-framework/operator-marketplace#operatorsource).
 
@@ -230,7 +231,7 @@ upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
 
 If something seems wrong check the [troubleshoot section](#createcontainerconfigerror-marketplace-operator-error)
 
-4. **View Available Operators**
+4\. **View Available Operators**
 
 Once the `OperatorSource` and `CatalogSource` are deployed, the following command can be used to list the available operators including ibm-licensing-operator-app.
 
@@ -242,7 +243,7 @@ NAME                  PACKAGES
 opencloud-operators   ibm-meta-operator-bridge-app,ibm-commonui-operator-app,ibm-catalog-ui-operator-app,ibm-metering-operator-app,ibm-helm-repo-operator-app,ibm-iam-operator-app,ibm-elastic-stack-operator-app,ibm-monitoring-exporters-operator-app,ibm-monitoring-prometheusext-operator-app,cp4foobar-operator-app,ibm-healthcheck-operator-app,ibm-platform-api-operator-app,ibm-management-ingress-operator-app,ibm-helm-api-operator-app,ibm-licensing-operator-app,ibm-ingress-nginx-operator-app,ibm-monitoring-grafana-operator-app,ibm-auditlogging-operator-app,operand-deployment-lifecycle-manager-app,ibm-mgmt-repo-operator-app,ibm-mongodb-operator-app,ibm-cert-manager-operator-app
 ```
 
-5. **Create an OperatorGroup**
+5\. **Create an OperatorGroup**
 
 An `OperatorGroup` is used to denote which namespaces your Operator should be watching.
 It must exist in the namespace where your operator is deployed, for example, `ibm-common-services`.
@@ -268,10 +269,10 @@ spec:
 EOF
 ```
 
-6. **Create a Subscription**
+6\. **Create a Subscription**
 
-The last piece ties together all of the previous steps. A `Subscription` is created to the operator and it upgrades `IBM Licensing Operator` when needed.
-Create the `Subscription` using the following command:
+ The last piece ties together all of the previous steps. A `Subscription` is created to the operator and it upgrades `IBM Licensing Operator` when needed.
+ Create the `Subscription` using the following command:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -288,7 +289,7 @@ spec:
 EOF
 ```
 
-7. **Verify Operator health**
+7\. **Verify Operator health**
 
 Watch `IBM Licensing Operator` being deployed by `OLM` from the `catalog source` created by `Operator Marketplace` with the following command:
 
@@ -407,6 +408,7 @@ kubectl get ingress -n ibm-common-services -o yaml
 ```
 
 ### Using IBM License Service to retrieve license usage information
+
 See the License Service section in the [IBM Cloud Platform Common Services documentation](http://ibm.biz/cpcsdocs).
 
 ### Uninstalling from any kubernetes cluster
