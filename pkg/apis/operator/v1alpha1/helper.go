@@ -46,7 +46,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) {
 		spec.ImageName = "ibm-licensing"
 	}
 	if spec.ImageTagPostfix == "" {
-		spec.ImageTagPostfix = "1.0.0"
+		spec.ImageTagPostfix = "1.1.0"
 	}
 	if spec.APISecretToken == "" {
 		spec.APISecretToken = "ibm-licensing-token"
