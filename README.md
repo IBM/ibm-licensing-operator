@@ -97,15 +97,12 @@ To add the OpenSource:
 
 3\. **Install IBM Licensing Operator package in OperatorHub**
 
-    a. Open `OperatorHub` and search for `IBM Licensing Operator`.
-
-    b. Select `IBM Licensing Operator` and click **Install**.
+1. Go to **OperatorHub** and search for **IBM Licensing Operator**.
+2. Select **IBM Licensing Operator** and click **Install**.
 ![Operator Hub IBM Licensing](images/operator-hub-licensing.png)
-
-    c. As **A specific namespace on the cluster** select `ibm-common-services` that you created in the previous step, and click subscribe.
+3.As **A specific namespace on the cluster** select **ibm-common-services** that you created in the previous step, and click **Subscribe**.
 ![Subscribe to IBM Licensing OLM](images/subscribe-licensing.png)
-
-Waite for about 1 minute, and click **Installed operators**. You should see IBM Licensing Operator in the `InstallSucceeded` status.
+4.To check if the installation is successful, wait for about 1 minute, and click **Installed operators**. You should see IBM Licensing Operator in the **InstallSucceeded** status.
 ![IBM Licensing Installed](images/installed.png)
 
 #### Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`
@@ -114,44 +111,44 @@ Waite for about 1 minute, and click **Installed operators**. You should see IBM 
 - Administrator permissions for the cluster
 - 'kubectl` 1.11.3 or higher
 - Linux or iOS
-    **Note**: To install on Windows, change the commands to fit the Windows standard.
 
-1\. **Install the Operator Lifecycle Manager**
+    **Note**: To install the IBM Licensing Operator on Windows, adjust the commands to fit the Windows standard.
 
-Make sure that you are connected to your cluster. You can, for example, run the following command:
+1\. **Install the Operator Lifecycle Manager (OLM)**
+
+1. Make sure that you are connected to your cluster. You can, for example, run the following command:
 
 ```bash
 kubectl get node
 ```
+The response includes a list of your nodes
 
-You should get a list of your nodes in response.
+2. Download OLM release from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases).
 
-Download OLM Release from [here](https://github.com/operator-framework/operator-lifecycle-manager/releases)
-
-**Note:** For versions newer than 13.0, the process might differ. Use the following script to install OLM v13.0:
+    **Note:** For versions newer than 13.0, the process might differ. 
+3. Use the following script to install OLM v13.0:
 
 ```bash
 curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.13.0/install.sh | bash -s 0.13.0
 ```
 
-If you get an error, you might have the old version of Kubernetes. You can try either upgrading your Kubernetes server version or using older version of OLM.
+   **Troubleshooting:** If you get an error, you might have the old version of Kubernetes. You can try either upgrading your Kubernetes server version or using the older version of OLM.
 
 2\. **Install the Operator Marketplace**
 
-Clone the following github repo:
+1. Clone the Operator Marketplace GitHub repo with the following command:
 
 ```bash
 git clone --single-branch --branch release-4.6 https://github.com/operator-framework/operator-marketplace.git
 ```
 
-Change the `marketplace` namespace to `olm` to be able to create subscriptions to the operatorsource/catalogsource from different namespace.
+2. Change the `marketplace` namespace to `olm` to be able to create subscriptions to the operatorsource/catalogsource from a different namespace. 
 
-You can check you `global catalog namespace` at OLM `packageserver` pod yaml somewhere in your cluster, using `grep           global-namespace`.
+3. Check your `global catalog namespace` at OLM `packageserver` pod yaml somewhere in your cluster, using `grep           global-namespace`.
 If the cluster's `global catalog namespace` is different than `olm`, complete the following steps to change it:
-
-    1. Run the following command:
+    
+   a. Run the following command:
 - For **Linux** users
-
 ```bash
 # change this value if this would not be olm
 export GLOBAL_CATALOG_NAMESPACE=olm
@@ -160,31 +157,27 @@ sed -i 's/namespace: .*/namespace: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-m
 # change namespace to olm
 sed -i 's/name: .*/name: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-marketplace/deploy/upstream/01_namespace.yaml
 ```
-
 - For **MAC** users:
-
 ```bash
 export GLOBAL_CATALOG_NAMESPACE=olm
 sed -i "" 's/namespace: .*/namespace: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-marketplace/deploy/upstream/*
 sed -i "" 's/name: .*/name: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-marketplace/deploy/upstream/01_namespace.yaml
 ```
 
-    2. Install the Operator Marketplace into the cluster in the `$GLOBAL_CATALOG_NAMESPACE` namespace:
+   b. Install the Operator Marketplace into the cluster in the `$GLOBAL_CATALOG_NAMESPACE` namespace:
 
 ```bash
 kubectl apply -f operator-marketplace/deploy/upstream
 ```
-    3. Optional: If you get the `unknown field "preserveUnknownFields"` error, try to delete `preserveUnknownFields` from yaml files inside `operator-marketplace/deploy/upstream/` catalog or consider upgrading Kubernetes server version:
+   c. **Optional**: If you get the `unknown field "preserveUnknownFields"` error, try to delete `preserveUnknownFields` from yaml files inside `operator-marketplace/deploy/upstream/` catalog or consider upgrading Kubernetes server version by running the following command:
 
-For **Linux** users:
-
+   - For **Linux** users:
 ```bash
 sed -i '/.*preserveUnknownFields.*/d' operator-marketplace/deploy/upstream/*
 kubectl apply -f operator-marketplace/deploy/upstream
 ```
 
-For **MAC** users:
-
+   - For **MAC** users:
 ```bash
 sed -i "" '/.*preserveUnknownFields.*/d' operator-marketplace/deploy/upstream/*
 kubectl apply -f operator-marketplace/deploy/upstream
