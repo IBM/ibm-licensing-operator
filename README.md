@@ -61,7 +61,7 @@ For the installation steps, see [Installing IBM Cloud Platform Services in your 
 **Prerequisites**
 - Administrator permissions for the cluster
 
-1\. **Create `OperatorSource`**
+1\. **Create OperatorSource**
 
 Before you install IBM Licensing Operator, the following operator source should be created to get operator bundles from `quay.io`.
 
@@ -80,17 +80,18 @@ spec:
   type: appregistry
 ```
 
-
 To add the OpenSource:
-    1. Log in to OpenShift Console
-    2. Click the plus button on the right hand site of the header
-    3. Copy the above operator source into the editor.
+
+1. Log in to OpenShift Console
+2. Click the plus button on the right hand site of the header
+3. Copy the above operator source into the editor.
 
 2\. **Create the `ibm-common-services` namespace**
 
-    1. From the hamburger menu in the OpenShift Console, go to **Operators>Operator Hub**.
-    2. Select **Create Project** and type **ibm-common-services** as a name.
-    3. Click **Create**
+
+1. From the hamburger menu in the OpenShift Console, go to **Operators>Operator Hub**.
+2. Select **Create Project** and type **ibm-common-services** as a name.
+3. Click **Create**
     
 ![Create Project](images/create-project.png)
 
