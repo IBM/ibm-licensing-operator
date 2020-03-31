@@ -95,14 +95,20 @@ To add the OperatorSource:
     
 ![Create Project](images/create-project.png)
 
+
 3\. **Install IBM Licensing Operator package in OperatorHub**
 
 1. Go to **OperatorHub** and search for **IBM Licensing Operator**.
 2. Select **IBM Licensing Operator** and click **Install**.
+
 ![Operator Hub IBM Licensing](images/operator-hub-licensing.png)
+
 3.As **A specific namespace on the cluster** select **ibm-common-services** that you created in the previous step, and click **Subscribe**.
+
 ![Subscribe to IBM Licensing OLM](images/subscribe-licensing.png)
+
 4.To check if the installation is successful, wait for about 1 minute, and click **Installed operators**. You should see IBM Licensing Operator in the **InstallSucceeded** status.
+
 ![IBM Licensing Installed](images/installed.png)
 
 #### Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`
