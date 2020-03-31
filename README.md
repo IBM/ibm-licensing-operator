@@ -2,17 +2,18 @@
 
 **IBM Licensing Operator** installs **IBM License Service**.
 
-**IBM License Service** is a tool that collects information about license usage of IBM products on a cluster where it is deployed, including IBM Cloud Paks, and stand-alone containerized IBM software.
-Using an API call, you can retrieve the license usage of your products and generate an audit snapshot.
-**IBM License Service**, as a part of IBM Cloud Platform Common Services, is integrated in IBM Cloud Paks. The Operator can also install the service with Operator Lifecycle Manager separately for stand-alone containerized IBM software.
+**IBM License Service** is a tool that collects information about license usage of IBM products, such as IBM Cloud Paks and stand-alone containerized IBM software, on a cluster where it is deployed. 
+Using an API call, you can retrieve the license usage of your products and generate an audit snapshot on demand.
+
+**IBM License Service**, as a part of IBM Cloud Platform Common Services, is integrated in IBM Cloud Paks. The Operator, however, allows you to install the service with Operator Lifecycle Manager (OLM0 separately for stand-alone containerized IBM software.
 
 ## Operator versions and supported platforms
 
 List the platforms and operation systems on which the operator is supported.
 
-|Operator version|Date|Supported operating systems|Supported platforms|Details|
+|Operator version|Release Date|Supported operating systems|Supported platforms|Details|
 |---|---|---|---|---|
-|1.0.0| 03/2020|AMD64|<ul><li>[OpenShift Container Platform](https://www.openshift.com/) 4.2 or higher</li><br></br><li>Kubernetes 1.11.3 or higher</li></ul>|First release |
+|1.0.0| 03/2020|AMD64|<ul><li>[OpenShift Container Platform](https://www.openshift.com/) 4.2 or higher</li><li>Kubernetes 1.11.3 or higher</li></ul>|First release |
 
 ## Documentation
 
@@ -42,25 +43,27 @@ To learn more about License Service, see the [IBM Cloud Platform Common Services
 ### Installing IBM Licensing Operator as a part of IBM Cloud Platform Common Services on OpenShift
 
 **Prerequisites**
-Install all the following operators that IBM Licensing Operator depends on:
+
+To use License Service, aditionally install the following operators that IBM Licensing Operator depends on:
 - ibm-cert-manager-operator
 - ibm-licensing-operator
 - ibm-metering-operator
 - ibm-mongodb-operator
 
 **Installation**
-For the installation steps, see: [Installing IBM Cloud Platform Services in your OpenShift Container Platform cluster](https://www.ibm.com/support/knowledgecenter/SSHKN6/installer/1.1.0/install_operator.html).
 
-### Installing IBM Licensing Operator with stand-alone containerized IBM products using `Operator Lifecycle Manager`(OLM)
+For the installation steps, see [Installing IBM Cloud Platform Services in your OpenShift Container Platform cluster](https://www.ibm.com/support/knowledgecenter/SSHKN6/installer/1.1.0/install_operator.html).
 
-#### Install the IBM Licensing Operator On OCP 4.2+
+### Installing IBM Licensing Operator with stand-alone containerized IBM products using Operator Lifecycle Manager(OLM)
+
+#### Installing the IBM Licensing Operator on OCP 4.2+
 
 **Prerequisites**
 - Administrator permissions for the cluster
 
-1\. **Create OperatorSource**
+1\. **Create `OperatorSource`**
 
-Before you install IBM Licensing Operator, the following `operator source` should be created to get operator bundles from `quay.io`.
+Before you install IBM Licensing Operator, the following operator source should be created to get operator bundles from `quay.io`.
 
 ```yaml
 apiVersion: operators.coreos.com/v1
@@ -77,14 +80,21 @@ spec:
   type: appregistry
 ```
 
-To add the OpenSource, log in to OpenShift Console and click the plus button on the right hand site of the header, and then copy the above operator source into the editor.
+
+To add the OpenSource:
+    1. Log in to OpenShift Console
+    2. Click the plus button on the right hand site of the header
+    3. Copy the above operator source into the editor.
 
 2\. **Create the `ibm-common-services` namespace**
 
-Open the `OperatorHub` page in the OCP console left menu, and `Create Project` named `ibm-common-services`.
+    1. From the hamburger menu in the OpenShift Console, go to **Operators>Operator Hub**.
+    2. Select **Create Project** and type **ibm-common-services** as a name.
+    3. Click **Create**
+    
 ![Create Project](images/create-project.png)
 
-3\. **Install `IBM Licensing Operator` package in OperatorHub**
+3\. **Install IBM Licensing Operator package in OperatorHub**
 
     a. Open `OperatorHub` and search for `IBM Licensing Operator`.
 
