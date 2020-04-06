@@ -106,11 +106,11 @@ b. Select **IBM Licensing Operator** and click **Install**.
 
 ![Operator Hub IBM Licensing](images/operator-hub-licensing.png)
 
-3\.As **A specific namespace on the cluster** select **ibm-common-services** that you created in the previous step, and click **Subscribe**.
+4\. As **A specific namespace on the cluster** select **ibm-common-services** that you created in the previous step, and click **Subscribe**.
 
 ![Subscribe to IBM Licensing OLM](images/subscribe-licensing.png)
 
-4\.To check if the installation is successful, wait for about 1 minute, and click **Installed operators**. You should see IBM Licensing Operator in the **InstallSucceeded** status.
+5\. To check if the installation is successful, wait for about 1 minute, and click **Installed operators**. You should see IBM Licensing Operator in the **InstallSucceeded** status.
 
 ![IBM Licensing Installed](images/installed.png)
 
@@ -204,7 +204,7 @@ kubectl apply -f operator-marketplace/deploy/upstream
 
 An `OperatorSource` object is used to define the external datastore that is used to store operator bundles. For more information including examples, see the documentation in the `operator-marketplace` [repository](https://github.com/operator-framework/operator-marketplace#operatorsource).
 
-1\) Create `operator source` to get operator bundles from `quay.io`.
+<b>Create `operator source` to get operator bundles from `quay.io`.</b>
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -223,7 +223,7 @@ spec:
 EOF
 ```
 
-<b>Results</b>
+<b>Check results:</b>
 
 - The `operator-marketplace` controller should successfully process this object. See if the Status is `Succeeded`:
 
