@@ -44,7 +44,7 @@ To learn more about License Service, see the [IBM Cloud Platform Common Services
 
 <b>Prerequisites</b>
 
-To use License Service, aditionally install the following operators that IBM Licensing Operator depends on:
+To use License Service, additionally install the following operators that IBM Licensing Operator depends on:
 - ibm-cert-manager-operator
 - ibm-licensing-operator
 - ibm-metering-operator
@@ -251,7 +251,7 @@ upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
 [...]
 ```
 
-   **Troubleshooting:** In case of any problemsm, check the [troubleshooting section](#createcontainerconfigerror-marketplace-operator-error).
+   **Troubleshooting:** In case of any problems, check the [troubleshooting section](#createcontainerconfigerror-marketplace-operator-error).
 
 4\. **View Available Operators**
 
@@ -395,14 +395,14 @@ spec:
   ingressEnabled: true
   ingressOptions:
     annotations:
-      "nginx.ingress.kubernetes.io/rewrite-target": "/$2"
-    path: /ibm-licensing-service-instance/(/|$)(.*)
+      "nginx.ingress.kubernetes.io/rewrite-target": "/\$2"
+    path: /ibm-licensing-service-instance(/|$)(.*)
 EOF
 ```
 
-3\. Access the inctanse at your ingress host with the following path: `/ibm-licensing-service-instance`.
+3\. Access the instance at your ingress host with the following path: `/ibm-licensing-service-instance`.
 
-**Note:** For HTTPS,set `spec.httpsEnable` to `true`, and edit `ingressOptions`. Read more about the options here:
+**Note:** For HTTPS, set `spec.httpsEnable` to `true`, and edit `ingressOptions`. Read more about the options here:
 [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.csv)
 
 #### Check Components
@@ -421,7 +421,7 @@ kubectl logs $podName -n ibm-common-services
 kubectl describe pod $podName -n ibm-common-services
 ```
 
-3\. Check Route or Ingress settings depanding on your parameter settings.
+3\. Check Route or Ingress settings depending on your parameter settings.
 
 You can check the Route or Ingress Settings in **OCP UI->Networking->Service**. Or you can check if using the console command, for example:
 
@@ -435,11 +435,11 @@ For more information about how to use License Service to retrieve license usage 
 
 ### Uninstalling License Service from a Kubernetes cluster
 
-**Note:** The following procedesure assumes that you have deployed IBM License Service in the `ibm-common-services` namespace
+**Note:** The following procedure assumes that you have deployed IBM License Service in the `ibm-common-services` namespace
 
 1\. **Delete the `IBMLicensing custom` resource**
 
-Delete the instance and the operator cleand its resources.
+Delete the instance and the operator will clean its resources.
 First, check what `ibmlicensing` instances you have by running the following command:
 
 ```bash
@@ -552,7 +552,7 @@ kubectl delete namespace ${GLOBAL_CATALOG_NAMESPACE}
 
 #### CreateContainerConfigError Marketplace Operator error
 
-In case of poblems during the installation of operator-marketplace, check the pods in the marketplace and their status.
+In case of problems during the installation of operator-marketplace, check the pods in the marketplace and their status.
 
 If you see the following error, note down the pod name:
 
@@ -568,7 +568,7 @@ Then, check what the problem is by using the yaml where you provide a pod name:
 kubectl get pod marketplace-operator-7d4c5bdb5-mxsj6 -n $GLOBAL_CATALOG_NAMESPACE -o yaml
 ```
 
-In case the following error apprears in the pod status: `container has runAsNonRoot and image has non-numeric user (marketplace-operator), cannot verify user is non-root`, fix it by adding securityContext to operator-marketplace/deploy/upstream:
+In case the following error appears in the pod status: `container has runAsNonRoot and image has non-numeric user (marketplace-operator), cannot verify user is non-root`, fix it by adding securityContext to operator-marketplace/deploy/upstream:
 
 ```console
 vim operator-marketplace/deploy/upstream/08_operator.yaml
