@@ -91,7 +91,9 @@ c. Copy the above operator source into the editor.
 2\. **Create the `ibm-common-services` namespace**
 
 a. From the hamburger menu in the OpenShift Console, go to **Operators>Operator Hub**.
+
 b. Select **Create Project** and type **ibm-common-services** as a name.
+
 c. Click **Create**
 
 ![Create Project](images/create-project.png)
