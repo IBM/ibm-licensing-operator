@@ -339,6 +339,7 @@ After you successfully install IBM Licensing Operator, you can create IBMLicensi
 #### Create instance on OpenShift Console 4.2+
 
 If you have OpenShift 4.2+ you can create the instance from the Console.
+
 1\. Go to **Installed Operators>IBM Licensing Operator>IBM Licensing tab>Create IBMLicensing**
 
 ![OCP click Create IBM Licensing](images/ocp_create_instance.png)
