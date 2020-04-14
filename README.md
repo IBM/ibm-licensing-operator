@@ -332,6 +332,133 @@ If your Operator deployment (CSV) shows `Succeeded` in the `InstallPhase` status
 kubectl get deployment -n ibm-common-services | grep ibm-licensing-operator
 ```
 
+#### Offline installation with kubectl
+
+<b>Prerequisites</b>
+
+You need to have private docker image registry, where you can push images using `docker` and from where your cluster can pull images. Also you need machine with access to your cluster with `kubectl` command.
+
+1\. **Prepare docker images**
+
+First you need to push images to your registry:
+
+```bash
+# on machine with access to internet
+export my_docker_registry=<YOUR REGISTRY IMAGE PREFIX HERE f.e.: "my.registry:5000" or "quay.io/opencloudio">
+
+# pull needed images
+docker pull quay.io/opencloudio/ibm-licensing-operator:1.0.0
+docker pull quay.io/opencloudio/ibm-licensing:1.0.0
+
+# tag them with your registry prefix and push
+docker tag quay.io/opencloudio/ibm-licensing-operator:1.0.0 ${my_docker_registry}/ibm-licensing-operator:1.0.0
+docker push ${my_docker_registry}/ibm-licensing-operator:1.0.0
+docker tag quay.io/opencloudio/ibm-licensing:1.0.0 ${my_docker_registry}/ibm-licensing:1.0.0
+docker push ${my_docker_registry}/ibm-licensing:1.0.0
+```
+
+2\. **Create needed resources**
+
+Now do everything on machine where you have access to your cluster and can use `kubectl` to access it.
+
+```bash
+# on machine with access to cluster
+export my_docker_registry=<SAME REGISTRY AS BEFORE>
+```
+
+We will install our operator in `ibm-common-services` namespace. So first we need to create it:
+
+```bash
+kubectl create namespace ibm-common-services
+```
+
+If your cluster need access token to your private docker registry then create this secret in created namespace:
+
+```bash
+kubectl create secret -n ibm-common-services docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
+```
+
+Set context so that resources will be made `ibm-common-services` namespace:
+
+```bash
+kubectl config set-context --current --namespace=ibm-common-services
+```
+
+Apply RBAC roles and CRD:
+
+```bash
+git clone -b v1.0.0-cambridge https://github.com/IBM/ibm-licensing-operator.git
+cd ibm-licensing-operator/
+# add CRD:
+kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
+# add RBAC:
+kubectl apply -f deploy/role.yaml
+kubectl apply -f deploy/service_account.yaml
+kubectl apply -f deploy/role_binding.yaml
+```
+
+Modify operator.yaml image so your private registry is used:
+
+- For **LINUX** users:
+
+```bash
+sed -i 's/image: .*\/ibm-licensing-operator/image: '"${my_docker_registry}"'\/ibm-licensing-operator/g' deploy/operator.yaml
+kubectl apply -f deploy/operator.yaml
+```
+
+- For **MAC** users:
+
+```bash
+sed -i "" 's/image: .*\/ibm-licensing-operator/image: '"${my_docker_registry}"'\/ibm-licensing-operator/g' deploy/operator.yaml
+kubectl apply -f deploy/operator.yaml
+```
+
+3\. **Steps to include when creating operator instance**
+
+Create the instance just like in [online installation](#creating-an-instance-from-console) but add your new registry:
+
+```yaml
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+...
+  imageRegistry: <YOUR PRIVATE DOCKER REGISTRY NAME JUST LIKE BEFORE>
+...
+```
+
+And if you created secret needed for access to images then also add it:
+
+```yaml
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+...
+  imagePullSecrets:
+    - my-registry-token
+...
+```
+
+Example:
+
+```yaml
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+  apiSecretToken: ibm-licensing-token
+  datasource: datacollector
+  httpsEnable: false
+  instanceNamespace: ibm-common-services
+  imageRegistry: "my.registry:5000"
+  imagePullSecrets:
+    - my-registry-token
+```
+
 ### Post-installation steps
 
 After you successfully install IBM Licensing Operator, you can create IBMLicensing instance that will make IBM Licensing Service run on cluster.
