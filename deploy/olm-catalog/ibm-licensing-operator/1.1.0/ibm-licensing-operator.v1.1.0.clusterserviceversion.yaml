@@ -31,7 +31,7 @@ metadata:
               {
                 "scope": "public",
                 "secret": "ibm-licensing-token",
-                "configmap": "ibm-licensing-upload-config",
+                "configmap": "ibm-licensing-upload-config"
               }
             ]
           }
