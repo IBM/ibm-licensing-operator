@@ -30,7 +30,8 @@ metadata:
             "bindings": [
               {
                 "scope": "public",
-                "secret": "ibm-licensing-token"
+                "secret": "ibm-licensing-token",
+                "configmap": "ibm-licensing-upload-config",
               }
             ]
           }

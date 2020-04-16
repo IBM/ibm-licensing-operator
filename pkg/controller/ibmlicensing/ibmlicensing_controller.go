@@ -106,6 +106,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&rbacv1.ClusterRoleBinding{},
 		&corev1.ServiceAccount{},
 		&corev1.Secret{},
+		&corev1.ConfigMap{},
 		&appsv1.Deployment{},
 		&corev1.Service{},
 		&extensionsv1.Ingress{},
@@ -183,6 +184,7 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		r.reconcileClusterRole,
 		r.reconcileClusterRoleBinding,
 		r.reconcileAPISecretToken,
+		r.reconcileConfigMap,
 		r.reconcileDeployment,
 		r.reconcileService,
 		r.reconcileIngress,
@@ -337,6 +339,21 @@ func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alph
 	}
 	foundSecret := &corev1.Secret{}
 	return r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+}
+
+func (r *ReconcileIBMLicensing) reconcileConfigMap(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	metaLabels := res.LabelsForLicensingMeta(instance)
+	expectedCM := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ibm-licensing-upload-config",
+			Namespace: instance.Spec.InstanceNamespace,
+			Labels:    metaLabels,
+		},
+		Data: map[string]string{"hostname": res.GetResourceName(instance) + "." + instance.Spec.InstanceNamespace +
+			".svc.cluster.local"},
+	}
+	foundCM := &corev1.ConfigMap{}
+	return r.reconcileResourceNamespacedExistence(instance, expectedCM, foundCM)
 }
 
 func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
