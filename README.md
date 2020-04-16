@@ -5,7 +5,7 @@
 **IBM License Service** is a tool that collects information about license usage of IBM products, such as IBM Cloud Paks and stand-alone containerized IBM software, on a cluster where it is deployed.
 Using an API call, you can retrieve the license usage of your products and generate an audit snapshot on demand.
 
-**IBM License Service**, as a part of IBM Cloud Platform Common Services, is integrated in IBM Cloud Paks. The Operator, however, allows you to install the service with Operator Lifecycle Manager (OLM0 separately for stand-alone containerized IBM software.
+**IBM License Service**, as a part of IBM Cloud Platform Common Services, is integrated in IBM Cloud Paks. The Operator, however, allows you to install the service with Operator Lifecycle Manager (OLM) separately for stand-alone containerized IBM software.
 
 ## Operator versions and supported platforms
 
@@ -136,7 +136,8 @@ The response includes a list of your nodes
 
 b. Download OLM release from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases).
 
-    **Note:** For versions newer than 13.0, the process might differ.
+   **Note:** For versions newer than 13.0, the process might differ.
+
 c. Use the following script to install OLM v13.0:
 
 ```bash
@@ -282,7 +283,7 @@ kubectl create namespace ibm-common-services
 
 ```yaml
 cat <<EOF | kubectl apply -f -
-apiVersion: operators.coreos.com/v1alpha2
+apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: operatorgroup
@@ -480,7 +481,7 @@ If you have OpenShift 4.2+ you can create the instance from the Console.
 
 3\. Click **Create**.
 
-    **Note:** To edit your instance in the future, in OpenShift Console go to **Administration>Custom Resource Definitions>select IBMLicensing>instances>Edit IBMLicensing**
+   **Note:** To edit your instance in the future, in OpenShift Console go to **Administration>Custom Resource Definitions>select IBMLicensing>instances>Edit IBMLicensing**
 
 ![OCP Edit Instance](images/ocp_edit_instance.png)
 
@@ -535,6 +536,8 @@ EOF
 
 **Note:** For HTTPS, set `spec.httpsEnable` to `true`, and edit `ingressOptions`. Read more about the options here:
 [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.csv)
+
+**Troubleshooting**: If the instance is not updated properly (for example after updating ingressOptions), try deleting the instance and creating new one with new parameters.
 
 #### Check Components
 
