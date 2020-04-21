@@ -38,6 +38,7 @@ To learn more about License Service, see the [IBM Cloud Platform Common Services
 - [Uninstalling License Service from a Kubernetes cluster](#uninstalling-license-service-from-a-kubernetes-cluster)
 - [Troubleshooting](#troubleshooting)
     - [CreateContainerConfigError Marketplace Operator error](#createcontainerconfigerror-marketplace-operator-error)
+    - [Prepare resources for offline installation without git](#prepare-resources-for-offline-installation-without-git)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -386,11 +387,19 @@ Set context so that resources will be made `ibm-common-services` namespace:
 kubectl config set-context --current --namespace=ibm-common-services
 ```
 
-Apply RBAC roles and CRD:
+If You cannot use `git clone` on machine with `kubectl` (f.e. when You don't have internet connection there) then use the solution at troubleshooting section at the end of the readme named
+['Prepare resources for offline installation without git'](#prepare-resources-for-offline-installation-without-git). Then continue to step 3 below.
+
+If You can use `git clone`:
 
 ```bash
 git clone -b v1.0.0-cambridge https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
+```
+
+Apply RBAC roles and CRD:
+
+```bash
 # add CRD:
 kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
 # add RBAC:
@@ -724,4 +733,66 @@ And apply the configuration:
 
 ```bash
 kubectl apply -f operator-marketplace/deploy/upstream/08_operator.yaml
+```
+
+#### Prepare resources for offline installation without git
+
+Apply RBAC roles and CRD:
+
+```bash
+# copy the yaml from here:
+https://github.com/IBM/ibm-licensing-operator/releases/download/v1.0.0-cambridge/rbac_and_crd.yaml
+```
+
+Then apply the copied yaml:
+
+```bash
+cat <<EOF | kubectl apply -f -
+# PASTE IT HERE
+EOF
+```
+
+Make sure `${my_docker_registry}` variable has your private registry and apply the operator:
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ibm-licensing-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: ibm-licensing-operator
+  template:
+    metadata:
+      labels:
+        name: ibm-licensing-operator
+      annotations:
+        productName: IBM Cloud Platform Common Services
+        productID: "068a62892a1e4db39641342e592daa25"
+        productVersion: "3.3.0"
+        productMetric: FREE
+    spec:
+      serviceAccountName: ibm-licensing-operator
+      containers:
+        - name: ibm-licensing-operator
+          image: ${my_docker_registry}/ibm-licensing-operator:1.0.0
+          command:
+            - ibm-licensing-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "ibm-licensing-operator"
+            - name: SA_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.serviceAccountName
+EOF
 ```
