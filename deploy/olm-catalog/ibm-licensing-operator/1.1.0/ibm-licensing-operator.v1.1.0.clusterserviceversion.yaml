@@ -27,13 +27,12 @@ metadata:
             "operand": "ibm-licensing-operator",
             "registry": "common-service",
             "description": "Binding information that should be accessible to licensing adopters",
-            "bindings": [
-              {
-                "scope": "public",
+            "bindings": {
+              "public": {
                 "secret": "ibm-licensing-token",
                 "configmap": "ibm-licensing-upload-config"
               }
-            ]
+            }
           }
         },
         {
