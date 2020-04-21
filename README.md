@@ -29,7 +29,7 @@ To learn more about License Service, see the [IBM Cloud Platform Common Services
 - [Installing IBM Licensing Operator with stand-alone containerized IBM products using Operator Lifecycle Manager(OLM)](#installing-ibm-licensing-operator-with-stand-alone-containerized-ibm-products-using-operator-lifecycle-managerolm)
     - [Installing the IBM Licensing Operator on OCP 4.2+](#installing-the-ibm-licensing-operator-on-ocp-42)
     - [Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`](#install-the-ibm-licensing-operator-on-kubernetes-from-scratch-with-kubectl)
-    - [Offline installation with kubectl](#offline-installation-with-kubectl)
+    - [Offline installation](#offline-installation)
 - [Post-installation steps](#post-installation-steps)
     - [Create instance on OpenShift Console 4.2+](#create-instance-on-openshift-console-42)
     - [Creating an instance from console](#creating-an-instance-from-console)
@@ -335,7 +335,7 @@ If your Operator deployment (CSV) shows `Succeeded` in the `InstallPhase` status
 kubectl get deployment -n ibm-common-services | grep ibm-licensing-operator
 ```
 
-#### Offline installation with kubectl
+#### Offline installation
 
 <b>Prerequisites</b>
 
