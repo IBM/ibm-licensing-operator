@@ -349,8 +349,7 @@ func (r *ReconcileIBMLicensing) reconcileConfigMap(instance *operatorv1alpha1.IB
 			Namespace: instance.Spec.InstanceNamespace,
 			Labels:    metaLabels,
 		},
-		Data: map[string]string{"hostname": res.GetResourceName(instance) + "." + instance.Spec.InstanceNamespace +
-			".svc.cluster.local"},
+		Data: map[string]string{"url": res.GetUploadURL(instance)},
 	}
 	foundCM := &corev1.ConfigMap{}
 	return r.reconcileResourceNamespacedExistence(instance, expectedCM, foundCM)
