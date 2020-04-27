@@ -64,6 +64,16 @@ func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
 }
 
+func GetUploadURL(instance *operatorv1alpha1.IBMLicensing) string {
+	var urlPrefix string
+	if instance.Spec.HTTPSEnable {
+		urlPrefix = "https://"
+	} else {
+		urlPrefix = "http://"
+	}
+	return urlPrefix + GetResourceName(instance) + "." + instance.Spec.InstanceNamespace + ".svc.cluster.local"
+}
+
 func LabelsForLicensingSelector(instance *operatorv1alpha1.IBMLicensing) map[string]string {
 	return map[string]string{"app": GetResourceName(instance), "component": LicensingComponentName, "licensing_cr": instance.GetName()}
 }
