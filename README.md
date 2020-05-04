@@ -472,7 +472,7 @@ spec:
 
 ### Post-installation steps
 
-After you successfully install IBM Licensing Operator, you can create IBMLicensing instance that will make IBM Licensing Service run on cluster.
+After you successfully install IBM Licensing Operator, you can create IBMLicensing instance that will make IBM License Service run on cluster.
 
 #### Create instance on OpenShift Console 4.2+
 
