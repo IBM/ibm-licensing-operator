@@ -58,7 +58,7 @@ For the installation steps, see [Installing IBM Cloud Platform Services in your 
 
 ### Installing IBM Licensing Operator with stand-alone containerized IBM products using Operator Lifecycle Manager(OLM)
 
-There is automatic script that installs IBM Licensing Operator, creates instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `kind` cluster, and is available at:
+There is automatic script that installs IBM Licensing Operator, creates instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `vanilla Kubernetes` cluster, and is available at:
 [common/scripts/ibm_licensing_operator_install.sh](common/scripts/ibm_licensing_operator_install.sh)
 
 If you want to do it by hand, you can also find steps to do it below.
