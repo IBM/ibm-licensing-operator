@@ -94,7 +94,7 @@ include common/Makefile.common.mk
 
 ##@ Application
 
-install: ## Install all resources (CR/CRD's, RBAC and CSV)
+install: ## Install all resources (CR/CRD's, RBAC and operator)
 	@echo ....... Set environment variables ......
 	- export WATCH_NAMESPACE=${NAMESPACE}
 	@echo ....... Creating namespace .......
@@ -106,7 +106,7 @@ install: ## Install all resources (CR/CRD's, RBAC and CSV)
 	- kubectl apply -f deploy/role.yaml
 	- kubectl apply -f deploy/role_binding.yaml
 	@echo ....... Applying Operator .......
-	- kubectl apply -f deploy/olm-catalog/${BASE_DIR}/${CSV_VERSION}/${BASE_DIR}.v${CSV_VERSION}.clusterserviceversion.yaml -n ${NAMESPACE}
+	- kubectl apply -f deploy/operator.yaml -n ${NAMESPACE}
 	@echo ....... Creating the Instances .......
 	- kubectl apply -f deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
 uninstall: ## Uninstall all that all performed in the $ make install, without namespace as there might be other things there
@@ -114,7 +114,7 @@ uninstall: ## Uninstall all that all performed in the $ make install, without na
 	@echo ....... Deleting the Instances .......
 	- kubectl delete -f deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml --ignore-not-found
 	@echo ....... Deleting Operator .......
-	- kubectl delete -f deploy/olm-catalog/${BASE_DIR}/${CSV_VERSION}/${BASE_DIR}.v${CSV_VERSION}.clusterserviceversion.yaml -n ${NAMESPACE}
+	- kubectl delete -f deploy/operator.yaml -n ${NAMESPACE}
 	@echo ....... Deleting CRDs .......
 	- kubectl delete -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml --ignore-not-found
 	@echo ....... Deleting RBAC .......
