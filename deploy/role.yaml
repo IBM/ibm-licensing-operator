@@ -3,6 +3,10 @@ kind: ClusterRole
 metadata:
   creationTimestamp: null
   name: ibm-licensing-operator
+  labels:
+    app.kubernetes.io/instance: "ibm-licensing-operator"
+    app.kubernetes.io/managed-by: "ibm-licensing-operator"
+    app.kubernetes.io/name: "ibm-licensing"
 rules:
 - apiGroups:
   - ""

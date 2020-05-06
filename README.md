@@ -7,6 +7,8 @@ Using an API call, you can retrieve the license usage of your products and gener
 
 **IBM License Service**, as a part of IBM Cloud Platform Common Services, is integrated in IBM Cloud Paks. The Operator, however, allows you to install the service with Operator Lifecycle Manager (OLM) separately for stand-alone containerized IBM software.
 
+## SecurityContextConstraints Requirements
+
 ## Operator versions and supported platforms
 
 List the platforms and operation systems on which the operator is supported.

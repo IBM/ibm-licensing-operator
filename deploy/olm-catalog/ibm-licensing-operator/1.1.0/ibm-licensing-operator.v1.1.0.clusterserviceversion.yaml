@@ -66,6 +66,10 @@ metadata:
     repository: https://github.com/IBM/ibm-licensing-operator
     support: IBM
   name: ibm-licensing-operator.v1.1.0
+  labels:
+    app.kubernetes.io/instance: "ibm-licensing-operator"
+    app.kubernetes.io/managed-by: "ibm-licensing-operator"
+    app.kubernetes.io/name: "ibm-licensing"
   namespace: ibm-common-services
 spec:
   apiservicedefinitions: {}
