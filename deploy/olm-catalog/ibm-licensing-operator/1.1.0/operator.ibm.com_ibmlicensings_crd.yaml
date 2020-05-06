@@ -7,6 +7,10 @@ metadata:
     app.kubernetes.io/managed-by: "ibm-licensing-operator"
     app.kubernetes.io/name: "ibm-licensing"
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .status..phase
+    name: Pod Phase
+    type: string
   group: operator.ibm.com
   names:
     kind: IBMLicensing
@@ -41,9 +45,15 @@ spec:
               type: string
             datasource:
               description: 'Where should data be collected, options: metering, datacollector'
+              enum:
+              - metering
+              - datacollector
               type: string
             httpsCertsSource:
               description: 'options: self-signed or custom'
+              enum:
+              - self-signed
+              - custom
               type: string
             httpsEnable:
               description: Enables https access at pod level, httpsCertsSource needed
@@ -117,6 +127,9 @@ spec:
             logLevel:
               description: 'Should application pod show additional information, options:
                 DEBUG, INFO'
+              enum:
+              - DEBUG
+              - INFO
               type: string
             routeEnabled:
               description: Should Route be created to expose IBM Licensing Service
@@ -835,6 +848,7 @@ spec:
           required:
           - licensingPods
           type: object
+      type: object
   version: v1alpha1
   versions:
   - name: v1alpha1

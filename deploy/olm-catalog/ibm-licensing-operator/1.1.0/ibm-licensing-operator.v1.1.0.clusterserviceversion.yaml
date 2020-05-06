@@ -8,6 +8,11 @@ metadata:
           "apiVersion": "operator.ibm.com/v1alpha1",
           "kind": "IBMLicensing",
           "metadata": {
+            "labels": {
+              "app.kubernetes.io/instance": "ibm-licensing-operator",
+              "app.kubernetes.io/managed-by": "ibm-licensing-operator",
+              "app.kubernetes.io/name": "ibm-licensing"
+            },
             "name": "instance"
           },
           "spec": {
@@ -308,8 +313,20 @@ spec:
                 productName: IBM Cloud Platform Common Services
                 productVersion: 3.3.0
               labels:
+                app.kubernetes.io/instance: ibm-licensing-operator
+                app.kubernetes.io/managed-by: ibm-licensing-operator
+                app.kubernetes.io/name: ibm-licensing
                 name: ibm-licensing-operator
             spec:
+              affinity:
+                nodeAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    nodeSelectorTerms:
+                    - matchExpressions:
+                      - key: beta.kubernetes.io/arch
+                        operator: In
+                        values:
+                        - amd64
               containers:
               - command:
                 - ibm-licensing-operator
@@ -325,10 +342,24 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: spec.serviceAccountName
-                image: quay.io/opencloudio/ibm-licensing-operator:latest
+                image: quay.io/opencloudio/ibm-licensing-operator:1.1.0
                 imagePullPolicy: Always
                 name: ibm-licensing-operator
-                resources: {}
+                resources:
+                  limits:
+                    cpu: 20m
+                    memory: 200Mi
+                  requests:
+                    cpu: 10m
+                    memory: 100Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
+                  privileged: false
+                  readOnlyRootFilesystem: true
+                  runAsNonRoot: true
               serviceAccountName: ibm-licensing-operator
     strategy: deployment
   installModes:

@@ -133,6 +133,15 @@ work: $(GOBIN)
 
 ##@ Development
 
+code-dev: ## Run the default dev commands which are the go tidy, fmt, vet then execute the $ make code-gen
+	@echo Running the common required commands for developments purposes
+	- make code-tidy
+	- make code-fmt
+	- make code-vet
+	- make code-gen
+	@echo Running the common required commands for code delivery
+	- make check
+
 # All available format: format-go format-protos format-python
 # Default value will run all formats, override these make target with your requirements:
 #    eg: fmt: format-go format-protos
@@ -202,4 +211,4 @@ help: ## Display this help
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-.PHONY: all build run install uninstall check lint test coverage images csv clean help
+.PHONY: all build run install uninstall code-dev check lint test coverage images csv clean help
