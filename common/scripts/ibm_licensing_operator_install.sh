@@ -22,7 +22,6 @@ INSTALL_NAMESPACE=${INSTALL_NAMESPACE:-ibm-common-services}
 
 ##### Functions
 
-# TODO: add options and describe them
 usage()
 {
    # Display usage
@@ -37,8 +36,18 @@ usage()
   echo "[--olm_global_catalog_namespace | -c] <OLM global catalog namespace> - script will not try to find olm global catalog namespace when set."
   echo "You can read more about OLM global catalog namespace here: https://github.com/operator-framework/operator-lifecycle-manager/blob/master/doc/install/install.md"
   echo "[--help | -h] - shows usage"
-  echo
+  echo "prerequisite commands: kubectl, git, curl"
 }
+
+if [ "$(uname)" == "Darwin" ]; then
+  inline_sed(){
+    sed -i "" "$@"
+  }
+else
+  inline_sed(){
+    sed -i "$@"
+  }
+fi
 
 verify_command_line_processing(){
   # Test code to verify command line processing
@@ -76,21 +85,21 @@ install_olm(){
     echo "Check if OLM is installed"
     verbose_output_command echo "Checking if CSV CRD exists"
     if ! verbose_output_command kubectl get crd clusterserviceversions.operators.coreos.com -o name; then
-      echo "CSV CRD exists does not exists, installing OLM with version ${olm_version}"
+      echo "CSV CRD does not exists, installing OLM with version ${olm_version}"
       if ! curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/"${olm_version}"/install.sh | bash -s "${olm_version}"; then
         echo "Failed to install OLM"
         echo "You can try to install OLM from here https://github.com/operator-framework/operator-lifecycle-manager/releases and continue installation while skipping OLM part"
         exit 5
       fi
     else
-      verbose_output_command echo "OLM seems to be installed"
+      verbose_output_command echo "OLM's needed CRD: CSV exists"
     fi
   else
     verbose_output_command echo "Skipping OLM installation"
   fi
   if [ "${olm_global_catalog_namespace}" == "" ]; then
     verbose_output_command echo "Trying to get namespace where OLM's packageserver is installed"
-    if ! olm_namespace=$(verbose_output_command kubectl get csv --all-namespaces -l olm.version -o jsonpath="{.items[?(@.metadata.name=='packageserver')].metadata.namespace}") || [ "${olm_namespace}" == "" ]; then
+    if ! olm_namespace=$(kubectl get csv --all-namespaces -l olm.version -o jsonpath="{.items[?(@.metadata.name=='packageserver')].metadata.namespace}") || [ "${olm_namespace}" == "" ]; then
       echo "Failed to get namespace where OLM's packageserver is installed, which is needed for finding OLM's global catalog namespace, make sure you have OLM installed"
       echo "You can try to install OLM from here https://github.com/operator-framework/operator-lifecycle-manager/releases"
       echo "If you can find OLM's global catalog namespace yourself try setting parameter --olm_global_catalog_namespace parameter of this script"
@@ -100,7 +109,7 @@ install_olm(){
       verbose_output_command echo "Namespace where OLM's packageserver is installed is: ${olm_namespace}"
     fi
     verbose_output_command echo "Trying to get OLM's global catalog namespace so that catalog needed by IBM Licensing can be accessed in any watched namespace."
-    if ! olm_global_catalog_namespace=$(verbose_output_command kubectl get deployment --namespace="${olm_namespace}" packageserver -o yaml | grep -A 1 -i global-namespace | tail -1 | cut -d "-" -f 2- | sed -e 's/^[ \t]*//') || [ "${olm_global_catalog_namespace}" == "" ]; then
+    if ! olm_global_catalog_namespace=$(kubectl get deployment --namespace="${olm_namespace}" packageserver -o yaml | grep -A 1 -i global-namespace | tail -1 | cut -d "-" -f 2- | sed -e 's/^[ \t]*//') || [ "${olm_global_catalog_namespace}" == "" ]; then
       echo "Failed to find OLM's global catalog namespace where catalog for IBM Licensign needs to be installed"
       echo "If you can find it yourself try setting parameter --olm_global_catalog_namespace parameter of this script"
       echo "On OpenShift Container Platform this probably is 'openshift-marketplace', but for older versions and for custom OLM installation it might be 'olm', but you might verify it by looking for OLM's packageserver deployment configuration"
@@ -111,6 +120,215 @@ install_olm(){
   else
     verbose_output_command echo "OLM global catalog namespace set by user, skipping finding it inside script"
   fi
+  echo "OLM should be working"
+}
+
+install_marketplace(){
+  echo "Check if Operator Marketplace is installed"
+  verbose_output_command echo "Checking if Operator Source CRD exists"
+  if ! verbose_output_command kubectl get crd operatorsources.operators.coreos.com -o name; then
+    echo "Operator Source CRD does not exists, installing Operator Marketplace from release tag ${operator_marketplace_release_tag}"
+    if ! [[ -d operator-marketplace ]]; then
+      if ! verbose_output_command git clone --single-branch --branch "${operator_marketplace_release_tag}" https://github.com/operator-framework/operator-marketplace.git; then
+        echo "Failed to git clone operator marketplace repository into current directory, you can try to fix it and run again or install operator marketplace yourself from https://github.com/operator-framework/operator-marketplace"
+        exit 8
+      fi
+    fi
+    verbose_output_command echo "changing Operator Marketplace yaml files namespace to OLM global catalog namespace: ${olm_global_catalog_namespace}"
+    verbose_output_command echo "Doing it and creating Operator Source in this namespace will allow Subscriptions to use created Catalog Source in whole cluster"
+    if ! inline_sed 's/namespace: .*/namespace: '"${olm_global_catalog_namespace}"'/g' operator-marketplace/deploy/upstream/*; then
+      echo "Error during changing Operator Marketplace yamls namespace with sed"
+      echo "Remember to delete operator-marketplace directory after checking the issue"
+      exit 9
+    fi
+    # delete not needed namespace yaml
+    rm -f operator-marketplace/deploy/upstream/01_namespace.yaml
+    if ! kubectl apply -f operator-marketplace/deploy/upstream; then
+      echo "Error during applying Operator Marketplace yamls, you can try to fix it and run again or install operator marketplace yourself from https://github.com/operator-framework/operator-marketplace"
+      echo "Remember to delete operator-marketplace directory after checking the issue"
+      exit 10
+    fi
+    rm -rf operator-marketplace
+    echo "Operator Marketplace installed in ${olm_global_catalog_namespace} namespace"
+  else
+    echo "Operator Marketplace seems to be installed"
+  fi
+}
+
+handle_operator_source(){
+  if ! verbose_output_command kubectl get OperatorSource opencloud-operators -n "${olm_global_catalog_namespace}"; then
+    verbose_output_command echo "Applying opencloud Operator Source"
+    if ! cat <<EOF | kubectl apply -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorSource
+metadata:
+  name: opencloud-operators
+  namespace: $olm_global_catalog_namespace
+spec:
+  authorizationToken: {}
+  displayName: IBMCS Operators
+  endpoint: https://quay.io/cnr
+  publisher: IBM
+  registryNamespace: opencloudio
+  type: appregistry
+EOF
+    then
+      echo "Failed to apply Operator Source"
+      exit 11
+    fi
+  else
+    verbose_output_command echo "opencloud-operators Operator Source already exists"
+  fi
+  echo "Waiting for opencloud Operator Source deployment to be ready"
+  retries=50
+  until [[ $retries == 0 || $new_os_phase == "Succeeded" ]]; do
+    new_os_phase=$(kubectl get operatorsource -n olm opencloud-operators -o jsonpath='{.status.currentPhase.phase.name}' 2>/dev/null || echo "Waiting for Operator Source to appear")
+    if [[ $new_os_phase != "$os_phase" ]]; then
+      os_phase=$new_os_phase
+      echo "opencloud Operator Source phase: $os_phase"
+      if [ "$os_phase" == "Failed" ]; then
+        echo "Error during installation of Operator Source, check README for manual installation and troubleshooting"
+        exit 12
+      fi
+    fi
+    sleep 1
+    retries=$((retries - 1))
+  done
+  if [ $retries == 0 ]; then
+      echo "OperatorSource \"opencloud-operators\" failed to reach phase Succeeded in 50 retries"
+      exit 13
+  fi
+  if ! kubectl rollout status -w deployment/opencloud-operators --namespace="${olm_global_catalog_namespace}"; then
+    echo "Error during opencloud-operators deployment rollout, check its status for possible errorsm check README for manual installation and troubleshooting"
+    exit 14
+  fi
+  echo "opencloud Operator Source initialized"
+}
+
+handle_operator_group(){
+  if ! verbose_output_command kubectl get OperatorGroup operatorgroup -n "${INSTALL_NAMESPACE}"; then
+    verbose_output_command echo "Applying operatorgroup at namespace $INSTALL_NAMESPACE"
+    if ! cat <<EOF | kubectl apply -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: operatorgroup
+  namespace: $INSTALL_NAMESPACE
+spec:
+  targetNamespaces:
+  - $INSTALL_NAMESPACE
+EOF
+    then
+      echo "Failed to apply OperatorGroup at namespace $INSTALL_NAMESPACE"
+      exit 15
+    fi
+  else
+    echo "OperatorGroup already exists"
+  fi
+}
+
+create_subscription(){
+  if ! cat <<EOF | kubectl apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ibm-licensing-operator-app
+  namespace: $INSTALL_NAMESPACE
+spec:
+  channel: stable-v1
+  name: ibm-licensing-operator-app
+  source: opencloud-operators
+  sourceNamespace: $olm_global_catalog_namespace
+EOF
+  then
+    echo "Failed to apply Subscription at namespace $INSTALL_NAMESPACE"
+    exit 16
+  fi
+}
+
+handle_subscription(){
+  if ! verbose_output_command kubectl get Subscription ibm-licensing-operator-app -n "${INSTALL_NAMESPACE}"; then
+    create_subscription
+  else
+    verbose_output_command echo "Subscription already exists"
+  fi
+  echo "Checking Subscription and CSV status"
+  retries=55
+  no_csv_name_in_sub_count=0
+  until [[ $retries == 0 || $new_csv_phase == "Succeeded" ]]; do
+    csv_name=$(kubectl get Subscription -n "${INSTALL_NAMESPACE}" ibm-licensing-operator-app -o jsonpath='{.status.currentCSV}')
+    if [[ "$csv_name" == "" ]]; then
+      no_csv_name_in_sub_count=$((no_csv_name_in_sub_count + 1))
+      if [ $no_csv_name_in_sub_count -gt 9 ]; then
+        no_csv_name_in_sub_count=0
+        verbose_output_command "No CSV name in Subscription, deleting Subscription and creating it again"
+        kubectl delete Subscription ibm-licensing-operator-app -n "${INSTALL_NAMESPACE}"
+        sleep 5
+        create_subscription
+      fi
+    else
+      new_csv_phase=$(kubectl get csv -n "${INSTALL_NAMESPACE}" "${csv_name}" -o jsonpath='{.status.phase}' 2>/dev/null || echo "Waiting for CSV to appear")
+      if [[ $new_csv_phase != "$csv_phase" ]]; then
+        csv_phase=$new_csv_phase
+        echo "$csv_name phase: $csv_phase"
+        if [ "$csv_phase" == "Failed" ]; then
+          echo "Error during installation of Subscription, try deleting Subscription and run script again."
+          echo "If that won't help, check README for manual installation and troubleshooting"
+          exit 17
+        fi
+      fi
+    fi
+    sleep 2
+    retries=$((retries - 1))
+  done
+  if [ $retries == 0 ]; then
+    echo "CSV \"$csv_name\" failed to reach phase succeeded, try deleting Subscription and run script again."
+    echo "If that won't help, check README for manual installation and troubleshooting"
+    exit 18
+  fi
+  echo "Subscription and CSV should work"
+}
+
+handle_instance(){
+  if ! verbose_output_command kubectl get IBMLicensing instance; then
+    if ! cat <<EOF | kubectl apply -f -
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+  apiSecretToken: ibm-licensing-token
+  datasource: datacollector
+  httpsEnable: true
+  instanceNamespace: $INSTALL_NAMESPACE
+EOF
+    then
+      echo "Failed to apply IBMLicensing instance at namespace $INSTALL_NAMESPACE"
+      exit 19
+    fi
+  else
+    verbose_output_command echo "IBMLicensing instance already exists"
+  fi
+  echo "Checking IBMLicensing instance status"
+  retries=50
+  until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" ]]; do
+    new_ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicensing pod to appear")
+    if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
+      ibmlicensing_phase=$new_ibmlicensing_phase
+      echo "IBMLicensing Pod phase: $ibmlicensing_phase"
+      if [ "$ibmlicensing_phase" == "Failed" ] ; then
+        echo "Error during installation of IBMLicensing, check README for post installation and troubleshooting"
+        exit 20
+      fi
+    fi
+    sleep 3
+    retries=$((retries - 1))
+  done
+  if [ $retries == 0 ]; then
+    echo "IBMLicensing instance pod failed to reach phase Running"
+    exit 21
+  fi
+  echo "IBM License Service should be running"
 }
 
 verbose_output_command(){
@@ -126,7 +344,10 @@ verbose_output_command(){
 #interactive=
 verbose=
 olm_version=0.13.0
+operator_marketplace_release_tag=release-4.6
 skip_olm_installation=
+olm_global_catalog_namespace=
+
 
 while [ "$1" != "" ]; do
   OPT=$1
@@ -143,6 +364,9 @@ while [ "$1" != "" ]; do
                                                         ;;
     -c | --olm_global_catalog_namespace )               shift
                                                         olm_global_catalog_namespace=$1
+                                                        ;;
+    -m | --operator_marketplace_release_tag )           shift
+                                                        operator_marketplace_release_tag=$1
                                                         ;;
     -s | --skip_olm_installation )                      skip_olm_installation=1
                                                         ;;
@@ -163,8 +387,8 @@ verify_command_line_processing
 verify_kubectl
 create_namespace
 install_olm
-#install_marketplace
-#create_operator_source
-#create_operator_group
-#create_subscription
-#create_instance
+install_marketplace
+handle_operator_source
+handle_operator_group
+handle_subscription
+handle_instance
