@@ -56,6 +56,8 @@ To use License Service, additionally install the following operators that IBM Li
 
 For the installation steps, see [Installing IBM Cloud Platform Services in your OpenShift Container Platform cluster](https://www.ibm.com/support/knowledgecenter/SSHKN6/installer/1.1.0/install_operator.html).
 
+<!-- Section below is mentioned by READINESS WIKI that is used by other IBM teams, so after changing this section name, readiness wiki also needs to be changed -->
+
 ### Installing IBM Licensing Operator with stand-alone containerized IBM products using Operator Lifecycle Manager(OLM)
 
 There is automatic script that installs IBM Licensing Operator, creates instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `vanilla Kubernetes` cluster, and is available at:
