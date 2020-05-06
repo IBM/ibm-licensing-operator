@@ -15,4 +15,4 @@
 # limitations under the License.
 
 # Launches fmt and lint checks
-make lint-all
+make code-dev

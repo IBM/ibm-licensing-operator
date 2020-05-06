@@ -51,12 +51,15 @@ type IBMLicensingSpec struct {
 	// Secret name used to store application token, either one that exists, or one that will be created
 	APISecretToken string `json:"apiSecretToken,omitempty"`
 	// Where should data be collected, options: metering, datacollector
+	// +kubebuilder:validation:Enum=metering;datacollector
 	Datasource string `json:"datasource"`
 	// Enables https access at pod level, httpsCertsSource needed if true
 	HTTPSEnable bool `json:"httpsEnable"`
 	// options: self-signed or custom
+	// +kubebuilder:validation:Enum=self-signed;custom
 	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
 	// Should application pod show additional information, options: DEBUG, INFO
+	// +kubebuilder:validation:Enum=DEBUG;INFO
 	LogLevel string `json:"logLevel,omitempty"`
 	// Existing or to be created namespace where application will start. In case metering data collection is used,
 	// should be the same namespace as metering components
@@ -94,6 +97,7 @@ type IBMLicensingStatus struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // IBMLicensing is the Schema for the ibmlicensings API
+// +kubebuilder:printcolumn:name="Pod Phase",type=string,JSONPath=`.status..phase`
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ibmlicensings,scope=Cluster
 type IBMLicensing struct {

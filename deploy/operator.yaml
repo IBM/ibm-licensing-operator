@@ -2,6 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ibm-licensing-operator
+  labels:
+    app.kubernetes.io/instance: "ibm-licensing-operator"
+    app.kubernetes.io/managed-by: "ibm-licensing-operator"
+    app.kubernetes.io/name: "ibm-licensing"
 spec:
   replicas: 1
   selector:
@@ -11,6 +15,9 @@ spec:
     metadata:
       labels:
         name: ibm-licensing-operator
+        app.kubernetes.io/instance: "ibm-licensing-operator"
+        app.kubernetes.io/managed-by: "ibm-licensing-operator"
+        app.kubernetes.io/name: "ibm-licensing"
       annotations:
         productName: IBM Cloud Platform Common Services
         productID: "068a62892a1e4db39641342e592daa25"
@@ -18,9 +25,21 @@ spec:
         productMetric: FREE
     spec:
       serviceAccountName: ibm-licensing-operator
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: beta.kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false
       containers:
         - name: ibm-licensing-operator
-          image: quay.io/opencloudio/ibm-licensing-operator:latest
+          image: quay.io/opencloudio/ibm-licensing-operator:1.1.0
           command:
             - ibm-licensing-operator
           imagePullPolicy: Always
@@ -36,3 +55,18 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
+          resources:
+            limits:
+              cpu: 20m
+              memory: 200Mi
+            requests:
+              cpu: 10m
+              memory: 100Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true

@@ -2,6 +2,10 @@ apiVersion: operator.ibm.com/v1alpha1
 kind: IBMLicensing
 metadata:
   name: instance
+  labels:
+    app.kubernetes.io/instance: "ibm-licensing-operator"
+    app.kubernetes.io/managed-by: "ibm-licensing-operator"
+    app.kubernetes.io/name: "ibm-licensing"
 spec:
   apiSecretToken: ibm-licensing-token
   datasource: metering
