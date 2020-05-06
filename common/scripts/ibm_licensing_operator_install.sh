@@ -182,7 +182,7 @@ EOF
   echo "Waiting for opencloud Operator Source deployment to be ready"
   retries=50
   until [[ $retries == 0 || $new_os_phase == "Succeeded" ]]; do
-    new_os_phase=$(kubectl get operatorsource -n olm opencloud-operators -o jsonpath='{.status.currentPhase.phase.name}' 2>/dev/null || echo "Waiting for Operator Source to appear")
+    new_os_phase=$(kubectl get operatorsource -n "${olm_global_catalog_namespace}" opencloud-operators -o jsonpath='{.status.currentPhase.phase.name}' 2>/dev/null || echo "Waiting for Operator Source to appear")
     if [[ $new_os_phase != "$os_phase" ]]; then
       os_phase=$new_os_phase
       echo "opencloud Operator Source phase: $os_phase"
@@ -247,7 +247,7 @@ EOF
 }
 
 handle_subscription(){
-  if ! verbose_output_command kubectl get Subscription ibm-licensing-operator-app -n "${INSTALL_NAMESPACE}"; then
+  if ! verbose_output_command kubectl get sub ibm-licensing-operator-app -n "${INSTALL_NAMESPACE}"; then
     create_subscription
   else
     verbose_output_command echo "Subscription already exists"
@@ -256,13 +256,13 @@ handle_subscription(){
   retries=55
   no_csv_name_in_sub_count=0
   until [[ $retries == 0 || $new_csv_phase == "Succeeded" ]]; do
-    csv_name=$(kubectl get Subscription -n "${INSTALL_NAMESPACE}" ibm-licensing-operator-app -o jsonpath='{.status.currentCSV}')
+    csv_name=$(kubectl get sub -n "${INSTALL_NAMESPACE}" ibm-licensing-operator-app -o jsonpath='{.status.currentCSV}')
     if [[ "$csv_name" == "" ]]; then
       no_csv_name_in_sub_count=$((no_csv_name_in_sub_count + 1))
       if [ $no_csv_name_in_sub_count -gt 9 ]; then
         no_csv_name_in_sub_count=0
         verbose_output_command "No CSV name in Subscription, deleting Subscription and creating it again"
-        kubectl delete Subscription ibm-licensing-operator-app -n "${INSTALL_NAMESPACE}"
+        kubectl delete sub ibm-licensing-operator-app -n "${INSTALL_NAMESPACE}"
         sleep 5
         create_subscription
       fi
