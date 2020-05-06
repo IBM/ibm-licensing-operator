@@ -19,10 +19,20 @@
 BUILD_LOCALLY ?= 1
 
 # Image URL to use all building/pushing image targets;
-# Use your own docker registry and image name for dev/test by overriding the IMG and REGISTRY environment variable.
+# Use your own docker registry and image name for dev/test by overriding the IMG, REGISTRY and CSV_VERSION environment variable.
 IMG ?= ibm-licensing-operator
 REGISTRY ?= quay.io/opencloudio
+CSV_VERSION ?= 1.1.0
+
+# When pushing CSV locally you need to have these credentials set as environment variables.
+QUAY_USERNAME ?=
+QUAY_PASSWORD ?=
+
+# Linter urls that should be skipped
 MARKDOWN_LINT_WHITELIST ?= https://quay.io/cnr,https://www-03preprod.ibm.com/support/knowledgecenter/SSHKN6/installer/3.3.0/install_operator.html
+
+# The namespace that operator will be deployed in
+NAMESPACE ?= ibm-common-services
 
 # Github host to use for checking the source tree;
 # Override this variable ue with your own value if you're working on forked repo.
@@ -81,6 +91,37 @@ endif
 
 include common/Makefile.common.mk
 
+
+##@ Application
+
+install: ## Install all resources (CR/CRD's, RBAC and operator)
+	@echo ....... Set environment variables ......
+	- export WATCH_NAMESPACE=${NAMESPACE}
+	@echo ....... Creating namespace .......
+	- kubectl create namespace ${NAMESPACE}
+	@echo ....... Applying CRDs .......
+	- kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
+	@echo ....... Applying RBAC .......
+	- kubectl apply -f deploy/service_account.yaml -n ${NAMESPACE}
+	- kubectl apply -f deploy/role.yaml
+	- kubectl apply -f deploy/role_binding.yaml
+	@echo ....... Applying Operator .......
+	- kubectl apply -f deploy/operator.yaml -n ${NAMESPACE}
+	@echo ....... Creating the Instances .......
+	- kubectl apply -f deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
+uninstall: ## Uninstall all that all performed in the $ make install, without namespace as there might be other things there
+	@echo ....... Uninstalling .......
+	@echo ....... Deleting the Instances .......
+	- kubectl delete -f deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml --ignore-not-found
+	@echo ....... Deleting Operator .......
+	- kubectl delete -f deploy/operator.yaml -n ${NAMESPACE}
+	@echo ....... Deleting CRDs .......
+	- kubectl delete -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml --ignore-not-found
+	@echo ....... Deleting RBAC .......
+	- kubectl delete -f deploy/role_binding.yaml --ignore-not-found
+	- kubectl delete -f deploy/service_account.yaml -n ${NAMESPACE} --ignore-not-found
+	- kubectl delete -f deploy/role.yaml --ignore-not-found
+
 ############################################################
 # work section
 ############################################################
@@ -90,40 +131,29 @@ $(GOBIN):
 
 work: $(GOBIN)
 
-############################################################
-# format section
-############################################################
+##@ Development
 
 # All available format: format-go format-protos format-python
 # Default value will run all formats, override these make target with your requirements:
 #    eg: fmt: format-go format-protos
 fmt: format-go format-protos format-python
 
-############################################################
-# check section
-############################################################
-
-check: lint
-
+check: lint ## Check all files lint errors, this is also done before pushing the code to remote branch
 
 # All available linters: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-python lint-helm lint-markdown lint-sass lint-typescript lint-protos
 # Default value will run all linters, override these make target with your requirements:
 #    eg: lint: lint-go lint-yaml
 lint: lint-all
 
-############################################################
-# test section
-############################################################
-
-test:
+test: ## Run all tests if available
 	@go test ${TESTARGS} ./...
 
-############################################################
-# coverage section
-############################################################
-
-coverage:
+coverage: ## Run coverage if possible
 	@common/scripts/codecov.sh ${BUILD_LOCALLY}
+
+run: ## Run against the configured Kubernetes cluster in ~/.kube/config
+	@echo ....... Start Operator locally with go run ......
+	WATCH_NAMESPACE= go run ./cmd/manager/main.go
 
 ############################################################
 # install operator sdk section
@@ -132,11 +162,9 @@ coverage:
 install-operator-sdk:
 	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then ./common/scripts/install-operator-sdk.sh; fi
 
-############################################################
-# build section
-############################################################
+##@ Build
 
-build:
+build: ## Build executable from the code
 	@common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/manager
 
 local:
@@ -146,22 +174,32 @@ local:
 # images section
 ############################################################
 
-images: build build-push-images
+images: build build-push-images ## Build the executable, build the image and push it
 
 ifeq ($(BUILD_LOCALLY),0)
     export CONFIG_DOCKER_TARGET = config-docker
 config-docker:
 endif
 
-build-push-images: install-operator-sdk $(CONFIG_DOCKER_TARGET)
+build-push-images: install-operator-sdk $(CONFIG_DOCKER_TARGET) ## Build the image na push it to $REGISTRY
 	operator-sdk build $(REGISTRY)/$(IMG):$(VERSION) --image-build-args '$(DOCKER_BUILD_OPTS)'
 	docker tag $(REGISTRY)/$(IMG):$(VERSION) $(REGISTRY)/$(IMG)
 	if [ $(BUILD_LOCALLY) -ne 1 ]; then docker push $(REGISTRY)/$(IMG):$(VERSION); docker push $(REGISTRY)/$(IMG); fi
 
-############################################################
-# clean section
-############################################################
-clean:
+##@ Release
+
+csv: ## Push CSV package to the catalog
+	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
+
+##@ Cleanup
+clean: ## Clean build binary
 	rm -f build/_output/bin/$(IMG)
 
-.PHONY: all build check lint test coverage images
+##@ Help
+help: ## Display this help
+	@echo "Usage:  make <target>"
+	@awk 'BEGIN {FS = ":.*##"}; \
+		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
+		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+.PHONY: all build run install uninstall check lint test coverage images csv clean help
