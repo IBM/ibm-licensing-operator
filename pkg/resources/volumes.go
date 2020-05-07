@@ -22,20 +22,22 @@ import (
 )
 
 const APISecretTokenVolumeName = "api-token"
+const APIUploadTokenVolumeName = "token-upload"
 const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
-const APIUploadTokenVolumeName = "upload-token"
 
 func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.VolumeMount {
 	var volumeMounts = []corev1.VolumeMount{
 		{
 			Name:      APISecretTokenVolumeName,
-			MountPath: "/opt/ibm/licensing",
+			MountPath: "/opt/ibm/licensing/" + APISecretTokenKeyName,
+			SubPath:   APISecretTokenKeyName,
 			ReadOnly:  true,
 		},
 		{
 			Name:      APIUploadTokenVolumeName,
-			MountPath: "/opt/ibm/licensing/token-upload",
+			MountPath: "/opt/ibm/licensing/" + APIUploadTokenKeyName,
+			SubPath:   APIUploadTokenKeyName,
 			ReadOnly:  true,
 		},
 	}

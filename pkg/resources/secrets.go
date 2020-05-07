@@ -23,6 +23,8 @@ import (
 )
 
 const APIUploadTokenName = "ibm-licensing-upload-token"
+const APISecretTokenKeyName = "token"
+const APIUploadTokenKeyName = "token-upload"
 
 func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
 	metaLabels := LabelsForLicensingMeta(instance)
@@ -33,7 +35,7 @@ func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
 			Labels:    metaLabels,
 		},
 		Type:       corev1.SecretTypeOpaque,
-		StringData: map[string]string{"token": RandString(24)},
+		StringData: map[string]string{APISecretTokenKeyName: RandString(24)},
 	}
 	return expectedSecret
 }
@@ -47,7 +49,7 @@ func GetUploadToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
 			Labels:    metaLabels,
 		},
 		Type:       corev1.SecretTypeOpaque,
-		StringData: map[string]string{"token": RandString(24)},
+		StringData: map[string]string{APIUploadTokenKeyName: RandString(24)},
 	}
 	return expectedSecret
 }
