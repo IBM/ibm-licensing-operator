@@ -37,7 +37,7 @@ metadata:
               "public-api-token": {
                 "secret": "ibm-licensing-token"
               },
-              "public-upload-data": {
+              "public-api-upload": {
                 "secret": "ibm-licensing-upload-token",
                 "configmap": "ibm-licensing-upload-config"
               }
