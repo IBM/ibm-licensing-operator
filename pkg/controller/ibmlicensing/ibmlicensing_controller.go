@@ -329,7 +329,7 @@ func (r *ReconcileIBMLicensing) reconcileNamespace(instance *operatorv1alpha1.IB
 }
 
 func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	expectedSecret := res.GetApiSecretToken(instance)
+	expectedSecret := res.GetAPISecretToken(instance)
 	foundSecret := &corev1.Secret{}
 	return r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
 }

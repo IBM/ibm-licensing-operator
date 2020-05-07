@@ -22,7 +22,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func GetApiSecretToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
+const APIUploadTokenName = "ibm-licensing-upload-token"
+
+func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
 	metaLabels := LabelsForLicensingMeta(instance)
 	expectedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -40,7 +42,7 @@ func GetUploadToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
 	metaLabels := LabelsForLicensingMeta(instance)
 	expectedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ibm-licensing-upload-token",
+			Name:      APIUploadTokenName,
 			Namespace: instance.Spec.InstanceNamespace,
 			Labels:    metaLabels,
 		},
