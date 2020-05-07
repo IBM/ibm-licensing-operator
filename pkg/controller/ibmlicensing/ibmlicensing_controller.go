@@ -18,6 +18,7 @@ package ibmlicensing
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"time"
 
@@ -184,7 +185,8 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		r.reconcileClusterRole,
 		r.reconcileClusterRoleBinding,
 		r.reconcileAPISecretToken,
-		r.reconcileConfigMap,
+		r.reconcileUploadToken,
+		r.reconcileUploadConfigMap,
 		r.reconcileDeployment,
 		r.reconcileService,
 		r.reconcileIngress,
@@ -327,30 +329,19 @@ func (r *ReconcileIBMLicensing) reconcileNamespace(instance *operatorv1alpha1.IB
 }
 
 func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	metaLabels := res.LabelsForLicensingMeta(instance)
-	expectedSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Spec.APISecretToken,
-			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    metaLabels,
-		},
-		Type:       corev1.SecretTypeOpaque,
-		StringData: map[string]string{"token": res.RandString(24)},
-	}
+	expectedSecret := res.GetApiSecretToken(instance)
 	foundSecret := &corev1.Secret{}
 	return r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
 }
 
-func (r *ReconcileIBMLicensing) reconcileConfigMap(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	metaLabels := res.LabelsForLicensingMeta(instance)
-	expectedCM := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ibm-licensing-upload-config",
-			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    metaLabels,
-		},
-		Data: map[string]string{"url": res.GetUploadURL(instance)},
-	}
+func (r *ReconcileIBMLicensing) reconcileUploadToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	expectedSecret := res.GetUploadToken(instance)
+	foundSecret := &corev1.Secret{}
+	return r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+}
+
+func (r *ReconcileIBMLicensing) reconcileUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	expectedCM := res.GetUploadConfigMap(instance)
 	foundCM := &corev1.ConfigMap{}
 	return r.reconcileResourceNamespacedExistence(instance, expectedCM, foundCM)
 }
@@ -381,6 +372,8 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 		reqLogger.Info("Deployment has wrong number of containers")
 	} else if len(foundSpec.InitContainers) != len(expectedSpec.InitContainers) {
 		reqLogger.Info("Deployment has wrong number of init containers")
+	} else if !reflect.DeepEqual(foundDeployment.Spec.Template.Annotations, expectedDeployment.Spec.Template.Annotations) {
+		reqLogger.Info("Deployment has wrong spec template annotations")
 	} else {
 		shouldUpdate = false
 		containersToBeChecked := map[*corev1.Container]corev1.Container{&foundSpec.Containers[0]: expectedSpec.Containers[0]}
@@ -428,6 +421,7 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 		refreshedDeployment.Spec.Template.Spec.Containers = expectedDeployment.Spec.Template.Spec.Containers
 		refreshedDeployment.Spec.Template.Spec.InitContainers = expectedDeployment.Spec.Template.Spec.InitContainers
 		refreshedDeployment.Spec.Template.Spec.ServiceAccountName = expectedDeployment.Spec.Template.Spec.ServiceAccountName
+		refreshedDeployment.Spec.Template.Annotations = expectedDeployment.Spec.Template.Annotations
 		reqLogger.Info("Updating Deployment Spec to", "RefreshedDeployment.Spec", refreshedDeployment.Spec)
 		err = r.client.Update(context.TODO(), refreshedDeployment)
 		if err != nil {
@@ -463,7 +457,47 @@ func (r *ReconcileIBMLicensing) reconcileIngress(instance *operatorv1alpha1.IBML
 	if instance.Spec.IsIngressEnabled() {
 		expectedIngress := res.GetLicensingIngress(instance)
 		foundIngress := &extensionsv1.Ingress{}
-		return r.reconcileResourceNamespacedExistence(instance, expectedIngress, foundIngress)
+		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedIngress, foundIngress)
+		if err != nil || reconcileResult.Requeue {
+			return reconcileResult, err
+		}
+		reqLogger := log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
+		possibleUpdateNeeded := true
+		if !reflect.DeepEqual(foundIngress.ObjectMeta.Name, expectedIngress.ObjectMeta.Name) {
+			reqLogger.Info("Names not equal", "old", expectedIngress.ObjectMeta.Name, "new", foundIngress.ObjectMeta.Name)
+		} else if !reflect.DeepEqual(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
+			reqLogger.Info("Labels not equal",
+				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Labels),
+				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Labels))
+		} else if !reflect.DeepEqual(foundIngress.ObjectMeta.Annotations, expectedIngress.ObjectMeta.Annotations) {
+			reqLogger.Info("Annotations not equal",
+				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Annotations),
+				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Annotations))
+		} else if !reflect.DeepEqual(foundIngress.Spec, expectedIngress.Spec) {
+			reqLogger.Info("Specs not equal",
+				"old", fmt.Sprintf("%v", foundIngress.Spec),
+				"new", fmt.Sprintf("%v", expectedIngress.Spec))
+		} else {
+			possibleUpdateNeeded = false
+		}
+		if possibleUpdateNeeded {
+			err = r.client.Update(context.TODO(), expectedIngress)
+			if err != nil {
+				// only need to delete ingress as new will be recreated on next reconciliation
+				reqLogger.Error(err, "Failed to update Ingress, deleting...")
+				err = r.client.Delete(context.TODO(), foundIngress)
+				if err != nil {
+					reqLogger.Error(err, "Failed to delete Ingress during recreation")
+					return reconcile.Result{}, err
+				}
+				// Ingress deleted successfully - return and requeue to create new one
+				reqLogger.Info("Deleted ingress successfully")
+				return reconcile.Result{Requeue: true}, nil
+			}
+			reqLogger.Info("Updated ingress successfully")
+			// Spec updated - return and do not requeue as it might not consider extra values
+			return reconcile.Result{}, nil
+		}
 	}
 	return reconcile.Result{}, nil
 }
