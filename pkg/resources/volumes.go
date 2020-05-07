@@ -22,6 +22,7 @@ import (
 )
 
 const APISecretTokenVolumeName = "api-token"
+const APIUploadTokenVolumeName = "token-upload"
 const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
 
@@ -29,7 +30,14 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 	var volumeMounts = []corev1.VolumeMount{
 		{
 			Name:      APISecretTokenVolumeName,
-			MountPath: "/opt/ibm/licensing",
+			MountPath: "/opt/ibm/licensing/" + APISecretTokenKeyName,
+			SubPath:   APISecretTokenKeyName,
+			ReadOnly:  true,
+		},
+		{
+			Name:      APIUploadTokenVolumeName,
+			MountPath: "/opt/ibm/licensing/" + APIUploadTokenKeyName,
+			SubPath:   APIUploadTokenKeyName,
 			ReadOnly:  true,
 		},
 	}
@@ -57,7 +65,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 }
 
 func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume {
-	volumes := []corev1.Volume{}
+	var volumes []corev1.Volume
 
 	apiSecretTokenVolume := corev1.Volume{
 		Name: APISecretTokenVolumeName,
@@ -70,6 +78,18 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 	}
 
 	volumes = append(volumes, apiSecretTokenVolume)
+
+	apiUploadTokenVolume := corev1.Volume{
+		Name: APIUploadTokenVolumeName,
+		VolumeSource: corev1.VolumeSource{
+			Secret: &corev1.SecretVolumeSource{
+				SecretName:  APIUploadTokenName,
+				DefaultMode: &defaultSecretMode,
+			},
+		},
+	}
+
+	volumes = append(volumes, apiUploadTokenVolume)
 
 	if spec.IsMetering() {
 		meteringAPICertVolume := corev1.Volume{

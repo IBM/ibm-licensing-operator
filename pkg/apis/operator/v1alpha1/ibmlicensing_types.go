@@ -48,7 +48,8 @@ type IBMLicensingSpec struct {
 	ImageName string `json:"imageName,omitempty"`
 	// IBM Licensing Service Docker Image Tag
 	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
-	// Secret name used to store application token, either one that exists, or one that will be created
+	// Secret name used to store application token, either one that exists, or one that will be created, for now only one value possible
+	// +kubebuilder:validation:Enum=ibm-licensing-token
 	APISecretToken string `json:"apiSecretToken,omitempty"`
 	// Where should data be collected, options: metering, datacollector
 	// +kubebuilder:validation:Enum=metering;datacollector

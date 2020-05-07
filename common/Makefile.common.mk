@@ -171,7 +171,7 @@ code-gen:
 #	operator-sdk generate csv --csv-version ${CSV_VERSION} --update-crds
 
 csv-gen:
-	@echo Remember to fix things csv generation wont't do
+	@echo Remember to fix things after csv generation
 	operator-sdk generate csv --csv-version ${CSV_VERSION} --update-crds
 
 .PHONY: code-vet code-fmt code-tidy code-gen csv-gen manifest-tool ppc64le-fix s390x-fix multi-arch
