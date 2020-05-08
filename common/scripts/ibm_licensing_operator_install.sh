@@ -377,7 +377,7 @@ EOF
     echo "Error: IBMLicensing instance pod failed to reach phase Running"
     exit 21
   fi
-  echo "IBM License Service should be running, you can check post installation section in README to see possible configurations of IBM Licensing instance, and how to configure ingress"
+  echo "IBM License Service should be running, you can check post installation section in README to see possible configurations of IBM Licensing instance, and how to configure ingress/route if needed"
 }
 
 verbose_output_command(){
