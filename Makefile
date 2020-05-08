@@ -144,7 +144,7 @@ code-dev: ## Run the default dev commands which are the go tidy, fmt, vet then e
 	- make code-vet
 	- make code-gen
 	@echo Running the common required commands for code delivery
-	- make check
+	make check
 
 # All available format: format-go format-protos format-python
 # Default value will run all formats, override these make target with your requirements:
@@ -200,7 +200,7 @@ build-push-images: install-operator-sdk $(CONFIG_DOCKER_TARGET) ## Build the ima
 ##@ SHA Digest section
 
 .PHONY: get-image-sha
-get-image-sha:
+get-image-sha: ## replaces operand tag for digest in operator.yaml and csv
 	@echo Get SHA for ibm-licensing:$(OPERAND_TAG)
 	@common/scripts/get-image-sha.sh $(OPERAND_REGISTRY)/ibm-licensing $(OPERAND_TAG)
 

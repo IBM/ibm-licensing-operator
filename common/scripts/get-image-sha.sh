@@ -22,8 +22,8 @@
 
 # check the input parms
 NAME=$1
-TAG=$2
-if [[ $TAG == "" ]]
+VERSION=$2
+if [[ $VERSION == "" ]]
 then
    echo "Missing parm. Need image type, image name and image tag"
    echo "Example:"
@@ -32,12 +32,12 @@ then
 fi
 
 # pull the image
-IMAGE="$NAME:$TAG"
+IMAGE="$NAME:$VERSION"
 echo "Pulling image $IMAGE"
 docker pull "$IMAGE"
 
 # get the SHA for the image
-DIGEST="$(docker images --digests "$NAME" | grep "$TAG" | awk 'FNR==1{print $3}')"
+DIGEST="$(docker images --digests "$NAME" | grep "$VERSION" | awk 'FNR==1{print $3}')"
 
 # DIGEST should look like this: sha256:10a844ffaf7733176e927e6c4faa04c2bc4410cf4d4ef61b9ae5240aa62d1456
 if [[ $DIGEST != sha256* ]]
@@ -56,7 +56,7 @@ OPER_FILE=deploy/operator.yaml
 
 # delete the "name" and "value" lines for the old SHA
 # for example:
-#     - name: IMAGE_SHA_OR_TAG_DM
+#     - name: OPERAND_LICENSING_IMAGE
 #       value: sha256:10a844ffaf7733176e927e6c4faa04c2bc4410cf4d4ef61b9ae5240aa62d1456
 
 sed -i "/name: OPERAND_LICENSING_IMAGE/{N;d;}" $OPER_FILE
@@ -69,16 +69,16 @@ sed -i "/env:/a $LINE1\n$LINE2" $OPER_FILE
 #---------------------------------------------------------
 # update the CSV
 #---------------------------------------------------------
-CSV_FILE=deploy/olm-catalog/ibm-licensing-operator/1.1.0/ibm-licensing-operator.v1.1.0.clusterserviceversion.yaml
+CSV_FILE=deploy/olm-catalog/ibm-licensing-operator/"${VERSION}"/ibm-licensing-operator.v"${VERSION}".clusterserviceversion.yaml
 
 # delete the "name" and "value" lines for the old SHA
 # for example:
-#     - name: IMAGE_SHA_OR_TAG_DM
+#     - name: OPERAND_LICENSING_IMAGE
 #       value: sha256:10a844ffaf7733176e927e6c4faa04c2bc4410cf4d4ef61b9ae5240aa62d1456
 
-sed -i "/name: OPERAND_LICENSING_IMAGE/{N;d;}" $CSV_FILE
+sed -i "/name: OPERAND_LICENSING_IMAGE/{N;d;}" "${CSV_FILE}"
 
 # insert the new SHA lines. need 4 more leading spaces compared to operator.yaml
 LINE1="\                - name: OPERAND_LICENSING_IMAGE"
 LINE2="\                  value: $SHA"
-sed -i "/env:/a $LINE1\n$LINE2" $CSV_FILE
+sed -i "/env:/a $LINE1\n$LINE2" "${CSV_FILE}"
