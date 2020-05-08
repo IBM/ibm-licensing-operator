@@ -359,14 +359,14 @@ First you need to push images to your registry:
 export my_docker_registry=<YOUR REGISTRY IMAGE PREFIX HERE f.e.: "my.registry:5000" or "quay.io/opencloudio">
 
 # pull needed images
-docker pull quay.io/opencloudio/ibm-licensing-operator:1.0.0
-docker pull quay.io/opencloudio/ibm-licensing:1.0.0
+docker pull quay.io/opencloudio/ibm-licensing-operator:1.1.0
+docker pull quay.io/opencloudio/ibm-licensing:1.1.0
 
 # tag them with your registry prefix and push
-docker tag quay.io/opencloudio/ibm-licensing-operator:1.0.0 ${my_docker_registry}/ibm-licensing-operator:1.0.0
-docker push ${my_docker_registry}/ibm-licensing-operator:1.0.0
-docker tag quay.io/opencloudio/ibm-licensing:1.0.0 ${my_docker_registry}/ibm-licensing:1.0.0
-docker push ${my_docker_registry}/ibm-licensing:1.0.0
+docker tag quay.io/opencloudio/ibm-licensing-operator:1.1.0 ${my_docker_registry}/ibm-licensing-operator:1.1.0
+docker push ${my_docker_registry}/ibm-licensing-operator:1.1.0
+docker tag quay.io/opencloudio/ibm-licensing:1.1.0 ${my_docker_registry}/ibm-licensing:1.1.0
+docker push ${my_docker_registry}/ibm-licensing:1.1.0
 ```
 
 2\. **Create needed resources**
@@ -422,33 +422,22 @@ Modify operator.yaml image so your private registry is used:
 - For **LINUX** users:
 
 ```bash
-sed -i 's/image: .*\/ibm-licensing-operator/image: '"${my_docker_registry}"'\/ibm-licensing-operator/g' deploy/operator.yaml
+ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
+sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
 kubectl apply -f deploy/operator.yaml
 ```
 
 - For **MAC** users:
 
 ```bash
-sed -i "" 's/image: .*\/ibm-licensing-operator/image: '"${my_docker_registry}"'\/ibm-licensing-operator/g' deploy/operator.yaml
+ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
+sed -i "" 's/quay.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
 kubectl apply -f deploy/operator.yaml
 ```
 
 3\. **Steps to include when creating operator instance**
 
-Create the instance just like in [online installation](#creating-an-instance-from-console) but add your new registry:
-
-```yaml
-apiVersion: operator.ibm.com/v1alpha1
-kind: IBMLicensing
-metadata:
-  name: instance
-spec:
-...
-  imageRegistry: <YOUR PRIVATE DOCKER REGISTRY NAME JUST LIKE BEFORE>
-...
-```
-
-And if you created secret needed for access to images then also add it:
+Create the instance just like in [online installation](#creating-an-instance-from-console), but if you created secret needed for access to images then also add it, like that:
 
 ```yaml
 apiVersion: operator.ibm.com/v1alpha1
@@ -474,7 +463,6 @@ spec:
   datasource: datacollector
   httpsEnable: false
   instanceNamespace: ibm-common-services
-  imageRegistry: "my.registry:5000"
   imagePullSecrets:
     - my-registry-token
 ```
@@ -769,6 +757,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ibm-licensing-operator
+  labels:
+    app.kubernetes.io/instance: "ibm-licensing-operator"
+    app.kubernetes.io/managed-by: "ibm-licensing-operator"
+    app.kubernetes.io/name: "ibm-licensing"
 spec:
   replicas: 1
   selector:
@@ -778,6 +770,9 @@ spec:
     metadata:
       labels:
         name: ibm-licensing-operator
+        app.kubernetes.io/instance: "ibm-licensing-operator"
+        app.kubernetes.io/managed-by: "ibm-licensing-operator"
+        app.kubernetes.io/name: "ibm-licensing"
       annotations:
         productName: IBM Cloud Platform Common Services
         productID: "068a62892a1e4db39641342e592daa25"
@@ -785,9 +780,21 @@ spec:
         productMetric: FREE
     spec:
       serviceAccountName: ibm-licensing-operator
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: beta.kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+      hostIPC: false
+      hostNetwork: false
+      hostPID: false
       containers:
         - name: ibm-licensing-operator
-          image: ${my_docker_registry}/ibm-licensing-operator:1.0.0
+          image: ${my_docker_registry}/ibm-licensing-operator:1.1.0
           command:
             - ibm-licensing-operator
           imagePullPolicy: Always
@@ -799,9 +806,26 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "ibm-licensing-operator"
+            - name: OPERAND_LICENSING_IMAGE
+              value: "${my_docker_registry}/ibm-licensing:1.1.0"
             - name: SA_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
+          resources:
+            limits:
+              cpu: 20m
+              memory: 200Mi
+            requests:
+              cpu: 10m
+              memory: 100Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
 EOF
 ```

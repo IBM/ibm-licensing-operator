@@ -19,7 +19,6 @@ metadata:
             "apiSecretToken": "ibm-licensing-token",
             "datasource": "metering",
             "httpsEnable": true,
-            "imageRegistry": "quay.io/opencloudio",
             "instanceNamespace": "ibm-common-services"
           }
         },
@@ -68,7 +67,7 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: quay.io/opencloudio/ibm-licensing-operator:1.1.0
-    createdAt: "2020-05-07T08:23:21Z"
+    createdAt: "2020-05-08T15:43:21Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to
       monitor the licensing usage of products.
     repository: https://github.com/IBM/ibm-licensing-operator
@@ -134,16 +133,6 @@ spec:
             using existing metering data with option "metering"
           displayName: Datasource
           path: datasource
-          x-descriptors:
-            - urn:alm:descriptor:com.tectonic.ui:text
-        - description: From where should IBM Licensing Service Pod container should pull image
-          displayName: Image Registry
-          path: imageRegistry
-          x-descriptors:
-            - urn:alm:descriptor:com.tectonic.ui:text
-        - description: What version of IBM Licensing Service to use
-          displayName: Image Tag
-          path: imageTagPostfix
           x-descriptors:
             - urn:alm:descriptor:com.tectonic.ui:text
         - description: Existing or to be created namespace where application will
@@ -341,6 +330,8 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: ibm-licensing-operator
+                - name: OPERAND_LICENSING_IMAGE
+                  value: quay.io/opencloudio/ibm-licensing:1.1.0
                 - name: SA_NAME
                   valueFrom:
                     fieldRef:

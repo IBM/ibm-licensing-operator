@@ -11,4 +11,3 @@ spec:
   datasource: metering
   httpsEnable: true
   instanceNamespace: ibm-common-services
-  imageRegistry: quay.io/opencloudio
