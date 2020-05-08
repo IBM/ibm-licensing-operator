@@ -62,7 +62,7 @@ spec:
                 if true
               type: boolean
             imageName:
-              description: Docker Image Name for IBM Licensing Service application
+              description: deprecated, define image in operator.yaml
               type: string
             imagePullSecrets:
               description: Array of pull secrets which should include existing at
@@ -71,10 +71,10 @@ spec:
                 type: string
               type: array
             imageRegistry:
-              description: Registry from where to pull IBM Licensing Service application
+              description: deprecated, define image in operator.yaml
               type: string
             imageTagPostfix:
-              description: IBM Licensing Service Docker Image Tag
+              description: deprecated, define image in operator.yaml
               type: string
             ingressEnabled:
               description: Should Ingress be created to expose IBM Licensing Service
