@@ -26,7 +26,7 @@ usage()
 {
    # Display usage
   echo "description: A script to install IBM License Service via Operator."
-  echo "usage: $0 [--interactive | -i] [--verbose | -v] [--help | -h]"
+  echo "usage: $0 [--interactive | -i] [--verbose | -v] [--help | -h] [(--olm_version | -o) <version_number>] [--skip_olm_installation | -s] [(--olm_global_catalog_namespace | -c) <OLM global catalog namespace> ] [(--operator_marketplace_rollout_timeout | -t) <how many seconds>]"
   echo "options:"
 #  echo "[--interactive | -i] - adds user questions, will ask for versions etc."
   echo "[--verbose | -v] - verbose logs from installation"
@@ -35,6 +35,8 @@ usage()
   echo "[--skip_olm_installation | -s] - skips installation of OLM, but olm global catalog namespace still needs to be found."
   echo "[--olm_global_catalog_namespace | -c] <OLM global catalog namespace> - script will not try to find olm global catalog namespace when set."
   echo "You can read more about OLM global catalog namespace here: https://github.com/operator-framework/operator-lifecycle-manager/blob/master/doc/install/install.md"
+  echo "[--operator_marketplace_rollout_timeout | -t] <how many seconds> - how long script should wait for operator marketplace pod to succeed"
+  echo "by default operator_marketplace_rollout_timeout=120s"
   echo "[--help | -h] - shows usage"
   echo "prerequisite commands: kubectl, git, curl"
 }
@@ -138,20 +140,66 @@ install_marketplace(){
     verbose_output_command echo "Doing it and creating Operator Source in this namespace will allow Subscriptions to use created Catalog Source in whole cluster"
     if ! inline_sed 's/namespace: .*/namespace: '"${olm_global_catalog_namespace}"'/g' operator-marketplace/deploy/upstream/*; then
       echo "Error: Problem during changing Operator Marketplace yamls namespace with sed"
-      echo "Remember to delete operator-marketplace directory after checking the issue"
+      echo "Remember to delete operator-marketplace directory if you want cleanup"
       exit 9
     fi
     # delete not needed namespace yaml
     rm -f operator-marketplace/deploy/upstream/01_namespace.yaml
+    # try kubectl apply twice for operator crd to appear
     if ! kubectl apply -f operator-marketplace/deploy/upstream; then
-      echo "Error: Problem during applying Operator Marketplace yamls, you can try to fix it and run again or install operator marketplace yourself from https://github.com/operator-framework/operator-marketplace"
-      echo "Remember to delete operator-marketplace directory after checking the issue"
-      exit 10
+      echo "kubectl apply on operator-marketplace yaml files failed, will try again in 5 seconds"
+      sleep 5
     fi
-    rm -rf operator-marketplace
+    if ! kubectl apply -f operator-marketplace/deploy/upstream; then
+      echo "Kubectl apply on Operator Marketplace yaml files failed, will try to install with possible fix"
+      inline_sed '/.*preserveUnknownFields.*/d' operator-marketplace/deploy/upstream/*
+      kubectl apply -f operator-marketplace/deploy/upstream
+      if ! kubectl apply -f operator-marketplace/deploy/upstream; then
+        echo "kubectl apply on operator-marketplace yaml files failed, will try again in 5 seconds"
+        sleep 5
+      fi
+      if ! kubectl apply -f operator-marketplace/deploy/upstream; then
+        echo "Error: Problem during applying Operator Marketplace yamls, you can try to fix it and run again or install operator marketplace yourself from https://github.com/operator-framework/operator-marketplace"
+        echo "Remember to delete operator-marketplace directory if you want cleanup"
+        exit 10
+      else
+        echo "Applied Operator Marketplace yamls after fixing problem with preserveUnknownFields"
+      fi
+    fi
     echo "Operator Marketplace installed in ${olm_global_catalog_namespace} namespace"
   else
     echo "Operator Marketplace seems to be installed"
+  fi
+  # verify operator marketplace works
+  echo "Waiting ${operator_marketplace_rollout_timeout} for Marketplace Operator deployment to succeed"
+  if ! kubectl rollout status --timeout="${operator_marketplace_rollout_timeout}" -w deployment/marketplace-operator --namespace="${olm_global_catalog_namespace}"; then
+    echo "Problem during marketplace-operator deployment rollout, will try to fix possible error"
+    # check if this error exists:
+    if kubectl get pod -l name=marketplace-operator -n "${olm_global_catalog_namespace}" -o json | grep "cannot verify user is non-root"; then
+      FIX_NON_ROOT_USER_BODY="        - securityContext:\n            runAsUser: 65534"
+      inline_sed 's/^        - name:/'"$FIX_NON_ROOT_USER_BODY"'\n          name:/g' operator-marketplace/deploy/upstream/08_operator.yaml
+      if ! kubectl delete deployment/marketplace-operator --namespace="${olm_global_catalog_namespace}"; then
+        echo "Could not delete marketplace operator deployment for fixing possible issue"
+        exit 24
+      fi
+      if ! kubectl apply -f operator-marketplace/deploy/upstream/08_operator.yaml; then
+        echo "Error: Problem during applying Operator Marketplace yamls after non-root user issue, you can try to fix it and run again or install operator marketplace yourself from https://github.com/operator-framework/operator-marketplace"
+        echo "Remember to delete operator-marketplace directory if you want cleanup"
+        exit 23
+      fi
+      echo "Waiting ${operator_marketplace_rollout_timeout} for Marketplace Operator deployment to succeed"
+      if ! kubectl rollout status --timeout="${operator_marketplace_rollout_timeout}" -w deployment/marketplace-operator --namespace="${olm_global_catalog_namespace}"; then
+        echo "Error: Problem during marketplace-operator deployment rollout still exists after trying potential fix, check its status for possible errors, try running script again when fixed, check README for manual installation and troubleshooting"
+        echo "Remember to delete operator-marketplace directory if you want cleanup"
+        exit 25
+      fi
+    else
+      echo "Error: Problem during marketplace-operator deployment rollout, check its status for possible errors, try running script again when fixed, check README for manual installation and troubleshooting"
+      echo "Remember to delete operator-marketplace directory if you want cleanup"
+      exit 22
+    fi
+    verbose_output_command echo "Operator Marketplace deployment seems to be working good"
+    rm -rf operator-marketplace
   fi
 }
 
@@ -198,7 +246,8 @@ EOF
       echo "Error: OperatorSource \"opencloud-operators\" failed to reach phase Succeeded in 50 retries"
       exit 13
   fi
-  if ! kubectl rollout status -w deployment/opencloud-operators --namespace="${olm_global_catalog_namespace}"; then
+  echo "Waiting 300s for Marketplace Operator deployment to succeed"
+  if ! kubectl rollout status --timeout=300s -w deployment/opencloud-operators --namespace="${olm_global_catalog_namespace}"; then
     echo "Error: Problem during opencloud-operators deployment rollout, check its status for possible errors, try running script again when fixed, check README for manual installation and troubleshooting"
     exit 14
   fi
@@ -328,7 +377,7 @@ EOF
     echo "Error: IBMLicensing instance pod failed to reach phase Running"
     exit 21
   fi
-  echo "IBM License Service should be running, you can check post installation section in README to see possible configurations of IBM Licensing instance, and how to add ingress"
+  echo "IBM License Service should be running, you can check post installation section in README to see possible configurations of IBM Licensing instance, and how to configure ingress"
 }
 
 verbose_output_command(){
@@ -345,6 +394,7 @@ verbose_output_command(){
 verbose=
 olm_version=0.13.0
 operator_marketplace_release_tag=release-4.6
+operator_marketplace_rollout_timeout=120s
 skip_olm_installation=
 olm_global_catalog_namespace=
 
@@ -367,6 +417,9 @@ while [ "$1" != "" ]; do
                                                         ;;
     -m | --operator_marketplace_release_tag )           shift
                                                         operator_marketplace_release_tag=$1
+                                                        ;;
+    -t | --operator_marketplace_rollout_timeout )       shift
+                                                        operator_marketplace_rollout_timeout=$1
                                                         ;;
     -s | --skip_olm_installation )                      skip_olm_installation=1
                                                         ;;

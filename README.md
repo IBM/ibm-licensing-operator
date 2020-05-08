@@ -62,7 +62,7 @@ For the installation steps, see [Installing IBM Cloud Platform Services in your 
 
 ### Installing IBM Licensing Operator with stand-alone containerized IBM products using Operator Lifecycle Manager(OLM)
 
-There is automatic script that installs IBM Licensing Operator, creates instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `vanilla Kubernetes` cluster, and is available at:
+There is automatic script that installs IBM Licensing Operator, creates instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `ICP cluster: v1.12.4+icp-ee`, `vanilla Kubernetes custer`, and is available at:
 [common/scripts/ibm_licensing_operator_install.sh](common/scripts/ibm_licensing_operator_install.sh)
 
 If you want to do it by hand, you can also find steps to do it below.
@@ -525,7 +525,7 @@ EOF
 
 <b>Configuring ingress</b>
 
-You might want to configure ingress. Here is an example of how you can do it:
+You might want to configure ingress. Here is an <b>example</b> of how you can do it:
 
 1\. Get the nginx ingress controller You might get it, for example, from here: [https://kubernetes.github.io/ingress-nginx/deploy](https://kubernetes.github.io/ingress-nginx/deploy)
 
@@ -551,6 +551,51 @@ EOF
 ```
 
 3\. Access the instance at your ingress host with the following path: `/ibm-licensing-service-instance`.
+
+**Other Examples:**
+
+- ICP cluster
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+  apiSecretToken: ibm-licensing-token
+  datasource: datacollector
+  httpsEnable: false
+  instanceNamespace: ibm-common-services
+  ingressEnabled: true
+  ingressOptions:
+    annotations:
+      "icp.management.ibm.com/rewrite-target": "/"
+      "kubernetes.io/ingress.class": "ibm-icp-management"
+EOF
+```
+
+- IBM Cloud with bluemix ingress
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+  apiSecretToken: ibm-licensing-token
+  datasource: datacollector
+  httpsEnable: false
+  instanceNamespace: ibm-common-services
+  ingressEnabled: true
+  ingressOptions:
+    annotations:
+      ingress.bluemix.net/rewrite-path: "serviceName=ibm-licensing-service-instance rewrite=/"
+    path: /ibm-licensing-service-instance
+    host: <your_host> # maybe this value can be skipped, you need to check
+EOF
+```
 
 **Note:** For HTTPS, set `spec.httpsEnable` to `true`, and edit `ingressOptions`. Read more about the options here:
 [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.csv)
