@@ -136,16 +136,6 @@ spec:
           path: datasource
           x-descriptors:
             - urn:alm:descriptor:com.tectonic.ui:text
-        - description: From where should IBM Licensing Service Pod container should pull image
-          displayName: Image Registry
-          path: imageRegistry
-          x-descriptors:
-            - urn:alm:descriptor:com.tectonic.ui:text
-        - description: What version of IBM Licensing Service to use
-          displayName: Image Tag
-          path: imageTagPostfix
-          x-descriptors:
-            - urn:alm:descriptor:com.tectonic.ui:text
         - description: Existing or to be created namespace where application will
             start. In case metering datacollection is used, should be the same
             namespace as metering components

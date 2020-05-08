@@ -24,6 +24,10 @@ IMG ?= ibm-licensing-operator
 REGISTRY ?= quay.io/opencloudio
 CSV_VERSION ?= 1.1.0
 
+# Set the registry and tag for the operand images
+OPERAND_REGISTRY ?= $(REGISTRY)
+OPERAND_TAG ?= 1.1.0
+
 # When pushing CSV locally you need to have these credentials set as environment variables.
 QUAY_USERNAME ?=
 QUAY_PASSWORD ?=
@@ -179,9 +183,7 @@ build: ## Build executable from the code
 local:
 	@GOOS=darwin common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/manager
 
-############################################################
-# images section
-############################################################
+##@ Images section
 
 images: build build-push-images ## Build the executable, build the image and push it
 
@@ -195,10 +197,41 @@ build-push-images: install-operator-sdk $(CONFIG_DOCKER_TARGET) ## Build the ima
 	docker tag $(REGISTRY)/$(IMG):$(VERSION) $(REGISTRY)/$(IMG)
 	if [ $(BUILD_LOCALLY) -ne 1 ]; then docker push $(REGISTRY)/$(IMG):$(VERSION); docker push $(REGISTRY)/$(IMG); fi
 
+##@ SHA Digest section
+
+.PHONY: get-image-sha
+get-image-sha:
+	@echo Get SHA for ibm-licensing:$(OPERAND_TAG)
+	@common/scripts/get-image-sha.sh $(OPERAND_REGISTRY)/ibm-licensing $(OPERAND_TAG)
+
 ##@ Release
 
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
+
+##@ Red Hat Certificate Section
+
+.PHONY: bundle
+bundle: ## bundle zip file for certification
+	@echo --- Updating the bundle directory with latest yamls from olm-catalog ---
+	-mkdir bundle
+	rm -rf bundle/*
+	cp -r deploy/olm-catalog/ibm-licensing-operator/${CSV_VERSION}/* bundle/
+	cp deploy/olm-catalog/ibm-licensing-operator/ibm-licensing-operator.package.yaml bundle/
+	cd bundle && zip ibm-licensing-metadata ./*.yaml && cd ..
+
+.PHONY: install-operator-courier
+install-operator-courier: ## installs courier for certification check
+	@echo --- Installing Operator Courier ---
+	pip3 install operator-courier
+
+.PHONY: verify-bundle
+verify-bundle: ## verify bundle
+	@echo --- Verify bundle is ready for Red Hat certification ---
+	operator-courier --verbose verify --ui_validate_io bundle/
+
+.PHONY: redhat-certify-ready
+redhat-certify-ready: bundle verify-bundle ## makes bundle and verify it using operator courier
 
 ##@ Cleanup
 clean: ## Clean build binary

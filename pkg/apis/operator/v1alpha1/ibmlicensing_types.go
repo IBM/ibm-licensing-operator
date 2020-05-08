@@ -42,11 +42,11 @@ type IBMLicensingRouteOptions struct {
 
 // IBMLicensingSpec defines the desired state of IBMLicensing
 type IBMLicensingSpec struct {
-	// Registry from where to pull IBM Licensing Service application
+	// deprecated, define image in operator.yaml
 	ImageRegistry string `json:"imageRegistry,omitempty"`
-	// Docker Image Name for IBM Licensing Service application
+	// deprecated, define image in operator.yaml
 	ImageName string `json:"imageName,omitempty"`
-	// IBM Licensing Service Docker Image Tag
+	// deprecated, define image in operator.yaml
 	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
 	// Secret name used to store application token, either one that exists, or one that will be created, for now only one value possible
 	// +kubebuilder:validation:Enum=ibm-licensing-token

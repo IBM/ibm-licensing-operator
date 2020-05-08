@@ -51,6 +51,8 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "ibm-licensing-operator"
+            - name: OPERAND_LICENSING_IMAGE
+              value: "quay.io/opencloudio/ibm-licensing:1.1.0"
             - name: SA_NAME
               valueFrom:
                 fieldRef:

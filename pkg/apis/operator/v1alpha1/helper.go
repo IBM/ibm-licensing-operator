@@ -16,6 +16,8 @@
 
 package v1alpha1
 
+import "os"
+
 func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
 }
@@ -25,7 +27,7 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 }
 
 func (spec *IBMLicensingSpec) GetFullImage() string {
-	return spec.ImageRegistry + "/" + spec.ImageName + ":" + spec.ImageTagPostfix
+	return os.Getenv("OPERAND_LICENSING_IMAGE")
 }
 
 func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) {
@@ -38,15 +40,6 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) {
 	isNotOnOpenshiftCluster := !isOpenshiftCluster
 	if spec.IngressEnabled == nil {
 		spec.IngressEnabled = &isNotOnOpenshiftCluster
-	}
-	if spec.ImageRegistry == "" {
-		spec.ImageRegistry = "quay.io/opencloudio"
-	}
-	if spec.ImageName == "" {
-		spec.ImageName = "ibm-licensing"
-	}
-	if spec.ImageTagPostfix == "" {
-		spec.ImageTagPostfix = "1.1.0"
 	}
 	if spec.APISecretToken == "" {
 		spec.APISecretToken = "ibm-licensing-token"
