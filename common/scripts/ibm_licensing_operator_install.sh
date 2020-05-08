@@ -26,9 +26,8 @@ usage()
 {
    # Display usage
   echo "description: A script to install IBM License Service via Operator."
-  echo "usage: $0 [--interactive | -i] [--verbose | -v] [--help | -h] [(--olm_version | -o) <version_number>] [--skip_olm_installation | -s] [(--olm_global_catalog_namespace | -c) <OLM global catalog namespace> ] [(--operator_marketplace_rollout_timeout | -t) <how many seconds>]"
+  echo "usage: $0 [--verbose | -v] [--help | -h] [(--olm_version | -o) <version_number>] [--skip_olm_installation | -s] [(--olm_global_catalog_namespace | -c) <OLM global catalog namespace> ] [(--operator_marketplace_rollout_timeout | -t) <how many seconds>]"
   echo "options:"
-#  echo "[--interactive | -i] - adds user questions, will ask for versions etc."
   echo "[--verbose | -v] - verbose logs from installation"
   echo "[--olm_version | -o] <version_number> - what version of OLM should be installed if it doesn't exist,"
   echo "by default olm_version=0.13.0"
@@ -53,11 +52,6 @@ fi
 
 verify_command_line_processing(){
   # Test code to verify command line processing
-#  if [ "$interactive" = "1" ]; then
-#    verbose_output_command echo "interactive is on"
-#  else
-#    verbose_output_command echo "interactive is off"
-#  fi
   verbose_output_command echo "olm version is ${olm_version}"
 }
 
@@ -390,7 +384,6 @@ verbose_output_command(){
 
 ##### Parse arguments
 
-#interactive=
 verbose=
 olm_version=0.13.0
 operator_marketplace_release_tag=release-4.6
@@ -405,8 +398,6 @@ while [ "$1" != "" ]; do
     -h | --help )                                       usage
                                                         exit
                                                         ;;
-#    -i | --interactive )                                interactive=1
-#                                                        ;;
     -v | --verbose )                                    verbose=1
                                                         ;;
     -o | --olm_version )                                shift
