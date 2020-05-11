@@ -66,7 +66,7 @@ metadata:
     capabilities: Basic Install
     categories: Monitoring
     certified: "false"
-    containerImage: quay.io/opencloudio/ibm-licensing-operator@sha256:fab0e0c40e5a4cc05b3cbe984722fedb579b3dd46afa226ef6a5ba5b36ccbe49
+    containerImage: quay.io/opencloudio/ibm-licensing-operator@sha256:c47f9345b7bc7fda6b9f04d6b95d314967c4130b88dcce9decbc49b091d7292b
     createdAt: "2020-05-08T15:43:21Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to
       monitor the licensing usage of products.
@@ -324,7 +324,7 @@ spec:
                 - ibm-licensing-operator
                 env:
                 - name: OPERAND_LICENSING_IMAGE
-                  value: quay.io/opencloudio/ibm-licensing@sha256:ef46c1484c5445d3a5e8c1f2fe2b586f168c82a549603c1f2e80b635eca62099
+                  value: quay.io/opencloudio/ibm-licensing@sha256:6a18352f38bbf8eef4728f40cc55a5bb0fdf1f41414c27da4a219a94807f4c3d
                 - name: WATCH_NAMESPACE
                 - name: POD_NAME
                   valueFrom:
@@ -336,7 +336,7 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: spec.serviceAccountName
-                image: quay.io/opencloudio/ibm-licensing-operator@sha256:fab0e0c40e5a4cc05b3cbe984722fedb579b3dd46afa226ef6a5ba5b36ccbe49
+                image: quay.io/opencloudio/ibm-licensing-operator@sha256:c47f9345b7bc7fda6b9f04d6b95d314967c4130b88dcce9decbc49b091d7292b
                 imagePullPolicy: Always
                 name: ibm-licensing-operator
                 resources:
