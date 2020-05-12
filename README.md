@@ -3,7 +3,8 @@ You can install License Service with ibm-licensing-operator to collect license u
 * [License Service for stand-alone IBM Containerized Software without IBM Cloud Paks](#ibm-licensing-operator-for-stand-alone-ibm-containerized-software)
 
 # ibm-licensing-operator
-**Scenario: License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)**
+
+<b>Scenario: License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)</b>
 
 > **Important:** Do not install this operator directly. Only install this operator using the IBM Common Services Operator. For more information about installing this operator and other Common Services operators, see [Installer documentation](http://ibm.biz/cpcs_opinstall). If you are using this operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For more information about IBM Cloud Paks, see [IBM Cloud Paks that use Common Services](http://ibm.biz/cpcs_cloudpaks).
 
@@ -20,8 +21,8 @@ Red Hat OpenShift Container Platform 4.2 or newer installed on one of the follow
 
 - 1.0.0
 - 1.1.0
- 
- ## Prerequisites
+
+## Prerequisites
 
 Before you install this operator, you need to first install the operator dependencies and prerequisites:
 
@@ -41,16 +42,15 @@ License Service supports running with the OpenShift Container Platform 4.3 defau
 
 For more information about the OpenShift Container Platform Security Context Constraints, see [Managing Security Context Constraints](https://docs.openshift.com/container-platform/4.3/authentication/managing-security-context-constraints.html).
 
-
-
 # ibm-licensing-operator for stand-alone IBM Containerized Software
-**Scenario: License Service for stand-alone IBM Containerized Software without IBM Cloud Paks**
+
+<b>Scenario: License Service for stand-alone IBM Containerized Software without IBM Cloud Paks</b>
 
 You can use the ibm-licensing-operator to install License Service on Kubernetes clusters for stand-alone IBM Containerized Software. You can use License Service to collect information about license usage of IBM containerized products. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 
 Use this scenario, only when you do not have IBM Cloud Platform Common Services or IBM Cloud Paks installed.
 
-## Supported platforms
+## Supported platforms for stand-alone IBM Containerized Software
 
 License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_64. It was tested on the following systems:
 - Red Hat OpenShift Container Platform 3.11, 4.1, 4.2, 4.3 or newer
@@ -60,21 +60,20 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 - Azure Kubernetes Service (AKS)
 - Amazon EKS - Managed Kubernetes Service (EKS)
 
-## Operator versions
+## Operator versions for stand-alone IBM Containerized Software
 
 - 1.1.0
 
-## Documentation
+## Documentation for stand-alone IBM Containerized Software
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Installing IBM Licensing Operator as a part of IBM Cloud Platform Common Services on OpenShift](#installing-ibm-licensing-operator-as-a-part-of-ibm-cloud-platform-common-services-on-openshift)
-- [Installing IBM Licensing Operator with stand-alone containerized IBM products using Operator Lifecycle Manager(OLM)](#installing-ibm-licensing-operator-with-stand-alone-containerized-ibm-products-using-operator-lifecycle-managerolm)
-    - [Installing the IBM Licensing Operator on OCP 4.2+](#installing-the-ibm-licensing-operator-on-ocp-42)
-    - [Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`](#install-the-ibm-licensing-operator-on-kubernetes-from-scratch-with-kubectl)
-    - [Offline installation](#offline-installation)
+- [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)
+- [Installing the IBM Licensing Operator on OCP 4.2+](#installing-the-ibm-licensing-operator-on-ocp-42)
+- [Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`](#install-the-ibm-licensing-operator-on-kubernetes-from-scratch-with-kubectl)
+- [Offline installation](#offline-installation)
 - [Post-installation steps](#post-installation-steps)
     - [Create instance on OpenShift Console 4.2+](#create-instance-on-openshift-console-42)
     - [Creating an instance from console](#creating-an-instance-from-console)
