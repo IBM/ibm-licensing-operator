@@ -70,10 +70,11 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)
-- [Installing the IBM Licensing Operator on OCP 4.2+](#installing-the-ibm-licensing-operator-on-ocp-42)
-- [Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`](#install-the-ibm-licensing-operator-on-kubernetes-from-scratch-with-kubectl)
-- [Offline installation](#offline-installation)
+- [Installing IBM Licensing Operator as a part of IBM Cloud Platform Common Services on OpenShift](#installing-ibm-licensing-operator-as-a-part-of-ibm-cloud-platform-common-services-on-openshift)
+- [Installing IBM Licensing Operator with stand-alone containerized IBM products using Operator Lifecycle Manager(OLM)](#installing-ibm-licensing-operator-with-stand-alone-containerized-ibm-products-using-operator-lifecycle-managerolm)
+    - [Installing the IBM Licensing Operator on OCP 4.2+](#installing-the-ibm-licensing-operator-on-ocp-42)
+    - [Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`](#install-the-ibm-licensing-operator-on-kubernetes-from-scratch-with-kubectl)
+    - [Offline installation](#offline-installation)
 - [Post-installation steps](#post-installation-steps)
     - [Create instance on OpenShift Console 4.2+](#create-instance-on-openshift-console-42)
     - [Creating an instance from console](#creating-an-instance-from-console)
@@ -90,12 +91,14 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 
 ### Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)
 
-Use the automatic script to install License Service on any Kubernetes-orchestated cloud. The script creates an instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `vanilla Kubernetes` cluster, and is available at:
+Use the automatic script to install License Service on any Kubernetes-orchestrated cloud. The script creates an instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `ICP cluster: v1.12.4+icp-ee`, `vanilla Kubernetes custer`, and is available at:
 [common/scripts/ibm_licensing_operator_install.sh](common/scripts/ibm_licensing_operator_install.sh).
+
+### Manually installing ibm-licensing-operator with a stand-alone IBM Containerized Software
 
 To install License Service manually, complete the steps outlined below.
 
-### Installing the IBM Licensing Operator on OCP 4.2+
+#### Installing the IBM Licensing Operator on OCP 4.2+
 
 <b>Prerequisites</b>
 - Administrator permissions for the cluster
@@ -153,7 +156,7 @@ b. Select **IBM Licensing Operator** and click **Install**.
 
 ![IBM Licensing Installed](images/installed.png)
 
-### Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`
+#### Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`
 
 **Prerequisites**
 - Administrator permissions for the cluster
@@ -372,7 +375,7 @@ If your Operator deployment (CSV) shows `Succeeded` in the `InstallPhase` status
 kubectl get deployment -n ibm-common-services | grep ibm-licensing-operator
 ```
 
-### Offline installation
+#### Offline installation
 
 <b>Prerequisites</b>
 
@@ -541,7 +544,7 @@ EOF
 
 <b>Configuring ingress</b>
 
-You might want to configure ingress. Here is an example of how you can do it:
+You might want to configure ingress. Here is an <b>example</b> of how you can do it:
 
 1\. Get the nginx ingress controller You might get it, for example, from here: [https://kubernetes.github.io/ingress-nginx/deploy](https://kubernetes.github.io/ingress-nginx/deploy)
 
@@ -567,6 +570,51 @@ EOF
 ```
 
 3\. Access the instance at your ingress host with the following path: `/ibm-licensing-service-instance`.
+
+**Other Examples:**
+
+- ICP cluster
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+  apiSecretToken: ibm-licensing-token
+  datasource: datacollector
+  httpsEnable: false
+  instanceNamespace: ibm-common-services
+  ingressEnabled: true
+  ingressOptions:
+    annotations:
+      "icp.management.ibm.com/rewrite-target": "/"
+      "kubernetes.io/ingress.class": "ibm-icp-management"
+EOF
+```
+
+- IBM Cloud with bluemix ingress
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+  apiSecretToken: ibm-licensing-token
+  datasource: datacollector
+  httpsEnable: false
+  instanceNamespace: ibm-common-services
+  ingressEnabled: true
+  ingressOptions:
+    annotations:
+      ingress.bluemix.net/rewrite-path: "serviceName=ibm-licensing-service-instance rewrite=/"
+    path: /ibm-licensing-service-instance
+    host: <your_host> # maybe this value can be skipped, you need to check
+EOF
+```
 
 **Note:** For HTTPS, set `spec.httpsEnable` to `true`, and edit `ingressOptions`. Read more about the options here:
 [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.csv)
@@ -804,7 +852,7 @@ spec:
       annotations:
         productName: IBM Cloud Platform Common Services
         productID: "068a62892a1e4db39641342e592daa25"
-        productVersion: "3.3.0"
+        productVersion: "3.4.0"
         productMetric: FREE
     spec:
       serviceAccountName: ibm-licensing-operator

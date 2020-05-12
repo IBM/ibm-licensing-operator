@@ -70,6 +70,7 @@ spec:
               items:
                 type: string
               type: array
+              x-kubernetes-list-type: set
             imageRegistry:
               description: deprecated, define image in operator.yaml
               type: string
@@ -847,6 +848,7 @@ spec:
                     type: string
                 type: object
               type: array
+              x-kubernetes-list-type: set
           required:
           - licensingPods
           type: object

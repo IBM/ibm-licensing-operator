@@ -303,7 +303,7 @@ spec:
                 productID: 068a62892a1e4db39641342e592daa25
                 productMetric: FREE
                 productName: IBM Cloud Platform Common Services
-                productVersion: 3.3.0
+                productVersion: 3.4.0
               labels:
                 app.kubernetes.io/instance: ibm-licensing-operator
                 app.kubernetes.io/managed-by: ibm-licensing-operator
@@ -323,6 +323,8 @@ spec:
               - command:
                 - ibm-licensing-operator
                 env:
+                - name: OPERAND_LICENSING_IMAGE
+                  value: quay.io/opencloudio/ibm-licensing:1.1.0
                 - name: WATCH_NAMESPACE
                 - name: POD_NAME
                   valueFrom:
@@ -330,8 +332,6 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: ibm-licensing-operator
-                - name: OPERAND_LICENSING_IMAGE
-                  value: quay.io/opencloudio/ibm-licensing:1.1.0
                 - name: SA_NAME
                   valueFrom:
                     fieldRef:
