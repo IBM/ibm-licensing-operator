@@ -1,9 +1,9 @@
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
-* [License Service as a part of IBM Cloud Platform Common Services or as a part of an IBM Cloud Pak](#ibm-licensing-operator)
+* [License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)](#ibm-licensing-operator)
 * [License Service for stand-alone IBM Containerized Software without IBM Cloud Platform Common Services or IBM Cloud Paks](#ibm-licensing-operator-for-stand-alone-ibm-containerized-software)
 
 # ibm-licensing-operator
-**Scenario: License Service integrated into IBM Cloud Platform Common Services or an IBM Cloud Pak**
+**Scenario: License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)**
 
 > **Important:** Do not install this operator directly. Only install this operator using the IBM Common Services Operator. For more information about installing this operator and other Common Services operators, see [Installer documentation](http://ibm.biz/cpcs_opinstall). If you are using this operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For more information about IBM Cloud Paks, see [IBM Cloud Paks that use Common Services](http://ibm.biz/cpcs_cloudpaks).
 
