@@ -68,7 +68,6 @@ type IBMLicensingSpec struct {
 	// If default SCC user ID fails, you can set runAsUser option to fix that
 	SecurityContext *IBMLicensingSecurityContext `json:"securityContext,omitempty"`
 	// Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing image
-	// +listType=set
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
 	// Should Route be created to expose IBM Licensing Service API? (only on OpenShift cluster)
 	RouteEnabled *bool `json:"routeEnabled,omitempty"`
@@ -91,7 +90,6 @@ type IBMLicensingStatus struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// LicensingPods are the names of the licensing pods
-	// +listType=set
 	LicensingPods []corev1.PodStatus `json:"licensingPods"`
 }
 
