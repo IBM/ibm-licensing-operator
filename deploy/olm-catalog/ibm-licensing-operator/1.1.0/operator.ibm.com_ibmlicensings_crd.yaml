@@ -63,7 +63,8 @@ spec:
               type: boolean
             imageName:
               description: IBM Licensing Service docker Image Name, will override
-                default value and disable operator env value
+                default value and disable OPERAND_LICENSING_IMAGE env value in operator
+                deployment
               type: string
             imagePullSecrets:
               description: Array of pull secrets which should include existing at
@@ -73,11 +74,13 @@ spec:
               type: array
             imageRegistry:
               description: IBM Licensing Service docker Image Registry, will override
-                default value and disable operator env value
+                default value and disable OPERAND_LICENSING_IMAGE env value in operator
+                deployment
               type: string
             imageTagPostfix:
               description: IBM Licensing Service docker Image Tag or Digest, will
-                override default value and disable operator env value
+                override default value and disable OPERAND_LICENSING_IMAGE env value
+                in operator deployment
               type: string
             ingressEnabled:
               description: Should Ingress be created to expose IBM Licensing Service
