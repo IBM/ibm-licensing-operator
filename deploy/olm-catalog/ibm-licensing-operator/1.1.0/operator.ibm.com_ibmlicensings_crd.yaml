@@ -62,7 +62,9 @@ spec:
                 if true
               type: boolean
             imageName:
-              description: deprecated, define image in operator.yaml
+              description: IBM Licensing Service docker Image Name, will override
+                default value and disable OPERAND_LICENSING_IMAGE env value in operator
+                deployment
               type: string
             imagePullSecrets:
               description: Array of pull secrets which should include existing at
@@ -71,10 +73,14 @@ spec:
                 type: string
               type: array
             imageRegistry:
-              description: deprecated, define image in operator.yaml
+              description: IBM Licensing Service docker Image Registry, will override
+                default value and disable OPERAND_LICENSING_IMAGE env value in operator
+                deployment
               type: string
             imageTagPostfix:
-              description: deprecated, define image in operator.yaml
+              description: IBM Licensing Service docker Image Tag or Digest, will
+                override default value and disable OPERAND_LICENSING_IMAGE env value
+                in operator deployment
               type: string
             ingressEnabled:
               description: Should Ingress be created to expose IBM Licensing Service
