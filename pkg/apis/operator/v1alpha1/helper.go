@@ -67,7 +67,7 @@ func (spec *IBMLicensingSpec) setImageParametersFromEnv(fullImageName string) er
 	} else {
 		imageWithTag := strings.Split(imageWithTag, ":")
 		if len(imageWithTag) != 2 {
-			return errors.New("your image ENV variable in operator deployment should have digest and image tag separated by only one \":\" symbol")
+			return errors.New("your image ENV variable in operator deployment should have image tag and image name separated by only one \":\" symbol")
 		}
 		spec.ImageTagPostfix = imageWithTag[len(imageWithTag)-1]
 		spec.ImageName = strings.Join(imageWithTag[:len(imageWithTag)-1], "")
