@@ -16,7 +16,13 @@
 
 package v1alpha1
 
-import "os"
+import (
+	"errors"
+	"os"
+	"strings"
+
+	"github.com/ibm/ibm-licensing-operator/version"
+)
 
 func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
@@ -26,11 +32,51 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
 
+var defaultImageRegistry = "quay.io/opencloudio"
+var defaultLicensingImageName = "ibm-licensing"
+
 func (spec *IBMLicensingSpec) GetFullImage() string {
-	return os.Getenv("OPERAND_LICENSING_IMAGE")
+	// If there is ":" in image tag then we use "@" for digest as only digest can have it
+	if strings.ContainsAny(spec.ImageTagPostfix, ":") {
+		return spec.ImageRegistry + "/" + spec.ImageName + "@" + spec.ImageTagPostfix
+	}
+	return spec.ImageRegistry + "/" + spec.ImageName + ":" + spec.ImageTagPostfix
 }
 
-func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) {
+func (spec *IBMLicensingSpec) IsImageEmpty() bool {
+	// IsImageEmpty returns true when any part of image name is not defined
+	return spec.ImageRegistry == "" && spec.ImageName == "" && spec.ImageTagPostfix == ""
+}
+
+// setImageParametersFromEnv set container image info from full image reference
+func (spec *IBMLicensingSpec) setImageParametersFromEnv(fullImageName string) error {
+	// First get imageName, to do that we need to split FullImage like path
+	imagePathSplitted := strings.Split(fullImageName, "/")
+	if len(imagePathSplitted) < 2 {
+		return errors.New("your image ENV variable in operator deployment should have registry and image separated with \"/\" symbol")
+	}
+	imageWithTag := imagePathSplitted[len(imagePathSplitted)-1]
+	// Check if digest
+	if strings.Contains(imageWithTag, "@") {
+		imageWithTag := strings.Split(imageWithTag, "@")
+		if len(imageWithTag) != 2 {
+			return errors.New("your image ENV variable in operator deployment should have digest and image name separated by only one \"@\" symbol")
+		}
+		spec.ImageTagPostfix = imageWithTag[len(imageWithTag)-1]
+		spec.ImageName = strings.Join(imageWithTag[:len(imageWithTag)-1], "")
+	} else {
+		imageWithTag := strings.Split(imageWithTag, ":")
+		if len(imageWithTag) != 2 {
+			return errors.New("your image ENV variable in operator deployment should have digest and image tag separated by only one \":\" symbol")
+		}
+		spec.ImageTagPostfix = imageWithTag[len(imageWithTag)-1]
+		spec.ImageName = strings.Join(imageWithTag[:len(imageWithTag)-1], "")
+	}
+	spec.ImageRegistry = strings.Join(imagePathSplitted[:len(imagePathSplitted)-1], "")
+	return nil
+}
+
+func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 	if spec.HTTPSCertsSource == "" {
 		spec.HTTPSCertsSource = "self-signed"
 	}
@@ -44,6 +90,27 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) {
 	if spec.APISecretToken == "" {
 		spec.APISecretToken = "ibm-licensing-token"
 	}
+	licensingFullImageFromEnv := os.Getenv("OPERAND_LICENSING_IMAGE")
+
+	// Check if operator image variable is set and CR has no overrides
+	if licensingFullImageFromEnv != "" && spec.IsImageEmpty() {
+		err := spec.setImageParametersFromEnv(licensingFullImageFromEnv)
+		if err != nil {
+			return err
+		}
+	} else {
+		// If CR has at least one override, make sure all parts of the image are filled at least with default values
+		if spec.ImageRegistry == "" {
+			spec.ImageRegistry = defaultImageRegistry
+		}
+		if spec.ImageName == "" {
+			spec.ImageName = defaultLicensingImageName
+		}
+		if spec.ImageTagPostfix == "" {
+			spec.ImageTagPostfix = version.Version
+		}
+	}
+	return nil
 }
 
 func (spec *IBMLicensingSpec) IsRouteEnabled() bool {

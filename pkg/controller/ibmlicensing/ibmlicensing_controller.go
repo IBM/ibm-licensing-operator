@@ -172,7 +172,10 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{}, err
 	}
 	instance := foundInstance.DeepCopy()
-	instance.Spec.FillDefaultValues(isOpenshiftCluster)
+	err = instance.Spec.FillDefaultValues(isOpenshiftCluster)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
 
 	var recResult reconcile.Result
 	var recErr error
