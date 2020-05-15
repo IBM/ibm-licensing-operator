@@ -43,8 +43,8 @@ func (spec *IBMLicensingSpec) GetFullImage() string {
 	return spec.ImageRegistry + "/" + spec.ImageName + ":" + spec.ImageTagPostfix
 }
 
+// IsImageEmpty returns true when any part of image name is not defined
 func (spec *IBMLicensingSpec) IsImageEmpty() bool {
-	// IsImageEmpty returns true when any part of image name is not defined
 	return spec.ImageRegistry == "" && spec.ImageName == "" && spec.ImageTagPostfix == ""
 }
 
@@ -56,23 +56,22 @@ func (spec *IBMLicensingSpec) setImageParametersFromEnv(fullImageName string) er
 		return errors.New("your image ENV variable in operator deployment should have registry and image separated with \"/\" symbol")
 	}
 	imageWithTag := imagePathSplitted[len(imagePathSplitted)-1]
-	// Check if digest
+	var imageWithTagSplitted []string
+	// Check if digest and split into Image Name and TagPostfix
 	if strings.Contains(imageWithTag, "@") {
-		imageWithTag := strings.Split(imageWithTag, "@")
-		if len(imageWithTag) != 2 {
+		imageWithTagSplitted = strings.Split(imageWithTag, "@")
+		if len(imageWithTagSplitted) != 2 {
 			return errors.New("your image ENV variable in operator deployment should have digest and image name separated by only one \"@\" symbol")
 		}
-		spec.ImageTagPostfix = imageWithTag[len(imageWithTag)-1]
-		spec.ImageName = strings.Join(imageWithTag[:len(imageWithTag)-1], "")
 	} else {
-		imageWithTag := strings.Split(imageWithTag, ":")
-		if len(imageWithTag) != 2 {
+		imageWithTagSplitted = strings.Split(imageWithTag, ":")
+		if len(imageWithTagSplitted) != 2 {
 			return errors.New("your image ENV variable in operator deployment should have image tag and image name separated by only one \":\" symbol")
 		}
-		spec.ImageTagPostfix = imageWithTag[len(imageWithTag)-1]
-		spec.ImageName = strings.Join(imageWithTag[:len(imageWithTag)-1], "")
 	}
-	spec.ImageRegistry = strings.Join(imagePathSplitted[:len(imagePathSplitted)-1], "")
+	spec.ImageTagPostfix = imageWithTagSplitted[1]
+	spec.ImageName = imageWithTagSplitted[0]
+	spec.ImageRegistry = strings.Join(imagePathSplitted[:len(imagePathSplitted)-1], "/")
 	return nil
 }
 
