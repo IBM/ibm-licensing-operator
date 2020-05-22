@@ -42,6 +42,8 @@ type IBMLicensingRouteOptions struct {
 
 // IBMLicensingSpec defines the desired state of IBMLicensing
 type IBMLicensingSpec struct {
+	// Application version
+	Version string `json:"version"`
 	// IBM Licensing Service docker Image Registry, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
 	ImageRegistry string `json:"imageRegistry,omitempty"`
 	// IBM Licensing Service docker Image Name, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment

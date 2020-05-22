@@ -20,9 +20,11 @@ import (
 	"errors"
 	"os"
 	"strings"
-
-	"github.com/ibm/ibm-licensing-operator/version"
 )
+
+const defaultImageRegistry = "quay.io/opencloudio"
+const defaultLicensingImageName = "ibm-licensing"
+const defaultLicensingImageTagPostfix = "1.1.0"
 
 func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
@@ -31,9 +33,6 @@ func (spec *IBMLicensingSpec) IsMetering() bool {
 func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
-
-var defaultImageRegistry = "quay.io/opencloudio"
-var defaultLicensingImageName = "ibm-licensing"
 
 func (spec *IBMLicensingSpec) GetFullImage() string {
 	// If there is ":" in image tag then we use "@" for digest as only digest can have it
@@ -106,7 +105,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 			spec.ImageName = defaultLicensingImageName
 		}
 		if spec.ImageTagPostfix == "" {
-			spec.ImageTagPostfix = version.Version
+			spec.ImageTagPostfix = defaultLicensingImageTagPostfix
 		}
 	}
 	return nil
