@@ -196,10 +196,14 @@ spec:
               required:
               - runAsUser
               type: object
+            version:
+              description: Application version
+              type: string
           required:
           - datasource
           - httpsEnable
           - instanceNamespace
+          - version
           type: object
         status:
           description: IBMLicensingStatus defines the observed state of IBMLicensing

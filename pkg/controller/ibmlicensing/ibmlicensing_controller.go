@@ -177,6 +177,8 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{}, err
 	}
 
+	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
+
 	var recResult reconcile.Result
 	var recErr error
 
