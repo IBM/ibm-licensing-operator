@@ -370,7 +370,7 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: spec.serviceAccountName
-                image: quay.io/opencloudio/ibm-licensing-operator@sha256:16721468adcc0ea4f68ec552f6b5cedcfa003132e9ff40924f1b89f0e7e506e9
+                image: quay.io/opencloudio/ibm-licensing-operator:1.1.1
                 imagePullPolicy: Always
                 name: ibm-licensing-operator
                 resources:
