@@ -647,7 +647,7 @@ kubectl get ingress -n ibm-common-services -o yaml
 
 ### Using IBM License Service to retrieve license usage information
 
-For more information about how to use License Service to retrieve license usage data, se [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.0.0/retrieving.html).
+For more information about how to use License Service to retrieve license usage data, se [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
 
 ### Uninstalling License Service from a Kubernetes cluster
 
