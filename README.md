@@ -21,6 +21,8 @@ Red Hat OpenShift Container Platform 4.2 or newer installed on one of the follow
 
 - 1.0.0
 - 1.1.0
+- 1.1.1
+- 1.1.2
 
 ## Prerequisites
 
@@ -50,7 +52,7 @@ You can use the ibm-licensing-operator to install License Service on Kubernetes 
 
 Use this scenario, only when you do not have IBM Cloud Platform Common Services or IBM Cloud Paks installed.
 
-## Supported platforms for stand-alone IBM Containerized Software
+## Supported platforms for ibm-licensing-operator with stand-alone IBM Containerized Software
 
 License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_64. It was tested on the following systems:
 - Red Hat OpenShift Container Platform 3.11, 4.1, 4.2, 4.3 or newer
@@ -60,11 +62,14 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 - Azure Kubernetes Service (AKS)
 - Amazon EKS - Managed Kubernetes Service (EKS)
 
-## Operator versions for stand-alone IBM Containerized Software
+## Operator versions for ibm-licensing-operator with stand-alone IBM Containerized Software
 
+- 1.0.0
 - 1.1.0
+- 1.1.1
+- 1.1.2
 
-## Documentation for stand-alone IBM Containerized Software
+## Documentation for ibm-licensing-operator with stand-alone IBM Containerized Software
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -363,7 +368,7 @@ EOF
 ```console
 $ kubectl get clusterserviceversion -n ibm-common-services
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.0.0   IBM Licensing Operator   1.0.0     ibm-licensing-operator.v0.0.0   Succeeded
+ibm-licensing-operator.v1.1.2   IBM Licensing Operator   1.1.2     ibm-licensing-operator.v1.1.1   Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
@@ -388,16 +393,19 @@ First you need to push images to your registry:
 ```bash
 # on machine with access to internet
 export my_docker_registry=<YOUR REGISTRY IMAGE PREFIX HERE f.e.: "my.registry:5000" or "quay.io/opencloudio">
+export operator_version=1.1.2
+export operand_version=1.1.2
 
 # pull needed images
-docker pull quay.io/opencloudio/ibm-licensing-operator:1.1.0
-docker pull quay.io/opencloudio/ibm-licensing:1.1.0
+docker pull quay.io/opencloudio/ibm-licensing-operator:${operator_version}
+docker pull quay.io/opencloudio/ibm-licensing:${operand_version}
 
 # tag them with your registry prefix and push
-docker tag quay.io/opencloudio/ibm-licensing-operator:1.1.0 ${my_docker_registry}/ibm-licensing-operator:1.1.0
-docker push ${my_docker_registry}/ibm-licensing-operator:1.1.0
-docker tag quay.io/opencloudio/ibm-licensing:1.1.0 ${my_docker_registry}/ibm-licensing:1.1.0
-docker push ${my_docker_registry}/ibm-licensing:1.1.0
+docker tag quay.io/opencloudio/ibm-licensing-operaor:${operator_version} ${my_docker_registry}/ibm-licensing-operator:${operator_version}
+docker push ${my_docker_registry}/ibm-licensing-operator:${operator_version}
+
+docker tag quay.io/opencloudio/ibm-licensing:${operand_version} ${my_docker_registry}/ibm-licensing:${operand_version}
+docker push ${my_docker_registry}/ibm-licensing:${operand_version}
 ```
 
 2\. **Create needed resources**
@@ -433,7 +441,8 @@ If You cannot use `git clone` on machine with `kubectl` (f.e. when You don't hav
 If You can use `git clone`:
 
 ```bash
-git clone -b v1.0.0-cambridge https://github.com/IBM/ibm-licensing-operator.git
+export operator_release_version=v1.1.2-cambridge
+git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
 
@@ -814,7 +823,8 @@ Apply RBAC roles and CRD:
 
 ```bash
 # copy the yaml from here:
-https://github.com/IBM/ibm-licensing-operator/releases/download/v1.0.0-cambridge/rbac_and_crd.yaml
+export operator_release_version=v1.1.2-cambridge
+https://github.com/IBM/ibm-licensing-operator/releases/download/${operator_release_version}/rbac_and_crd.yaml
 ```
 
 Then apply the copied yaml:
@@ -826,6 +836,11 @@ EOF
 ```
 
 Make sure `${my_docker_registry}` variable has your private registry and apply the operator:
+
+```bash
+export operator_version=1.1.2
+export operand_version=1.1.2
+```
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -870,7 +885,7 @@ spec:
       hostPID: false
       containers:
         - name: ibm-licensing-operator
-          image: ${my_docker_registry}/ibm-licensing-operator:1.1.0
+          image: ${my_docker_registry}/ibm-licensing-operator:${operator_version}
           command:
             - ibm-licensing-operator
           imagePullPolicy: Always
@@ -883,7 +898,7 @@ spec:
             - name: OPERATOR_NAME
               value: "ibm-licensing-operator"
             - name: OPERAND_LICENSING_IMAGE
-              value: "${my_docker_registry}/ibm-licensing:1.1.0"
+              value: "${my_docker_registry}/ibm-licensing:${operand_version}"
             - name: SA_NAME
               valueFrom:
                 fieldRef:
