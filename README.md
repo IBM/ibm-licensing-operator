@@ -658,6 +658,35 @@ kubectl get ingress -n ibm-common-services -o yaml
 
 For more information about how to use License Service to retrieve license usage data, se [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
 
+### Using custom certificates
+
+When using License Service API over https you can use either self-signed or custom certificate. In order to have custom certificate follow these steps:
+
+1\. Make sure IBM Licensing Operator is installed
+
+2\. Create kubernetes tls secret in the namespace where License Service will be running.
+
+In terminal enter directory with certificate and key and name them like that: `certificate` -> `tls.crt`, `key` -> `tls.key`. Then create this secret:
+
+```bash
+licensingNamespace=ibm-common-services
+kubectl create secret tls ibm-licensing-certs --key tls.key --cert tls.crt -n ${licensingNamespace}
+```
+
+3\. Now edit or create IBM Licensing instance to include this certificate:
+
+```yaml
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+# ...
+spec:
+  httpsEnable: true # <- this enables https
+  httpsCertsSource: custom # <- this makes License Service API use ibm-licensing-certs secret
+# ... append rest of the License Service configuration here
+```
+
 ### Uninstalling License Service from a Kubernetes cluster
 
 **Note:** The following procedure assumes that you have deployed IBM License Service in the `ibm-common-services` namespace
