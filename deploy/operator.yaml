@@ -39,13 +39,13 @@ spec:
       hostPID: false
       containers:
         - name: ibm-licensing-operator
-          image: quay.io/opencloudio/ibm-licensing-operator:1.1.1
+          image: quay.io/opencloudio/ibm-licensing-operator:1.1.2
           command:
             - ibm-licensing-operator
           imagePullPolicy: Always
           env:
             - name: OPERAND_LICENSING_IMAGE
-              value: quay.io/opencloudio/ibm-licensing:1.1.0
+              value: quay.io/opencloudio/ibm-licensing@sha256:ed474bb227c9f837cc354fae353230b55956473dc4498334d29fe76133c235dd
             - name: WATCH_NAMESPACE
             - name: POD_NAME
               valueFrom:
