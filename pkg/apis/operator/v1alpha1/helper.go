@@ -24,7 +24,7 @@ import (
 
 const defaultImageRegistry = "quay.io/opencloudio"
 const defaultLicensingImageName = "ibm-licensing"
-const defaultLicensingImageTagPostfix = "1.1.0"
+const defaultLicensingImageTagPostfix = "1.1.2"
 
 func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
