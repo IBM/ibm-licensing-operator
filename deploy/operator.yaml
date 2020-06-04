@@ -39,7 +39,7 @@ spec:
       hostPID: false
       containers:
         - name: ibm-licensing-operator
-          image: quay.io/opencloudio/ibm-licensing-operator@sha256:da03a3d66de2d61f475adc1aff4418176da92a3e3f33650ce9f5869dd9a5a040
+          image: quay.io/opencloudio/ibm-licensing-operator:1.1.3
           command:
             - ibm-licensing-operator
           imagePullPolicy: Always
