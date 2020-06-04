@@ -71,7 +71,7 @@ func GetUploadURL(instance *operatorv1alpha1.IBMLicensing) string {
 	} else {
 		urlPrefix = "http://"
 	}
-	return urlPrefix + GetResourceName(instance) + "." + instance.Spec.InstanceNamespace + ".svc.cluster.local"
+	return urlPrefix + GetResourceName(instance) + "." + instance.Spec.InstanceNamespace + ".svc.cluster.local:" + licensingServicePort.String()
 }
 
 func LabelsForLicensingSelector(instance *operatorv1alpha1.IBMLicensing) map[string]string {
