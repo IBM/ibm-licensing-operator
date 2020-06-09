@@ -26,7 +26,7 @@ CSV_VERSION ?= 1.1.0
 
 # Set the registry and tag for the operand images
 OPERAND_REGISTRY ?= $(REGISTRY)
-OPERAND_TAG ?= 1.1.0
+OPERAND_TAG ?= 1.1.2
 
 # When pushing CSV locally you need to have these credentials set as environment variables.
 QUAY_USERNAME ?=
@@ -56,15 +56,16 @@ DEST := $(GOPATH)/src/$(GIT_HOST)/$(BASE_DIR)
 VERSION ?= $(shell git describe --exact-match 2> /dev/null || \
                  git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)
 
-LOCAL_OS := $(shell uname)
-ifeq ($(LOCAL_OS),Linux)
-    TARGET_OS ?= linux
-    XARGS_FLAGS="-r"
-else ifeq ($(LOCAL_OS),Darwin)
-    TARGET_OS ?= darwin
-    XARGS_FLAGS=
+ARCH := $(shell uname -m)
+LOCAL_ARCH := "amd64"
+ifeq ($(ARCH),x86_64)
+    LOCAL_ARCH="amd64"
+else ifeq ($(ARCH),ppc64le)
+    LOCAL_ARCH="ppc64le"
+else ifeq ($(ARCH),s390x)
+    LOCAL_ARCH="s390x"
 else
-    $(error "This system's OS $(LOCAL_OS) isn't recognized/supported")
+    $(error "This system's ARCH $(ARCH) isn't recognized/supported")
 endif
 
 # Setup DOCKER_BUILD_OPTS after all includes complete
@@ -177,8 +178,19 @@ install-operator-sdk:
 
 ##@ Build
 
-build: ## Build executable from the code
-	@common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/manager
+build: build-amd64 build-ppc64le build-s390x
+
+build-amd64:
+	@echo "Building the ${IMG} amd64 binary..."
+	@GOARCH=amd64 common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/manager
+
+build-ppc64le:
+	@echo "Building the ${IMG} ppc64le binary..."
+	@GOARCH=ppc64le common/scripts/gobuild.sh build/_output/bin/$(IMG)-ppc64le ./cmd/manager
+
+build-s390x:
+	@echo "Building the ${IMG} s390x binary..."
+	@GOARCH=s390x common/scripts/gobuild.sh build/_output/bin/$(IMG)-s390x ./cmd/manager
 
 local:
 	@GOOS=darwin common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/manager
@@ -192,10 +204,38 @@ ifeq ($(BUILD_LOCALLY),0)
 config-docker:
 endif
 
-build-push-images: install-operator-sdk $(CONFIG_DOCKER_TARGET) ## Build the image na push it to $REGISTRY
-	operator-sdk build $(REGISTRY)/$(IMG):$(VERSION) --image-build-args '$(DOCKER_BUILD_OPTS)'
-	docker tag $(REGISTRY)/$(IMG):$(VERSION) $(REGISTRY)/$(IMG)
-	if [ $(BUILD_LOCALLY) -ne 1 ]; then docker push $(REGISTRY)/$(IMG):$(VERSION); docker push $(REGISTRY)/$(IMG); fi
+build-image-amd64: build-amd64
+	@docker build -t $(REGISTRY)/$(IMG)-amd64:$(VERSION) $(DOCKER_BUILD_OPTS) --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-amd64" -f build/Dockerfile .
+
+build-image-ppc64le: build-ppc64le
+	@docker run --rm --privileged multiarch/qemu-user-static:register --reset
+	@docker build -t $(REGISTRY)/$(IMG)-ppc64le:$(VERSION) $(DOCKER_BUILD_OPTS) --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-ppc64le" -f build/Dockerfile.ppc64le .
+
+build-image-s390x: build-s390x
+	@docker run --rm --privileged multiarch/qemu-user-static:register --reset
+	@docker build -t $(REGISTRY)/$(IMG)-s390x:$(VERSION) $(DOCKER_BUILD_OPTS) --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-s390x" -f build/Dockerfile.s390x .
+
+push-image-amd64: $(CONFIG_DOCKER_TARGET) build-image-amd64
+	@docker push $(REGISTRY)/$(IMG)-amd64:$(VERSION)
+
+push-image-ppc64le: $(CONFIG_DOCKER_TARGET) build-image-ppc64le
+	@docker push $(REGISTRY)/$(IMG)-ppc64le:$(VERSION)
+
+push-image-s390x: $(CONFIG_DOCKER_TARGET) build-image-s390x
+	@docker push $(REGISTRY)/$(IMG)-s390x:$(VERSION)
+
+
+############################################################
+# multiarch-image section
+############################################################
+
+images: push-image-amd64 push-image-ppc64le push-image-s390x multiarch-image
+
+multiarch-image:
+	@curl -L -o /tmp/manifest-tool https://github.com/estesp/manifest-tool/releases/download/v1.0.0/manifest-tool-linux-amd64
+	@chmod +x /tmp/manifest-tool
+	/tmp/manifest-tool push from-args --platforms linux/amd64,linux/ppc64le,linux/s390x --template $(REGISTRY)/$(IMG)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMG) --ignore-missing
+	/tmp/manifest-tool push from-args --platforms linux/amd64,linux/ppc64le,linux/s390x --template $(REGISTRY)/$(IMG)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMG):$(VERSION) --ignore-missing
 
 ##@ SHA Digest section
 
@@ -244,4 +284,4 @@ help: ## Display this help
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-.PHONY: all build run install uninstall code-dev check lint test coverage images csv clean help
+.PHONY: all build run install uninstall code-dev check lint test coverage images multiarch-image csv clean help
