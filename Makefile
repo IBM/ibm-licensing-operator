@@ -60,11 +60,25 @@ LOCAL_OS := $(shell uname)
 ifeq ($(LOCAL_OS),Linux)
     TARGET_OS ?= linux
     XARGS_FLAGS="-r"
+	STRIP_FLAGS=
 else ifeq ($(LOCAL_OS),Darwin)
     TARGET_OS ?= darwin
     XARGS_FLAGS=
+	STRIP_FLAGS="-x"
 else
     $(error "This system's OS $(LOCAL_OS) isn't recognized/supported")
+endif
+
+ARCH := $(shell uname -m)
+LOCAL_ARCH := "amd64"
+ifeq ($(ARCH),x86_64)
+    LOCAL_ARCH="amd64"
+else ifeq ($(ARCH),ppc64le)
+    LOCAL_ARCH="ppc64le"
+else ifeq ($(ARCH),s390x)
+    LOCAL_ARCH="s390x"
+else
+    $(error "This system's ARCH $(ARCH) isn't recognized/supported")
 endif
 
 # Setup DOCKER_BUILD_OPTS after all includes complete
@@ -175,27 +189,27 @@ run: ## Run against the configured Kubernetes cluster in ~/.kube/config
 install-operator-sdk:
 	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then ./common/scripts/install-operator-sdk.sh; fi
 
-##@ Build
-
-build: ## Build executable from the code
-	@common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/manager
-
-local:
-	@GOOS=darwin common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/manager
-
-##@ Images section
-
-images: build build-push-images ## Build the executable, build the image and push it
-
 ifeq ($(BUILD_LOCALLY),0)
     export CONFIG_DOCKER_TARGET = config-docker
 config-docker:
 endif
 
-build-push-images: install-operator-sdk $(CONFIG_DOCKER_TARGET) ## Build the image na push it to $REGISTRY
-	operator-sdk build $(REGISTRY)/$(IMG):$(VERSION) --image-build-args '$(DOCKER_BUILD_OPTS)'
-	docker tag $(REGISTRY)/$(IMG):$(VERSION) $(REGISTRY)/$(IMG)
-	if [ $(BUILD_LOCALLY) -ne 1 ]; then docker push $(REGISTRY)/$(IMG):$(VERSION); docker push $(REGISTRY)/$(IMG); fi
+##@ Build
+
+build:
+	@echo "Building the $(IMAGE_NAME) binary for $(LOCAL_ARCH)..."
+	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh build/_output/bin/$(IMAGE_NAME) ./cmd/manager
+	@strip $(STRIP_FLAGS) build/_output/bin/$(IMAGE_NAME)
+
+build-push-image: build-image push-image
+
+build-image: build
+	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
+	@docker build -t $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) --build-arg VCS_REF=$(VCS_REF) --build-arg VCS_URL=$(VCS_URL) -f build/Dockerfile .
+
+push-image: $(CONFIG_DOCKER_TARGET) build-image
+	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
+	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
 
 ##@ SHA Digest section
 
@@ -205,6 +219,9 @@ get-image-sha: ## replaces operand tag for digest in operator.yaml and csv
 	@common/scripts/get-image-sha.sh $(OPERAND_REGISTRY)/ibm-licensing $(OPERAND_TAG)
 
 ##@ Release
+
+multiarch-image: $(CONFIG_DOCKER_TARGET)
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION)
 
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
@@ -244,4 +261,4 @@ help: ## Display this help
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-.PHONY: all build run install uninstall code-dev check lint test coverage images csv clean help
+.PHONY: all build run install uninstall code-dev check lint test coverage build multiarch-image csv clean help
