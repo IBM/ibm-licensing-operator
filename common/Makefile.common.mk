@@ -96,46 +96,6 @@ format-protos:
 
 .PHONY: lint-dockerfiles lint-scripts lint-yaml lint-helm lint-copyright-banner lint-go lint-python lint-markdown lint-all format-go
 
-############################################################
-# multiarch image section
-############################################################
-MANIFEST_VERSION ?= v1.0.0
-HAS_MANIFEST_TOOL := $(shell command -v manifest-tool)
-
-DEFAULT_PPC64LE_IMAGE ?= ibmcom/pause-ppc64le:3.0
-IMAGE_NAME_PPC64LE ?= ${IMAGE_REPO}/${IMAGE_NAME}-ppc64le:${RELEASE_TAG}
-DEFAULT_S390X_IMAGE ?= ibmcom/pause-s390x:3.0
-IMAGE_NAME_S390X ?= ${IMAGE_REPO}/${IMAGE_NAME}-s390x:${RELEASE_TAG}
-
-manifest-tool:
-ifeq ($(ARCH), x86_64)
-	$(eval MANIFEST_TOOL_NAME = manifest-tool-linux-amd64)
-else
-	$(eval MANIFEST_TOOL_NAME = manifest-tool-linux-$(ARCH))
-endif
-ifndef HAS_MANIFEST_TOOL
-	sudo curl -sSL -o /usr/local/bin/manifest-tool https://github.com/estesp/manifest-tool/releases/download/${MANIFEST_VERSION}/${MANIFEST_TOOL_NAME}
-	sudo chmod +x /usr/local/bin/manifest-tool
-endif
-
-ppc64le-fix: manifest-tool
-	@sudo manifest-tool inspect $(IMAGE_NAME_PPC64LE) \
-		|| (docker pull $(DEFAULT_PPC64LE_IMAGE) \
-		&& docker tag $(DEFAULT_PPC64LE_IMAGE) $(IMAGE_NAME_PPC64LE) \
-		&& docker push $(IMAGE_NAME_PPC64LE))
-
-s390x-fix: manifest-tool
-	@sudo manifest-tool inspect $(IMAGE_NAME_S390X) \
-		|| (docker pull $(DEFAULT_S390X_IMAGE) \
-		&& docker tag $(DEFAULT_S390X_IMAGE) $(IMAGE_NAME_S390X) \
-		&& docker push $(IMAGE_NAME_S390X))
-
-multi-arch: manifest-tool ppc64le-fix s390x-fix
-	@cp ./common/manifest.yaml /tmp/manifest.yaml
-	@sed -i -e "s|__RELEASE_TAG__|$(RELEASE_TAG)|g" -e "s|__IMAGE_NAME__|$(IMAGE_NAME)|g" -e "s|__IMAGE_REPO__|$(IMAGE_REPO)|g" /tmp/manifest.yaml
-	@sudo manifest-tool push from-spec /tmp/manifest.yaml
-
-
 # Run go vet for this project. More info: https://golang.org/cmd/vet/
 code-vet:
 	@echo go vet
@@ -174,4 +134,4 @@ csv-gen:
 	@echo Remember to fix things after csv generation
 	operator-sdk generate csv --csv-version ${CSV_VERSION} --update-crds
 
-.PHONY: code-vet code-fmt code-tidy code-gen csv-gen manifest-tool ppc64le-fix s390x-fix multi-arch
+.PHONY: code-vet code-fmt code-tidy code-gen csv-gen
