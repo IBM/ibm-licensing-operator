@@ -391,13 +391,13 @@ export my_docker_registry=<YOUR REGISTRY IMAGE PREFIX HERE f.e.: "my.registry:50
 
 # pull needed images
 docker pull quay.io/opencloudio/ibm-licensing-operator:1.1.0
-docker pull quay.io/opencloudio/ibm-licensing:1.1.0
+docker pull quay.io/opencloudio/ibm-licensing:1.1.2
 
 # tag them with your registry prefix and push
-docker tag quay.io/opencloudio/ibm-licensing-operator:1.1.0 ${my_docker_registry}/ibm-licensing-operator:1.1.0
+docker tag quay.io/opencloudio/ibm-licensing-operator:1.1.0 ${my_docker_registry}/ibm-licensing-operator:1.1.2
 docker push ${my_docker_registry}/ibm-licensing-operator:1.1.0
-docker tag quay.io/opencloudio/ibm-licensing:1.1.0 ${my_docker_registry}/ibm-licensing:1.1.0
-docker push ${my_docker_registry}/ibm-licensing:1.1.0
+docker tag quay.io/opencloudio/ibm-licensing:1.1.2 ${my_docker_registry}/ibm-licensing:1.1.2
+docker push ${my_docker_registry}/ibm-licensing:1.1.2
 ```
 
 2\. **Create needed resources**
@@ -865,6 +865,8 @@ spec:
                     operator: In
                     values:
                       - amd64
+                      - ppc64le
+                      - s390x
       hostIPC: false
       hostNetwork: false
       hostPID: false
