@@ -75,6 +75,9 @@ func (spec *IBMLicensingSpec) setImageParametersFromEnv(fullImageName string) er
 }
 
 func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
+	if spec.ImagePullPolicy == "" {
+		spec.ImagePullPolicy = "IfNotPresent"
+	}
 	if spec.HTTPSCertsSource == "" {
 		spec.HTTPSCertsSource = "self-signed"
 	}
