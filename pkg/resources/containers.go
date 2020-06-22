@@ -142,7 +142,7 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
 	return corev1.Container{
 		Image:           spec.GetFullImage(),
-		ImagePullPolicy: corev1.PullAlways,
+		ImagePullPolicy: corev1.PullPolicy(spec.ImagePullPolicy),
 		VolumeMounts:    getLicensingVolumeMounts(spec),
 		Env:             getLicensingEnvironmentVariables(spec),
 		Ports: []corev1.ContainerPort{
