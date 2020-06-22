@@ -66,6 +66,13 @@ spec:
                 default value and disable OPERAND_LICENSING_IMAGE env value in operator
                 deployment
               type: string
+            imagePullPolicy:
+              description: 'IBM License Service Pod pull policy, default: IfNotPresent'
+              enum:
+              - Always
+              - IfNotPresent
+              - Never
+              type: string
             imagePullSecrets:
               description: Array of pull secrets which should include existing at
                 InstanceNamespace secret to allow pulling IBM Licensing image

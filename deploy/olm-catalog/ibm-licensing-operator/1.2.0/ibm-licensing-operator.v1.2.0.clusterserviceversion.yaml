@@ -374,7 +374,7 @@ spec:
                     fieldRef:
                       fieldPath: spec.serviceAccountName
                 image: quay.io/opencloudio/ibm-licensing-operator:1.2.0
-                imagePullPolicy: Always
+                imagePullPolicy: IfNotPresent
                 name: ibm-licensing-operator
                 resources:
                   limits:
