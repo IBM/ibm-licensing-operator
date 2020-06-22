@@ -71,6 +71,9 @@ type IBMLicensingSpec struct {
 	SecurityContext *IBMLicensingSecurityContext `json:"securityContext,omitempty"`
 	// Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing image
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
+	// IBM License Service Pod pull policy, default: IfNotPresent
+	// +kubebuilder:validation:Enum=Always;IfNotPresent;Never
+	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
 	// Should Route be created to expose IBM Licensing Service API? (only on OpenShift cluster)
 	RouteEnabled *bool `json:"routeEnabled,omitempty"`
 	// Should Ingress be created to expose IBM Licensing Service API?

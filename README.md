@@ -21,6 +21,9 @@ Red Hat OpenShift Container Platform 4.2 or newer installed on one of the follow
 
 - 1.0.0
 - 1.1.0
+- 1.1.1
+- 1.1.2
+- 1.1.3
 
 ## Prerequisites
 
@@ -28,6 +31,8 @@ Before you install this operator, you need to first install the operator depende
 
 - For the list of operator dependencies, see the IBM Knowledge Center [Common Services dependencies documentation](http://ibm.biz/cpcs_opdependencies).
 - For the list of prerequisites for installing the operator, see the IBM Knowledge Center [Preparing to install services documentation](http://ibm.biz/cpcs_opinstprereq).
+
+> **Important:** If you installed License Service with the stand-alone IBM containerized software and you want to install an IBM Cloud Pak, it is recommended to first uninstall License Service from every cluster. Before uninstalling, the best practice is to retrieve an audit snapshot to ensure no data is lost. The Cloud Pak will install a new instance of License Service. This is a temporary action that we would like to automize in the future.
 
 ## Documentation
 
@@ -50,7 +55,7 @@ You can use the ibm-licensing-operator to install License Service on Kubernetes 
 
 Use this scenario, only when you do not have IBM Cloud Platform Common Services or IBM Cloud Paks installed.
 
-## Supported platforms for stand-alone IBM Containerized Software
+## Supported platforms for ibm-licensing-operator with stand-alone IBM Containerized Software
 
 License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_64. It was tested on the following systems:
 - Red Hat OpenShift Container Platform 3.11, 4.1, 4.2, 4.3 or newer
@@ -60,11 +65,15 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 - Azure Kubernetes Service (AKS)
 - Amazon EKS - Managed Kubernetes Service (EKS)
 
-## Operator versions for stand-alone IBM Containerized Software
+## Operator versions for ibm-licensing-operator with stand-alone IBM Containerized Software
 
+- 1.0.0
 - 1.1.0
+- 1.1.1
+- 1.1.2
+- 1.1.3
 
-## Documentation for stand-alone IBM Containerized Software
+## Documentation for ibm-licensing-operator with stand-alone IBM Containerized Software
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -363,7 +372,7 @@ EOF
 ```console
 $ kubectl get clusterserviceversion -n ibm-common-services
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.0.0   IBM Licensing Operator   1.0.0     ibm-licensing-operator.v0.0.0   Succeeded
+ibm-licensing-operator.v1.1.3   IBM Licensing Operator   1.1.3     ibm-licensing-operator.v1.1.2   Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
@@ -388,16 +397,19 @@ First you need to push images to your registry:
 ```bash
 # on machine with access to internet
 export my_docker_registry=<YOUR REGISTRY IMAGE PREFIX HERE f.e.: "my.registry:5000" or "quay.io/opencloudio">
+export operator_version=1.1.3
+export operand_version=1.1.2
 
 # pull needed images
-docker pull quay.io/opencloudio/ibm-licensing-operator:1.1.0
-docker pull quay.io/opencloudio/ibm-licensing:1.1.2
+docker pull quay.io/opencloudio/ibm-licensing-operator:${operator_version}
+docker pull quay.io/opencloudio/ibm-licensing:${operand_version}
 
 # tag them with your registry prefix and push
-docker tag quay.io/opencloudio/ibm-licensing-operator:1.1.0 ${my_docker_registry}/ibm-licensing-operator:1.1.2
-docker push ${my_docker_registry}/ibm-licensing-operator:1.1.0
-docker tag quay.io/opencloudio/ibm-licensing:1.1.2 ${my_docker_registry}/ibm-licensing:1.1.2
-docker push ${my_docker_registry}/ibm-licensing:1.1.2
+docker tag quay.io/opencloudio/ibm-licensing-operator:${operator_version} ${my_docker_registry}/ibm-licensing-operator:${operator_version}
+docker push ${my_docker_registry}/ibm-licensing-operator:${operator_version}
+
+docker tag quay.io/opencloudio/ibm-licensing:${operand_version} ${my_docker_registry}/ibm-licensing:${operand_version}
+docker push ${my_docker_registry}/ibm-licensing:${operand_version}
 ```
 
 2\. **Create needed resources**
@@ -433,7 +445,8 @@ If You cannot use `git clone` on machine with `kubectl` (f.e. when You don't hav
 If You can use `git clone`:
 
 ```bash
-git clone -b v1.0.0-cambridge https://github.com/IBM/ibm-licensing-operator.git
+export operator_release_version=v1.1.3-durham
+git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
 
@@ -647,7 +660,36 @@ kubectl get ingress -n ibm-common-services -o yaml
 
 ### Using IBM License Service to retrieve license usage information
 
-For more information about how to use License Service to retrieve license usage data, se [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.0.0/retrieving.html).
+For more information about how to use License Service to retrieve license usage data, se [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
+
+### Using custom certificates
+
+When using License Service API over https you can use either self-signed or custom certificate. In order to have custom certificate follow these steps:
+
+1\. Make sure IBM Licensing Operator is installed
+
+2\. Create kubernetes tls secret in the namespace where License Service will be running.
+
+In terminal enter directory with certificate and key and name them like that: `certificate` -> `tls.crt`, `key` -> `tls.key`. Then create this secret:
+
+```bash
+licensingNamespace=ibm-common-services
+kubectl create secret tls ibm-licensing-certs --key tls.key --cert tls.crt -n ${licensingNamespace}
+```
+
+3\. Now edit or create IBM Licensing instance to include this certificate:
+
+```yaml
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+# ...
+spec:
+  httpsEnable: true # <- this enables https
+  httpsCertsSource: custom # <- this makes License Service API use ibm-licensing-certs secret
+# ... append rest of the License Service configuration here
+```
 
 ### Uninstalling License Service from a Kubernetes cluster
 
@@ -814,7 +856,8 @@ Apply RBAC roles and CRD:
 
 ```bash
 # copy the yaml from here:
-https://github.com/IBM/ibm-licensing-operator/releases/download/v1.0.0-cambridge/rbac_and_crd.yaml
+export operator_release_version=v1.1.3-durham
+https://github.com/IBM/ibm-licensing-operator/releases/download/${operator_release_version}/rbac_and_crd.yaml
 ```
 
 Then apply the copied yaml:
@@ -826,6 +869,11 @@ EOF
 ```
 
 Make sure `${my_docker_registry}` variable has your private registry and apply the operator:
+
+```bash
+export operator_version=1.1.3
+export operand_version=1.1.2
+```
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -872,7 +920,7 @@ spec:
       hostPID: false
       containers:
         - name: ibm-licensing-operator
-          image: ${my_docker_registry}/ibm-licensing-operator:1.1.0
+          image: ${my_docker_registry}/ibm-licensing-operator:${operator_version}
           command:
             - ibm-licensing-operator
           imagePullPolicy: Always
@@ -885,7 +933,7 @@ spec:
             - name: OPERATOR_NAME
               value: "ibm-licensing-operator"
             - name: OPERAND_LICENSING_IMAGE
-              value: "${my_docker_registry}/ibm-licensing:1.1.0"
+              value: "${my_docker_registry}/ibm-licensing:${operand_version}"
             - name: SA_NAME
               valueFrom:
                 fieldRef:
