@@ -42,7 +42,7 @@ spec:
           image: quay.io/opencloudio/ibm-licensing-operator@sha256:2f775d14bd083625a1ca650b68a5898d59dad700f60a94929d6a0621c7c93e62
           command:
             - ibm-licensing-operator
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - name: OPERAND_LICENSING_IMAGE
               value: quay.io/opencloudio/ibm-licensing@sha256:ed474bb227c9f837cc354fae353230b55956473dc4498334d29fe76133c235dd

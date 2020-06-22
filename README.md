@@ -873,7 +873,7 @@ spec:
           image: ${my_docker_registry}/ibm-licensing-operator:1.1.0
           command:
             - ibm-licensing-operator
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - name: WATCH_NAMESPACE
             - name: POD_NAME
