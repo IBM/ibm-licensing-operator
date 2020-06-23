@@ -913,6 +913,8 @@ spec:
                     operator: In
                     values:
                       - amd64
+                      - ppc64le
+                      - s390x
       hostIPC: false
       hostNetwork: false
       hostPID: false
