@@ -32,7 +32,7 @@ Before you install this operator, you need to first install the operator depende
 - For the list of operator dependencies, see the IBM Knowledge Center [Common Services dependencies documentation](http://ibm.biz/cpcs_opdependencies).
 - For the list of prerequisites for installing the operator, see the IBM Knowledge Center [Preparing to install services documentation](http://ibm.biz/cpcs_opinstprereq).
 
-> **Important:** If you installed License Service with the stand-alone IBM containerized software and you want to install an IBM Cloud Pak, it is recommended to first uninstall License Service from every cluster. Before uninstalling, the best practice is to retrieve an audit snapshot to ensure no data is lost. The Cloud Pak will install a new instance of License Service. This is a temporary action that we would like to automize in the future.
+> **Important:** If you installed License Service with the stand-alone IBM containerized software and you want to install an IBM Cloud Pak, it is recommended to first uninstall License Service from every cluster. Before uninstalling, the best practice is to retrieve an audit snapshot to ensure no data is lost. The Cloud Pak will install a new instance of License Service. This is a temporary action that we would like to automate in the future.
 
 ## Documentation
 
@@ -204,28 +204,32 @@ curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releas
 git clone --single-branch --branch release-4.6 https://github.com/operator-framework/operator-marketplace.git
 ```
 
-2\) Change the `marketplace` namespace to `olm` to be able to create subscriptions to the operatorsource/catalogsource from a different namespace.
+2\) Change the `Operator Marketplace's` namespace to be able to create subscriptions to the operatorsource/catalogsource from a different namespace.
+In order to do that check your `global catalog namespace` at OLM `packageserver` pod yaml somewhere in your cluster, f.e. using this command:
 
-3\) Check your `global catalog namespace` at OLM `packageserver` pod yaml somewhere in your cluster, using `grep           global-namespace`.
-If the cluster's `global catalog namespace` is different than `olm`, complete the following steps to change it:
+```bash
+olm_namespace=$(kubectl get csv --all-namespaces -l olm.version -o jsonpath="{.items[?(@.metadata.name=='packageserver')].metadata.namespace}")
+GLOBAL_CATALOG_NAMESPACE=$(kubectl get deployment --namespace="${olm_namespace}" packageserver -o yaml | grep -A 1 -i global-namespace | tail -1 | cut -d "-" -f 2- | sed -e 's/^[ \t]*//')
+# check if the namespace is found
+echo ${GLOBAL_CATALOG_NAMESPACE}
+```
+
+Complete the following steps to set `Operator Marketplace's` namespace into the one that we found above:
 
 a. Run the following command:
 
 - For **Linux** users
 
 ```bash
-# change this value if this would not be olm
-export GLOBAL_CATALOG_NAMESPACE=olm
-# change all resources namespace to olm
+# change all resources namespace to correct namespace
 sed -i 's/namespace: .*/namespace: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-marketplace/deploy/upstream/*
-# change namespace to olm
 sed -i 's/name: .*/name: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-marketplace/deploy/upstream/01_namespace.yaml
 ```
 
 - For **MAC** users:
 
 ```bash
-export GLOBAL_CATALOG_NAMESPACE=olm
+# change all resources namespace to correct namespace
 sed -i "" 's/namespace: .*/namespace: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-marketplace/deploy/upstream/*
 sed -i "" 's/name: .*/name: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-marketplace/deploy/upstream/01_namespace.yaml
 ```
@@ -256,7 +260,7 @@ kubectl apply -f operator-marketplace/deploy/upstream
 
 An `OperatorSource` object is used to define the external datastore that is used to store operator bundles. For more information including examples, see the documentation in the `operator-marketplace` [repository](https://github.com/operator-framework/operator-marketplace#operatorsource).
 
-<b>Create `operator source` to get operator bundles from `quay.io`.</b>
+<b>Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value and create `operator source` to get operator bundles from `quay.io`.</b>
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -346,9 +350,11 @@ EOF
 
 6\. **Create a Subscription**
 
- The last piece that ties together all of the previous steps is creating a subscription for the Operator. A subscription is created for the operator that upgrades IBM Licensing Operator when needed.
+The last piece that ties together all of the previous steps is creating a subscription for the Operator. A subscription is created for the operator that upgrades IBM Licensing Operator when needed.
 
- Create the **Subscription** using the following command:
+Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
+
+Create the **Subscription** using the following command:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -774,30 +780,30 @@ kubectl delete OperatorGroup ${operatorGroupName} -n ${licensingNamespace}
 Otherwise, you can delete the OperatorSource with the following command:
 
 ```bash
-export GLOBAL_CATALOG_NAMESPACE=olm
+# Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
 opencloudioSourceName=opencloud-operators
 kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
 ```
 
 7\. **Delete OperatorMarketplace**
 
-**Important:** Do not delete the OperatorMarketplace if it use it with a different operator.
+**Note:** Do not delete the OperatorMarketplace if it is used elsewhere, so f.e. if you use other operator sources.
 
 You can delete the OperatorMarketplace with the following command:
 
 ```bash
-export GLOBAL_CATALOG_NAMESPACE=olm
+# Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value
 kubectl delete -f operator-marketplace/deploy/upstream
 ```
 
 8\. **Uninstall OLM**
 
-**Important:** Before uninstalling OLM, make sure that you do not use it with other operators.
+**Note:** Do not uninstall OLM if it is used elsewhere, so if you want to use any other operators.
 
 Uninstall OLM with the following command:
 
 ```bash
-export GLOBAL_CATALOG_NAMESPACE=olm
+# Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value
 kubectl delete crd clusterserviceversions.operators.coreos.com \
 installplans.operators.coreos.com \
 subscriptions.operators.coreos.com \
@@ -811,6 +817,8 @@ kubectl delete namespace ${GLOBAL_CATALOG_NAMESPACE}
 #### CreateContainerConfigError Marketplace Operator error
 
 In case of problems during the installation of operator-marketplace, check the pods in the marketplace and their status.
+
+Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
 
 If you see the following error, note down the pod name:
 

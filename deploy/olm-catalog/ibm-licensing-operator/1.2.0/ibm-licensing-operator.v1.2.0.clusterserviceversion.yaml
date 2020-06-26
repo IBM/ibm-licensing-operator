@@ -16,7 +16,7 @@ metadata:
             "name": "instance"
           },
           "spec": {
-            "version": "1.1.2",
+            "version": "1.2.0",
             "apiSecretToken": "ibm-licensing-token",
             "datasource": "metering",
             "httpsEnable": true,
@@ -360,7 +360,7 @@ spec:
                 - ibm-licensing-operator
                 env:
                 - name: OPERAND_LICENSING_IMAGE
-                  value: quay.io/opencloudio/ibm-licensing@sha256:ed474bb227c9f837cc354fae353230b55956473dc4498334d29fe76133c235dd
+                  value: quay.io/opencloudio/ibm-licensing:1.2.0
                 - name: WATCH_NAMESPACE
                   valueFrom:
                     fieldRef:
