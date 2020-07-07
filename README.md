@@ -670,32 +670,37 @@ For more information about how to use License Service to retrieve license usage 
 
 ### Using custom certificates
 
-When using License Service API over https you can use either self-signed or custom certificate. In order to have custom certificate follow these steps:
+You can use either a self-signed certificate or a custom certificate when you use License Service API over https. In order to set up a custom certificate complete the following steps:
 
-1\. Make sure IBM Licensing Operator is installed
+1\. Make sure that the IBM Licensing operator is installed.
 
-2\. Create kubernetes tls secret in the namespace where License Service will be running.
+2\. Create a Kubernetes TLS secret in the namespace where License Service is deployed.
+   
+   a. Change the cerificate name to 'tls.crt'.
+   b. Change the key name to 'tls.key'.
+   c. In the terminal, change the directory to where the key and the certificate are stored.
+      `cd <directory with the certificate and the key`
+   d. Create the secret with the following command:   
 
-In terminal enter directory with certificate and key and name them like that: `certificate` -> `tls.crt`, `key` -> `tls.key`. Then create this secret:
+      ```
+      bash
+      licensingNamespace=ibm-common-services
+      kubectl create secret tls ibm-licensing-certs --key tls.key --cert tls.crt -n ${licensingNamespace}
+      ```
+3\. Edit a new IBM Licensing instance, or edit the existing one to include the certificate:
 
-```bash
-licensingNamespace=ibm-common-services
-kubectl create secret tls ibm-licensing-certs --key tls.key --cert tls.crt -n ${licensingNamespace}
-```
-
-3\. Now edit or create IBM Licensing instance to include this certificate:
-
-```yaml
-apiVersion: operator.ibm.com/v1alpha1
-kind: IBMLicensing
-metadata:
-  name: instance
-# ...
-spec:
-  httpsEnable: true # <- this enables https
-  httpsCertsSource: custom # <- this makes License Service API use ibm-licensing-certs secret
-# ... append rest of the License Service configuration here
-```
+   ```
+   yaml
+   apiVersion: operator.ibm.com/v1alpha1
+   kind: IBMLicensing
+   metadata:
+      name: instance
+   # ...
+   spec:
+      httpsEnable: true # <- this enables https
+      httpsCertsSource: custom # <- this makes License Service API use ibm-licensing-certs secret
+   # ... append rest of the License Service configuration here
+   ```
 
 ### Uninstalling License Service from a Kubernetes cluster
 
