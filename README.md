@@ -676,16 +676,22 @@ You can use either a self-signed certificate or a custom certificate when you us
 
 2\. Create a Kubernetes TLS secret in the namespace where License Service is deployed.
 
-   a. Change the cerificate name to 'tls.crt'.
+   a. Change the certificate name to 'tls.crt'.
+
    b. Change the key name to 'tls.key'.
+
    c. In the terminal, change the directory to where the key and the certificate are stored.
-      `cd <directory with the certificate and the key`
+
+```bash
+cd <directory with the certificate and the key>
+```
+
    d. Create the secret with the following command:
 
-      ```bash
-      licensingNamespace=ibm-common-services
-      kubectl create secret tls ibm-licensing-certs --key tls.key --cert tls.crt -n ${licensingNamespace}
-      ```
+```bash
+licensingNamespace=ibm-common-services
+kubectl create secret tls ibm-licensing-certs --key tls.key --cert tls.crt -n ${licensingNamespace}
+```
 
 3\. Edit a new IBM Licensing instance, or edit the existing one to include the certificate:
 
