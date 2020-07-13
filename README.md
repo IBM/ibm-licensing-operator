@@ -87,8 +87,6 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 - [Post-installation steps](#post-installation-steps)
     - [Create instance on OpenShift Console 4.2+](#create-instance-on-openshift-console-42)
     - [Creating an instance from console](#creating-an-instance-from-console)
-    - [Check Components](#check-components)
-- [Using IBM License Service to retrieve license usage information](#using-ibm-license-service-to-retrieve-license-usage-information)
 - [Using custom certificates](#using-custom-certificates)
 - [Uninstalling License Service from a Kubernetes cluster](#uninstalling-license-service-from-a-kubernetes-cluster)
 - [Troubleshooting](#troubleshooting)
@@ -614,7 +612,10 @@ spec:
 
 ### Post-installation steps
 
-After you successfully install IBM Licensing Operator, you can create IBMLicensing instance that will make IBM License Service run on cluster.
+After you successfully install IBM Licensing Operator, you need to create IBMLicensing instance that will make IBM License Service run on cluster. This can be done differently depending on your cluster environment, choose your option:
+
+- [Create instance on OpenShift Console 4.2+](#create-instance-on-openshift-console-42)
+- [Creating an instance from console](#creating-an-instance-from-console)
 
 #### Create instance on OpenShift Console 4.2+
 
@@ -638,9 +639,18 @@ If you have OpenShift 4.2+ you can create the instance from the Console.
 
 **Troubleshooting**: If the instance is not updated properly, try deleting the instance and creating new one with new parameters.
 
+4\. Check whether the pod is created and has Running status. Give it a few minutes if its not Running yet.
+To see the logs go to **OCP UI->Workloads->Pods** and search for **licensing** in the `ibm-common-services` project:
+
+![OCP Pod](images/ocp_pod.png)
+
+5\. To investigate further click the name of the pod starting with `ibm-licensing-service-instance` and check its logs, events.
+
+6\. At this point **License Service** should be running in your cluster. For more information about how to use License Service to retrieve license usage data, see [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
+
 #### Creating an instance from console
 
-Minimal setup requires applying this IBMLicensing instance:
+Minimal setup requires applying this IBMLicensing instance, but before applying it read whole section about its configuration.
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -660,7 +670,7 @@ EOF
 
 You might want to configure ingress. Here is an <b>example</b> of how you can do it:
 
-1\. Get the nginx ingress controller You might get it, for example, from here: [https://kubernetes.github.io/ingress-nginx/deploy](https://kubernetes.github.io/ingress-nginx/deploy)
+1\. Get the nginx ingress controller. You might get it, for example, from here: [https://kubernetes.github.io/ingress-nginx/deploy](https://kubernetes.github.io/ingress-nginx/deploy)
 
 2\. Apply this IBMLicensing instance to your cluster:
 
@@ -735,15 +745,11 @@ EOF
 
 **Troubleshooting**: If the instance is not updated properly (for example after updating ingressOptions), try deleting the instance and creating new one with new parameters.
 
-#### Check Components
+<b>Check Components</b>
 
-1\. Check whether the pod is created.
-To see the logs go to **OCP UI->Workloads->Pods** and search for **licensing** in the `ibm-common-services` project:
+After you apply appropriate configuration for **IBM License Service** follow these steps to check whether it works:
 
-![OCP Pod](images/ocp_pod.png)
-
-2\. Check if the pod is running. To investigate further select `licensing` and check logs, and events.
-You can also run the following command from the console:
+1\. Check if the pod is running, by running the following commands:
 
 ```bash
 podName=`kubectl get pod -n ibm-common-services -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}" | grep ibm-licensing-service-instance`
@@ -751,17 +757,15 @@ kubectl logs $podName -n ibm-common-services
 kubectl describe pod $podName -n ibm-common-services
 ```
 
-3\. Check Route or Ingress settings depending on your parameter settings.
-
-You can check the Route or Ingress Settings in **OCP UI->Networking->Service**. Or you can check if using the console command, for example:
+2\. Check Route or Ingress settings depending on your parameter settings using these commands, for example:
 
 ```bash
 kubectl get ingress -n ibm-common-services -o yaml
 ```
 
-### Using IBM License Service to retrieve license usage information
+Then examine the status part of the output. It should include host, path, tls (if configured), and other networking information.
 
-For more information about how to use License Service to retrieve license usage data, se [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
+3\. At this point **License Service** should be running in your cluster. For more information about how to use License Service to retrieve license usage data, see [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
 
 ### Using custom certificates
 
@@ -892,7 +896,7 @@ kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMES
 
 7\. **Delete OperatorMarketplace**
 
-**Note:** Do not delete the OperatorMarketplace if it is used elsewhere, so f.e. if you use other operator sources.
+**Note:** Do not delete the OperatorMarketplace if it is used elsewhere, so f.e. if you use other operator sources or when you have OCP cluster.
 
 You can delete the OperatorMarketplace with the following command:
 
@@ -903,7 +907,7 @@ kubectl delete -f operator-marketplace/deploy/upstream
 
 8\. **Uninstall OLM**
 
-**Note:** Do not uninstall OLM if it is used elsewhere, so if you want to use any other operators.
+**Note:** Do not uninstall OLM if it is used elsewhere, so if you want to use any other operators or when you have OCP cluster.
 
 Uninstall OLM with the following command:
 
