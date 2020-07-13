@@ -139,7 +139,7 @@ spec:
   authorizationToken: {}
   displayName: IBMCS Operators
   endpoint: https://quay.io/cnr
-publisher: IBM
+  publisher: IBM
   registryNamespace: opencloudio
   type: appregistry
 ```
