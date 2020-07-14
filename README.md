@@ -97,12 +97,14 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 
 <!-- Section below is mentioned by READINESS WIKI that is used by other IBM teams, so after changing this section name, readiness wiki also needs to be changed -->
 
-### Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)
+### Installing License Service
+
+#### Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)
 
 Use the automatic script to install License Service on any Kubernetes-orchestrated cloud. The script creates an instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `ICP cluster: v1.12.4+icp-ee`, `vanilla Kubernetes custer`, and is available in this repository at:
 [common/scripts/ibm_licensing_operator_install.sh](common/scripts/ibm_licensing_operator_install.sh).
 
-### Manually installing ibm-licensing-operator with a stand-alone IBM Containerized Software
+#### Manually installing ibm-licensing-operator with a stand-alone IBM Containerized Software
 
 Manual installation of IBM Licensing by Operator can be done differently depending on your cluster environment, choose your option:
 
@@ -110,7 +112,7 @@ Manual installation of IBM Licensing by Operator can be done differently dependi
 - [Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`](#install-the-ibm-licensing-operator-on-kubernetes-from-scratch-with-kubectl)
 - [Offline installation](#offline-installation)
 
-#### Installing the IBM Licensing Operator on OCP 4.2+
+##### Installing the IBM Licensing Operator on OCP 4.2+
 
 <b>Prerequisites</b>
 - OCP cluster with 4.2+ version
@@ -179,7 +181,7 @@ The **Operator** is only responsible for watching over the configuration and man
 
 We still need to configure **Custom Resource** named **IBM Licensing** to start using the service. In order to do that go to the [Post-installation steps](#post-installation-steps) section of readme.
 
-#### Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`
+##### Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`
 
 **Prerequisites**
 - Administrator permissions for the cluster
@@ -478,7 +480,7 @@ The **Operator** is only responsible for watching over the configuration and man
 
 We still need to configure **Custom Resource** named **IBM Licensing** to start using the service. In order to do that go to the [Post-installation steps](#post-installation-steps) section of readme.
 
-#### Offline installation
+##### Offline installation
 
 <b>Prerequisites</b>
 
