@@ -78,15 +78,15 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)
-- [Manually installing ibm-licensing-operator with a stand-alone IBM Containerized Software](#manually-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software)
-    - [Installing the IBM Licensing Operator on OCP 4.2+](#installing-the-ibm-licensing-operator-on-ocp-42)
-    - [Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`](#install-the-ibm-licensing-operator-on-kubernetes-from-scratch-with-kubectl)
-    - [Offline installation](#offline-installation)
+- [Installing License Service](#installing-license-service)
+   - [Automatically installing License Service with the ibm-licensing-operator using Operator Lifecycle Manager (OLM)](#automatically-installing-license-service-with-the-ibm-licensing-operator-using-operator-lifecycle-manager-olm)
+   - [Manually installing License Service on OCP 4.2+](#manually-installing-license-service-on-ocp-42)
+   - [Manually installing the IBM Licensing Operator on Kubernetes from scratch with `kubectl`](#manually-installing-the-ibm-licensing-operator-on-kubernetes-from-scratch-with-kubectl)
+   - [Offline installation](#offline-installation)
 - [Post-installation steps](#post-installation-steps)
     - [Create instance on OpenShift Console 4.2+](#create-instance-on-openshift-console-42)
     - [Creating an instance from console](#creating-an-instance-from-console)
+- [Using License Service to retrieve license usage information](#using-license-service-to-retrieve-license-usage-information)
 - [Using custom certificates](#using-custom-certificates)
 - [Uninstalling License Service from a Kubernetes cluster](#uninstalling-license-service-from-a-kubernetes-cluster)
 - [Troubleshooting](#troubleshooting)
@@ -100,6 +100,11 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 ### Installing License Service
 
 Choose the installation path that fits your environment best. You can choose an automatic or a manual procedure. You can also choose to perform offline installation.
+- [Automatically installing License Service with the ibm-licensing-operator using Operator Lifecycle Manager (OLM)](#automatically-installing-license-service-with-the-ibm-licensing-operator-using-operator-lifecycle-manager-olm)
+- [Manually installing License Service on OCP 4.2+](#manually-installing-license-service-on-ocp-42)
+- [Manually installing the IBM Licensing Operator on Kubernetes from scratch with `kubectl`](#manually-installing-the-ibm-licensing-operator-on-kubernetes-from-scratch-with-kubectl)
+- [Offline installation](#offline-installation)
+
 
 #### Automatically installing License Service with the ibm-licensing-operator using Operator Lifecycle Manager (OLM)
 
