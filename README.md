@@ -100,7 +100,7 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 
 ### Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)
 
-Use the automatic script to install License Service on any Kubernetes-orchestrated cloud. The script creates an instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `ICP cluster: v1.12.4+icp-ee`, `vanilla Kubernetes custer`, and is available at:
+Use the automatic script to install License Service on any Kubernetes-orchestrated cloud. It supports cluster running on x86 architecture. The script creates an instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `ICP cluster: v1.12.4+icp-ee`, `vanilla Kubernetes custer`, and is available at:
 [common/scripts/ibm_licensing_operator_install.sh](common/scripts/ibm_licensing_operator_install.sh).
 
 ### Manually installing ibm-licensing-operator with a stand-alone IBM Containerized Software
