@@ -26,6 +26,9 @@ usage()
 {
    # Display usage
   echo "description: A script to install IBM License Service via Operator."
+  echo ""
+  echo "note: Use this script only for cluster running on x86 architecture."
+  echo ""
   echo "usage: $0 [--verbose | -v] [--help | -h] [(--olm_version | -o) <version_number>] [--skip_olm_installation | -s] [(--olm_global_catalog_namespace | -c) <OLM global catalog namespace> ] [(--operator_marketplace_rollout_timeout | -t) <how many seconds>]"
   echo "options:"
   echo "[--verbose | -v] - verbose logs from installation"
