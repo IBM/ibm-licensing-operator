@@ -26,6 +26,9 @@ usage()
 {
    # Display usage
   echo "description: A script to install IBM License Service via Operator."
+  echo ""
+  echo "note: Use this script only for cluster running on x86 architecture."
+  echo ""
   echo "usage: $0 [--verbose | -v] [--help | -h] [(--olm_version | -o) <version_number>] [--skip_olm_installation | -s] [(--olm_global_catalog_namespace | -c) <OLM global catalog namespace> ] [(--operator_marketplace_rollout_timeout | -t) <how many seconds>]"
   echo "options:"
   echo "[--verbose | -v] - verbose logs from installation"
@@ -249,7 +252,16 @@ EOF
 }
 
 handle_operator_group(){
-  if ! verbose_output_command kubectl get OperatorGroup operatorgroup -n "${INSTALL_NAMESPACE}"; then
+  verbose_output_command echo "Counting operatorgroups at namespace $INSTALL_NAMESPACE"
+  if ! operatorgroups_in_install_namespace=$(kubectl get OperatorGroup -n "${INSTALL_NAMESPACE}" -o name); then
+    echo "Error: Failed to get OperatorGroup at namespace $INSTALL_NAMESPACE"
+    exit 26
+  fi
+  if ! number_of_operatorgroups_in_install_namespace=$(echo "${operatorgroups_in_install_namespace}" | wc -w); then
+    echo "Error: Failed to get number of OperatorGroups at namespace $INSTALL_NAMESPACE using 'wc -w' command"
+    exit 27
+  fi
+  if [ "${number_of_operatorgroups_in_install_namespace}" -eq 0 ]; then
     verbose_output_command echo "Applying operatorgroup at namespace $INSTALL_NAMESPACE"
     if ! cat <<EOF | kubectl apply -f -
 apiVersion: operators.coreos.com/v1
@@ -265,8 +277,13 @@ EOF
       echo "Error: Failed to apply OperatorGroup at namespace $INSTALL_NAMESPACE"
       exit 15
     fi
+  elif [ "${number_of_operatorgroups_in_install_namespace}" -gt 1 ]; then
+    echo "Error: There are more than one OperatorGroups at namespace ${INSTALL_NAMESPACE}:"
+    echo "${operatorgroups_in_install_namespace}"
+    echo "For subscription to work there should only exist one OperatorGroup, delete them and let this script create one"
+    exit 28
   else
-    echo "OperatorGroup already exists"
+    verbose_output_command echo "OperatorGroup already exists in ${INSTALL_NAMESPACE} namespace, proceeding"
   fi
 }
 
