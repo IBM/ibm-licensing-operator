@@ -82,6 +82,8 @@ type IBMLicensingSpec struct {
 	IngressOptions *IBMLicensingIngressOptions `json:"ingressOptions,omitempty"`
 	// If route is enabled, you can set its parameters
 	RouteOptions *IBMLicensingRouteOptions `json:"routeOptions,omitempty"`
+	// Resource requirements for License Service container
+	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 type IBMLicensingSecurityContext struct {

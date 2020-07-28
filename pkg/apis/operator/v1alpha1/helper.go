@@ -20,11 +20,19 @@ import (
 	"errors"
 	"os"
 	"strings"
+
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 const defaultImageRegistry = "quay.io/opencloudio"
 const defaultLicensingImageName = "ibm-licensing"
 const defaultLicensingImageTagPostfix = "1.2.0"
+
+var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
+var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
+var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
+var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)
 
 func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
@@ -90,6 +98,16 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 	}
 	if spec.APISecretToken == "" {
 		spec.APISecretToken = "ibm-licensing-token"
+	}
+	if spec.Resources == nil {
+		spec.Resources = &corev1.ResourceRequirements{
+			Limits: map[corev1.ResourceName]resource.Quantity{
+				corev1.ResourceCPU:    *cpu500m,
+				corev1.ResourceMemory: *memory512Mi},
+			Requests: map[corev1.ResourceName]resource.Quantity{
+				corev1.ResourceCPU:    *cpu200m,
+				corev1.ResourceMemory: *memory256Mi},
+		}
 	}
 	licensingFullImageFromEnv := os.Getenv("OPERAND_LICENSING_IMAGE")
 

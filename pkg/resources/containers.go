@@ -21,7 +21,6 @@ import (
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -151,14 +150,7 @@ func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Co
 				Protocol:      corev1.ProtocolTCP,
 			},
 		},
-		Resources: corev1.ResourceRequirements{
-			Limits: map[corev1.ResourceName]resource.Quantity{
-				corev1.ResourceCPU:    *cpu500m,
-				corev1.ResourceMemory: *memory512Mi},
-			Requests: map[corev1.ResourceName]resource.Quantity{
-				corev1.ResourceCPU:    *cpu200m,
-				corev1.ResourceMemory: *memory256Mi},
-		},
+		Resources:       *spec.Resources,
 		SecurityContext: getLicensingSecurityContext(spec),
 	}
 }

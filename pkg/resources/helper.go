@@ -22,17 +22,12 @@ import (
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 // cannot set to const due to k8s struct needing pointers to primitive types
 
 var TrueVar = true
 var FalseVar = false
-var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
-var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
-var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
-var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)
 
 // TODO: validate if good mode, in helm chart was 0644
 var defaultSecretMode int32 = 420
