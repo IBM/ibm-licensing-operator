@@ -247,11 +247,11 @@ func (r *ReconcileIBMLicensing) updateStatus(instance *operatorv1alpha1.IBMLicen
 	}
 
 	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) {
-		reqLogger.Info("Updating IBMLicensing status", "Instance", instance)
+		reqLogger.Info("Updating IBMLicensing status")
 		instance.Status.LicensingPods = podStatuses
 		err := r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
-			reqLogger.Info("Failed to update pod status")
+			reqLogger.Info("Warning: Failed to update pod status, this does not affect License Service")
 		}
 	}
 
@@ -282,7 +282,13 @@ func (r *ReconcileIBMLicensing) reconcileServiceAccount(instance *operatorv1alph
 			return reconcileResult, err
 		}
 		// Update deployment by deleting old one and requeuing
-		return r.deleteResource(&reqLogger, foundSA)
+
+		return r.deleteResource(&reqLogger, &appsv1.Deployment{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      res.GetResourceName(instance),
+				Namespace: instance.Spec.InstanceNamespace,
+			},
+		})
 	}
 	return reconcile.Result{}, nil
 }
@@ -367,6 +373,8 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 	expectedSpec := &expectedDeployment.Spec.Template.Spec
 	if !reflect.DeepEqual(foundSpec.Volumes, expectedSpec.Volumes) {
 		reqLogger.Info("Deployment has wrong volumes")
+	} else if !reflect.DeepEqual(foundSpec.Affinity, expectedSpec.Affinity) {
+		reqLogger.Info("Deployment has wrong affinity")
 	} else if foundSpec.ServiceAccountName != expectedSpec.ServiceAccountName {
 		reqLogger.Info("Deployment wrong service account name")
 	} else if len(foundSpec.Containers) != len(expectedSpec.Containers) {
