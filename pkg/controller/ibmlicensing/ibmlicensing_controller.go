@@ -51,8 +51,6 @@ var (
 	isOpenshiftCluster = true
 )
 
-//var isOldIngressVersion = false
-
 type reconcileFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
 
 // Add creates a new IBMLicensing Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -180,7 +178,6 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
 
 	var recResult reconcile.Result
-	var recErr error
 
 	reconcileFunctions := []interface{}{
 		r.reconcileNamespace,
@@ -198,9 +195,9 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
-		recResult, recErr = reconcileFunction.(reconcileFunctionType)(instance)
-		if recErr != nil || recResult.Requeue {
-			return recResult, recErr
+		recResult, err = reconcileFunction.(reconcileFunctionType)(instance)
+		if err != nil || recResult.Requeue {
+			return recResult, err
 		}
 	}
 
@@ -210,9 +207,9 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		}
 
 		for _, reconcileFunction := range reconcileOpenShiftFunctions {
-			recResult, recErr = reconcileFunction.(reconcileFunctionType)(instance)
-			if recErr != nil || recResult.Requeue {
-				return recResult, recErr
+			recResult, err = reconcileFunction.(reconcileFunctionType)(instance)
+			if err != nil || recResult.Requeue {
+				return recResult, err
 			}
 		}
 	}
@@ -279,22 +276,13 @@ func (r *ReconcileIBMLicensing) reconcileServiceAccount(instance *operatorv1alph
 		}
 	}
 	if shouldUpdate {
-		//TODO: add updating deployment here
-		reqLogger.Info("Updating ServiceAccount", "Updated ServiceAccount", foundSA)
-		err = r.client.Update(context.TODO(), foundSA)
+		// Update SA with foundSA as we added expectedPullSecrets to it
+		reconcileResult, err := r.updateResource(&reqLogger, foundSA, foundSA)
 		if err != nil {
-			reqLogger.Error(err, "Failed to update ServiceAccount, deleting...")
-			err = r.client.Delete(context.TODO(), foundSA)
-			if err != nil {
-				reqLogger.Error(err, "Failed to delete ServiceAccount during recreation")
-				return reconcile.Result{}, err
-			}
-			reqLogger.Info("Deleted ServiceAccount successfully")
-			return reconcile.Result{Requeue: true}, nil
+			return reconcileResult, err
 		}
-		reqLogger.Info("Updated ServiceAccount successfully")
-		// Spec updated - return and do not requeue as it might not consider extra values
-		return reconcile.Result{}, nil
+		// Update deployment by deleting old one and requeuing
+		return r.deleteResource(&reqLogger, foundSA)
 	}
 	return reconcile.Result{}, nil
 }
@@ -346,9 +334,17 @@ func (r *ReconcileIBMLicensing) reconcileUploadToken(instance *operatorv1alpha1.
 }
 
 func (r *ReconcileIBMLicensing) reconcileUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	reqLogger := log.WithValues("reconcileUploadConfigMap", "Entry", "instance.GetName()", instance.GetName())
 	expectedCM := res.GetUploadConfigMap(instance)
 	foundCM := &corev1.ConfigMap{}
-	return r.reconcileResourceNamespacedExistence(instance, expectedCM, foundCM)
+	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedCM, foundCM)
+	if err != nil || reconcileResult.Requeue {
+		return reconcileResult, err
+	}
+	if foundCM.Data[res.UploadConfigMapKey] == expectedCM.Data[res.UploadConfigMapKey] {
+		return reconcile.Result{}, nil
+	}
+	return r.updateResource(&reqLogger, expectedCM, foundCM)
 }
 
 func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -367,8 +363,8 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 		return reconcileResult, err
 	}
 	// TODO: this should be refactored in some nice way where you only declare which parameters needs to be correct between resources
-	foundSpec := foundDeployment.Spec.Template.Spec
-	expectedSpec := expectedDeployment.Spec.Template.Spec
+	foundSpec := &foundDeployment.Spec.Template.Spec
+	expectedSpec := &expectedDeployment.Spec.Template.Spec
 	if !reflect.DeepEqual(foundSpec.Volumes, expectedSpec.Volumes) {
 		reqLogger.Info("Deployment has wrong volumes")
 	} else if foundSpec.ServiceAccountName != expectedSpec.ServiceAccountName {
@@ -381,9 +377,9 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 		reqLogger.Info("Deployment has wrong spec template annotations")
 	} else {
 		shouldUpdate = false
-		containersToBeChecked := map[*corev1.Container]corev1.Container{&foundSpec.Containers[0]: expectedSpec.Containers[0]}
+		containersToBeChecked := map[*corev1.Container]*corev1.Container{&foundSpec.Containers[0]: &expectedSpec.Containers[0]}
 		if instance.Spec.IsMetering() {
-			containersToBeChecked[&foundSpec.InitContainers[0]] = expectedSpec.InitContainers[0]
+			containersToBeChecked[&foundSpec.InitContainers[0]] = &expectedSpec.InitContainers[0]
 		}
 		for foundContainer, expectedContainer := range containersToBeChecked {
 			if shouldUpdate {
@@ -421,29 +417,7 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 	}
 
 	if shouldUpdate {
-		refreshedDeployment := foundDeployment.DeepCopy()
-		refreshedDeployment.Spec.Template.Spec.Volumes = expectedDeployment.Spec.Template.Spec.Volumes
-		refreshedDeployment.Spec.Template.Spec.Containers = expectedDeployment.Spec.Template.Spec.Containers
-		refreshedDeployment.Spec.Template.Spec.InitContainers = expectedDeployment.Spec.Template.Spec.InitContainers
-		refreshedDeployment.Spec.Template.Spec.ServiceAccountName = expectedDeployment.Spec.Template.Spec.ServiceAccountName
-		refreshedDeployment.Spec.Template.Annotations = expectedDeployment.Spec.Template.Annotations
-		reqLogger.Info("Updating Deployment Spec to", "RefreshedDeployment.Spec", refreshedDeployment.Spec)
-		err = r.client.Update(context.TODO(), refreshedDeployment)
-		if err != nil {
-			// only need to delete deployment as new will be recreated on next reconciliation
-			reqLogger.Error(err, "Failed to update Deployment, deleting...", "Namespace", foundDeployment.Namespace, "Name", foundDeployment.Name)
-			err = r.client.Delete(context.TODO(), foundDeployment)
-			if err != nil {
-				reqLogger.Error(err, "Failed to delete Deployment during recreation", "Namespace", foundDeployment.Namespace, "Name", foundDeployment.Name)
-				return reconcile.Result{}, err
-			}
-			// Deployment deleted successfully - return and requeue to create new one
-			reqLogger.Info("Deleted deployment successfully", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name)
-			return reconcile.Result{Requeue: true}, nil
-		}
-		reqLogger.Info("Updated deployment successfully", "Deployment.Namespace", refreshedDeployment.Namespace, "Deployment.Name", refreshedDeployment.Name)
-		// Spec updated - return and do not requeue as it might not consider extra values
-		return reconcile.Result{}, nil
+		return r.updateResource(&reqLogger, expectedDeployment, foundDeployment)
 	}
 
 	return reconcile.Result{}, nil
@@ -468,7 +442,7 @@ func (r *ReconcileIBMLicensing) reconcileIngress(instance *operatorv1alpha1.IBML
 		}
 		reqLogger := log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
 		possibleUpdateNeeded := true
-		if !reflect.DeepEqual(foundIngress.ObjectMeta.Name, expectedIngress.ObjectMeta.Name) {
+		if foundIngress.ObjectMeta.Name != expectedIngress.ObjectMeta.Name {
 			reqLogger.Info("Names not equal", "old", expectedIngress.ObjectMeta.Name, "new", foundIngress.ObjectMeta.Name)
 		} else if !reflect.DeepEqual(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
 			reqLogger.Info("Labels not equal",
@@ -486,22 +460,7 @@ func (r *ReconcileIBMLicensing) reconcileIngress(instance *operatorv1alpha1.IBML
 			possibleUpdateNeeded = false
 		}
 		if possibleUpdateNeeded {
-			err = r.client.Update(context.TODO(), expectedIngress)
-			if err != nil {
-				// only need to delete ingress as new will be recreated on next reconciliation
-				reqLogger.Error(err, "Failed to update Ingress, deleting...")
-				err = r.client.Delete(context.TODO(), foundIngress)
-				if err != nil {
-					reqLogger.Error(err, "Failed to delete Ingress during recreation")
-					return reconcile.Result{}, err
-				}
-				// Ingress deleted successfully - return and requeue to create new one
-				reqLogger.Info("Deleted ingress successfully")
-				return reconcile.Result{Requeue: true}, nil
-			}
-			reqLogger.Info("Updated ingress successfully")
-			// Spec updated - return and do not requeue as it might not consider extra values
-			return reconcile.Result{}, nil
+			return r.updateResource(&reqLogger, expectedIngress, foundIngress)
 		}
 	}
 	return reconcile.Result{}, nil
@@ -536,23 +495,50 @@ func (r *ReconcileIBMLicensing) reconcileResourceExistence(
 
 	// foundRes already initialized before and passed via parameter
 	err = r.client.Get(context.TODO(), namespacedName, foundRes)
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
-			"Namespace", expectedRes.GetNamespace())
-		err = r.client.Create(context.TODO(), expectedRes)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
+	if err != nil {
+		if errors.IsNotFound(err) {
+			reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
 				"Namespace", expectedRes.GetNamespace())
-			return reconcile.Result{}, err
+			err = r.client.Create(context.TODO(), expectedRes)
+			if err != nil {
+				reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
+					"Namespace", expectedRes.GetNamespace())
+				return reconcile.Result{}, err
+			}
+			// Created successfully - return and requeue
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second}, nil
 		}
-		// Created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-	} else if err != nil {
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())
 		return reconcile.Result{}, err
-	} else {
-		reqLogger.Info(resType.String() + " is correct!")
 	}
+	reqLogger.Info(resType.String() + " is correct!")
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileIBMLicensing) updateResource(reqLogger *logr.Logger,
+	expectedResource ResourceObject, foundResource ResourceObject) (reconcile.Result, error) {
+	resTypeString := reflect.TypeOf(expectedResource).String()
+	(*reqLogger).Info("Updating " + resTypeString)
+	err := r.client.Update(context.TODO(), expectedResource)
+	if err != nil {
+		// only need to delete resource as new will be recreated on next reconciliation
+		(*reqLogger).Error(err, "Failed to update "+resTypeString+", deleting...", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+		return r.deleteResource(reqLogger, foundResource)
+	}
+	(*reqLogger).Info("Updated "+resTypeString+" successfully", "Namespace", expectedResource.GetNamespace(), "Name", expectedResource.GetName())
+	// Resource updated - return and do not requeue as it might not consider extra values
+	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileIBMLicensing) deleteResource(reqLogger *logr.Logger, foundResource ResourceObject) (reconcile.Result, error) {
+	resTypeString := reflect.TypeOf(foundResource).String()
+	err := r.client.Delete(context.TODO(), foundResource)
+	if err != nil {
+		(*reqLogger).Error(err, "Failed to delete "+resTypeString+" during recreation", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+		return reconcile.Result{}, err
+	}
+	// Resource deleted successfully - return and requeue to create new one
+	(*reqLogger).Info("Deleted "+resTypeString+" successfully", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+	return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 30}, nil
 }

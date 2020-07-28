@@ -26,6 +26,8 @@ const APIUploadTokenName = "ibm-licensing-upload-token"
 const APISecretTokenKeyName = "token"
 const APIUploadTokenKeyName = "token-upload"
 
+const UploadConfigMapKey = "url"
+
 func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
 	metaLabels := LabelsForLicensingMeta(instance)
 	expectedSecret := &corev1.Secret{
@@ -62,7 +64,7 @@ func GetUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) *corev1.ConfigM
 			Namespace: instance.Spec.InstanceNamespace,
 			Labels:    metaLabels,
 		},
-		Data: map[string]string{"url": GetUploadURL(instance)},
+		Data: map[string]string{UploadConfigMapKey: GetUploadURL(instance)},
 	}
 	return expectedCM
 }
