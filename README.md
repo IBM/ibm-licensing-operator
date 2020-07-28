@@ -8,7 +8,7 @@ You can install License Service with ibm-licensing-operator to collect license u
 
 > **Important:** Do not install this operator directly. Only install this operator using the IBM Common Services Operator. For more information about installing this operator and other Common Services operators, see [Installer documentation](http://ibm.biz/cpcs_opinstall). If you are using this operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For more information about IBM Cloud Paks, see [IBM Cloud Paks that use Common Services](http://ibm.biz/cpcs_cloudpaks).
 
-You can use the ibm-licensing operator to install License Service as a part of IBM Cloud Platform Common Services or an IBM Cloud Pak. You can use License Service to collect information about license usage of IBM containerized products and IBM Cloud Paks per cluster. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
+You can use the ibm-licensing-operator to install License Service as a part of IBM Cloud Platform Common Services or an IBM Cloud Pak. You can use License Service to collect information about license usage of IBM containerized products and IBM Cloud Paks per cluster. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 
 For more information about the available IBM Cloud Platform Common Services, see the [IBM Knowledge Center](http://ibm.biz/cpcsdocs).
 
@@ -79,16 +79,16 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)
-- [Manually installing ibm-licensing-operator with a stand-alone IBM Containerized Software](#manually-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software)
-    - [Installing the IBM Licensing Operator on OCP 4.2+](#installing-the-ibm-licensing-operator-on-ocp-42)
-    - [Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`](#install-the-ibm-licensing-operator-on-kubernetes-from-scratch-with-kubectl)
+- [Installing License Service](#installing-license-service)
+    - [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)
+    - [Manually installing License Service on OCP 4.2+](#manually-installing-license-service-on-ocp-42)
+    - [Manually installing License Service on Kubernetes from scratch with `kubectl`](#manually-installing-license-service-on-kubernetes-from-scratch-with-kubectl)
     - [Offline installation](#offline-installation)
 - [Post-installation steps](#post-installation-steps)
     - [Create instance on OpenShift Console 4.2+](#create-instance-on-openshift-console-42)
     - [Creating an instance from console](#creating-an-instance-from-console)
-    - [Check Components](#check-components)
-- [Using IBM License Service to retrieve license usage information](#using-ibm-license-service-to-retrieve-license-usage-information)
+- [Using License Service to retrieve license usage information](#using-license-service-to-retrieve-license-usage-information)
+- [Using custom certificates](#using-custom-certificates)
 - [Uninstalling License Service from a Kubernetes cluster](#uninstalling-license-service-from-a-kubernetes-cluster)
 - [Troubleshooting](#troubleshooting)
     - [CreateContainerConfigError Marketplace Operator error](#createcontainerconfigerror-marketplace-operator-error)
@@ -96,25 +96,38 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+### Installing License Service
+
+Choose the installation path that fits your environment best. You can choose an automatic or a manual procedure. You can also choose to perform offline installation.
+
+- [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)
+- [Manually installing License Service on OCP 4.2+](#manually-installing-license-service-on-ocp-42)
+- [Manually installing License Service on Kubernetes from scratch with `kubectl`](#manually-installing-license-service-on-kubernetes-from-scratch-with-kubectl)
+- [Offline installation](#offline-installation)
+
 <!-- Section below is mentioned by READINESS WIKI that is used by other IBM teams, so after changing this section name, readiness wiki also needs to be changed -->
 
-### Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)
+#### Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)
 
-Use the automatic script to install License Service on any Kubernetes-orchestrated cloud. It supports cluster running on x86 architecture. The script creates an instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `ICP cluster: v1.12.4+icp-ee`, `vanilla Kubernetes custer`, and is available at:
+Use the automatic script to install License Service on any Kubernetes-orchestrated cloud. It supports cluster running on x86 architecture. The script creates an instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `ICP cluster: v1.12.4+icp-ee`, `vanilla Kubernetes custer`, and is available in this repository at:
 [common/scripts/ibm_licensing_operator_install.sh](common/scripts/ibm_licensing_operator_install.sh).
 
-### Manually installing ibm-licensing-operator with a stand-alone IBM Containerized Software
-
-To install License Service manually, complete the steps outlined below.
-
-#### Installing the IBM Licensing Operator on OCP 4.2+
+#### Manually installing License Service on OCP 4.2+
 
 <b>Prerequisites</b>
-- Administrator permissions for the cluster
+- OCP cluster with 4.2+ version
+- Administrator permissions for the OCP cluster
+- Access to OpenShift Console
 
-1\. **Create OperatorSource**
+1\. **Create the OperatorSource**
 
-Before you install IBM Licensing Operator, the following operator source should be created to get operator bundles from `quay.io`.
+Create the operator source to get the operator bundles that are available at the public website: `quay.io`. The operator source allows your cluster to establish connection to `quay.io`.
+
+a. Log in to the OpenShift console.
+
+b. Click the plus button on the right of the header.
+
+c. Copy the following operator source into the editor.
 
 ```yaml
 apiVersion: operators.coreos.com/v1
@@ -131,81 +144,134 @@ spec:
   type: appregistry
 ```
 
-To add the OperatorSource:
-
-a. Log in to OpenShift Console
-
-b. Click the plus button on the right hand site of the header
-
-c. Copy the above operator source into the editor.
+d. Click **Create**.
 
 2\. **Create the `ibm-common-services` namespace**
 
-a. From the hamburger menu in the OpenShift Console, go to **Operators>Operator Hub**.
+a. From the hamburger menu in the OpenShift console, go to **Operators>Operator Hub**.
 
-b. Select **Create Project** and type **ibm-common-services** as a name.
+b. Expand the list of Projects.
 
-c. Click **Create**
+c. Select **Create Project**.
 
 ![Create Project](images/create-project.png)
+
+d. Enter **ibm-common-services** as a name and click **Create**.
+
+![Create Project](images/create-project-2.png)
 
 3\. **Install IBM Licensing Operator package in OperatorHub**
 
 a. Go to **OperatorHub** and search for **IBM Licensing Operator**.
 
+   **Note:** It might take a few minutes for the operator to show up. If, after a while, the operator will not show up, there might be an issue with the `Operator Source`.
+
 b. Select **IBM Licensing Operator** and click **Install**.
 
 ![Operator Hub IBM Licensing](images/operator-hub-licensing.png)
 
-4\. As **A specific namespace on the cluster** select **ibm-common-services** that you created in the previous step, and click **Subscribe**.
+4\. **Create the operator subscription**
+
+a. Go to **OperatorHub>Operator Subscription**
+
+b. As an Installation Mode select **A specific namespace on the cluster**, and set it to **ibm-common-services** namespace that you created in the previous step.
+
+c. Choose the **stable-v1** channel.
+
+d. Click **Subscribe**.
 
 ![Subscribe to IBM Licensing OLM](images/subscribe-licensing.png)
 
-5\. To check if the installation is successful, wait for about 1 minute, and click **Installed operators**. You should see IBM Licensing Operator in the **InstallSucceeded** status.
+5\. **Verify that the installation is successful**
+
+To check whether the installation is successful, wait for about 1 minute, and go to **Installed operators**. You should see IBM Licensing Operator with the **InstallSucceeded** status.
 
 ![IBM Licensing Installed](images/installed.png)
 
-#### Install the IBM Licensing Operator on Kubernetes from scratch with `kubectl`
+**Results:**
+You have created the **Operator** for **IBM Licensing Service**. The **Operator** is only responsible for watching over the configuration and managing resources used by **IBM Licensing Service**.
+The next step is to configure the **Custom Resource** named **IBM Licensing**. For the instructions, see the [Post-installation steps](#post-installation-steps).
+
+#### Manually installing License Service on Kubernetes from scratch with `kubectl`
 
 **Prerequisites**
 - Administrator permissions for the cluster
-- 'kubectl` 1.11.3 or higher
+- `kubectl` 1.11.3 or higher
 - Linux or iOS
 
-    **Note**: To install the IBM Licensing Operator on Windows, adjust the commands to fit the Windows standard.
+   **Note:** To install License Service on Windows, adjust the commands to fit the Windows standard.
 
 1\. **Install the Operator Lifecycle Manager (OLM)**
 
-a. Make sure that you are connected to your cluster. You can, for example, run the following command:
+a. Make sure that you are connected to your cluster. You can run the following command:
 
 ```bash
 kubectl get node
 ```
 
-The response includes a list of your nodes
+The response should contain a list of your nodes.
 
-b. Download OLM release from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases).
-
-   **Note:** For versions newer than 13.0, the process might differ.
-
-c. Use the following script to install OLM v13.0:
+b. Check if you have OLM installed. For example, run the following command.
 
 ```bash
-curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.13.0/install.sh | bash -s 0.13.0
+kubectl get crd clusterserviceversions.operators.coreos.com
+```
+
+- If you get the following response, OLM is installed and you can go to step 2. Install the Operator Marketplace.
+
+```console
+NAME                                          CREATED AT
+clusterserviceversions.operators.coreos.com   2020-06-04T14:42:13Z
+```
+
+- If you get the following response, OLM CRD is not installed.
+
+```console
+Error from server (NotFound): customresourcedefinitions.apiextensions.k8s.io "clusterserviceversions.operators.coreos.com" not found
+```
+
+c.  If you do not have OLM, download it from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases). Use following script to download and install OLM v13.0
+
+**Note:** For versions newer than 13.0, the process might differ.
+
+```bash
+olm_version=0.13.0
+curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/${olm_version}/install.sh | bash -s ${olm_version}
 ```
 
    **Troubleshooting:** If you get an error, you might have the old version of Kubernetes. You can try either upgrading your Kubernetes server version or using the older version of OLM.
 
 2\. **Install the Operator Marketplace**
 
-1\) Clone the Operator Marketplace GitHub repo with the following command:
+a. Check if you have OLM installed. For example, run the following command.
+
+```bash
+kubectl get crd operatorsources.operators.coreos.com
+```
+
+- If you get the following result, Operator Marketplace is installed and you can go to step 3. Create the OperatorSource.
+
+```console
+NAME                                   CREATED AT
+operatorsources.operators.coreos.com   2020-06-04T14:43:16Z
+```
+
+-  If you get the following result, that means Operator Marketplace CRD is not installed.
+
+```console
+Error from server (NotFound): customresourcedefinitions.apiextensions.k8s.io "operatorsources.operators.coreos.com" not found
+```
+
+b. If you do not have Operator Marketplace installed, complete the following steps.
+
+- Clone the Operator Marketplace GitHub repo with the following command:
 
 ```bash
 git clone --single-branch --branch release-4.6 https://github.com/operator-framework/operator-marketplace.git
 ```
 
-2\) Change the `Operator Marketplace's` namespace to be able to create subscriptions to the operatorsource/catalogsource from a different namespace.
-In order to do that check your `global catalog namespace` at OLM `packageserver` pod yaml somewhere in your cluster, f.e. using this command:
+- Change the `Operator Marketplace` namespace so that you can create subscriptions to the operatorsource or catalogsource from a different namespace.
+In order to do that check your `global catalog namespace` at OLM `packageserver` pod yaml somewhere in your cluster. For example, use the following command.
 
 ```bash
 olm_namespace=$(kubectl get csv --all-namespaces -l olm.version -o jsonpath="{.items[?(@.metadata.name=='packageserver')].metadata.namespace}")
@@ -216,7 +282,7 @@ echo ${GLOBAL_CATALOG_NAMESPACE}
 
 Complete the following steps to set `Operator Marketplace's` namespace into the one that we found above:
 
-a. Run the following command:
+1\. Run the following command:
 
 - For **Linux** users
 
@@ -234,13 +300,13 @@ sed -i "" 's/namespace: .*/namespace: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operato
 sed -i "" 's/name: .*/name: '"${GLOBAL_CATALOG_NAMESPACE}"'/g' operator-marketplace/deploy/upstream/01_namespace.yaml
 ```
 
-b. Install the Operator Marketplace into the cluster in the `$GLOBAL_CATALOG_NAMESPACE` namespace:
+2\. Install the Operator Marketplace into the cluster in the `$GLOBAL_CATALOG_NAMESPACE` namespace:
 
 ```bash
 kubectl apply -f operator-marketplace/deploy/upstream
 ```
 
-c. **Optional**: If you get the `unknown field "preserveUnknownFields"` error, try to delete `preserveUnknownFields` from yaml files inside `operator-marketplace/deploy/upstream/` catalog or consider upgrading Kubernetes server version by running the following command:
+3\. **Optional**: If you get the `unknown field "preserveUnknownFields"` error, try to delete `preserveUnknownFields` from yaml files inside `operator-marketplace/deploy/upstream/` catalog or consider upgrading Kubernetes server version by running the following command:
 
 - For **Linux** users:
 
@@ -256,11 +322,22 @@ sed -i "" '/.*preserveUnknownFields.*/d' operator-marketplace/deploy/upstream/*
 kubectl apply -f operator-marketplace/deploy/upstream
 ```
 
-3\. **Create the OperatorSource**
+4\. **Create the OperatorSource**
 
-An `OperatorSource` object is used to define the external datastore that is used to store operator bundles. For more information including examples, see the documentation in the `operator-marketplace` [repository](https://github.com/operator-framework/operator-marketplace#operatorsource).
+An `OperatorSource` object is used to define the external datastore that is used to store operator bundles. For more information including examples, see the documentation in the [`operator-marketplace`repository](https://github.com/operator-framework/operator-marketplace#operatorsource).
 
-<b>Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value and create `operator source` to get operator bundles from `quay.io`.</b>
+a. Make sure that GLOBAL_CATALOG_NAMESPACE has the global catalog namespace value and create `operator source` to get operator bundles from `quay.io`.
+
+b. In order to get GLOBAL_CATALOG_NAMESPACE, check your `global catalog namespace` at OLM `packageserver` pod yaml somewhere in your cluster. For example, you can use this command:
+
+```bash
+olm_namespace=$(kubectl get csv --all-namespaces -l olm.version -o jsonpath="{.items[?(@.metadata.name=='packageserver')].metadata.namespace}")
+GLOBAL_CATALOG_NAMESPACE=$(kubectl get deployment --namespace="${olm_namespace}" packageserver -o yaml | grep -A 1 -i global-namespace | tail -1 | cut -d "-" -f 2- | sed -e 's/^[ \t]*//')
+# check if the namespace is found
+echo ${GLOBAL_CATALOG_NAMESPACE}
+```
+
+c. When you have the `global catalog namespace` set, you can create the Operator Source by using the following command:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -279,7 +356,7 @@ spec:
 EOF
 ```
 
-<b>Check results:</b>
+<b>Check the results</b>
 
 - The `operator-marketplace` controller should successfully process this object. See if the Status is `Succeeded`:
 
@@ -311,7 +388,7 @@ upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
 
    **Troubleshooting:** In case of any problems, check the [troubleshooting section](#createcontainerconfigerror-marketplace-operator-error).
 
-4\. **View Available Operators**
+5\. **View Available Operators**
 
 Once the `OperatorSource` and `CatalogSource` are deployed, the following command can be used to list the available operators including ibm-licensing-operator-app.
 **Note:** The command assumes that the of the `OperatorSource` object is `opencloud-operators`. Adjust if needed.
@@ -322,18 +399,38 @@ NAME                  PACKAGES
 opencloud-operators   ibm-meta-operator-bridge-app,ibm-commonui-operator-app,ibm-catalog-ui-operator-app,ibm-metering-operator-app,ibm-helm-repo-operator-app,ibm-iam-operator-app,ibm-elastic-stack-operator-app,ibm-monitoring-exporters-operator-app,ibm-monitoring-prometheusext-operator-app,cp4foobar-operator-app,ibm-healthcheck-operator-app,ibm-platform-api-operator-app,ibm-management-ingress-operator-app,ibm-helm-api-operator-app,ibm-licensing-operator-app,ibm-ingress-nginx-operator-app,ibm-monitoring-grafana-operator-app,ibm-auditlogging-operator-app,operand-deployment-lifecycle-manager-app,ibm-mgmt-repo-operator-app,ibm-mongodb-operator-app,ibm-cert-manager-operator-app
 ```
 
-5\. **Create an OperatorGroup**
+6\. **Create an OperatorGroup**
 
 An `OperatorGroup` is used to denote which namespaces your Operator should watch.
 It must exist in the namespace where your operator is deployed, for example, `ibm-common-services`.
 
-1\) Create a namespace for IBM Licensing Operator with the following command:
+a. Create a namespace for IBM Licensing Operator with the following command.
 
 ```bash
 kubectl create namespace ibm-common-services
 ```
 
-2\) Use the following command to deploy the `OperatorGroup` resource:
+b. Check if you have tha operator group in that namespace by running the following command.
+
+```bash
+kubectl get OperatorGroup -n ibm-common-services
+```
+
+- If you get the following response, the operator group is found and you can go to step 3. Create a Subscription.
+
+```console
+NAME            AGE
+operatorgroup   39d
+```
+
+- If you get the following result, the operator group is not found and you need to create it.
+
+```console
+No resources found.
+```
+
+c. Create the operator group.
+Use the following command to deploy the `OperatorGroup` resource.
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -348,13 +445,12 @@ spec:
 EOF
 ```
 
-6\. **Create a Subscription**
+7\. **Create a Subscription**
+A subscription is created for the operator and is responsible for upgrades of IBM Licensing Operator when needed.
 
-The last piece that ties together all of the previous steps is creating a subscription for the Operator. A subscription is created for the operator that upgrades IBM Licensing Operator when needed.
+a. Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
 
-Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
-
-Create the **Subscription** using the following command:
+b. Create the **Subscription** using the following command:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -371,9 +467,9 @@ spec:
 EOF
 ```
 
-7\. **Verify Operator health**
+8\. **Verify Operator health**
 
-1\) See if the IBM Licensing Operator is deployed by OLM from the `catalog source` created by `Operator Marketplace` with the following command:
+a. See if the IBM Licensing Operator is deployed by OLM from the `catalog source` created by `Operator Marketplace` with the following command.
 
 ```console
 $ kubectl get clusterserviceversion -n ibm-common-services
@@ -384,21 +480,26 @@ ibm-licensing-operator.v1.1.3   IBM Licensing Operator   1.1.3     ibm-licensing
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
 If your Operator deployment (CSV) shows `Succeeded` in the `InstallPhase` status, your Operator is deployed successfully. Otherwise, check the `ClusterServiceVersion` objects status for details.
 
-2\) **Optional**: You can also check your Operator's deployment:
+b. **Optional**: Check if the operator is deployed. Run the following command:
 
 ```bash
 kubectl get deployment -n ibm-common-services | grep ibm-licensing-operator
 ```
 
+**Results:**
+You have created the **Operator** for **IBM Licensing Service**. The **Operator** is only responsible for watching over the configuration and managing resources used by **IBM Licensing Service**.
+
+The next step is to configure the **Custom Resource** named **IBM Licensing**. For the instructions, see the [Post-installation steps](#post-installation-steps).
+
 #### Offline installation
 
 <b>Prerequisites</b>
+- A private Docker image registry where you can push the images using `Docker` and from where your cluster can pull images.
+- Machine with access to your cluster with `kubectl` command.
 
-You need to have private docker image registry, where you can push images using `docker` and from where your cluster can pull images. Also you need machine with access to your cluster with `kubectl` command.
+1\. **Prepare Docker images**
 
-1\. **Prepare docker images**
-
-First you need to push images to your registry:
+Prepare your Docker images:
 
 ```bash
 # on machine with access to internet
@@ -420,35 +521,34 @@ docker push ${my_docker_registry}/ibm-licensing:${operand_version}
 
 2\. **Create needed resources**
 
-Now do everything on machine where you have access to your cluster and can use `kubectl` to access it.
+a. Run the following command on machine where you have access to your cluster and can use `kubectl`.
 
 ```bash
 # on machine with access to cluster
 export my_docker_registry=<SAME REGISTRY AS BEFORE>
 ```
 
-We will install our operator in `ibm-common-services` namespace. So first we need to create it:
+b. Run the following command to create the `ibm-common-services` namespace where you will later install the operator.
 
 ```bash
 kubectl create namespace ibm-common-services
 ```
 
-If your cluster need access token to your private docker registry then create this secret in created namespace:
+c. If your cluster needs the access token to your private Docker registry, create the secret in the `ibm-common-services` namespace:
 
 ```bash
 kubectl create secret -n ibm-common-services docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
 ```
 
-Set context so that resources will be made `ibm-common-services` namespace:
+d. Set the context so that the resources are made in the `ibm-common-services` namespace:
 
 ```bash
 kubectl config set-context --current --namespace=ibm-common-services
 ```
 
-If You cannot use `git clone` on machine with `kubectl` (f.e. when You don't have internet connection there) then use the solution at troubleshooting section at the end of the readme named
-['Prepare resources for offline installation without git'](#prepare-resources-for-offline-installation-without-git). Then continue to step 3 below.
+**Note:** If You cannot use `git clone` on machine with `kubectl` (for example, when you doo not have the Internet connection), use the solution described in the troubleshooting section. See ['Prepare resources for offline installation without git'](#prepare-resources-for-offline-installation-without-git). Then, continue to step 3 below.
 
-If You can use `git clone`:
+e. Use `git clone`:
 
 ```bash
 export operator_release_version=v1.1.3-durham
@@ -456,7 +556,9 @@ git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-op
 cd ibm-licensing-operator/
 ```
 
-Apply RBAC roles and CRD:
+**Note:** If You cannot use `git clone` on machine with `kubectl` (for example, when you doo not have the Internet connection), use the solution described in the troubleshooting section. See ['Prepare resources for offline installation without git'](#prepare-resources-for-offline-installation-without-git). Then, see the Results underneath this step.
+
+f. Apply RBAC roles and CRD:
 
 ```bash
 # add CRD:
@@ -467,7 +569,7 @@ kubectl apply -f deploy/service_account.yaml
 kubectl apply -f deploy/role_binding.yaml
 ```
 
-Modify operator.yaml image so your private registry is used:
+g. Modify the `operator.yaml` image so that your private registry is used:
 
 - For **LINUX** users:
 
@@ -485,9 +587,14 @@ sed -i "" 's/quay.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
 kubectl apply -f deploy/operator.yaml
 ```
 
-3\. **Steps to include when creating operator instance**
+**Results:**
+You have created the **Operator** for **IBM Licensing Service**. The **Operator** is only responsible for watching over the configuration and managing resources used by **IBM Licensing Service**.
+The next step is to configure the **Custom Resource** named **IBM Licensing**.
 
-Create the instance just like in [online installation](#creating-an-instance-from-console), but if you created secret needed for access to images then also add it, like that:
+**Steps to include when creating operator instance:**
+
+First, complete the steps listed in [Creating an instance from console](#creating-an-instance-from-console).
+If you created the secret that is needed to access the images, add it to the configuration.
 
 ```yaml
 apiVersion: operator.ibm.com/v1alpha1
@@ -496,12 +603,12 @@ metadata:
   name: instance
 spec:
 ...
-  imagePullSecrets:
-    - my-registry-token
+  imagePullSecrets:     # <-- this needs to be added
+    - my-registry-token # <-- this needs to be added with your secret name
 ...
 ```
 
-Example:
+For example:
 
 ```yaml
 apiVersion: operator.ibm.com/v1alpha1
@@ -519,11 +626,14 @@ spec:
 
 ### Post-installation steps
 
-After you successfully install IBM Licensing Operator, you can create IBMLicensing instance that will make IBM License Service run on cluster.
+After you successfully install IBM Licensing Operator, you need to create IBM Licensing instance to run IBM License Service on a cluster. You can either create an instance in OpenShift or in the console. Choose the option that fits your environment:
+
+- [Creat instance on OpenShift Console 4.2+](#create-instance-on-openshift-console-42)
+- [Creating an instance from console](#creating-an-instance-from-console)
 
 #### Create instance on OpenShift Console 4.2+
 
-If you have OpenShift 4.2+ you can create the instance from the Console.
+If you have OpenShift 4.2+ you can create the instance from the console.
 
 1\. Go to **Installed Operators>IBM Licensing Operator>IBM Licensing tab>Create IBMLicensing**
 
@@ -541,11 +651,23 @@ If you have OpenShift 4.2+ you can create the instance from the Console.
 
 ![OCP Edit Instance](images/ocp_edit_instance.png)
 
-**Troubleshooting**: If the instance is not updated properly, try deleting the instance and creating new one with new parameters.
+**Troubleshooting**: If the instance is not updated properly, try deleting the instance and creating a new one with new parameters.
+
+4\. Check whether the pod is created and has `Running` status. Give it a few minutes if its not `Running` yet.
+To see the logs, go to **OCP UI->Workloads->Pods** and search for **licensing** in the `ibm-common-services` project:
+
+![OCP Pod](images/ocp_pod.png)
+
+5\. To investigate further, click the name of the pod starting with `ibm-licensing-service-instance` and check its logs and events.
+
+6\. At this point **License Service** should be running in your cluster. For more information about how to use License Service to retrieve license usage data, see [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
 
 #### Creating an instance from console
 
-Minimal setup requires applying this IBMLicensing instance:
+**Important:** The minimal setup requires applying this IBMLicensing instance. However, before applying the instance, get familiar with the entire configuration process.
+configuration.
+
+Create the IBMLicensing instance:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -565,7 +687,7 @@ EOF
 
 You might want to configure ingress. Here is an <b>example</b> of how you can do it:
 
-1\. Get the nginx ingress controller You might get it, for example, from here: [https://kubernetes.github.io/ingress-nginx/deploy](https://kubernetes.github.io/ingress-nginx/deploy)
+1\. Get the nginx ingress controller. You might get it, for example, from here: [https://kubernetes.github.io/ingress-nginx/deploy](https://kubernetes.github.io/ingress-nginx/deploy)
 
 2\. Apply this IBMLicensing instance to your cluster:
 
@@ -640,15 +762,11 @@ EOF
 
 **Troubleshooting**: If the instance is not updated properly (for example after updating ingressOptions), try deleting the instance and creating new one with new parameters.
 
-#### Check Components
+<b>Check Components</b>
 
-1\. Check whether the pod is created.
-To see the logs go to **OCP UI->Workloads->Pods** and search for **licensing** in the `ibm-common-services` project:
+After you apply appropriate configuration for **IBM License Service** follow these steps to check whether it works:
 
-![OCP Pod](images/ocp_pod.png)
-
-2\. Check if the pod is running. To investigate further select `licensing` and check logs, and events.
-You can also run the following command from the console:
+1\. Check if the pod is running, by running the following commands:
 
 ```bash
 podName=`kubectl get pod -n ibm-common-services -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}" | grep ibm-licensing-service-instance`
@@ -656,17 +774,19 @@ kubectl logs $podName -n ibm-common-services
 kubectl describe pod $podName -n ibm-common-services
 ```
 
-3\. Check Route or Ingress settings depending on your parameter settings.
-
-You can check the Route or Ingress Settings in **OCP UI->Networking->Service**. Or you can check if using the console command, for example:
+2\. Check Route or Ingress settings depending on your parameter settings, for example, using these commands.
 
 ```bash
 kubectl get ingress -n ibm-common-services -o yaml
 ```
 
-### Using IBM License Service to retrieve license usage information
+Then examine the status part of the output. It should include host, path, tls (if configured), and other networking information.
 
-For more information about how to use License Service to retrieve license usage data, se [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
+3\. At this point **License Service** should be running in your cluster. For more information about how to use License Service to retrieve license usage data, see [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
+
+### Using License Service to retrieve license usage information
+
+For more information about how to use License Service to retrieve license usage data, see [License Service documentation in IBM Knowledge Center](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
 
 ### Using custom certificates
 
@@ -797,7 +917,7 @@ kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMES
 
 7\. **Delete OperatorMarketplace**
 
-**Note:** Do not delete the OperatorMarketplace if it is used elsewhere, so f.e. if you use other operator sources.
+**Note:** Do not delete the OperatorMarketplace if it is used elsewhere, so f.e. if you use other operator sources or when you have OCP cluster.
 
 You can delete the OperatorMarketplace with the following command:
 
@@ -808,7 +928,7 @@ kubectl delete -f operator-marketplace/deploy/upstream
 
 8\. **Uninstall OLM**
 
-**Note:** Do not uninstall OLM if it is used elsewhere, so if you want to use any other operators.
+**Note:** Do not uninstall OLM if it is used elsewhere, so if you want to use any other operators or when you have OCP cluster.
 
 Uninstall OLM with the following command:
 
