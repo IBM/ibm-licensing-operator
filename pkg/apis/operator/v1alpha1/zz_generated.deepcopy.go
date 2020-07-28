@@ -198,6 +198,11 @@ func (in *IBMLicensingSpec) DeepCopyInto(out *IBMLicensingSpec) {
 		*out = new(IBMLicensingRouteOptions)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.Resources != nil {
+		in, out := &in.Resources, &out.Resources
+		*out = new(corev1.ResourceRequirements)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
