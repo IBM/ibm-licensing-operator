@@ -61,28 +61,44 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 		},
 	}
 	if spec.IsDebug() {
-		environmentVariables = append(environmentVariables, []corev1.EnvVar{
-			{
-				Name:  "logging.level.com.ibm",
-				Value: "DEBUG",
-			},
-		}...)
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "logging.level.com.ibm",
+			Value: "DEBUG",
+		})
 	}
 	if spec.HTTPSEnable {
-		environmentVariables = append(environmentVariables, []corev1.EnvVar{
-			{
-				Name:  "HTTPS_CERTS_SOURCE",
-				Value: spec.HTTPSCertsSource,
-			},
-		}...)
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "HTTPS_CERTS_SOURCE",
+			Value: spec.HTTPSCertsSource,
+		})
 	}
 	if spec.IsMetering() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "METERING_URL",
+			Value: "https://metering-server:4002/api/v1/metricData",
+		})
+	}
+	if spec.Sender != nil {
 		environmentVariables = append(environmentVariables, []corev1.EnvVar{
 			{
-				Name:  "METERING_URL",
-				Value: "https://metering-server:4002/api/v1/metricData",
+				Name:  "CLUSTER_ID",
+				Value: spec.Sender.ClusterID,
+			},
+			{
+				Name:  "HUB_TOKEN",
+				Value: spec.Sender.HubToken,
+			},
+			{
+				Name:  "HUB_URL",
+				Value: spec.Sender.HubURL,
 			},
 		}...)
+		if spec.Sender.ClusterName != "" {
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name:  "CLUSTER_NAME",
+				Value: spec.Sender.ClusterName,
+			})
+		}
 	}
 	return environmentVariables
 }

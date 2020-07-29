@@ -84,6 +84,19 @@ type IBMLicensingSpec struct {
 	RouteOptions *IBMLicensingRouteOptions `json:"routeOptions,omitempty"`
 	// Resource requirements for License Service container
 	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
+	// Sender configuration, set if you have multi-cluster environment from which you collect data
+	Sender *IBMLicensingSenderSpec `json:"sender,omitempty"`
+}
+
+type IBMLicensingSenderSpec struct {
+	// URL for License Reporter receiver that collects and aggregate multi cluster licensing data.
+	HubURL string `json:"hubURL"`
+	// License Reporter authentication token
+	HubToken string `json:"hubToken"`
+	// What is the name of this reporting cluster in multi-cluster system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME at Operand level
+	ClusterName string `json:"clusterName,omitempty"`
+	// Unique ID of reporting cluster
+	ClusterID string `json:"clusterID"`
 }
 
 type IBMLicensingSecurityContext struct {
