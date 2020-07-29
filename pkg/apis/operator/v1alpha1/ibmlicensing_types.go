@@ -89,9 +89,9 @@ type IBMLicensingSpec struct {
 }
 
 type IBMLicensingSenderSpec struct {
-	// Hub cluster that collects licensing data, if not set then it means Hub is the same cluster as this one
-	HubURL string `json:"hubURL,omitempty"`
-	// LS HUB authentication token
+	// URL for License Reporter receiver that collects and aggregate multi cluster licensing data.
+	HubURL string `json:"hubURL"`
+	// License Reporter authentication token
 	HubToken string `json:"hubToken"`
 	// What is the name of this reporting cluster in multi-cluster system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME at Operand level
 	ClusterName string `json:"clusterName,omitempty"`

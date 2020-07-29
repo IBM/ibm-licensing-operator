@@ -29,9 +29,6 @@ const defaultImageRegistry = "quay.io/opencloudio"
 const defaultLicensingImageName = "ibm-licensing"
 const defaultLicensingImageTagPostfix = "1.2.0"
 
-// TODO: change this to service name and port from License Reporter, maybe get from other CR
-const LicenseReporterInSameClusterURL = "https://ibm-licensing-reporter-instance:8080/receiver"
-
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
@@ -101,11 +98,6 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 	}
 	if spec.APISecretToken == "" {
 		spec.APISecretToken = "ibm-licensing-token"
-	}
-	if spec.Sender != nil {
-		if spec.Sender.HubURL == "" {
-			spec.Sender.HubURL = LicenseReporterInSameClusterURL
-		}
 	}
 	if spec.Resources == nil {
 		spec.Resources = &corev1.ResourceRequirements{

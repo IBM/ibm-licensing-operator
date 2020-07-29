@@ -242,15 +242,16 @@ spec:
                     at Operand level
                   type: string
                 hubToken:
-                  description: LS HUB authentication token
+                  description: License Reporter authentication token
                   type: string
                 hubURL:
-                  description: Hub cluster that collects licensing data, if not set
-                    then it means Hub is the same cluster as this one
+                  description: URL for License Reporter receiver that collects and
+                    aggregate multi cluster licensing data.
                   type: string
               required:
               - clusterID
               - hubToken
+              - hubURL
               type: object
             version:
               description: Application version
