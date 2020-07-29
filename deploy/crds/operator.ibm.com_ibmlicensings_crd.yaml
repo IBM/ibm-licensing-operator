@@ -229,6 +229,29 @@ spec:
               required:
               - runAsUser
               type: object
+            sender:
+              description: Sender configuration, set if you have multi-cluster environment
+                from which you collect data
+              properties:
+                clusterID:
+                  description: Unique ID of reporting cluster
+                  type: string
+                clusterName:
+                  description: What is the name of this reporting cluster in multi-cluster
+                    system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME
+                    at Operand level
+                  type: string
+                hubToken:
+                  description: LS HUB authentication token
+                  type: string
+                hubURL:
+                  description: Hub cluster that collects licensing data, if not set
+                    then it means Hub is the same cluster as this one
+                  type: string
+              required:
+              - clusterID
+              - hubToken
+              type: object
             version:
               description: Application version
               type: string
