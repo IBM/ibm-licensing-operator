@@ -15,7 +15,7 @@ name: Build and Deploy to IKS
 
 on:
   push:
-    branches: [ origin/martabereta-cert-tests ]
+    branches: [ martabereta-cert-tests ]
   pull_request:
     branches: [ master ]
   release:
