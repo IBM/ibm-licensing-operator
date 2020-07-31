@@ -26,7 +26,7 @@ env:
   IBM_CLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
   IBM_CLOUD_REGION: eu-de
   IBM_CLOUD_RESOURCE_GROUP: Default
-  IKS_CLUSTER_NAME: licenseService_newcluster
+  IKS_CLUSTER_NAME: licenseService_cluster_2x4
   IKS_CLUSTER_ZONE: dal10
   IKS_CLUSTER_PRIVATE_VLAN: 2887074
   IKS_CLUSTER_PUBLIC_VLAN: 2887072 #b2c.4x16
@@ -70,7 +70,7 @@ jobs:
         run: |
           ibmcloud target -g $IBM_CLOUD_RESOURCE_GROUP
           ibmcloud ks cluster create classic --name $IKS_CLUSTER_NAME --zone $IKS_CLUSTER_ZONE --flavor $IKS_CLUSTER_FLAVOR --hardware shared --workers 1 --public-vlan $IKS_CLUSTER_PUBLIC_VLAN --private-vlan $IKS_CLUSTER_PRIVATE_VLAN
-          ibmcloud resource tag-attach --resource-name $IKS_CLUSTER_NAME --tag-names $IKS_CLUSTER_TAG_NAMES
+        # ibmcloud resource tag-attach --resource-name $IKS_CLUSTER_NAME --tag-names $IKS_CLUSTER_TAG_NAMES
 
       # Use existing k8s cluster if already found in step "Check if k8s exists"
       - name: Use existing k8s cluster
@@ -84,7 +84,7 @@ jobs:
         run: |
           ibmcloud login --apikey $IBM_CLOUD_API_KEY
           ibmcloud target -g Default
-        # ibmcloud resource tag-attach --resource-name $IKS_CLUSTER_NAME --tag-names $IKS_CLUSTER_TAG_NAMES
+          ibmcloud resource tag-attach --resource-name $IKS_CLUSTER_NAME --tag-names $IKS_CLUSTER_TAG_NAMES
 
       - name: Download LS repository
         run: git clone https://github.com/IBM/ibm-licensing-operator.git
