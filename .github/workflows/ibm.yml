@@ -89,19 +89,42 @@ jobs:
 #      - name: Download LS repository
 #        run: git clone https://github.com/IBM/ibm-licensing-operator.git
 #
-#      - name: kubectl installation and configuration
-#        run: |
-#          curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
-#          chmod +x ./kubectl
-#          sudo mv ./kubectl /usr/local/bin/kubectl
-#          ibmcloud ks cluster config --cluster $IKS_CLUSTER_NAME
-#          kubectl config current-context
-#
+      - name: kubectl installation and configuration
+        run: |
+          curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+          chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+          ibmcloud ks cluster config --cluster $IKS_CLUSTER_NAME
+          kubectl config current-context
+
 #      - name: Install License Service
 #        run:  ./ibm-licensing-operator/common/scripts/ibm_licensing_operator_install.sh --olm_global_catalog_namespace ibm-common-services
 
+      - name: Get Ingress settings
+        run: |
+          export IKS_INGRESS_SUBDOMAIN="$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')"
+          echo "Ingress Subdomain: " $IKS_INGRESS_SUBDOMAIN
+
+
       - name: Configure License Service
-        run: kubectl apply -f ./scripts/cr_ibm_license.yaml
+        run: |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: operator.ibm.com/v1alpha1
+          kind: IBMLicensing
+          metadata:
+            name: instance
+          spec:
+            apiSecretToken: ibm-licensing-token
+            datasource: datacollector
+            httpsEnable: false
+            instanceNamespace: ibm-common-services
+            ingressEnabled: true
+            ingressOptions:
+              annotations:
+                ingress.bluemix.net/rewrite-path: "serviceName=ibm-licensing-service-instance rewrite=/"
+              path: /ibm-licensing-service-instance
+              host: $IKS_INGRESS_SUBDOMAIN
+          EOF
 
       - name: Test License Service
         run: ./scripts/test_LicenseService.sh
