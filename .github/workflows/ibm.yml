@@ -26,7 +26,7 @@ env:
   IBM_CLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
   IBM_CLOUD_REGION: eu-de
   IBM_CLOUD_RESOURCE_GROUP: Default
-  IKS_CLUSTER_NAME: licenseService_cluster
+  IKS_CLUSTER_NAME: licenseService_newcluster
   IKS_CLUSTER_ZONE: dal10
   IKS_CLUSTER_PRIVATE_VLAN: 2887074
   IKS_CLUSTER_PUBLIC_VLAN: 2887072 #b2c.4x16
@@ -86,9 +86,9 @@ jobs:
           ibmcloud target -g Default
         # ibmcloud resource tag-attach --resource-name $IKS_CLUSTER_NAME --tag-names $IKS_CLUSTER_TAG_NAMES
 
-#      - name: Download LS repository
-#        run: git clone https://github.com/IBM/ibm-licensing-operator.git
-#
+      - name: Download LS repository
+        run: git clone https://github.com/IBM/ibm-licensing-operator.git
+
       - name: kubectl installation and configuration
         run: |
           curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
@@ -97,8 +97,8 @@ jobs:
           ibmcloud ks cluster config --cluster $IKS_CLUSTER_NAME
           kubectl config current-context
 
-#      - name: Install License Service
-#        run:  ./ibm-licensing-operator/common/scripts/ibm_licensing_operator_install.sh --olm_global_catalog_namespace ibm-common-services
+      - name: Install License Service
+        run:  ./ibm-licensing-operator/common/scripts/ibm_licensing_operator_install.sh --olm_global_catalog_namespace ibm-common-services
 
       - name: Get Ingress settings
         run: |
@@ -108,6 +108,7 @@ jobs:
 
       - name: Configure License Service
         run: |
+          export LS_PATH="/ibm-licensing-service-instance"
           cat <<EOF | kubectl apply -f -
           apiVersion: operator.ibm.com/v1alpha1
           kind: IBMLicensing
@@ -122,9 +123,11 @@ jobs:
             ingressOptions:
               annotations:
                 ingress.bluemix.net/rewrite-path: "serviceName=ibm-licensing-service-instance rewrite=/"
-              path: /ibm-licensing-service-instance
+              path: $LS_PATH
               host: $IKS_INGRESS_SUBDOMAIN
           EOF
 
       - name: Test License Service
-        run: ./scripts/test_LicenseService.sh
+        run: |
+          URL="http://"${IKS_INGRESS_SUBDOMAIN}${LS_PATH}
+          ./scripts/test_LicenseService.sh $URL
