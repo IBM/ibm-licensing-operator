@@ -85,8 +85,8 @@ jobs:
           ibmcloud login --apikey $IBM_CLOUD_API_KEY
           ibmcloud target -g Default
 
-      - name: Tags for cluster
-        run: ibmcloud resource tag-attach --resource-name $IKS_CLUSTER_NAME --tag-names $IKS_CLUSTER_TAG_NAMES
+#      - name: Tags for cluster
+#        run: ibmcloud resource tag-attach --resource-name $IKS_CLUSTER_NAME --tag-names $IKS_CLUSTER_TAG_NAMES
 
       - name: Download LS repository
         run: git clone https://github.com/IBM/ibm-licensing-operator.git
