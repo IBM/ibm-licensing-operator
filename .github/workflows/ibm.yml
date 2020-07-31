@@ -75,12 +75,13 @@ jobs:
       # Use existing k8s cluster if already found in step "Check if k8s exists"
       - name: Use existing k8s cluster
         if: ${{ success() }}
-        run: |
-          ibmcloud resource tag-attach --resource-name $IKS_CLUSTER_NAME --tag-names $IKS_CLUSTER_TAG_NAMES
-          echo 'The cluster ' $IKS_CLUSTER_NAME ' will be used'
+        run: echo 'The cluster ' $IKS_CLUSTER_NAME ' will be used'
 
       - name: Check K8s
-        run: ./scripts/check_cluster.sh $IKS_CLUSTER_NAME
+        run: |
+          ./scripts/check_cluster.sh $IKS_CLUSTER_NAME
+          ibmcloud resource tag-attach --resource-name $IKS_CLUSTER_NAME --tag-names $IKS_CLUSTER_TAG_NAMES
+
 
       - name: Cluster connection
         run: |
