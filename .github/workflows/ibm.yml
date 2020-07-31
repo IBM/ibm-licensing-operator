@@ -78,15 +78,13 @@ jobs:
         run: echo 'The cluster ' $IKS_CLUSTER_NAME ' will be used'
 
       - name: Check K8s
-        run: |
-          ./scripts/check_cluster.sh $IKS_CLUSTER_NAME
-          ibmcloud resource tag-attach --resource-name $IKS_CLUSTER_NAME --tag-names $IKS_CLUSTER_TAG_NAMES
-
+        run: ./scripts/check_cluster.sh $IKS_CLUSTER_NAME
 
       - name: Cluster connection
         run: |
           ibmcloud login --apikey $IBM_CLOUD_API_KEY
           ibmcloud target -g Default
+          ibmcloud resource tag-attach --resource-name $IKS_CLUSTER_NAME --tag-names $IKS_CLUSTER_TAG_NAMES
 
       - name: Download LS repository
         run: git clone https://github.com/IBM/ibm-licensing-operator.git
