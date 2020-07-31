@@ -86,18 +86,22 @@ jobs:
           ibmcloud target -g Default
         # ibmcloud resource tag-attach --resource-name $IKS_CLUSTER_NAME --tag-names $IKS_CLUSTER_TAG_NAMES
 
-      - name: Download LS repository
-        run: git clone https://github.com/IBM/ibm-licensing-operator.git
+#      - name: Download LS repository
+#        run: git clone https://github.com/IBM/ibm-licensing-operator.git
+#
+#      - name: kubectl installation and configuration
+#        run: |
+#          curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+#          chmod +x ./kubectl
+#          sudo mv ./kubectl /usr/local/bin/kubectl
+#          ibmcloud ks cluster config --cluster $IKS_CLUSTER_NAME
+#          kubectl config current-context
+#
+#      - name: Install License Service
+#        run:  ./ibm-licensing-operator/common/scripts/ibm_licensing_operator_install.sh --olm_global_catalog_namespace ibm-common-services
 
-      - name: kubectl installation and configuration
-        run: |
-          curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
-          chmod +x ./kubectl
-          sudo mv ./kubectl /usr/local/bin/kubectl
-          ibmcloud ks cluster config --cluster $IKS_CLUSTER_NAME
-          kubectl config current-context
+      - name: Configure License Service
+        run: kubectl apply -f ./scripts/cr_ibm_license.yaml
 
-      - name: Install License Service
-        run:  ./ibm-licensing-operator/common/scripts/ibm_licensing_operator_install.sh --olm_global_catalog_namespace ibm-common-services
-
-
+      - name: Test License Service
+        run: ./scripts/test_LicenseService.sh
