@@ -1,0 +1,15 @@
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+  apiSecretToken: ibm-licensing-token
+  datasource: datacollector
+  httpsEnable: false
+  instanceNamespace: ibm-common-services
+  ingressEnabled: true
+  ingressOptions:
+    annotations:
+      ingress.bluemix.net/rewrite-path: "serviceName=ibm-licensing-service-instance rewrite=/"
+    path: /ibm-licensing-service-instance
+    host: licenseservicecluster-fae6c235d7a3aed6346697c0e75f4896-0000.us-south.containers.appdomain.cloud
