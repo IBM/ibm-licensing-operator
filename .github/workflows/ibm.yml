@@ -132,5 +132,7 @@ jobs:
       - name: Test License Service
         run: |
           export URL="http://"$IKS_INGRESS_SUBDOMAIN$LS_PATH
+          echo "LS_PATH:"$LS_PATH
+          echo "IKS_INGRESS_SUBDOMAIN:"$IKS_INGRESS_SUBDOMAIN
           echo URL $URL
           ./scripts/test_LicenseService.sh $IKS_INGRESS_SUBDOMAIN $LS_PATH
