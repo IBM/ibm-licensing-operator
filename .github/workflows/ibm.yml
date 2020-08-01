@@ -32,7 +32,8 @@ env:
   IKS_CLUSTER_PUBLIC_VLAN: 2887072 #b2c.4x16
   IKS_CLUSTER_FLAVOR: u3c.2x4
   IKS_CLUSTER_TAG_NAMES: owner:marta.bereta,team:CP4MCM,Usage:temp,Usage_desc:'Certification tests',Review_freq:month
-
+  LS_PATH: xxx
+  IKS_INGRESS_SUBDOMAIN: xxx
 
 jobs:
   setup-build-publish-deploy:
