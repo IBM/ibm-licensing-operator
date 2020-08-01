@@ -106,7 +106,7 @@ jobs:
       - name: Get Ingress settings
         run: |
           TEMP="$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')"
-          echo '::set-env name=IKS_INGRESS_SUBDOMAIN::$TEMP
+          echo '::set-env name=IKS_INGRESS_SUBDOMAIN::$TEMP'
 
       - name: Configure License Service
         run: |
