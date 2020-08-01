@@ -104,7 +104,7 @@ jobs:
         run:  ./ibm-licensing-operator/common/scripts/ibm_licensing_operator_install.sh --olm_global_catalog_namespace ibm-common-services
 
       - name: Get Ingress settings
-        run: echo '::set-env name=IKS_INGRESS_SUBDOMAIN::$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')'
+        run: echo '::set-env name=IKS_INGRESS_SUBDOMAIN::"$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')'"
 
       - name: Configure License Service
         run: |
