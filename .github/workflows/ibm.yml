@@ -105,13 +105,13 @@ jobs:
 
       - name: Get Ingress settings
         run: |
-          export IKS_INGRESS_SUBDOMAIN="$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')"
+          IKS_INGRESS_SUBDOMAIN="$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')"
           echo "Ingress Subdomain: " $IKS_INGRESS_SUBDOMAIN
 
 
       - name: Configure License Service
         run: |
-          export LS_PATH="/ibm-licensing-service-instance"
+          LS_PATH="/ibm-licensing-service-instance"
           cat <<EOF | kubectl apply -f -
           apiVersion: operator.ibm.com/v1alpha1
           kind: IBMLicensing
