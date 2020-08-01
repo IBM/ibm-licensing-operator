@@ -104,14 +104,11 @@ jobs:
         run:  ./ibm-licensing-operator/common/scripts/ibm_licensing_operator_install.sh --olm_global_catalog_namespace ibm-common-services
 
       - name: Get Ingress settings
-        run: |
-          IKS_INGRESS_SUBDOMAIN="$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')"
-          echo "Ingress Subdomain: " $IKS_INGRESS_SUBDOMAIN
-
+        run: echo '::set-env name=IKS_INGRESS_SUBDOMAIN::$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')'
 
       - name: Configure License Service
         run: |
-          LS_PATH="/ibm-licensing-service-instance"
+          echo '::set-env name=LS_PATH::/ibm-licensing-service-instance'
           cat <<EOF | kubectl apply -f -
           apiVersion: operator.ibm.com/v1alpha1
           kind: IBMLicensing
