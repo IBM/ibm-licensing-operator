@@ -101,24 +101,10 @@ jobs:
       - name: Install License Service
         run:  ./ibm-licensing-operator/common/scripts/ibm_licensing_operator_install.sh --olm_global_catalog_namespace ibm-common-services
 
-      - name: Get Ingress settings
-        run: |
-          TEMP="$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')"
-          echo $TEMP
-          echo '::set-env name=IKS_INGRESS_SUBDOMAIN::${TEMP}'
-          echo 'IKS_INGRESS_SUBDOMAIN:' $IKS_INGRESS_SUBDOMAIN
-          echo '::set-env name=INGRESS::$(echo $TEMP)'
-          echo ::set-env name=XXX::$(echo $TEMP)
-          echo "--------------------"
-          echo $XXX
-          echo "INGRESS:"$INGRESS
-          echo '::set-env name=ING::$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')'
-          echo "ING:"$ING
-
-
       - name: Configure License Service
         run: |
           echo '::set-env name=LS_PATH::/ibm-licensing-service-instance'
+          INGRESS_SUBDOMAIN="$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')"
           cat <<EOF | kubectl apply -f -
           apiVersion: operator.ibm.com/v1alpha1
           kind: IBMLicensing
@@ -134,14 +120,12 @@ jobs:
               annotations:
                 ingress.bluemix.net/rewrite-path: "serviceName=ibm-licensing-service-instance rewrite=/"
               path: $LS_PATH
-              host: $IKS_INGRESS_SUBDOMAIN
+              host: $INGRESS_SUBDOMAIN
           EOF
 
       - name: Test License Service
         run: |
-          SUBDOMAIN="$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')"
-          export URL="http://"$SUBDOMAIN$LS_PATH
+          INGRESS_SUBDOMAIN="$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')"
+          export URL="http://"$INGRESS_SUBDOMAIN$LS_PATH
           ./scripts/test_LicenseService.sh $URL
-#          echo "LS_PATH:"$LS_PATH
-#          echo "IKS_INGRESS_SUBDOMAIN:"$IKS_INGRESS_SUBDOMAIN
-#          echo URL $URL
+
