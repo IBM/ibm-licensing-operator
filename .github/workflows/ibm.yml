@@ -32,8 +32,6 @@ env:
   IKS_CLUSTER_PUBLIC_VLAN: 2887072 #b2c.4x16
   IKS_CLUSTER_FLAVOR: u3c.2x4
   IKS_CLUSTER_TAG_NAMES: owner:marta.bereta,team:CP4MCM,Usage:temp,Usage_desc:'Certification tests',Review_freq:month
-  LS_PATH: xxx
-  IKS_INGRESS_SUBDOMAIN: xxx
 
 jobs:
   setup-build-publish-deploy:
@@ -109,6 +107,11 @@ jobs:
           echo $TEMP
           echo '::set-env name=IKS_INGRESS_SUBDOMAIN::${TEMP}'
           echo 'IKS_INGRESS_SUBDOMAIN:' $IKS_INGRESS_SUBDOMAIN
+          echo '::set-env name=INGRESS::$(echo $TEMP)'
+          echo "INGRESS:"$INGRESS
+          echo '::set-env name=ING::$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')'
+          echo "ING:"$ING
+
 
       - name: Configure License Service
         run: |
