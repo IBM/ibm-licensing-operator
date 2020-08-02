@@ -141,7 +141,7 @@ jobs:
         run: |
           SUBDOMAIN="$(ibmcloud ks cluster get -c licenseService_cluster | grep  "Ingress Subdomain:" | awk '{print $3}')"
           export URL="http://"$SUBDOMAIN$LS_PATH
+          ./scripts/test_LicenseService.sh $URL
 #          echo "LS_PATH:"$LS_PATH
 #          echo "IKS_INGRESS_SUBDOMAIN:"$IKS_INGRESS_SUBDOMAIN
 #          echo URL $URL
-          ./scripts/test_LicenseService.sh $URL
