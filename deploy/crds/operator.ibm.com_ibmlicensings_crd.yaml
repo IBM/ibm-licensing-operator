@@ -242,7 +242,8 @@ spec:
                     at Operand level
                   type: string
                 hubToken:
-                  description: License Reporter authentication token
+                  description: License Reporter authentication token, provided by
+                    secret that you need to create in instance namespace
                   type: string
                 hubURL:
                   description: URL for License Reporter receiver that collects and
