@@ -32,6 +32,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -46,6 +47,7 @@ import (
 )
 
 var log = logf.Log.WithName("controller_ibmlicenseservicereporter")
+var isOpenshiftCluster = false
 
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
@@ -63,6 +65,20 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcileIBMLicenseServiceReporter{client: mgr.GetClient(), reader: mgr.GetAPIReader(), scheme: mgr.GetScheme()}
 }
 
+func watchForResources(c controller.Controller, watchTypes []ResourceObject) error {
+	for _, restype := range watchTypes {
+		log.Info("Watching", "restype", reflect.TypeOf(restype).String())
+		err := c.Watch(&source.Kind{Type: restype}, &handler.EnqueueRequestForOwner{
+			IsController: true,
+			OwnerType:    &operatorv1alpha1.IBMLicenseServiceReporter{},
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
@@ -77,13 +93,30 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to secondary resource Pods and requeue the owner IBMLicenseServiceReporter
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &operatorv1alpha1.IBMLicenseServiceReporter{},
+	// Watch for changes to secondary resources
+	err = watchForResources(c, []ResourceObject{
+		&appsv1.Deployment{},
+		&corev1.Service{},
 	})
 	if err != nil {
 		return err
+	}
+
+	routeTestInstance := &routev1.Route{}
+	err = mgr.GetClient().Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
+	if err != nil && metaErrors.IsNoMatchError(err) {
+		log.Error(err, "Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
+		isOpenshiftCluster = false
+	}
+
+	if isOpenshiftCluster {
+		// Watch for changes to openshift resources if on OC
+		err = watchForResources(c, []ResourceObject{
+			&routev1.Route{},
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

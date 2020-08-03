@@ -100,16 +100,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	// Watch for changes to secondary resources
 	err = watchForResources(c, []ResourceObject{
-		&rbacv1.Role{},
-		&rbacv1.RoleBinding{},
-		&rbacv1.ClusterRole{},
-		&rbacv1.ClusterRoleBinding{},
-		&corev1.ServiceAccount{},
-		&corev1.Secret{},
-		&corev1.ConfigMap{},
 		&appsv1.Deployment{},
 		&corev1.Service{},
-		&extensionsv1.Ingress{},
 	})
 	if err != nil {
 		return err
