@@ -71,7 +71,7 @@ type ResourceObject interface {
 
 func watchForResources(c controller.Controller, watchTypes []ResourceObject) error {
 	for _, restype := range watchTypes {
-		log.Info("Watching", "restype", restype)
+		log.Info("Watching", "restype", reflect.TypeOf(restype).String())
 		err := c.Watch(&source.Kind{Type: restype}, &handler.EnqueueRequestForOwner{
 			IsController: true,
 			OwnerType:    &operatorv1alpha1.IBMLicensing{},

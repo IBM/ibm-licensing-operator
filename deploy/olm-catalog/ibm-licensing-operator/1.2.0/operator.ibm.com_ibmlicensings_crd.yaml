@@ -241,17 +241,18 @@ spec:
                     system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME
                     at Operand level
                   type: string
-                hubToken:
-                  description: License Reporter authentication token
+                reporterSecretToken:
+                  description: License Service Reporter authentication token, provided
+                    by secret that you need to create in instance namespace
                   type: string
-                hubURL:
-                  description: URL for License Reporter receiver that collects and
-                    aggregate multi cluster licensing data.
+                reporterURL:
+                  description: URL for License Service Reporter receiver that collects
+                    and aggregate multi cluster licensing data.
                   type: string
               required:
               - clusterID
-              - hubToken
-              - hubURL
+              - reporterSecretToken
+              - reporterURL
               type: object
             version:
               description: Application version
