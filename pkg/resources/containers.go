@@ -89,7 +89,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{
 						LocalObjectReference: corev1.LocalObjectReference{
-							Name: spec.Sender.ReporterToken,
+							Name: spec.Sender.ReporterSecretToken,
 						},
 						Key: ReporterSecretTokenKeyName,
 					},
