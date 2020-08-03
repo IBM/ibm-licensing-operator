@@ -89,15 +89,15 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{
 						LocalObjectReference: corev1.LocalObjectReference{
-							Name: spec.Sender.HubToken,
+							Name: spec.Sender.ReporterToken,
 						},
-						Key: HubSecretTokenKeyName,
+						Key: ReporterSecretTokenKeyName,
 					},
 				},
 			},
 			{
 				Name:  "HUB_URL",
-				Value: spec.Sender.HubURL,
+				Value: spec.Sender.ReporterURL,
 			},
 			{
 				Name:  "CLUSTER_NAME",
