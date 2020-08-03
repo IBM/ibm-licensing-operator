@@ -17,14 +17,11 @@
 package resources
 
 import (
-	"strconv"
-
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func getLicensingSecurityContext(spec operatorv1alpha1.IBMLicensingSpec) *corev1.SecurityContext {
+func GetSecurityContext() *corev1.SecurityContext {
 	procMount := corev1.DefaultProcMount
 	securityContext := &corev1.SecurityContext{
 		AllowPrivilegeEscalation: &FalseVar,
@@ -38,154 +35,31 @@ func getLicensingSecurityContext(spec operatorv1alpha1.IBMLicensingSpec) *corev1
 		},
 		ProcMount: &procMount,
 	}
-	if spec.SecurityContext != nil {
-		securityContext.RunAsUser = &spec.SecurityContext.RunAsUser
-	}
 	return securityContext
 }
 
-func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
-	var httpsEnableString = strconv.FormatBool(spec.HTTPSEnable)
-	var environmentVariables = []corev1.EnvVar{
-		{
-			Name:  "NAMESPACE",
-			Value: spec.InstanceNamespace,
-		},
-		{
-			Name:  "DATASOURCE",
-			Value: spec.Datasource,
-		},
-		{
-			Name:  "HTTPS_ENABLE",
-			Value: httpsEnableString,
-		},
-	}
-	if spec.IsDebug() {
-		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "logging.level.com.ibm",
-			Value: "DEBUG",
-		})
-	}
-	if spec.HTTPSEnable {
-		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "HTTPS_CERTS_SOURCE",
-			Value: spec.HTTPSCertsSource,
-		})
-	}
-	if spec.IsMetering() {
-		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "METERING_URL",
-			Value: "https://metering-server:4002/api/v1/metricData",
-		})
-	}
-	if spec.Sender != nil {
-		environmentVariables = append(environmentVariables, []corev1.EnvVar{
-			{
-				Name:  "CLUSTER_ID",
-				Value: spec.Sender.ClusterID,
-			},
-			{
-				Name:  "HUB_TOKEN",
-				Value: spec.Sender.HubToken,
-			},
-			{
-				Name:  "HUB_URL",
-				Value: spec.Sender.HubURL,
-			},
-		}...)
-		if spec.Sender.ClusterName != "" {
-			environmentVariables = append(environmentVariables, corev1.EnvVar{
-				Name:  "CLUSTER_NAME",
-				Value: spec.Sender.ClusterName,
-			})
-		}
-	}
-	return environmentVariables
-}
-
-func getProbeScheme(spec operatorv1alpha1.IBMLicensingSpec) corev1.URIScheme {
-	if spec.HTTPSEnable {
-		return "HTTPS"
-	}
-	return ""
-}
-
-func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.Handler {
-	var probeScheme = getProbeScheme(spec)
-	return corev1.Handler{
-		HTTPGet: &corev1.HTTPGetAction{
-			Path: "/",
-			Port: intstr.IntOrString{
-				Type:   intstr.Int,
-				IntVal: licensingServicePort.IntVal,
-			},
-			Scheme: probeScheme,
-		},
-	}
-}
-
-func getMeteringSecretCheckScript() string {
-	script := `while true; do
-  echo "$(date): Checking for metering secret"
-  ls /opt/metering/certs/* && break
-  echo "$(date): Required metering secret not found ... try again in 30s"
-  sleep 30
-done
-echo "$(date): All required secrets exist"
-`
-	return script
-}
-
-func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Container {
-	if !spec.IsMetering() {
-		return nil
-	}
-	baseContainer := getLicensingContainerBase(spec)
-	meteringSecretCheckContainer := corev1.Container{}
-	baseContainer.DeepCopyInto(&meteringSecretCheckContainer)
-	meteringSecretCheckContainer.Name = "metering-check-secret"
-	meteringSecretCheckContainer.Command = []string{
-		"sh",
-		"-c",
-		getMeteringSecretCheckScript(),
-	}
-	return []corev1.Container{
-		meteringSecretCheckContainer,
-	}
-}
-
-func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
-	return corev1.Container{
-		Image:           spec.GetFullImage(),
-		ImagePullPolicy: corev1.PullPolicy(spec.ImagePullPolicy),
-		VolumeMounts:    getLicensingVolumeMounts(spec),
-		Env:             getLicensingEnvironmentVariables(spec),
-		Ports: []corev1.ContainerPort{
-			{
-				ContainerPort: licensingServicePort.IntVal,
-				Protocol:      corev1.ProtocolTCP,
-			},
-		},
-		Resources:       *spec.Resources,
-		SecurityContext: getLicensingSecurityContext(spec),
-	}
-}
-
-func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
-	container := getLicensingContainerBase(spec)
-	probeHandler := getProbeHandler(spec)
-	container.Name = "license-service"
-	container.LivenessProbe = &corev1.Probe{
-		Handler:             probeHandler,
-		InitialDelaySeconds: 120,
-		TimeoutSeconds:      10,
-		PeriodSeconds:       300,
-	}
-	container.ReadinessProbe = &corev1.Probe{
+func GetReadinessProbe(probeHandler corev1.Handler) *corev1.Probe {
+	return &corev1.Probe{
 		Handler:             probeHandler,
 		InitialDelaySeconds: 60,
 		TimeoutSeconds:      10,
 		PeriodSeconds:       60,
 	}
-	return container
+}
+
+func GetLivenessProbe(probeHandler corev1.Handler) *corev1.Probe {
+	return &corev1.Probe{
+		Handler:             probeHandler,
+		InitialDelaySeconds: 120,
+		TimeoutSeconds:      10,
+		PeriodSeconds:       300,
+	}
+}
+
+func GetContainerBase(container operatorv1alpha1.Container) corev1.Container {
+	return corev1.Container{
+		Image:           container.Image,
+		ImagePullPolicy: corev1.PullAlways,
+		SecurityContext: GetSecurityContext(),
+	}
 }

@@ -14,23 +14,22 @@
 // limitations under the License.
 //
 
-package resources
+package service
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// TODO: maybe add to ibmLicensingSpec struct later
 var replicas = int32(1)
 
 func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Deployment {
-	metaLabels := LabelsForLicensingMeta(instance)
-	selectorLabels := LabelsForLicensingSelector(instance)
+	metaLabels := LabelsForMeta(instance)
+	selectorLabels := LabelsForSelector(instance)
 	podLabels := LabelsForLicensingPod(instance)
-	// TODO: add init containers later
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetResourceName(instance),
@@ -45,7 +44,7 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels:      podLabels,
-					Annotations: AnnotationsForPod(),
+					Annotations: res.AnnotationsForPod(),
 				},
 				Spec: corev1.PodSpec{
 					Volumes:        getLicensingVolumes(instance.Spec),
@@ -53,7 +52,7 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 					Containers: []corev1.Container{
 						GetLicensingContainer(instance.Spec),
 					},
-					TerminationGracePeriodSeconds: &seconds60,
+					TerminationGracePeriodSeconds: &res.Seconds60,
 					ServiceAccountName:            GetServiceAccountName(instance),
 					Affinity: &corev1.Affinity{
 						NodeAffinity: &corev1.NodeAffinity{

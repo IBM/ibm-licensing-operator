@@ -76,6 +76,7 @@ rules:
   - operator.ibm.com
   resources:
   - '*'
+  - ibmlicenseservicereporters
   verbs:
   - create
   - delete
@@ -85,7 +86,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - "rbac.authorization.k8s.io"
+  - rbac.authorization.k8s.io
   resources:
   - clusterroles
   - clusterrolebindings
@@ -114,7 +115,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - "route.openshift.io"
+  - route.openshift.io
   resources:
   - routes
   verbs:
@@ -126,8 +127,8 @@ rules:
   - update
   - watch
 - apiGroups:
-  - "networking.k8s.io"
-  - "extensions"
+  - networking.k8s.io
+  - extensions
   resources:
   - ingresses
   verbs:

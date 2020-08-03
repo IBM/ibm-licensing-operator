@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-package resources
+package reporter
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
@@ -24,39 +24,33 @@ import (
 )
 
 var (
-	licensingServicePort    = intstr.FromInt(8080)
-	licensingTargetPort     = intstr.FromInt(8080)
-	licensingTargetPortName = intstr.FromString("api-port")
+	receiverServicePort    = intstr.FromInt(ReceiverPort)
+	receiverTargetPort     = intstr.FromInt(ReceiverPort)
+	receiverTargetPortName = intstr.FromString("receiver-port")
 )
 
-func getServiceSpec(instance *operatorv1alpha1.IBMLicensing) corev1.ServiceSpec {
+func getServiceSpec(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.ServiceSpec {
 	return corev1.ServiceSpec{
 		Type: corev1.ServiceTypeClusterIP,
 		Ports: []corev1.ServicePort{
 			{
-				Name:       licensingTargetPortName.String(),
-				Port:       licensingServicePort.IntVal,
-				TargetPort: licensingTargetPort,
+				Name:       receiverTargetPortName.String(),
+				Port:       receiverServicePort.IntVal,
+				TargetPort: receiverTargetPort,
 				Protocol:   corev1.ProtocolTCP,
 			},
 		},
-		Selector: LabelsForLicensingSelector(instance),
+		Selector: LabelsForSelector(instance),
 	}
 }
 
-func GetLicensingServiceName(instance *operatorv1alpha1.IBMLicensing) string {
-	return GetResourceName(instance)
-}
-
-func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
-	metaLabels := LabelsForLicensingMeta(instance)
+func GetService(instance *operatorv1alpha1.IBMLicenseServiceReporter) *corev1.Service {
+	metaLabels := LabelsForMeta(instance)
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetLicensingServiceName(instance),
-			Namespace: instance.Spec.InstanceNamespace,
+			Name:      LicenseReporterResourceBase,
+			Namespace: instance.GetNamespace(),
 			Labels:    metaLabels,
-			// TODO: check if needed:
-			// Annotations: map[string]string{"prometheus.io/scrape": "false", "prometheus.io/scheme": "http"},
 		},
 		Spec: getServiceSpec(instance),
 	}

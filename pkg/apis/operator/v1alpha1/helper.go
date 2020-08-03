@@ -29,6 +29,9 @@ const defaultImageRegistry = "quay.io/opencloudio"
 const defaultLicensingImageName = "ibm-licensing"
 const defaultLicensingImageTagPostfix = "1.2.0"
 
+const defaultReceiverImage = "quay.io/opencloudio/ibm-license-advisor-receiver:1.2.0"
+const defaultDatabaseImage = "quay.io/opencloudio/ibm-license-advisor-db:1.2.0"
+
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
@@ -138,4 +141,22 @@ func (spec *IBMLicensingSpec) IsRouteEnabled() bool {
 
 func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 	return spec.IngressEnabled != nil && *spec.IngressEnabled
+}
+
+func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues() {
+	if spec.DatabaseContainer.Image == "" {
+		spec.DatabaseContainer.Image = defaultDatabaseImage
+	}
+
+	if spec.ReceiverContainer.Image == "" {
+		spec.ReceiverContainer.Image = defaultReceiverImage
+	}
+
+	if spec.Capacity == "" {
+		spec.Capacity = "1Gi"
+	}
+
+	if spec.APISecretToken == "" {
+		spec.APISecretToken = "ibm-licensing-hub-token"
+	}
 }

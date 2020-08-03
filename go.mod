@@ -5,17 +5,20 @@ go 1.14
 require (
 	github.com/go-logr/logr v0.1.0
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
-	github.com/operator-framework/operator-sdk v0.14.0
+	github.com/operator-framework/operator-sdk v0.17.0
 	github.com/spf13/pflag v1.0.5
-	k8s.io/api v0.0.0
-	k8s.io/apimachinery v0.0.0
+	golang.org/x/tools v0.0.0-20200731060945-b5fad4ed8dd6 // indirect
+	k8s.io/api v0.17.4
+	k8s.io/apimachinery v0.17.4
 	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/kube-openapi v0.0.0-20190918143330-0270cf2f1c1d
-	sigs.k8s.io/controller-runtime v0.4.0
+	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
+	sigs.k8s.io/controller-runtime v0.5.2
+	sigs.k8s.io/testing_frameworks v0.1.2 // indirect
 )
 
 // Pinned to kubernetes-1.16.2
 replace (
+	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // Required by OLM
 	github.com/otiai10/copy => github.com/otiai10/copy v1.0.2
 	github.com/otiai10/mint => github.com/otiai10/mint v1.3.0
 	k8s.io/api => k8s.io/api v0.0.0-20191016110408-35e52d86657a
