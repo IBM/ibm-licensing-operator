@@ -66,20 +66,25 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 				Value: spec.Sender.ClusterID,
 			},
 			{
-				Name:  "HUB_TOKEN",
-				Value: spec.Sender.HubToken,
+				Name: "HUB_TOKEN",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: spec.Sender.ReporterSecretToken,
+						},
+						Key: ReporterSecretTokenKeyName,
+					},
+				},
 			},
 			{
 				Name:  "HUB_URL",
-				Value: spec.Sender.HubURL,
+				Value: spec.Sender.ReporterURL,
 			},
-		}...)
-		if spec.Sender.ClusterName != "" {
-			environmentVariables = append(environmentVariables, corev1.EnvVar{
+			{
 				Name:  "CLUSTER_NAME",
 				Value: spec.Sender.ClusterName,
-			})
-		}
+			},
+		}...)
 	}
 	return environmentVariables
 }
