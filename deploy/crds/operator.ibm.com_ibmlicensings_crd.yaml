@@ -242,12 +242,12 @@ spec:
                     at Operand level
                   type: string
                 reporterSecretToken:
-                  description: License Reporter authentication token, provided by
-                    secret that you need to create in instance namespace
+                  description: License Service Reporter authentication token, provided
+                    by secret that you need to create in instance namespace
                   type: string
                 reporterURL:
-                  description: URL for License Reporter receiver that collects and
-                    aggregate multi cluster licensing data.
+                  description: URL for License Service Reporter receiver that collects
+                    and aggregate multi cluster licensing data.
                   type: string
               required:
               - clusterID
