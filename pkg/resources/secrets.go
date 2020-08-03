@@ -26,6 +26,8 @@ const APIUploadTokenName = "ibm-licensing-upload-token"
 const APISecretTokenKeyName = "token"
 const APIUploadTokenKeyName = "token-upload"
 
+const HubSecretTokenKeyName = "token"
+
 const UploadConfigMapKey = "url"
 
 func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
