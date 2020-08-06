@@ -76,7 +76,6 @@ rules:
   - operator.ibm.com
   resources:
   - '*'
-  - ibmlicenseservicereporters
   verbs:
   - create
   - delete

@@ -32,7 +32,7 @@ metadata:
               "app.kubernetes.io/managed-by": "ibm-licensing-operator",
               "app.kubernetes.io/name": "ibm-licensing"
             },
-            "name": "instance-ibmlicenseservicereporter"
+            "name": "instance"
           },
           "spec": {
             "version": "1.2.0"

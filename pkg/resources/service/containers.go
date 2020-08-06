@@ -156,7 +156,7 @@ func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Co
 				Protocol:      corev1.ProtocolTCP,
 			},
 		},
-		Resources:       *spec.Resources,
+		Resources:       spec.Resources,
 		SecurityContext: securityContext,
 	}
 }

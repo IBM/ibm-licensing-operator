@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,59 +27,18 @@ type IBMLicenseServiceRouteOptions struct {
 	TLS *routev1.TLSConfig `json:"tls,omitempty"`
 }
 
-// License properties
-type License struct {
-	// Accept is an opt-in license acceptance required to deploy resources
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="License Acceptance"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
-	Accept bool `json:"accept"`
-}
-
-type Container struct {
-	// Docker Image
-	Image string `json:"image,omitempty"`
-	// Resources and limits for container
-	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
-}
-
 // IBMLicenseServiceReporterSpec defines the desired state of IBMLicenseServiceReporter
 type IBMLicenseServiceReporterSpec struct {
-
-	// Opt-in license acceptance is required to create resources
-	License License `json:"license"`
-
 	// Receiver Settings
 	ReceiverContainer Container `json:"receiverContainer,omitempty"`
-
 	// Database Settings
 	DatabaseContainer Container `json:"databaseContainer,omitempty"`
-
+	// Common Parameters for operator
+	IBMLicenseServiceBaseSpec `json:",inline"`
 	// Storage class used by database to provide persistency
 	StorageClass string `json:"storageClass,omitempty"`
-
 	// Persistent Volume Claim Capacity
-	Capacity string `json:"capacity,omitempty"`
-
-	// IBM License Service Reporter Pod pull policy, default: IfNotPresent
-	// +kubebuilder:validation:Enum=Always;IfNotPresent;Never
-	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
-
-	// Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing Reporter images
-	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
-
-	// Secret name used to store application token, either one that exists, or one that will be created
-	APISecretToken string `json:"apiSecretToken,omitempty"`
-
-	// options: self-signed or custom
-	// +kubebuilder:validation:Enum=self-signed;custom
-	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
-
-	// Route parameters
-	RouteOptions *IBMLicenseServiceRouteOptions `json:"routeOptions,omitempty"`
-
-	// Version
-	Version string `json:"version,omitempty"`
+	Capacity resource.Quantity `json:"capacity,omitempty" protobuf:"bytes,2,opt,name=capacity"`
 }
 
 // IBMLicenseServiceReporterStatus defines the observed state of IBMLicenseServiceReporter

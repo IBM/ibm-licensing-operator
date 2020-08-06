@@ -19,7 +19,6 @@ package reporter
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -39,7 +38,7 @@ func GetPersistenceVolumeClaim(instance *operatorv1alpha1.IBMLicenseServiceRepor
 			},
 			Resources: corev1.ResourceRequirements{
 				Requests: corev1.ResourceList{
-					corev1.ResourceStorage: resource.MustParse(instance.Spec.Capacity),
+					corev1.ResourceStorage: instance.Spec.Capacity,
 				},
 			},
 		},

@@ -18,9 +18,16 @@ package resources
 
 import (
 	"math/rand"
+	"reflect"
 	"time"
 
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // cannot set to const due to k8s struct needing pointers to primitive types
@@ -39,6 +46,11 @@ const LicensingProductVersion = "3.4.0"
 
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const randStringCharsetLength = len(randStringCharset)
+
+type ResourceObject interface {
+	metav1.Object
+	runtime.Object
+}
 
 func RandString(length int) string {
 	randFunc := rand.New(rand.NewSource(time.Now().UnixNano())) //#nosec
@@ -62,4 +74,18 @@ func AnnotationsForPod() map[string]string {
 	return map[string]string{"productName": LicensingProductName,
 		"productID": LicensingProductID, "productVersion": LicensingProductVersion, "productMetric": LicensingProductMetric,
 		"clusterhealth.ibm.com/dependencies": "metering"}
+}
+
+func WatchForResources(log logr.Logger, o runtime.Object, c controller.Controller, watchTypes []ResourceObject) error {
+	for _, restype := range watchTypes {
+		log.Info("Watching", "restype", reflect.TypeOf(restype).String())
+		err := c.Watch(&source.Kind{Type: restype}, &handler.EnqueueRequestForOwner{
+			IsController: true,
+			OwnerType:    o,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
