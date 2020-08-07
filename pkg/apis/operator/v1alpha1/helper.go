@@ -17,22 +17,75 @@
 package v1alpha1
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
+	"github.com/go-logr/logr"
+	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	client_reader "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const defaultImageRegistry = "quay.io/opencloudio"
 const defaultLicensingImageName = "ibm-licensing"
 const defaultLicensingImageTagPostfix = "1.2.0"
 
+const defaultReporterImageName = "ibm-license-service-reporter"
+const defaultDatabaseImageName = "postgres-database"
+const defaultReporterImageRegistry = "quay.io/opencloudio"
+const defaultDatabaseImageRegistry = "quay.io/opencloudio"
+const defaultReporterImageTagPostfix = "1.2.0"
+const defaultDatabaseImageTagPostfix = "12"
+
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
+var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
 var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
+var memory300Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
 var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)
+var size1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
+
+type Container struct {
+	// IBM Licensing Service docker Image Registry, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
+	ImageRegistry string `json:"imageRegistry,omitempty"`
+	// IBM Licensing Service docker Image Name, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
+	ImageName string `json:"imageName,omitempty"`
+	// IBM Licensing Service docker Image Tag or Digest, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
+	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
+
+	// Resources and limits for container
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+}
+
+type IBMLicenseServiceRouteOptions struct {
+	TLS *routev1.TLSConfig `json:"tls,omitempty"`
+}
+
+type IBMLicenseServiceBaseSpec struct {
+	// Should application pod show additional information, options: DEBUG, INFO
+	// +kubebuilder:validation:Enum=DEBUG;INFO
+	LogLevel string `json:"logLevel,omitempty"`
+	// Secret name used to store application token, either one that exists, or one that will be created, for now only one value possible
+	// +kubebuilder:validation:Enum=ibm-licensing-token
+	APISecretToken string `json:"apiSecretToken,omitempty"`
+	// Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing image
+	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
+	// IBM License Service Pod pull policy, default: IfNotPresent
+	// +kubebuilder:validation:Enum=Always;IfNotPresent;Never
+	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
+	// options: self-signed or custom
+	// +kubebuilder:validation:Enum=self-signed;custom
+	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
+	// Route parameters
+	RouteOptions *IBMLicenseServiceRouteOptions `json:"routeOptions,omitempty"`
+	// Version
+	Version string `json:"version,omitempty"`
+}
 
 func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
@@ -99,16 +152,21 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 	if spec.APISecretToken == "" {
 		spec.APISecretToken = "ibm-licensing-token"
 	}
-	if spec.Resources == nil {
-		spec.Resources = &corev1.ResourceRequirements{
-			Limits: map[corev1.ResourceName]resource.Quantity{
+
+	if spec.Resources.Limits.Cpu().IsZero() || spec.Resources.Requests.Cpu().IsZero() ||
+		spec.Resources.Limits.Memory().IsZero() || spec.Resources.Requests.Memory().IsZero() {
+		spec.Resources = corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
 				corev1.ResourceCPU:    *cpu500m,
-				corev1.ResourceMemory: *memory512Mi},
-			Requests: map[corev1.ResourceName]resource.Quantity{
+				corev1.ResourceMemory: *memory512Mi,
+			},
+			Requests: corev1.ResourceList{
 				corev1.ResourceCPU:    *cpu200m,
-				corev1.ResourceMemory: *memory256Mi},
+				corev1.ResourceMemory: *memory256Mi,
+			},
 		}
 	}
+
 	licensingFullImageFromEnv := os.Getenv("OPERAND_LICENSING_IMAGE")
 
 	// Check if operator image variable is set and CR has no overrides
@@ -138,4 +196,116 @@ func (spec *IBMLicensingSpec) IsRouteEnabled() bool {
 
 func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 	return spec.IngressEnabled != nil && *spec.IngressEnabled
+}
+
+func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logger, r client_reader.Reader) error {
+	if spec.DatabaseContainer.ImageName == "" {
+		spec.DatabaseContainer.ImageName = defaultDatabaseImageName
+	}
+	if spec.DatabaseContainer.ImageRegistry == "" {
+		spec.DatabaseContainer.ImageRegistry = defaultDatabaseImageRegistry
+	}
+	if spec.DatabaseContainer.ImageTagPostfix == "" {
+		spec.DatabaseContainer.ImageTagPostfix = defaultDatabaseImageTagPostfix
+	}
+
+	if spec.ReceiverContainer.ImageName == "" {
+		spec.ReceiverContainer.ImageName = defaultReporterImageName
+	}
+	if spec.ReceiverContainer.ImageRegistry == "" {
+		spec.ReceiverContainer.ImageRegistry = defaultReporterImageRegistry
+	}
+	if spec.ReceiverContainer.ImageTagPostfix == "" {
+		spec.ReceiverContainer.ImageTagPostfix = defaultReporterImageTagPostfix
+	}
+
+	if spec.DatabaseContainer.Resources.Limits.Memory().IsZero() || spec.DatabaseContainer.Resources.Requests.Memory().IsZero() {
+		spec.DatabaseContainer.Resources = corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceMemory: *memory300Mi,
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceMemory: *memory256Mi,
+			},
+		}
+	}
+	if spec.DatabaseContainer.Resources.Limits.Cpu().IsZero() || spec.DatabaseContainer.Resources.Requests.Cpu().IsZero() {
+		spec.DatabaseContainer.Resources = corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU: *cpu300m,
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU: *cpu200m,
+			},
+		}
+	}
+	if spec.ReceiverContainer.Resources.Limits.Memory().IsZero() || spec.ReceiverContainer.Resources.Requests.Memory().IsZero() {
+		spec.ReceiverContainer.Resources = corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceMemory: *memory300Mi,
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceMemory: *memory256Mi,
+			},
+		}
+	}
+	if spec.ReceiverContainer.Resources.Limits.Cpu().IsZero() || spec.ReceiverContainer.Resources.Requests.Cpu().IsZero() {
+		spec.ReceiverContainer.Resources = corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU: *cpu300m,
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU: *cpu200m,
+			},
+		}
+	}
+
+	if spec.Capacity.IsZero() {
+		spec.Capacity = *size1Gi
+	}
+
+	if spec.APISecretToken == "" {
+		spec.APISecretToken = "ibm-licensing-hub-token"
+	}
+	if spec.StorageClass == "" {
+		storageClass, err := getStorageClass(reqLogger, r)
+		if err != nil {
+			reqLogger.Error(err, "Failed to get StorageCLass for IBM License Service Reporter")
+			return err
+		}
+		spec.StorageClass = storageClass
+	}
+	return nil
+
+}
+
+func getStorageClass(reqLogger logr.Logger, r client_reader.Reader) (string, error) {
+	var defaultSC []string
+
+	scList := &storagev1.StorageClassList{}
+	reqLogger.Info("getStorageClass")
+	err := r.List(context.TODO(), scList)
+	if err != nil {
+		return "", err
+	}
+	if len(scList.Items) == 0 {
+		return "", fmt.Errorf("could not find storage class in the cluster")
+	}
+
+	for _, sc := range scList.Items {
+		if sc.Provisioner == "kubernetes.io/no-provisioner" {
+			continue
+		}
+		if sc.ObjectMeta.GetAnnotations()["storageclass.kubernetes.io/is-default-class"] == "true" {
+			defaultSC = append(defaultSC, sc.GetName())
+			continue
+		}
+	}
+
+	if len(defaultSC) != 0 {
+		reqLogger.Info("StorageClass configuration", "Name", defaultSC[0])
+		return defaultSC[0], nil
+	}
+
+	return "", fmt.Errorf("could not find dynamic provisioner default storage class in the cluster")
 }

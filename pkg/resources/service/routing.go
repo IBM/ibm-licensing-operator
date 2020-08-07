@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-package resources
+package service
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"

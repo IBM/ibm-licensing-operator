@@ -42,48 +42,26 @@ type IBMLicensingRouteOptions struct {
 
 // IBMLicensingSpec defines the desired state of IBMLicensing
 type IBMLicensingSpec struct {
-	// Application version
-	Version string `json:"version,omitempty"`
-	// IBM Licensing Service docker Image Registry, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
-	ImageRegistry string `json:"imageRegistry,omitempty"`
-	// IBM Licensing Service docker Image Name, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
-	ImageName string `json:"imageName,omitempty"`
-	// IBM Licensing Service docker Image Tag or Digest, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
-	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
-	// Secret name used to store application token, either one that exists, or one that will be created, for now only one value possible
-	// +kubebuilder:validation:Enum=ibm-licensing-token
-	APISecretToken string `json:"apiSecretToken,omitempty"`
+	// Container Settings
+	Container `json:",inline"`
+	// Common Parameters for Operator
+	IBMLicenseServiceBaseSpec `json:",inline"`
 	// Where should data be collected, options: metering, datacollector
 	// +kubebuilder:validation:Enum=metering;datacollector
 	Datasource string `json:"datasource"`
 	// Enables https access at pod level, httpsCertsSource needed if true
 	HTTPSEnable bool `json:"httpsEnable"`
-	// options: self-signed or custom
-	// +kubebuilder:validation:Enum=self-signed;custom
-	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
-	// Should application pod show additional information, options: DEBUG, INFO
-	// +kubebuilder:validation:Enum=DEBUG;INFO
-	LogLevel string `json:"logLevel,omitempty"`
 	// Existing or to be created namespace where application will start. In case metering data collection is used,
 	// should be the same namespace as metering components
 	InstanceNamespace string `json:"instanceNamespace"`
 	// If default SCC user ID fails, you can set runAsUser option to fix that
 	SecurityContext *IBMLicensingSecurityContext `json:"securityContext,omitempty"`
-	// Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing image
-	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
-	// IBM License Service Pod pull policy, default: IfNotPresent
-	// +kubebuilder:validation:Enum=Always;IfNotPresent;Never
-	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
 	// Should Route be created to expose IBM Licensing Service API? (only on OpenShift cluster)
 	RouteEnabled *bool `json:"routeEnabled,omitempty"`
 	// Should Ingress be created to expose IBM Licensing Service API?
 	IngressEnabled *bool `json:"ingressEnabled,omitempty"`
 	// If ingress is enabled, you can set its parameters
 	IngressOptions *IBMLicensingIngressOptions `json:"ingressOptions,omitempty"`
-	// If route is enabled, you can set its parameters
-	RouteOptions *IBMLicensingRouteOptions `json:"routeOptions,omitempty"`
-	// Resource requirements for License Service container
-	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
 	// Sender configuration, set if you have multi-cluster environment from which you collect data
 	Sender *IBMLicensingSenderSpec `json:"sender,omitempty"`
 }

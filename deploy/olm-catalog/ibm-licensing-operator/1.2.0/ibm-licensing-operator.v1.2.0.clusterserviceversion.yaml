@@ -25,6 +25,21 @@ metadata:
         },
         {
           "apiVersion": "operator.ibm.com/v1alpha1",
+          "kind": "IBMLicenseServiceReporter",
+          "metadata": {
+            "labels": {
+              "app.kubernetes.io/instance": "ibm-licensing-operator",
+              "app.kubernetes.io/managed-by": "ibm-licensing-operator",
+              "app.kubernetes.io/name": "ibm-licensing"
+            },
+            "name": "instance"
+          },
+          "spec": {
+            "version": "1.2.0"
+          }
+        },
+        {
+          "apiVersion": "operator.ibm.com/v1alpha1",
           "kind": "OperandBindInfo",
           "metadata": {
             "name": "ibm-licensing-bindinfo"
@@ -84,11 +99,11 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: IBMLicensing is the Schema for the ibmlicensings API
+    - description: IBM License Service is the Schema for the ibmlicensings API
       kind: IBMLicensing
       name: ibmlicensings.operator.ibm.com
       version: v1alpha1
-      displayName: IBM Licensing
+      displayName: IBM License Service
       resources:
       - kind: Service
         name: ''
@@ -150,6 +165,17 @@ spec:
           path: pods
           x-descriptors:
             - urn:alm:descriptor:com.tectonic.ui:podStatuses
+    - description: IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters API
+      kind: IBMLicenseServiceReporter
+      name: ibmlicenseservicereporters.operator.ibm.com
+      version: v1alpha1
+      displayName: IBM License Service Reporter
+      specDescriptors:
+        - description: Accept is an opt-in license acceptance required to deploy resources
+          displayName: License Acceptance
+          path: license.accept
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
   description: "**Important:**\n- If you are using the IBM Licensing Operator as part
     of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more
     about how to install and use the operator service. For the link to your IBM Cloud

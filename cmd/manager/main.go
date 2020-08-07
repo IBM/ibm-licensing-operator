@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -110,9 +111,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Reconcile duration, we does not watch lots of resources, instead we reconcile in each minutes
+	reconcileDuration := 120 * time.Minute
+
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{
 		Namespace:          namespace,
+		SyncPeriod:         &reconcileDuration,
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
 	})
 	if err != nil {

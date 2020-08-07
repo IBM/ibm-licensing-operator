@@ -14,10 +14,11 @@
 // limitations under the License.
 //
 
-package resources
+package service
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -72,7 +73,7 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 		VolumeSource: corev1.VolumeSource{
 			Secret: &corev1.SecretVolumeSource{
 				SecretName:  spec.APISecretToken,
-				DefaultMode: &defaultSecretMode,
+				DefaultMode: &res.DefaultSecretMode,
 			},
 		},
 	}
@@ -84,7 +85,7 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 		VolumeSource: corev1.VolumeSource{
 			Secret: &corev1.SecretVolumeSource{
 				SecretName:  APIUploadTokenName,
-				DefaultMode: &defaultSecretMode,
+				DefaultMode: &res.DefaultSecretMode,
 			},
 		},
 	}
@@ -97,8 +98,8 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName:  "icp-metering-api-secret",
-					DefaultMode: &defaultSecretMode,
-					Optional:    &TrueVar,
+					DefaultMode: &res.DefaultSecretMode,
+					Optional:    &res.TrueVar,
 				},
 			},
 		}
@@ -113,8 +114,8 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 				VolumeSource: corev1.VolumeSource{
 					Secret: &corev1.SecretVolumeSource{
 						SecretName:  "ibm-licensing-certs",
-						DefaultMode: &defaultSecretMode,
-						Optional:    &TrueVar,
+						DefaultMode: &res.DefaultSecretMode,
+						Optional:    &res.TrueVar,
 					},
 				},
 			}

@@ -18,10 +18,16 @@ package resources
 
 import (
 	"math/rand"
+	"reflect"
 	"time"
 
-	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // cannot set to const due to k8s struct needing pointers to primitive types
@@ -29,13 +35,8 @@ import (
 var TrueVar = true
 var FalseVar = false
 
-// TODO: validate if good mode, in helm chart was 0644
-var defaultSecretMode int32 = 420
-var seconds60 int64 = 60
-
-const LicensingResourceBase = "ibm-licensing-service"
-const LicensingComponentName = "ibm-licensing-service-svc"
-const LicensingReleaseName = "ibm-licensing-service"
+var DefaultSecretMode int32 = 420
+var Seconds60 int64 = 60
 
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"
@@ -46,51 +47,18 @@ const LicensingProductVersion = "3.4.0"
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const randStringCharsetLength = len(randStringCharset)
 
+type ResourceObject interface {
+	metav1.Object
+	runtime.Object
+}
+
 func RandString(length int) string {
-	randFunc := rand.New(rand.NewSource(time.Now().UnixNano()))
+	randFunc := rand.New(rand.NewSource(time.Now().UnixNano())) //#nosec
 	outputStringByte := make([]byte, length)
 	for i := 0; i < length; i++ {
 		outputStringByte[i] = randStringCharset[randFunc.Intn(randStringCharsetLength)]
 	}
 	return string(outputStringByte)
-}
-
-func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
-	return LicensingResourceBase + "-" + instance.GetName()
-}
-
-func GetUploadURL(instance *operatorv1alpha1.IBMLicensing) string {
-	var urlPrefix string
-	if instance.Spec.HTTPSEnable {
-		urlPrefix = "https://"
-	} else {
-		urlPrefix = "http://"
-	}
-	return urlPrefix + GetResourceName(instance) + "." + instance.Spec.InstanceNamespace + ".svc.cluster.local:" + licensingServicePort.String()
-}
-
-func LabelsForLicensingSelector(instance *operatorv1alpha1.IBMLicensing) map[string]string {
-	return map[string]string{"app": GetResourceName(instance), "component": LicensingComponentName, "licensing_cr": instance.GetName()}
-}
-
-func LabelsForLicensingMeta(instance *operatorv1alpha1.IBMLicensing) map[string]string {
-	return map[string]string{"app.kubernetes.io/name": GetResourceName(instance), "app.kubernetes.io/component": LicensingComponentName,
-		"app.kubernetes.io/managed-by": "operator", "app.kubernetes.io/instance": LicensingReleaseName, "release": LicensingReleaseName}
-}
-
-func AnnotationsForPod() map[string]string {
-	return map[string]string{"productName": LicensingProductName,
-		"productID": LicensingProductID, "productVersion": LicensingProductVersion, "productMetric": LicensingProductMetric,
-		"clusterhealth.ibm.com/dependencies": "metering"}
-}
-
-func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {
-	podLabels := LabelsForLicensingMeta(instance)
-	selectorLabels := LabelsForLicensingSelector(instance)
-	for key, value := range selectorLabels {
-		podLabels[key] = value
-	}
-	return podLabels
 }
 
 func Contains(s []corev1.LocalObjectReference, e corev1.LocalObjectReference) bool {
@@ -100,4 +68,24 @@ func Contains(s []corev1.LocalObjectReference, e corev1.LocalObjectReference) bo
 		}
 	}
 	return false
+}
+
+func AnnotationsForPod() map[string]string {
+	return map[string]string{"productName": LicensingProductName,
+		"productID": LicensingProductID, "productVersion": LicensingProductVersion, "productMetric": LicensingProductMetric,
+		"clusterhealth.ibm.com/dependencies": "metering"}
+}
+
+func WatchForResources(log logr.Logger, o runtime.Object, c controller.Controller, watchTypes []ResourceObject) error {
+	for _, restype := range watchTypes {
+		log.Info("Watching", "restype", reflect.TypeOf(restype).String())
+		err := c.Watch(&source.Kind{Type: restype}, &handler.EnqueueRequestForOwner{
+			IsController: true,
+			OwnerType:    o,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

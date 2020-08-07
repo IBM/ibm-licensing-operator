@@ -14,10 +14,11 @@
 // limitations under the License.
 //
 
-package resources
+package service
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -31,7 +32,7 @@ const ReporterSecretTokenKeyName = "token"
 const UploadConfigMapKey = "url"
 
 func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
-	metaLabels := LabelsForLicensingMeta(instance)
+	metaLabels := LabelsForMeta(instance)
 	expectedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Spec.APISecretToken,
@@ -39,13 +40,13 @@ func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
 			Labels:    metaLabels,
 		},
 		Type:       corev1.SecretTypeOpaque,
-		StringData: map[string]string{APISecretTokenKeyName: RandString(24)},
+		StringData: map[string]string{APISecretTokenKeyName: res.RandString(24)},
 	}
 	return expectedSecret
 }
 
 func GetUploadToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
-	metaLabels := LabelsForLicensingMeta(instance)
+	metaLabels := LabelsForMeta(instance)
 	expectedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      APIUploadTokenName,
@@ -53,13 +54,13 @@ func GetUploadToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
 			Labels:    metaLabels,
 		},
 		Type:       corev1.SecretTypeOpaque,
-		StringData: map[string]string{APIUploadTokenKeyName: RandString(24)},
+		StringData: map[string]string{APIUploadTokenKeyName: res.RandString(24)},
 	}
 	return expectedSecret
 }
 
 func GetUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) *corev1.ConfigMap {
-	metaLabels := LabelsForLicensingMeta(instance)
+	metaLabels := LabelsForMeta(instance)
 	expectedCM := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ibm-licensing-upload-config",
