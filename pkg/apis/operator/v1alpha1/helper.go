@@ -42,7 +42,9 @@ const defaultReceiverImageTagPostfix = "1.2.0"
 const defaultDatabaseImageTagPostfix = "1.2.0"
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
+var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
 var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
+var memory300Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
 var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)
 var size1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
@@ -210,6 +212,34 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 	}
 	if spec.ReceiverContainer.ImageTagPostfix == "" {
 		spec.ReceiverContainer.ImageTagPostfix = defaultReceiverImageTagPostfix
+	}
+
+	if spec.DatabaseContainer.Resources.Limits.Cpu().IsZero() || spec.DatabaseContainer.Resources.Requests.Cpu().IsZero() ||
+		spec.DatabaseContainer.Resources.Limits.Memory().IsZero() || spec.DatabaseContainer.Resources.Requests.Memory().IsZero() {
+		spec.DatabaseContainer.Resources = corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    *cpu300m,
+				corev1.ResourceMemory: *memory300Mi,
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU:    *cpu200m,
+				corev1.ResourceMemory: *memory256Mi,
+			},
+		}
+	}
+
+	if spec.ReceiverContainer.Resources.Limits.Cpu().IsZero() || spec.ReceiverContainer.Resources.Requests.Cpu().IsZero() ||
+		spec.ReceiverContainer.Resources.Limits.Memory().IsZero() || spec.ReceiverContainer.Resources.Requests.Memory().IsZero() {
+		spec.ReceiverContainer.Resources = corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    *cpu300m,
+				corev1.ResourceMemory: *memory300Mi,
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU:    *cpu200m,
+				corev1.ResourceMemory: *memory256Mi,
+			},
+		}
 	}
 
 	if spec.Capacity.IsZero() {
