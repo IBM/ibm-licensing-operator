@@ -17,15 +17,10 @@
 package v1alpha1
 
 import (
-	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-type IBMLicenseServiceRouteOptions struct {
-	TLS *routev1.TLSConfig `json:"tls,omitempty"`
-}
 
 // IBMLicenseServiceReporterSpec defines the desired state of IBMLicenseServiceReporter
 type IBMLicenseServiceReporterSpec struct {

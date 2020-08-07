@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
+	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -34,12 +35,12 @@ const defaultImageRegistry = "quay.io/opencloudio"
 const defaultLicensingImageName = "ibm-licensing"
 const defaultLicensingImageTagPostfix = "1.2.0"
 
-const defaultReceiverImageName = "bm-license-advisor-receiver"
-const defaultDatabaseImageName = "ibm-license-advisor-db"
-const defaultReceiverImageRegistry = "quay.io/opencloudio"
+const defaultReporterImageName = "ibm-license-service-reporter"
+const defaultDatabaseImageName = "postgres-database"
+const defaultReporterImageRegistry = "quay.io/opencloudio"
 const defaultDatabaseImageRegistry = "quay.io/opencloudio"
-const defaultReceiverImageTagPostfix = "1.2.0"
-const defaultDatabaseImageTagPostfix = "1.2.0"
+const defaultReporterImageTagPostfix = "1.2.0"
+const defaultDatabaseImageTagPostfix = "12"
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
@@ -59,6 +60,10 @@ type Container struct {
 
 	// Resources and limits for container
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+}
+
+type IBMLicenseServiceRouteOptions struct {
+	TLS *routev1.TLSConfig `json:"tls,omitempty"`
 }
 
 type IBMLicenseServiceBaseSpec struct {
@@ -205,39 +210,52 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 	}
 
 	if spec.ReceiverContainer.ImageName == "" {
-		spec.ReceiverContainer.ImageName = defaultReceiverImageName
+		spec.ReceiverContainer.ImageName = defaultReporterImageName
 	}
 	if spec.ReceiverContainer.ImageRegistry == "" {
-		spec.ReceiverContainer.ImageRegistry = defaultReceiverImageRegistry
+		spec.ReceiverContainer.ImageRegistry = defaultReporterImageRegistry
 	}
 	if spec.ReceiverContainer.ImageTagPostfix == "" {
-		spec.ReceiverContainer.ImageTagPostfix = defaultReceiverImageTagPostfix
+		spec.ReceiverContainer.ImageTagPostfix = defaultReporterImageTagPostfix
 	}
 
-	if spec.DatabaseContainer.Resources.Limits.Cpu().IsZero() || spec.DatabaseContainer.Resources.Requests.Cpu().IsZero() ||
-		spec.DatabaseContainer.Resources.Limits.Memory().IsZero() || spec.DatabaseContainer.Resources.Requests.Memory().IsZero() {
+	if spec.DatabaseContainer.Resources.Limits.Memory().IsZero() || spec.DatabaseContainer.Resources.Requests.Memory().IsZero() {
 		spec.DatabaseContainer.Resources = corev1.ResourceRequirements{
 			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    *cpu300m,
 				corev1.ResourceMemory: *memory300Mi,
 			},
 			Requests: corev1.ResourceList{
-				corev1.ResourceCPU:    *cpu200m,
 				corev1.ResourceMemory: *memory256Mi,
 			},
 		}
 	}
-
-	if spec.ReceiverContainer.Resources.Limits.Cpu().IsZero() || spec.ReceiverContainer.Resources.Requests.Cpu().IsZero() ||
-		spec.ReceiverContainer.Resources.Limits.Memory().IsZero() || spec.ReceiverContainer.Resources.Requests.Memory().IsZero() {
+	if spec.DatabaseContainer.Resources.Limits.Cpu().IsZero() || spec.DatabaseContainer.Resources.Requests.Cpu().IsZero() {
+		spec.DatabaseContainer.Resources = corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU: *cpu300m,
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU: *cpu200m,
+			},
+		}
+	}
+	if spec.ReceiverContainer.Resources.Limits.Memory().IsZero() || spec.ReceiverContainer.Resources.Requests.Memory().IsZero() {
 		spec.ReceiverContainer.Resources = corev1.ResourceRequirements{
 			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    *cpu300m,
 				corev1.ResourceMemory: *memory300Mi,
 			},
 			Requests: corev1.ResourceList{
-				corev1.ResourceCPU:    *cpu200m,
 				corev1.ResourceMemory: *memory256Mi,
+			},
+		}
+	}
+	if spec.ReceiverContainer.Resources.Limits.Cpu().IsZero() || spec.ReceiverContainer.Resources.Requests.Cpu().IsZero() {
+		spec.ReceiverContainer.Resources = corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU: *cpu300m,
+			},
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU: *cpu200m,
 			},
 		}
 	}
