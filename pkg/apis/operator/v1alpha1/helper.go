@@ -35,12 +35,12 @@ const defaultImageRegistry = "quay.io/opencloudio"
 const defaultLicensingImageName = "ibm-licensing"
 const defaultLicensingImageTagPostfix = "1.2.0"
 
-const defaultReporterImageName = "ibm-license-service-reporter"
-const defaultDatabaseImageName = "postgres-database"
 const defaultReporterImageRegistry = "quay.io/opencloudio"
 const defaultDatabaseImageRegistry = "quay.io/opencloudio"
+const defaultReporterImageName = "ibm-license-service-reporter"
+const defaultDatabaseImageName = "ibm-postgresql"
 const defaultReporterImageTagPostfix = "1.2.0"
-const defaultDatabaseImageTagPostfix = "12"
+const defaultDatabaseImageTagPostfix = "12.0.0"
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
