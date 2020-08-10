@@ -16,6 +16,8 @@ For more information about the available IBM Cloud Platform Common Services, see
 
 Red Hat OpenShift Container Platform 4.2 or newer installed on one of the following platforms:
    - Linux x86_64
+   - Linux on Power (ppc64le)
+   - Linux on IBM Z and LinuxONE
 
 ## Operator versions
 
@@ -57,7 +59,12 @@ Use this scenario, only when you do not have IBM Cloud Platform Common Services 
 
 ## Supported platforms for ibm-licensing-operator with stand-alone IBM Containerized Software
 
-License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_64. It was tested on the following systems:
+License Service is supported on all Kubernetes-orchestrated clouds on one of the following platforms:
+   - Linux x86_64
+   - Linux on Power (ppc64le)
+   - Linux on IBM Z and LinuxONE
+
+It was tested on the following systems:
 - Red Hat OpenShift Container Platform 3.11, 4.1, 4.2, 4.3 or newer
 - Kubernetes 1.11.3 or higher
 - IBM Cloud Kubernetes Services (IKS)
