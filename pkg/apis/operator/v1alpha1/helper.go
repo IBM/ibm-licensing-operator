@@ -153,19 +153,10 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 		spec.APISecretToken = "ibm-licensing-token"
 	}
 
-	if spec.Resources.Limits.Cpu().IsZero() || spec.Resources.Requests.Cpu().IsZero() ||
-		spec.Resources.Limits.Memory().IsZero() || spec.Resources.Requests.Memory().IsZero() {
-		spec.Resources = corev1.ResourceRequirements{
-			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    *cpu500m,
-				corev1.ResourceMemory: *memory512Mi,
-			},
-			Requests: corev1.ResourceList{
-				corev1.ResourceCPU:    *cpu200m,
-				corev1.ResourceMemory: *memory256Mi,
-			},
-		}
-	}
+	setResourceLimitMemory(spec.Container, *memory512Mi)
+	setResourceRequestMemory(spec.Container, *memory256Mi)
+	setResourceLimitCPU(spec.Container, *cpu500m)
+	setResourceRequestCPU(spec.Container, *cpu200m)
 
 	licensingFullImageFromEnv := os.Getenv("OPERAND_LICENSING_IMAGE")
 
@@ -219,46 +210,14 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 		spec.ReceiverContainer.ImageTagPostfix = defaultReporterImageTagPostfix
 	}
 
-	if spec.DatabaseContainer.Resources.Limits.Memory().IsZero() || spec.DatabaseContainer.Resources.Requests.Memory().IsZero() {
-		spec.DatabaseContainer.Resources = corev1.ResourceRequirements{
-			Limits: corev1.ResourceList{
-				corev1.ResourceMemory: *memory300Mi,
-			},
-			Requests: corev1.ResourceList{
-				corev1.ResourceMemory: *memory256Mi,
-			},
-		}
-	}
-	if spec.DatabaseContainer.Resources.Limits.Cpu().IsZero() || spec.DatabaseContainer.Resources.Requests.Cpu().IsZero() {
-		spec.DatabaseContainer.Resources = corev1.ResourceRequirements{
-			Limits: corev1.ResourceList{
-				corev1.ResourceCPU: *cpu300m,
-			},
-			Requests: corev1.ResourceList{
-				corev1.ResourceCPU: *cpu200m,
-			},
-		}
-	}
-	if spec.ReceiverContainer.Resources.Limits.Memory().IsZero() || spec.ReceiverContainer.Resources.Requests.Memory().IsZero() {
-		spec.ReceiverContainer.Resources = corev1.ResourceRequirements{
-			Limits: corev1.ResourceList{
-				corev1.ResourceMemory: *memory300Mi,
-			},
-			Requests: corev1.ResourceList{
-				corev1.ResourceMemory: *memory256Mi,
-			},
-		}
-	}
-	if spec.ReceiverContainer.Resources.Limits.Cpu().IsZero() || spec.ReceiverContainer.Resources.Requests.Cpu().IsZero() {
-		spec.ReceiverContainer.Resources = corev1.ResourceRequirements{
-			Limits: corev1.ResourceList{
-				corev1.ResourceCPU: *cpu300m,
-			},
-			Requests: corev1.ResourceList{
-				corev1.ResourceCPU: *cpu200m,
-			},
-		}
-	}
+	setResourceLimitMemory(spec.DatabaseContainer, *memory300Mi)
+	setResourceRequestMemory(spec.DatabaseContainer, *memory256Mi)
+	setResourceLimitCPU(spec.DatabaseContainer, *cpu300m)
+	setResourceRequestCPU(spec.DatabaseContainer, *cpu200m)
+	setResourceLimitMemory(spec.ReceiverContainer, *memory300Mi)
+	setResourceRequestMemory(spec.ReceiverContainer, *memory256Mi)
+	setResourceLimitCPU(spec.ReceiverContainer, *cpu300m)
+	setResourceRequestCPU(spec.ReceiverContainer, *cpu200m)
 
 	if spec.Capacity.IsZero() {
 		spec.Capacity = *size1Gi
@@ -308,4 +267,42 @@ func getStorageClass(reqLogger logr.Logger, r client_reader.Reader) (string, err
 	}
 
 	return "", fmt.Errorf("could not find dynamic provisioner default storage class in the cluster")
+}
+
+func setResourceLimitCPU(container Container, value resource.Quantity) {
+	if container.Resources.Limits.Cpu().IsZero() {
+		container.Resources = corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU: value,
+			},
+		}
+	}
+}
+
+func setResourceRequestCPU(container Container, value resource.Quantity) {
+	if container.Resources.Requests.Cpu().IsZero() {
+		container.Resources = corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU: value,
+			},
+		}
+	}
+}
+func setResourceLimitMemory(container Container, value resource.Quantity) {
+	if container.Resources.Limits.Memory().IsZero() {
+		container.Resources = corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceMemory: value,
+			},
+		}
+	}
+}
+func setResourceRequestMemory(container Container, value resource.Quantity) {
+	if container.Resources.Requests.Memory().IsZero() {
+		container.Resources = corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceMemory: value,
+			},
+		}
+	}
 }
