@@ -35,12 +35,12 @@ const defaultImageRegistry = "quay.io/opencloudio"
 const defaultLicensingImageName = "ibm-licensing"
 const defaultLicensingImageTagPostfix = "1.2.0"
 
-const defaultReporterImageName = "ibm-license-service-reporter"
-const defaultDatabaseImageName = "postgres-database"
 const defaultReporterImageRegistry = "quay.io/opencloudio"
 const defaultDatabaseImageRegistry = "quay.io/opencloudio"
+const defaultReporterImageName = "ibm-license-service-reporter"
+const defaultDatabaseImageName = "ibm-postgresql"
 const defaultReporterImageTagPostfix = "1.2.0"
-const defaultDatabaseImageTagPostfix = "12"
+const defaultDatabaseImageTagPostfix = "12.0.0"
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
@@ -153,19 +153,11 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 		spec.APISecretToken = "ibm-licensing-token"
 	}
 
-	if spec.Resources.Limits.Cpu().IsZero() || spec.Resources.Requests.Cpu().IsZero() ||
-		spec.Resources.Limits.Memory().IsZero() || spec.Resources.Requests.Memory().IsZero() {
-		spec.Resources = corev1.ResourceRequirements{
-			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    *cpu500m,
-				corev1.ResourceMemory: *memory512Mi,
-			},
-			Requests: corev1.ResourceList{
-				corev1.ResourceCPU:    *cpu200m,
-				corev1.ResourceMemory: *memory256Mi,
-			},
-		}
-	}
+	initResourcesIfNil(&spec.Container)
+	setResourceLimitMemoryIfNotSet(spec.Container, *memory512Mi)
+	setResourceRequestMemoryIfNotSet(spec.Container, *memory256Mi)
+	setResourceLimitCPUIfNotSet(spec.Container, *cpu500m)
+	setResourceRequestCPUIfNotSet(spec.Container, *cpu200m)
 
 	licensingFullImageFromEnv := os.Getenv("OPERAND_LICENSING_IMAGE")
 
@@ -219,46 +211,17 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 		spec.ReceiverContainer.ImageTagPostfix = defaultReporterImageTagPostfix
 	}
 
-	if spec.DatabaseContainer.Resources.Limits.Memory().IsZero() || spec.DatabaseContainer.Resources.Requests.Memory().IsZero() {
-		spec.DatabaseContainer.Resources = corev1.ResourceRequirements{
-			Limits: corev1.ResourceList{
-				corev1.ResourceMemory: *memory300Mi,
-			},
-			Requests: corev1.ResourceList{
-				corev1.ResourceMemory: *memory256Mi,
-			},
-		}
-	}
-	if spec.DatabaseContainer.Resources.Limits.Cpu().IsZero() || spec.DatabaseContainer.Resources.Requests.Cpu().IsZero() {
-		spec.DatabaseContainer.Resources = corev1.ResourceRequirements{
-			Limits: corev1.ResourceList{
-				corev1.ResourceCPU: *cpu300m,
-			},
-			Requests: corev1.ResourceList{
-				corev1.ResourceCPU: *cpu200m,
-			},
-		}
-	}
-	if spec.ReceiverContainer.Resources.Limits.Memory().IsZero() || spec.ReceiverContainer.Resources.Requests.Memory().IsZero() {
-		spec.ReceiverContainer.Resources = corev1.ResourceRequirements{
-			Limits: corev1.ResourceList{
-				corev1.ResourceMemory: *memory300Mi,
-			},
-			Requests: corev1.ResourceList{
-				corev1.ResourceMemory: *memory256Mi,
-			},
-		}
-	}
-	if spec.ReceiverContainer.Resources.Limits.Cpu().IsZero() || spec.ReceiverContainer.Resources.Requests.Cpu().IsZero() {
-		spec.ReceiverContainer.Resources = corev1.ResourceRequirements{
-			Limits: corev1.ResourceList{
-				corev1.ResourceCPU: *cpu300m,
-			},
-			Requests: corev1.ResourceList{
-				corev1.ResourceCPU: *cpu200m,
-			},
-		}
-	}
+	initResourcesIfNil(&spec.DatabaseContainer)
+	setResourceLimitMemoryIfNotSet(spec.DatabaseContainer, *memory300Mi)
+	setResourceRequestMemoryIfNotSet(spec.DatabaseContainer, *memory256Mi)
+	setResourceLimitCPUIfNotSet(spec.DatabaseContainer, *cpu300m)
+	setResourceRequestCPUIfNotSet(spec.DatabaseContainer, *cpu200m)
+
+	initResourcesIfNil(&spec.ReceiverContainer)
+	setResourceLimitMemoryIfNotSet(spec.ReceiverContainer, *memory300Mi)
+	setResourceRequestMemoryIfNotSet(spec.ReceiverContainer, *memory256Mi)
+	setResourceLimitCPUIfNotSet(spec.ReceiverContainer, *cpu300m)
+	setResourceRequestCPUIfNotSet(spec.ReceiverContainer, *cpu200m)
 
 	if spec.Capacity.IsZero() {
 		spec.Capacity = *size1Gi
@@ -308,4 +271,37 @@ func getStorageClass(reqLogger logr.Logger, r client_reader.Reader) (string, err
 	}
 
 	return "", fmt.Errorf("could not find dynamic provisioner default storage class in the cluster")
+}
+
+func initResourcesIfNil(container *Container) {
+	if container.Resources.Limits == nil {
+		container.Resources.Limits = corev1.ResourceList{}
+	}
+	if container.Resources.Requests == nil {
+		container.Resources.Requests = corev1.ResourceList{}
+	}
+}
+
+func setResourceLimitCPUIfNotSet(container Container, value resource.Quantity) {
+	if container.Resources.Limits.Cpu().IsZero() {
+		container.Resources.Limits[corev1.ResourceCPU] = value
+	}
+}
+
+func setResourceRequestCPUIfNotSet(container Container, value resource.Quantity) {
+	if container.Resources.Requests.Cpu().IsZero() {
+		container.Resources.Requests[corev1.ResourceCPU] = value
+	}
+}
+
+func setResourceLimitMemoryIfNotSet(container Container, value resource.Quantity) {
+	if container.Resources.Limits.Memory().IsZero() {
+		container.Resources.Limits[corev1.ResourceMemory] = value
+	}
+}
+
+func setResourceRequestMemoryIfNotSet(container Container, value resource.Quantity) {
+	if container.Resources.Requests.Memory().IsZero() {
+		container.Resources.Requests[corev1.ResourceMemory] = value
+	}
 }
