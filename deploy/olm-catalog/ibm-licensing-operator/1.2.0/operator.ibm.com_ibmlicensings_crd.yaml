@@ -41,9 +41,7 @@ spec:
           properties:
             apiSecretToken:
               description: Secret name used to store application token, either one
-                that exists, or one that will be created, for now only one value possible
-              enum:
-              - ibm-licensing-token
+                that exists, or one that will be created
               type: string
             datasource:
               description: 'Where should data be collected, options: metering, datacollector'
@@ -147,7 +145,7 @@ spec:
               - INFO
               type: string
             resources:
-              description: Resource requirements for License Service container
+              description: Resources and limits for container
               properties:
                 limits:
                   additionalProperties:
@@ -177,7 +175,7 @@ spec:
                 API? (only on OpenShift cluster)
               type: boolean
             routeOptions:
-              description: If route is enabled, you can set its parameters
+              description: Route parameters
               properties:
                 tls:
                   description: TLSConfig defines config used to secure a route and
@@ -255,7 +253,7 @@ spec:
               - reporterURL
               type: object
             version:
-              description: Application version
+              description: Version
               type: string
           required:
           - datasource

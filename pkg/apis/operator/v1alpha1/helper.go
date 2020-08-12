@@ -70,8 +70,7 @@ type IBMLicenseServiceBaseSpec struct {
 	// Should application pod show additional information, options: DEBUG, INFO
 	// +kubebuilder:validation:Enum=DEBUG;INFO
 	LogLevel string `json:"logLevel,omitempty"`
-	// Secret name used to store application token, either one that exists, or one that will be created, for now only one value possible
-	// +kubebuilder:validation:Enum=ibm-licensing-token
+	// Secret name used to store application token, either one that exists, or one that will be created
 	APISecretToken string `json:"apiSecretToken,omitempty"`
 	// Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing image
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
