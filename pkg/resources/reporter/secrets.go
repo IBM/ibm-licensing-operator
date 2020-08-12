@@ -25,22 +25,16 @@ import (
 
 const APIReciverSecretTokenKeyName = "token"
 
-func GetAPISecretToken(instance *operatorv1alpha1.IBMLicenseServiceReporter) *corev1.Secret {
-	metaLabels := LabelsForMeta(instance)
-	expectedSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Spec.APISecretToken,
-			Namespace: instance.GetNamespace(),
-			Labels:    metaLabels,
-		},
-		Type:       corev1.SecretTypeOpaque,
-		StringData: map[string]string{APIReciverSecretTokenKeyName: res.RandString(24)},
-	}
-	return expectedSecret
+func GetAPISecretToken(instance *operatorv1alpha1.IBMLicenseServiceReporter) (*corev1.Secret, error) {
+	return res.GetSecretToken(instance.Spec.APISecretToken, instance.GetNamespace(), APIReciverSecretTokenKeyName, LabelsForMeta(instance))
 }
 
-func GetDatabaseSecret(instance *operatorv1alpha1.IBMLicenseServiceReporter) *corev1.Secret {
+func GetDatabaseSecret(instance *operatorv1alpha1.IBMLicenseServiceReporter) (*corev1.Secret, error) {
 	metaLabels := LabelsForMeta(instance)
+	randString, err := res.RandString(8)
+	if err != nil {
+		return nil, err
+	}
 	expectedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      DatabaseConfigSecretName,
@@ -49,11 +43,11 @@ func GetDatabaseSecret(instance *operatorv1alpha1.IBMLicenseServiceReporter) *co
 		},
 		Type: corev1.SecretTypeOpaque,
 		StringData: map[string]string{
-			PostgresPasswordKey:     res.RandString(8),
+			PostgresPasswordKey:     randString,
 			PostgresUserKey:         DatabaseUser,
 			PostgresDatabaseNameKey: DatabaseName,
 			PostgresPgDataKey:       PgData,
 		},
 	}
-	return expectedSecret
+	return expectedSecret, nil
 }

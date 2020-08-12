@@ -17,9 +17,9 @@
 package resources
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 	"reflect"
-	"time"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -45,20 +45,25 @@ const LicensingProductMetric = "FREE"
 const LicensingProductVersion = "3.4.0"
 
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-const randStringCharsetLength = len(randStringCharset)
+
+var randStringCharsetLength = big.NewInt(int64(len(randStringCharset)))
 
 type ResourceObject interface {
 	metav1.Object
 	runtime.Object
 }
 
-func RandString(length int) string {
-	randFunc := rand.New(rand.NewSource(time.Now().UnixNano())) //#nosec
+func RandString(length int) (string, error) {
+	reader := rand.Reader
 	outputStringByte := make([]byte, length)
 	for i := 0; i < length; i++ {
-		outputStringByte[i] = randStringCharset[randFunc.Intn(randStringCharsetLength)]
+		charIndex, err := rand.Int(reader, randStringCharsetLength)
+		if err != nil {
+			return "", err
+		}
+		outputStringByte[i] = randStringCharset[charIndex.Int64()]
 	}
-	return string(outputStringByte)
+	return string(outputStringByte), nil
 }
 
 func Contains(s []corev1.LocalObjectReference, e corev1.LocalObjectReference) bool {
@@ -88,4 +93,21 @@ func WatchForResources(log logr.Logger, o runtime.Object, c controller.Controlle
 		}
 	}
 	return nil
+}
+
+func GetSecretToken(name string, namespace string, secretKey string, metaLabels map[string]string) (*corev1.Secret, error) {
+	randString, err := RandString(24)
+	if err != nil {
+		return nil, err
+	}
+	expectedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+			Labels:    metaLabels,
+		},
+		Type:       corev1.SecretTypeOpaque,
+		StringData: map[string]string{secretKey: randString},
+	}
+	return expectedSecret, nil
 }
