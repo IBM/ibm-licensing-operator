@@ -242,7 +242,7 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 	}
 
 	if spec.APISecretToken == "" {
-		spec.APISecretToken = "ibm-licensing-hub-token"
+		spec.APISecretToken = "ibm-licensing-reporter-token"
 	}
 	if spec.StorageClass == "" {
 		storageClass, err := getStorageClass(reqLogger, r)

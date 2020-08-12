@@ -28,47 +28,6 @@ import (
 func getReporterUIEnvironmentVariables() []corev1.EnvVar {
 	return []corev1.EnvVar{
 		{
-			Name: "PGDATABASE",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: DatabaseConfigSecretName,
-					},
-					Key: DatabaseName,
-				},
-			},
-		},
-		{
-			Name: "PGUSER",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: DatabaseConfigSecretName,
-					},
-					Key: DatabaseUser,
-				},
-			},
-		},
-		{
-			Name: "PGPASSWORD",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: DatabaseConfigSecretName,
-					},
-					Key: PostgresPasswordKey,
-				},
-			},
-		},
-		{
-			Name:  "PGHOST",
-			Value: "localhost",
-		},
-		{
-			Name:  "PGPORT",
-			Value: "5432",
-		},
-		{
 			Name: "WLP_CLIENT_ID",
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
@@ -119,12 +78,11 @@ func getReporterUIProbeHandler() corev1.Handler {
 	}
 }
 
-func GetReporterUIContainer(spec operatorv1alpha1.IBMLicenseServiceReporterSpec, instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
-	container := res.GetContainerBase(spec.ReporterUIContainer)
+func GetReporterUIContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
+	container := res.GetContainerBase(instance.Spec.ReporterUIContainer)
 	container.ImagePullPolicy = corev1.PullAlways
 	container.Env = getReporterUIEnvironmentVariables()
 	container.Resources = instance.Spec.ReporterUIContainer.Resources
-	container.VolumeMounts = getVolumeMounts()
 	container.Name = ReporterUIContainerName
 	container.Ports = []corev1.ContainerPort{
 		{

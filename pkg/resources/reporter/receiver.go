@@ -61,8 +61,8 @@ func getReceiverProbeHandler() corev1.Handler {
 	}
 }
 
-func GetReceiverContainer(spec operatorv1alpha1.IBMLicenseServiceReporterSpec, instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
-	container := res.GetContainerBase(spec.ReceiverContainer)
+func GetReceiverContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
+	container := res.GetContainerBase(instance.Spec.ReceiverContainer)
 	container.ImagePullPolicy = corev1.PullAlways
 	container.Env = getReceiverEnvironmentVariables()
 	container.Resources = instance.Spec.ReceiverContainer.Resources

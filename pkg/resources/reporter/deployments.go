@@ -49,9 +49,9 @@ func GetDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) *appsv1
 				Spec: corev1.PodSpec{
 					Volumes: getLicenseServiceReporterVolumes(instance.Spec),
 					Containers: []corev1.Container{
-						GetDatabaseContainer(instance.Spec, instance),
-						GetReceiverContainer(instance.Spec, instance),
-						GetReporterUIContainer(instance.Spec, instance),
+						GetDatabaseContainer(instance),
+						GetReceiverContainer(instance),
+						GetReporterUIContainer(instance),
 					},
 					TerminationGracePeriodSeconds: &res.Seconds60,
 					ServiceAccountName:            GetServiceAccountName(instance),
