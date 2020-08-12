@@ -31,15 +31,14 @@ import (
 	client_reader "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const defaultImageRegistry = "quay.io/opencloudio"
+const defaultQuayRegistry = "quay.io/opencloudio"
+
 const defaultLicensingImageName = "ibm-licensing"
+const defaultReporterImageName = "ibm-license-service-reporter"
+const defaultReporterUIImageName = "ibm-license-service-reporter-ui"
 const defaultLicensingImageTagPostfix = "1.2.0"
 
-const defaultReporterImageRegistry = "quay.io/opencloudio"
-const defaultDatabaseImageRegistry = "quay.io/opencloudio"
-const defaultReporterImageName = "ibm-license-service-reporter"
 const defaultDatabaseImageName = "ibm-postgresql"
-const defaultReporterImageTagPostfix = "1.2.0"
 const defaultDatabaseImageTagPostfix = "12.0.0"
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
@@ -170,7 +169,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 	} else {
 		// If CR has at least one override, make sure all parts of the image are filled at least with default values
 		if spec.ImageRegistry == "" {
-			spec.ImageRegistry = defaultImageRegistry
+			spec.ImageRegistry = defaultQuayRegistry
 		}
 		if spec.ImageName == "" {
 			spec.ImageName = defaultLicensingImageName
@@ -195,7 +194,7 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 		spec.DatabaseContainer.ImageName = defaultDatabaseImageName
 	}
 	if spec.DatabaseContainer.ImageRegistry == "" {
-		spec.DatabaseContainer.ImageRegistry = defaultDatabaseImageRegistry
+		spec.DatabaseContainer.ImageRegistry = defaultQuayRegistry
 	}
 	if spec.DatabaseContainer.ImageTagPostfix == "" {
 		spec.DatabaseContainer.ImageTagPostfix = defaultDatabaseImageTagPostfix
@@ -205,10 +204,19 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 		spec.ReceiverContainer.ImageName = defaultReporterImageName
 	}
 	if spec.ReceiverContainer.ImageRegistry == "" {
-		spec.ReceiverContainer.ImageRegistry = defaultReporterImageRegistry
+		spec.ReceiverContainer.ImageRegistry = defaultQuayRegistry
 	}
 	if spec.ReceiverContainer.ImageTagPostfix == "" {
-		spec.ReceiverContainer.ImageTagPostfix = defaultReporterImageTagPostfix
+		spec.ReceiverContainer.ImageTagPostfix = defaultLicensingImageTagPostfix
+	}
+	if spec.ReporterUIContainer.ImageName == "" {
+		spec.ReporterUIContainer.ImageName = defaultReporterUIImageName
+	}
+	if spec.ReporterUIContainer.ImageRegistry == "" {
+		spec.ReporterUIContainer.ImageRegistry = defaultQuayRegistry
+	}
+	if spec.ReporterUIContainer.ImageTagPostfix == "" {
+		spec.ReporterUIContainer.ImageTagPostfix = defaultLicensingImageTagPostfix
 	}
 
 	initResourcesIfNil(&spec.DatabaseContainer)
@@ -222,6 +230,12 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 	setResourceRequestMemoryIfNotSet(spec.ReceiverContainer, *memory256Mi)
 	setResourceLimitCPUIfNotSet(spec.ReceiverContainer, *cpu300m)
 	setResourceRequestCPUIfNotSet(spec.ReceiverContainer, *cpu200m)
+
+	initResourcesIfNil(&spec.ReporterUIContainer)
+	setResourceLimitMemoryIfNotSet(spec.ReporterUIContainer, *memory300Mi)
+	setResourceRequestMemoryIfNotSet(spec.ReporterUIContainer, *memory256Mi)
+	setResourceLimitCPUIfNotSet(spec.ReporterUIContainer, *cpu300m)
+	setResourceRequestCPUIfNotSet(spec.ReporterUIContainer, *cpu200m)
 
 	if spec.Capacity.IsZero() {
 		spec.Capacity = *size1Gi

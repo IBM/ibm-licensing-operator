@@ -24,15 +24,24 @@ import (
 )
 
 var (
-	receiverServicePort    = intstr.FromInt(ReceiverPort)
-	receiverTargetPort     = intstr.FromInt(ReceiverPort)
-	receiverTargetPortName = intstr.FromString("receiver-port")
+	reporterUIServicePort    = intstr.FromInt(ReporterUIPort)
+	reporterUITargetPort     = intstr.FromInt(ReporterUIPort)
+	reporterUITargetPortName = intstr.FromString("reporter-ui-port")
+	receiverServicePort      = intstr.FromInt(ReceiverPort)
+	receiverTargetPort       = intstr.FromInt(ReceiverPort)
+	receiverTargetPortName   = intstr.FromString("receiver-port")
 )
 
 func getServiceSpec(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.ServiceSpec {
 	return corev1.ServiceSpec{
 		Type: corev1.ServiceTypeClusterIP,
 		Ports: []corev1.ServicePort{
+			{
+				Name:       reporterUITargetPortName.String(),
+				Port:       reporterUIServicePort.IntVal,
+				TargetPort: reporterUITargetPort,
+				Protocol:   corev1.ProtocolTCP,
+			},
 			{
 				Name:       receiverTargetPortName.String(),
 				Port:       receiverServicePort.IntVal,

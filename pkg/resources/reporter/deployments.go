@@ -51,6 +51,7 @@ func GetDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) *appsv1
 					Containers: []corev1.Container{
 						GetDatabaseContainer(instance.Spec, instance),
 						GetReceiverContainer(instance.Spec, instance),
+						GetReporterUIContainer(instance.Spec, instance),
 					},
 					TerminationGracePeriodSeconds: &res.Seconds60,
 					ServiceAccountName:            GetServiceAccountName(instance),

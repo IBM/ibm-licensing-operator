@@ -26,6 +26,8 @@ import (
 type IBMLicenseServiceReporterSpec struct {
 	// Receiver Settings
 	ReceiverContainer Container `json:"receiverContainer,omitempty"`
+	// Receiver Settings
+	ReporterUIContainer Container `json:"reporterUIContainer,omitempty"`
 	// Database Settings
 	DatabaseContainer Container `json:"databaseContainer,omitempty"`
 	// Common Parameters for operator

@@ -135,6 +135,7 @@ func (in *IBMLicenseServiceReporterList) DeepCopyObject() runtime.Object {
 func (in *IBMLicenseServiceReporterSpec) DeepCopyInto(out *IBMLicenseServiceReporterSpec) {
 	*out = *in
 	in.ReceiverContainer.DeepCopyInto(&out.ReceiverContainer)
+	in.ReporterUIContainer.DeepCopyInto(&out.ReporterUIContainer)
 	in.DatabaseContainer.DeepCopyInto(&out.DatabaseContainer)
 	in.IBMLicenseServiceBaseSpec.DeepCopyInto(&out.IBMLicenseServiceBaseSpec)
 	out.Capacity = in.Capacity.DeepCopy()
