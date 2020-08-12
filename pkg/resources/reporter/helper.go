@@ -33,7 +33,9 @@ const PgData = DatabaseMountPoint + "/pgdata"
 
 const DatabaseContainerName = "database"
 const ReceiverContainerName = "receiver"
+const ReporterUIContainerName = "reporter-ui"
 const ReceiverPort = 8080
+const ReporterUIPort = 3001
 
 const LicenseReporterResourceBase = "ibm-license-service-reporter"
 const LicenseReporterComponentName = "ibm-license-service-reporter-svc"

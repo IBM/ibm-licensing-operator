@@ -162,6 +162,51 @@ spec:
                       type: object
                   type: object
               type: object
+            reporterUIContainer:
+              description: Receiver Settings
+              properties:
+                imageName:
+                  description: IBM Licensing Service docker Image Name, will override
+                    default value and disable OPERAND_LICENSING_IMAGE env value in
+                    operator deployment
+                  type: string
+                imageRegistry:
+                  description: IBM Licensing Service docker Image Registry, will override
+                    default value and disable OPERAND_LICENSING_IMAGE env value in
+                    operator deployment
+                  type: string
+                imageTagPostfix:
+                  description: IBM Licensing Service docker Image Tag or Digest, will
+                    override default value and disable OPERAND_LICENSING_IMAGE env
+                    value in operator deployment
+                  type: string
+                resources:
+                  description: Resources and limits for container
+                  properties:
+                    limits:
+                      additionalProperties:
+                        anyOf:
+                        - type: integer
+                        - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                      description: 'Limits describes the maximum amount of compute
+                        resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                      type: object
+                    requests:
+                      additionalProperties:
+                        anyOf:
+                        - type: integer
+                        - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                      description: 'Requests describes the minimum amount of compute
+                        resources required. If Requests is omitted for a container,
+                        it defaults to Limits if that is explicitly specified, otherwise
+                        to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                      type: object
+                  type: object
+              type: object
             routeOptions:
               description: Route parameters
               properties:
