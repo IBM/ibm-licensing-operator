@@ -286,14 +286,30 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcilePersistentVolumeClaim(inst
 }
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileDatabaseSecret(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
-	expectedSecret := reporter.GetDatabaseSecret(instance)
+	reqLogger := log.WithValues("reconcileDatabaseSecret", "Entry", "instance.GetName()", instance.GetName())
+	expectedSecret, err := reporter.GetDatabaseSecret(instance)
+	if err != nil {
+		reqLogger.Info("Failed to get expected secret")
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
+	}
 	foundSecret := &corev1.Secret{}
 	namespacedName := types.NamespacedName{Name: expectedSecret.GetName(), Namespace: expectedSecret.GetNamespace()}
 	return r.reconcileResourceExistence(instance, expectedSecret, foundSecret, namespacedName)
 }
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileAPISecretToken(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
-	expectedSecret := reporter.GetAPISecretToken(instance)
+	reqLogger := log.WithValues("reconcileAPISecretToken", "Entry", "instance.GetName()", instance.GetName())
+	expectedSecret, err := reporter.GetAPISecretToken(instance)
+	if err != nil {
+		reqLogger.Info("Failed to get expected secret")
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
+	}
 	foundSecret := &corev1.Secret{}
 	namespacedName := types.NamespacedName{Name: expectedSecret.GetName(), Namespace: expectedSecret.GetNamespace()}
 	return r.reconcileResourceExistence(instance, expectedSecret, foundSecret, namespacedName)

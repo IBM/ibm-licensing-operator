@@ -31,32 +31,12 @@ const ReporterSecretTokenKeyName = "token"
 
 const UploadConfigMapKey = "url"
 
-func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
-	metaLabels := LabelsForMeta(instance)
-	expectedSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Spec.APISecretToken,
-			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    metaLabels,
-		},
-		Type:       corev1.SecretTypeOpaque,
-		StringData: map[string]string{APISecretTokenKeyName: res.RandString(24)},
-	}
-	return expectedSecret
+func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
+	return res.GetSecretToken(instance.Spec.APISecretToken, instance.GetNamespace(), APISecretTokenKeyName, LabelsForMeta(instance))
 }
 
-func GetUploadToken(instance *operatorv1alpha1.IBMLicensing) *corev1.Secret {
-	metaLabels := LabelsForMeta(instance)
-	expectedSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      APIUploadTokenName,
-			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    metaLabels,
-		},
-		Type:       corev1.SecretTypeOpaque,
-		StringData: map[string]string{APIUploadTokenKeyName: res.RandString(24)},
-	}
-	return expectedSecret
+func GetUploadToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
+	return res.GetSecretToken(APIUploadTokenName, instance.GetNamespace(), APIUploadTokenKeyName, LabelsForMeta(instance))
 }
 
 func GetUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) *corev1.ConfigMap {

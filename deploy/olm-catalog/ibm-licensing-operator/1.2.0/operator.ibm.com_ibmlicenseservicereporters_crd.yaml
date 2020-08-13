@@ -38,13 +38,29 @@ spec:
                 that exists, or one that will be created
               type: string
             capacity:
+              anyOf:
+              - type: integer
+              - type: string
               description: Persistent Volume Claim Capacity
-              type: string
+              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+              x-kubernetes-int-or-string: true
             databaseContainer:
               description: Database Settings
               properties:
-                image:
-                  description: Docker Image
+                imageName:
+                  description: IBM Licensing Service docker Image Name, will override
+                    default value and disable OPERAND_LICENSING_IMAGE env value in
+                    operator deployment
+                  type: string
+                imageRegistry:
+                  description: IBM Licensing Service docker Image Registry, will override
+                    default value and disable OPERAND_LICENSING_IMAGE env value in
+                    operator deployment
+                  type: string
+                imageTagPostfix:
+                  description: IBM Licensing Service docker Image Tag or Digest, will
+                    override default value and disable OPERAND_LICENSING_IMAGE env
+                    value in operator deployment
                   type: string
                 resources:
                   description: Resources and limits for container
@@ -80,8 +96,7 @@ spec:
               - custom
               type: string
             imagePullPolicy:
-              description: 'IBM License Service Reporter Pod pull policy, default:
-                IfNotPresent'
+              description: 'IBM License Service Pod pull policy, default: IfNotPresent'
               enum:
               - Always
               - IfNotPresent
@@ -89,25 +104,34 @@ spec:
               type: string
             imagePullSecrets:
               description: Array of pull secrets which should include existing at
-                InstanceNamespace secret to allow pulling IBM Licensing Reporter images
+                InstanceNamespace secret to allow pulling IBM Licensing image
               items:
                 type: string
               type: array
-            license:
-              description: Opt-in license acceptance is required to create resources
-              properties:
-                accept:
-                  description: Accept is an opt-in license acceptance required to
-                    deploy resources
-                  type: boolean
-              required:
-              - accept
-              type: object
+            logLevel:
+              description: 'Should application pod show additional information, options:
+                DEBUG, INFO'
+              enum:
+              - DEBUG
+              - INFO
+              type: string
             receiverContainer:
               description: Receiver Settings
               properties:
-                image:
-                  description: Docker Image
+                imageName:
+                  description: IBM Licensing Service docker Image Name, will override
+                    default value and disable OPERAND_LICENSING_IMAGE env value in
+                    operator deployment
+                  type: string
+                imageRegistry:
+                  description: IBM Licensing Service docker Image Registry, will override
+                    default value and disable OPERAND_LICENSING_IMAGE env value in
+                    operator deployment
+                  type: string
+                imageTagPostfix:
+                  description: IBM Licensing Service docker Image Tag or Digest, will
+                    override default value and disable OPERAND_LICENSING_IMAGE env
+                    value in operator deployment
                   type: string
                 resources:
                   description: Resources and limits for container
@@ -185,8 +209,6 @@ spec:
             version:
               description: Version
               type: string
-          required:
-          - license
           type: object
         status:
           description: IBMLicenseServiceReporterStatus defines the observed state

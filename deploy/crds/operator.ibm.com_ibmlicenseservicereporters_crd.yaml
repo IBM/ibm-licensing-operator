@@ -35,9 +35,7 @@ spec:
           properties:
             apiSecretToken:
               description: Secret name used to store application token, either one
-                that exists, or one that will be created, for now only one value possible
-              enum:
-              - ibm-licensing-token
+                that exists, or one that will be created
               type: string
             capacity:
               anyOf:
