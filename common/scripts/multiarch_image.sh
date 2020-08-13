@@ -24,6 +24,8 @@ ALL_PLATFORMS="amd64 ppc64le s390x"
 IMAGE_REPO=${1}
 IMAGE_NAME=${2}
 VERSION=${3-"$(git describe --exact-match 2> /dev/null || git describe --match="$(git rev-parse --short=8 HEAD)" --always --dirty --abbrev=8)"}
+MANIFEST_VERSION=${4}
+
 MAX_PULLING_RETRY=${MAX_PULLING_RETRY-10}
 RETRY_INTERVAL=${RETRY_INTERVAL-10}
 
@@ -47,8 +49,8 @@ done
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
 # create multi-arch manifest
-echo "Creating the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${VERSION}..."
-${CONTAINER_CLI} manifest create "${IMAGE_REPO}"/"${IMAGE_NAME}":"${VERSION}" \
+echo "Creating the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${MANIFEST_VERSION}..."
+${CONTAINER_CLI} manifest create "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}" \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-amd64:"${VERSION}" \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-ppc64le:"${VERSION}" \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-s390x:"${VERSION}"
@@ -59,7 +61,7 @@ ${CONTAINER_CLI} manifest create "${IMAGE_REPO}"/"${IMAGE_NAME}":latest \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-s390x:"${VERSION}"
 
 # push multi-arch manifest
-echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${VERSION}..."
-${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${VERSION}"
+echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${MANIFEST_VERSION}..."
+${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}"
 echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:latest..."
 ${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":latest
