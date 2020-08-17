@@ -23,7 +23,7 @@ import (
 const DatabaseConfigSecretName = "license-service-hub-db-config"
 const PostgresPasswordKey = "POSTGRES_PASSWORD" // #nosec
 const PostgresUserKey = "POSTGRES_USER"
-const PostgresDatabaseNameKey = "POSTGRES_DATABASE_NAME"
+const PostgresDatabaseNameKey = "POSTGRES_DB"
 const PostgresPgDataKey = "POSTGRES_PGDATA"
 
 const DatabaseUser = "postgres"
