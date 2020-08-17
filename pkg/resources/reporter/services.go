@@ -24,8 +24,8 @@ import (
 )
 
 var (
-	reporterUIServicePort    = intstr.FromInt(ReporterUIPort)
-	reporterUITargetPort     = intstr.FromInt(ReporterUIPort)
+	reporterUIServicePort    = intstr.FromInt(UIPort)
+	reporterUITargetPort     = intstr.FromInt(UIPort)
 	reporterUITargetPortName = intstr.FromString("reporter-ui-port")
 	receiverServicePort      = intstr.FromInt(ReceiverPort)
 	receiverTargetPort       = intstr.FromInt(ReceiverPort)

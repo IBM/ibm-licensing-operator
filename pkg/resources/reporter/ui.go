@@ -51,7 +51,7 @@ func getReporterUIEnvironmentVariables() []corev1.EnvVar {
 		},
 		{
 			Name:  "HTTP_PORT",
-			Value: strconv.Itoa(ReporterUIPort),
+			Value: strconv.Itoa(UIPort),
 		},
 		{
 			Name:  "cfcRouterUrl",
@@ -83,10 +83,10 @@ func GetReporterUIContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter
 	container.ImagePullPolicy = corev1.PullAlways
 	container.Env = getReporterUIEnvironmentVariables()
 	container.Resources = instance.Spec.ReporterUIContainer.Resources
-	container.Name = ReporterUIContainerName
+	container.Name = UIContainerName
 	container.Ports = []corev1.ContainerPort{
 		{
-			ContainerPort: ReporterUIPort,
+			ContainerPort: UIPort,
 			Protocol:      corev1.ProtocolTCP,
 		},
 	}
