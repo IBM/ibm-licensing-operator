@@ -18,6 +18,7 @@ package reporter
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 const DatabaseConfigSecretName = "license-service-hub-db-config"
@@ -33,9 +34,9 @@ const PgData = DatabaseMountPoint + "/pgdata"
 
 const DatabaseContainerName = "database"
 const ReceiverContainerName = "receiver"
-const ReporterUIContainerName = "reporter-ui"
+const UIContainerName = "reporter-ui"
 const ReceiverPort = 8080
-const ReporterUIPort = 3001
+const UIPort = 3001
 
 const LicenseReporterResourceBase = "ibm-license-service-reporter"
 const LicenseReporterComponentName = "ibm-license-service-reporter-svc"
@@ -61,4 +62,16 @@ func LabelsForPod(instance *operatorv1alpha1.IBMLicenseServiceReporter) map[stri
 		podLabels[key] = value
 	}
 	return podLabels
+}
+
+func getDatabaseEnvFromSourceVariables() []corev1.EnvFromSource {
+	return []corev1.EnvFromSource{
+		{
+			SecretRef: &corev1.SecretEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: DatabaseConfigSecretName,
+				},
+			},
+		},
+	}
 }

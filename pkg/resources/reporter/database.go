@@ -22,56 +22,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func getDatabaseEnvironmentVariables() []corev1.EnvVar {
-	return []corev1.EnvVar{
-		{
-			Name: "POSTGRES_PASSWORD",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: DatabaseConfigSecretName,
-					},
-					Key: PostgresPasswordKey,
-				},
-			},
-		},
-		{
-			Name: "POSTGRES_USER",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: DatabaseConfigSecretName,
-					},
-					Key: PostgresUserKey,
-				},
-			},
-		},
-		{
-			Name: "DATABASE",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: DatabaseConfigSecretName,
-					},
-					Key: PostgresDatabaseNameKey,
-				},
-			},
-		},
-		{
-			Name: "PGDATA",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: DatabaseConfigSecretName,
-					},
-					Key: PostgresPgDataKey,
-				},
-			},
-		},
-	}
-
-}
-
 func getDatabaseProbeHandler() corev1.Handler {
 	return corev1.Handler{
 		Exec: &corev1.ExecAction{
@@ -91,7 +41,7 @@ func getDatabaseProbeHandler() corev1.Handler {
 
 func GetDatabaseContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
 	container := resources.GetContainerBase(instance.Spec.DatabaseContainer)
-	container.Env = getDatabaseEnvironmentVariables()
+	container.EnvFrom = getDatabaseEnvFromSourceVariables()
 	container.Resources = instance.Spec.DatabaseContainer.Resources
 	container.VolumeMounts = GetDatabaseVolumeMounts()
 	container.Name = DatabaseContainerName

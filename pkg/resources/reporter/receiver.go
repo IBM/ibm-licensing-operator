@@ -23,31 +23,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func getReceiverEnvironmentVariables() []corev1.EnvVar {
-	return []corev1.EnvVar{
-		{
-			Name:  "POSTGRESQL_USER",
-			Value: DatabaseUser,
-		},
-		{
-			Name: "POSTGRESQL_PASSWORD",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: DatabaseConfigSecretName,
-					},
-					Key: PostgresPasswordKey,
-				},
-			},
-		},
-		{
-			Name:  "POSTGRESQL_DATABASE",
-			Value: DatabaseName,
-		},
-	}
-
-}
-
 func getReceiverProbeHandler() corev1.Handler {
 	return corev1.Handler{
 		HTTPGet: &corev1.HTTPGetAction{
@@ -64,7 +39,7 @@ func getReceiverProbeHandler() corev1.Handler {
 func GetReceiverContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
 	container := res.GetContainerBase(instance.Spec.ReceiverContainer)
 	container.ImagePullPolicy = corev1.PullAlways
-	container.Env = getReceiverEnvironmentVariables()
+	container.EnvFrom = getDatabaseEnvFromSourceVariables()
 	container.Resources = instance.Spec.ReceiverContainer.Resources
 	container.VolumeMounts = getVolumeMounts()
 	container.Name = ReceiverContainerName
