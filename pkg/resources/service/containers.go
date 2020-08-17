@@ -165,17 +165,7 @@ func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Contai
 	container := getLicensingContainerBase(spec)
 	probeHandler := getProbeHandler(spec)
 	container.Name = "license-service"
-	container.LivenessProbe = &corev1.Probe{
-		Handler:             probeHandler,
-		InitialDelaySeconds: 120,
-		TimeoutSeconds:      10,
-		PeriodSeconds:       300,
-	}
-	container.ReadinessProbe = &corev1.Probe{
-		Handler:             probeHandler,
-		InitialDelaySeconds: 60,
-		TimeoutSeconds:      10,
-		PeriodSeconds:       60,
-	}
+	container.LivenessProbe = res.GetLivenessProbe(probeHandler)
+	container.ReadinessProbe = res.GetReadinessProbe(probeHandler)
 	return container
 }

@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/IBM/ibm-licensing-operator)](https://goreportcard.com/report/github.com/IBM/ibm-licensing-operator)
+
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
 * [License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)](#ibm-licensing-operator)
 * [License Service for stand-alone IBM Containerized Software without IBM Cloud Paks](#ibm-licensing-operator-for-stand-alone-ibm-containerized-software)
