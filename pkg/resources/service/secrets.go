@@ -32,11 +32,11 @@ const ReporterSecretTokenKeyName = "token"
 const UploadConfigMapKey = "url"
 
 func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
-	return res.GetSecretToken(instance.Spec.APISecretToken, instance.GetNamespace(), APISecretTokenKeyName, LabelsForMeta(instance))
+	return res.GetSecretToken(instance.Spec.APISecretToken, instance.Spec.InstanceNamespace, APISecretTokenKeyName, LabelsForMeta(instance))
 }
 
 func GetUploadToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
-	return res.GetSecretToken(APIUploadTokenName, instance.GetNamespace(), APIUploadTokenKeyName, LabelsForMeta(instance))
+	return res.GetSecretToken(APIUploadTokenName, instance.Spec.InstanceNamespace, APIUploadTokenKeyName, LabelsForMeta(instance))
 }
 
 func GetUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) *corev1.ConfigMap {
