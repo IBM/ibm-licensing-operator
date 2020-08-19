@@ -143,7 +143,7 @@ func (r *ReconcileIBMLicenseServiceReporter) Reconcile(request reconcile.Request
 		r.reconcileDeployment,
 		r.reconcileService,
 		r.reconcileReporterRoute,
-		r.reconcileUiRoute,
+		r.reconcileUIRoute,
 	}
 
 	// Fetch the IBMLicenseServiceReporter instance
@@ -376,8 +376,8 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileReporterRoute(instance *op
 	return r.reconcileResourceExistence(instance, expectedRoute, foundRoute, namespacedName)
 }
 
-func (r *ReconcileIBMLicenseServiceReporter) reconcileUiRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
-	expectedRoute := reporter.GetUiRoute(instance)
+func (r *ReconcileIBMLicenseServiceReporter) reconcileUIRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
+	expectedRoute := reporter.GetUIRoute(instance)
 	foundRoute := &routev1.Route{}
 	namespacedName := types.NamespacedName{Name: expectedRoute.GetName(), Namespace: expectedRoute.GetNamespace()}
 	return r.reconcileResourceExistence(instance, expectedRoute, foundRoute, namespacedName)

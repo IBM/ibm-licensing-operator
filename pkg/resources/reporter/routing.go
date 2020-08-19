@@ -44,10 +44,10 @@ func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *rou
 	}
 }
 
-func GetUiRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *routev1.Route {
+func GetUIRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *routev1.Route {
 	return &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      LicenseReporterUiBase,
+			Name:      LicenseReporterUIBase,
 			Namespace: instance.GetNamespace(),
 			Labels:    LabelsForMeta(instance),
 		},
