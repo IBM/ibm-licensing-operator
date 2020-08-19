@@ -32,7 +32,7 @@ func GetRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *routev1.Rou
 		Spec: routev1.RouteSpec{
 			To: routev1.RouteTargetReference{
 				Kind: "Service",
-				Name: GetResourceName(instance),
+				Name: LicenseReporterResourceBase,
 			},
 			Port: &routev1.RoutePort{
 				TargetPort: receiverTargetPortName,
