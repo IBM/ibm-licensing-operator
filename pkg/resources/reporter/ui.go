@@ -39,6 +39,10 @@ func getReporterUIEnvironmentVariables() []corev1.EnvVar {
 			},
 		},
 		{
+			Name:  "NODE_TLS_REJECT_UNAUTHORIZED",
+			Value: "0",
+		},
+		{
 			Name: "WLP_CLIENT_SECRET",
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
