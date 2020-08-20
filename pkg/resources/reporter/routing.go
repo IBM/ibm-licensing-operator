@@ -19,6 +19,7 @@ package reporter
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	routev1 "github.com/openshift/api/route/v1"
+	extensionsv1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -44,23 +45,62 @@ func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *rou
 	}
 }
 
-func GetUIRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *routev1.Route {
-	return &routev1.Route{
+func annotationsForIngress() map[string]string {
+	return map[string]string{"icp.management.ibm.com/auth-type": "access-token", "kubernetes.io/ingress.class": "ibm-icp-management"}
+}
+
+func GetUIIngress(instance *operatorv1alpha1.IBMLicenseServiceReporter) *extensionsv1.Ingress {
+	return &extensionsv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      LicenseReporterUIBase,
+			Name:        LicenseReporterUIBase,
+			Namespace:   instance.GetNamespace(),
+			Labels:      LabelsForMeta(instance),
+			Annotations: annotationsForIngress(),
+		},
+		Spec: extensionsv1.IngressSpec{
+			Rules: []extensionsv1.IngressRule{
+				{
+					IngressRuleValue: extensionsv1.IngressRuleValue{
+						HTTP: &extensionsv1.HTTPIngressRuleValue{
+							Paths: []extensionsv1.HTTPIngressPath{
+								{
+									Path: "/license-service",
+									Backend: extensionsv1.IngressBackend{
+										ServiceName: LicenseReporterResourceBase,
+										ServicePort: reporterUIServicePort,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func GetUIIngressProxy(instance *operatorv1alpha1.IBMLicenseServiceReporter) *extensionsv1.Ingress {
+	return &extensionsv1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      LicenseReporterUIBase + "-proxy",
 			Namespace: instance.GetNamespace(),
 			Labels:    LabelsForMeta(instance),
 		},
-		Spec: routev1.RouteSpec{
-			To: routev1.RouteTargetReference{
-				Kind: "Service",
-				Name: LicenseReporterResourceBase,
-			},
-			Port: &routev1.RoutePort{
-				TargetPort: reporterUITargetPortName,
-			},
-			TLS: &routev1.TLSConfig{
-				Termination: routev1.TLSTerminationPassthrough,
+		Spec: extensionsv1.IngressSpec{
+			Rules: []extensionsv1.IngressRule{
+				{
+					IngressRuleValue: extensionsv1.IngressRuleValue{
+						HTTP: &extensionsv1.HTTPIngressRuleValue{
+							Paths: []extensionsv1.HTTPIngressPath{{
+								Path: "/console",
+								Backend: extensionsv1.IngressBackend{
+									ServiceName: LicenseReporterResourceBase,
+									ServicePort: reporterUIServicePort,
+								},
+							}},
+						},
+					},
+				},
 			},
 		},
 	}
