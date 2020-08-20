@@ -29,7 +29,7 @@ const PostgresPgDataKey = "POSTGRES_PGDATA"
 
 const DatabaseUser = "postgres"
 const DatabaseName = "postgres"
-const DatabaseMountPoint = "/var/lib/postgresql/data"
+const DatabaseMountPoint = "/var/lib/postgresql"
 const PgData = DatabaseMountPoint + "/pgdata"
 
 const DatabaseContainerName = "database"
