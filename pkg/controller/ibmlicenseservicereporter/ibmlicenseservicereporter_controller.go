@@ -146,6 +146,7 @@ func (r *ReconcileIBMLicenseServiceReporter) Reconcile(request reconcile.Request
 		r.reconcileService,
 		r.reconcileReporterRoute,
 		r.reconcileUIIngress,
+		r.reconcileIngressProxy,
 	}
 
 	// Fetch the IBMLicenseServiceReporter instance
@@ -380,6 +381,13 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileReporterRoute(instance *op
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileUIIngress(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
 	expectedIngress := reporter.GetUIIngress(instance)
+	foundIngress := &extensionsv1.Ingress{}
+	namespacedName := types.NamespacedName{Name: expectedIngress.GetName(), Namespace: expectedIngress.GetNamespace()}
+	return r.reconcileResourceExistence(instance, expectedIngress, foundIngress, namespacedName)
+}
+
+func (r *ReconcileIBMLicenseServiceReporter) reconcileIngressProxy(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
+	expectedIngress := reporter.GetUIIngressProxy(instance)
 	foundIngress := &extensionsv1.Ingress{}
 	namespacedName := types.NamespacedName{Name: expectedIngress.GetName(), Namespace: expectedIngress.GetNamespace()}
 	return r.reconcileResourceExistence(instance, expectedIngress, foundIngress, namespacedName)

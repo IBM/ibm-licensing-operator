@@ -78,3 +78,30 @@ func GetUIIngress(instance *operatorv1alpha1.IBMLicenseServiceReporter) *extensi
 		},
 	}
 }
+
+func GetUIIngressProxy(instance *operatorv1alpha1.IBMLicenseServiceReporter) *extensionsv1.Ingress {
+	return &extensionsv1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      LicenseReporterUIBase + "-proxy",
+			Namespace: instance.GetNamespace(),
+			Labels:    LabelsForMeta(instance),
+		},
+		Spec: extensionsv1.IngressSpec{
+			Rules: []extensionsv1.IngressRule{
+				{
+					IngressRuleValue: extensionsv1.IngressRuleValue{
+						HTTP: &extensionsv1.HTTPIngressRuleValue{
+							Paths: []extensionsv1.HTTPIngressPath{{
+								Path: "/console",
+								Backend: extensionsv1.IngressBackend{
+									ServiceName: LicenseReporterResourceBase,
+									ServicePort: reporterUIServicePort,
+								},
+							}},
+						},
+					},
+				},
+			},
+		},
+	}
+}
