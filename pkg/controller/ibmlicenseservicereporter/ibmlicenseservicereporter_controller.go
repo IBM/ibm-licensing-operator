@@ -21,6 +21,8 @@ import (
 	"reflect"
 	"time"
 
+	extensionsv1 "k8s.io/api/extensions/v1beta1"
+
 	"github.com/go-logr/logr"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
@@ -143,7 +145,7 @@ func (r *ReconcileIBMLicenseServiceReporter) Reconcile(request reconcile.Request
 		r.reconcileDeployment,
 		r.reconcileService,
 		r.reconcileReporterRoute,
-		r.reconcileUIRoute,
+		r.reconcileUIIngress,
 	}
 
 	// Fetch the IBMLicenseServiceReporter instance
@@ -376,11 +378,11 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileReporterRoute(instance *op
 	return r.reconcileResourceExistence(instance, expectedRoute, foundRoute, namespacedName)
 }
 
-func (r *ReconcileIBMLicenseServiceReporter) reconcileUIRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
-	expectedRoute := reporter.GetUIRoute(instance)
-	foundRoute := &routev1.Route{}
-	namespacedName := types.NamespacedName{Name: expectedRoute.GetName(), Namespace: expectedRoute.GetNamespace()}
-	return r.reconcileResourceExistence(instance, expectedRoute, foundRoute, namespacedName)
+func (r *ReconcileIBMLicenseServiceReporter) reconcileUIIngress(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
+	expectedIngress := reporter.GetUIIngress(instance)
+	foundIngress := &extensionsv1.Ingress{}
+	namespacedName := types.NamespacedName{Name: expectedIngress.GetName(), Namespace: expectedIngress.GetNamespace()}
+	return r.reconcileResourceExistence(instance, expectedIngress, foundIngress, namespacedName)
 }
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileResourceExistence(
