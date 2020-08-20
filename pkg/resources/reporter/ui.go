@@ -68,7 +68,7 @@ func getReporterUIEnvironmentVariables() []corev1.EnvVar {
 func getReporterUIProbeHandler() corev1.Handler {
 	return corev1.Handler{
 		HTTPGet: &corev1.HTTPGetAction{
-			Path: "/license-advisor/version.txt",
+			Path: "/license-service/version.txt",
 			Port: intstr.IntOrString{
 				Type:   intstr.Int,
 				IntVal: reporterUIServicePort.IntVal,
