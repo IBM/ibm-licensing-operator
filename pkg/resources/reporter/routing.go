@@ -22,20 +22,42 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func GetRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *routev1.Route {
+func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *routev1.Route {
 	return &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetResourceName(instance),
+			Name:      LicenseReporterResourceBase,
 			Namespace: instance.GetNamespace(),
 			Labels:    LabelsForMeta(instance),
 		},
 		Spec: routev1.RouteSpec{
 			To: routev1.RouteTargetReference{
 				Kind: "Service",
-				Name: GetResourceName(instance),
+				Name: LicenseReporterResourceBase,
 			},
 			Port: &routev1.RoutePort{
 				TargetPort: receiverTargetPortName,
+			},
+			TLS: &routev1.TLSConfig{
+				Termination: routev1.TLSTerminationPassthrough,
+			},
+		},
+	}
+}
+
+func GetUIRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *routev1.Route {
+	return &routev1.Route{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      LicenseReporterUIBase,
+			Namespace: instance.GetNamespace(),
+			Labels:    LabelsForMeta(instance),
+		},
+		Spec: routev1.RouteSpec{
+			To: routev1.RouteTargetReference{
+				Kind: "Service",
+				Name: LicenseReporterResourceBase,
+			},
+			Port: &routev1.RoutePort{
+				TargetPort: reporterUITargetPortName,
 			},
 			TLS: &routev1.TLSConfig{
 				Termination: routev1.TLSTerminationPassthrough,

@@ -38,6 +38,7 @@ const UIContainerName = "reporter-ui"
 const ReceiverPort = 8080
 const UIPort = 3001
 
+const LicenseReporterUIBase = "ibm-license-service-reporter-ui"
 const LicenseReporterResourceBase = "ibm-license-service-reporter"
 const LicenseReporterComponentName = "ibm-license-service-reporter-svc"
 const LicenseReporterReleaseName = "ibm-license-service-reporter"
