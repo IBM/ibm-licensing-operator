@@ -386,7 +386,7 @@ spec:
                 - ibm-licensing-operator
                 env:
                 - name: OPERAND_LICENSING_IMAGE
-                  value: quay.io/opencloudio/ibm-licensing@sha256:d7828f93a8af0341e086b82e322be663988fd7b8cfc73d2dc298df19678d228d
+                  value: quay.io/opencloudio/ibm-licensing@sha256:5d92000b11499b6505967ade7e1ad093089704371834923b1d67f8bc950599a2
                 - name: WATCH_NAMESPACE
                   valueFrom:
                     fieldRef:
