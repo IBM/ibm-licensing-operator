@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func getReporterUIEnvironmentVariables() []corev1.EnvVar {
+func getReporterUIEnvironmentVariables(instance *operatorv1alpha1.IBMLicenseServiceReporter) []corev1.EnvVar {
 	return []corev1.EnvVar{
 		{
 			Name: "WLP_CLIENT_ID",
@@ -58,6 +58,21 @@ func getReporterUIEnvironmentVariables() []corev1.EnvVar {
 			Value: strconv.Itoa(UIPort),
 		},
 		{
+			Name:  "baseUrl",
+			Value: "https://localhost:8080",
+		},
+		{
+			Name: "apiToken",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: instance.Spec.APISecretToken,
+					},
+					Key: APIReciverSecretTokenKeyName,
+				},
+			},
+		},
+		{
 			Name:  "cfcRouterUrl",
 			Value: "https://icp-management-ingress",
 		},
@@ -85,7 +100,7 @@ func getReporterUIProbeHandler() corev1.Handler {
 func GetReporterUIContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
 	container := res.GetContainerBase(instance.Spec.ReporterUIContainer)
 	container.ImagePullPolicy = corev1.PullAlways
-	container.Env = getReporterUIEnvironmentVariables()
+	container.Env = getReporterUIEnvironmentVariables(instance)
 	container.Resources = instance.Spec.ReporterUIContainer.Resources
 	container.Name = UIContainerName
 	container.Ports = []corev1.ContainerPort{
