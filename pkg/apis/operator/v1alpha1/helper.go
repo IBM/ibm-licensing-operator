@@ -34,12 +34,16 @@ import (
 const defaultQuayRegistry = "quay.io/opencloudio"
 
 const defaultLicensingImageName = "ibm-licensing"
+const defaultLicensingImageTagPostfix = "sha256:5d92000b11499b6505967ade7e1ad093089704371834923b1d67f8bc950599a2"
+
 const defaultReporterImageName = "ibm-license-service-reporter"
+const defaultReporterImageTagPostfix = "sha256:ec8edc42a291bbf3887e371b29ada2432bfd910e3113648594c4951721dfed63"
+
 const defaultReporterUIImageName = "ibm-license-service-reporter-ui"
-const defaultLicensingImageTagPostfix = "1.2.0"
+const defaultReporterUIImageTagPostfix = "sha256:7696f035fe4f3a9405efeeab8bef44a2aa9f5f90c15329d28c2238356c2b300f"
 
 const defaultDatabaseImageName = "ibm-postgresql"
-const defaultDatabaseImageTagPostfix = "12.0.0"
+const defaultDatabaseImageTagPostfix = "sha256:5e68245c21a7252afcca65f82faabdc7551429b844896f8499a52bf092c49caf"
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
@@ -206,7 +210,7 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 		spec.ReceiverContainer.ImageRegistry = defaultQuayRegistry
 	}
 	if spec.ReceiverContainer.ImageTagPostfix == "" {
-		spec.ReceiverContainer.ImageTagPostfix = defaultLicensingImageTagPostfix
+		spec.ReceiverContainer.ImageTagPostfix = defaultReporterImageTagPostfix
 	}
 	if spec.ReporterUIContainer.ImageName == "" {
 		spec.ReporterUIContainer.ImageName = defaultReporterUIImageName
@@ -215,7 +219,7 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 		spec.ReporterUIContainer.ImageRegistry = defaultQuayRegistry
 	}
 	if spec.ReporterUIContainer.ImageTagPostfix == "" {
-		spec.ReporterUIContainer.ImageTagPostfix = defaultLicensingImageTagPostfix
+		spec.ReporterUIContainer.ImageTagPostfix = defaultReporterUIImageTagPostfix
 	}
 
 	initResourcesIfNil(&spec.DatabaseContainer)
