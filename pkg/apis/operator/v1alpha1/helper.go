@@ -63,6 +63,10 @@ type Container struct {
 
 	// Resources and limits for container
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// IBM License Service Pod pull policy, default: IfNotPresent
+	// +kubebuilder:validation:Enum=Always;IfNotPresent;Never
+	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
 }
 
 type IBMLicenseServiceRouteOptions struct {
@@ -77,9 +81,6 @@ type IBMLicenseServiceBaseSpec struct {
 	APISecretToken string `json:"apiSecretToken,omitempty"`
 	// Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing image
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
-	// IBM License Service Pod pull policy, default: IfNotPresent
-	// +kubebuilder:validation:Enum=Always;IfNotPresent;Never
-	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
 	// options: self-signed or custom
 	// +kubebuilder:validation:Enum=self-signed;custom
 	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
@@ -97,12 +98,12 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
 
-func (spec *IBMLicensingSpec) GetFullImage() string {
+func (container *Container) GetFullImage() string {
 	// If there is ":" in image tag then we use "@" for digest as only digest can have it
-	if strings.ContainsAny(spec.ImageTagPostfix, ":") {
-		return spec.ImageRegistry + "/" + spec.ImageName + "@" + spec.ImageTagPostfix
+	if strings.ContainsAny(container.ImageTagPostfix, ":") {
+		return container.ImageRegistry + "/" + container.ImageName + "@" + container.ImageTagPostfix
 	}
-	return spec.ImageRegistry + "/" + spec.ImageName + ":" + spec.ImageTagPostfix
+	return container.ImageRegistry + "/" + container.ImageName + ":" + container.ImageTagPostfix
 }
 
 // IsImageEmpty returns true when any part of image name is not defined

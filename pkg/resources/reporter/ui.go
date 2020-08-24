@@ -99,9 +99,7 @@ func getReporterUIProbeHandler() corev1.Handler {
 
 func GetReporterUIContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
 	container := res.GetContainerBase(instance.Spec.ReporterUIContainer)
-	container.ImagePullPolicy = corev1.PullAlways
 	container.Env = getReporterUIEnvironmentVariables(instance)
-	container.Resources = instance.Spec.ReporterUIContainer.Resources
 	container.Name = UIContainerName
 	container.Ports = []corev1.ContainerPort{
 		{

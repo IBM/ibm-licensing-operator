@@ -141,24 +141,19 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 }
 
 func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
-	securityContext := res.GetSecurityContext()
+	container := res.GetContainerBase(spec.Container)
 	if spec.SecurityContext != nil {
-		securityContext.RunAsUser = &spec.SecurityContext.RunAsUser
+		container.SecurityContext.RunAsUser = &spec.SecurityContext.RunAsUser
 	}
-	return corev1.Container{
-		Image:           spec.GetFullImage(),
-		ImagePullPolicy: corev1.PullPolicy(spec.ImagePullPolicy),
-		VolumeMounts:    getLicensingVolumeMounts(spec),
-		Env:             getLicensingEnvironmentVariables(spec),
-		Ports: []corev1.ContainerPort{
-			{
-				ContainerPort: licensingServicePort.IntVal,
-				Protocol:      corev1.ProtocolTCP,
-			},
+	container.VolumeMounts = getLicensingVolumeMounts(spec)
+	container.Env = getLicensingEnvironmentVariables(spec)
+	container.Ports = []corev1.ContainerPort{
+		{
+			ContainerPort: licensingServicePort.IntVal,
+			Protocol:      corev1.ProtocolTCP,
 		},
-		Resources:       spec.Resources,
-		SecurityContext: securityContext,
 	}
+	return container
 }
 
 func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
