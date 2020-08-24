@@ -80,7 +80,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to secondary resources
-	err = res.WatchForResources(log, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
+	err = res.WatchForResources(log, &operatorv1alpha1.IBMLicenseServiceReporter{}, c, []res.ResourceObject{
 		&appsv1.Deployment{},
 		&corev1.Service{},
 	})
@@ -97,7 +97,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	if isOpenshiftCluster {
 		// Watch for changes to openshift resources if on OC
-		err = res.WatchForResources(log, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
+		err = res.WatchForResources(log, &operatorv1alpha1.IBMLicenseServiceReporter{}, c, []res.ResourceObject{
 			&routev1.Route{},
 		})
 		if err != nil {
