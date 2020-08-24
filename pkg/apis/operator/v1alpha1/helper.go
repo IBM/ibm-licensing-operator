@@ -61,12 +61,10 @@ type Container struct {
 	// IBM Licensing Service docker Image Tag or Digest, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
 	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
 
-	// Resources and limits for container
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
-	// IBM License Service Pod pull policy, default: IfNotPresent
 	// +kubebuilder:validation:Enum=Always;IfNotPresent;Never
-	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
+	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
 
 type IBMLicenseServiceRouteOptions struct {
@@ -138,10 +136,14 @@ func (spec *IBMLicensingSpec) setImageParametersFromEnv(fullImageName string) er
 	return nil
 }
 
-func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
-	if spec.ImagePullPolicy == "" {
-		spec.ImagePullPolicy = "IfNotPresent"
+func (container *Container) setImagePullPolicyIfNotSet() {
+	if container.ImagePullPolicy == "" {
+		container.ImagePullPolicy = corev1.PullIfNotPresent
 	}
+}
+
+func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
+	spec.Container.setImagePullPolicyIfNotSet()
 	if spec.HTTPSCertsSource == "" {
 		spec.HTTPSCertsSource = "self-signed"
 	}
@@ -156,11 +158,11 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 		spec.APISecretToken = "ibm-licensing-token"
 	}
 
-	initResourcesIfNil(&spec.Container)
-	setResourceLimitMemoryIfNotSet(spec.Container, *memory512Mi)
-	setResourceRequestMemoryIfNotSet(spec.Container, *memory256Mi)
-	setResourceLimitCPUIfNotSet(spec.Container, *cpu500m)
-	setResourceRequestCPUIfNotSet(spec.Container, *cpu200m)
+	spec.Container.initResourcesIfNil()
+	spec.Container.setResourceLimitMemoryIfNotSet(*memory512Mi)
+	spec.Container.setResourceRequestMemoryIfNotSet(*memory256Mi)
+	spec.Container.setResourceLimitCPUIfNotSet(*cpu500m)
+	spec.Container.setResourceRequestCPUIfNotSet(*cpu200m)
 
 	licensingFullImageFromEnv := os.Getenv("OPERAND_LICENSING_IMAGE")
 
@@ -223,23 +225,26 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 		spec.ReporterUIContainer.ImageTagPostfix = defaultReporterUIImageTagPostfix
 	}
 
-	initResourcesIfNil(&spec.DatabaseContainer)
-	setResourceLimitMemoryIfNotSet(spec.DatabaseContainer, *memory300Mi)
-	setResourceRequestMemoryIfNotSet(spec.DatabaseContainer, *memory256Mi)
-	setResourceLimitCPUIfNotSet(spec.DatabaseContainer, *cpu300m)
-	setResourceRequestCPUIfNotSet(spec.DatabaseContainer, *cpu200m)
+	spec.DatabaseContainer.initResourcesIfNil()
+	spec.DatabaseContainer.setImagePullPolicyIfNotSet()
+	spec.DatabaseContainer.setResourceLimitMemoryIfNotSet(*memory300Mi)
+	spec.DatabaseContainer.setResourceRequestMemoryIfNotSet(*memory256Mi)
+	spec.DatabaseContainer.setResourceLimitCPUIfNotSet(*cpu300m)
+	spec.DatabaseContainer.setResourceRequestCPUIfNotSet(*cpu200m)
 
-	initResourcesIfNil(&spec.ReceiverContainer)
-	setResourceLimitMemoryIfNotSet(spec.ReceiverContainer, *memory300Mi)
-	setResourceRequestMemoryIfNotSet(spec.ReceiverContainer, *memory256Mi)
-	setResourceLimitCPUIfNotSet(spec.ReceiverContainer, *cpu300m)
-	setResourceRequestCPUIfNotSet(spec.ReceiverContainer, *cpu200m)
+	spec.ReceiverContainer.initResourcesIfNil()
+	spec.ReceiverContainer.setImagePullPolicyIfNotSet()
+	spec.ReceiverContainer.setResourceLimitMemoryIfNotSet(*memory300Mi)
+	spec.ReceiverContainer.setResourceRequestMemoryIfNotSet(*memory256Mi)
+	spec.ReceiverContainer.setResourceLimitCPUIfNotSet(*cpu300m)
+	spec.ReceiverContainer.setResourceRequestCPUIfNotSet(*cpu200m)
 
-	initResourcesIfNil(&spec.ReporterUIContainer)
-	setResourceLimitMemoryIfNotSet(spec.ReporterUIContainer, *memory300Mi)
-	setResourceRequestMemoryIfNotSet(spec.ReporterUIContainer, *memory256Mi)
-	setResourceLimitCPUIfNotSet(spec.ReporterUIContainer, *cpu300m)
-	setResourceRequestCPUIfNotSet(spec.ReporterUIContainer, *cpu200m)
+	spec.ReporterUIContainer.initResourcesIfNil()
+	spec.ReporterUIContainer.setImagePullPolicyIfNotSet()
+	spec.ReporterUIContainer.setResourceLimitMemoryIfNotSet(*memory300Mi)
+	spec.ReporterUIContainer.setResourceRequestMemoryIfNotSet(*memory256Mi)
+	spec.ReporterUIContainer.setResourceLimitCPUIfNotSet(*cpu300m)
+	spec.ReporterUIContainer.setResourceRequestCPUIfNotSet(*cpu200m)
 
 	if spec.Capacity.IsZero() {
 		spec.Capacity = *size1Gi
@@ -291,7 +296,7 @@ func getStorageClass(reqLogger logr.Logger, r client_reader.Reader) (string, err
 	return "", fmt.Errorf("could not find dynamic provisioner default storage class in the cluster")
 }
 
-func initResourcesIfNil(container *Container) {
+func (container *Container) initResourcesIfNil() {
 	if container.Resources.Limits == nil {
 		container.Resources.Limits = corev1.ResourceList{}
 	}
@@ -300,25 +305,25 @@ func initResourcesIfNil(container *Container) {
 	}
 }
 
-func setResourceLimitCPUIfNotSet(container Container, value resource.Quantity) {
+func (container *Container) setResourceLimitCPUIfNotSet(value resource.Quantity) {
 	if container.Resources.Limits.Cpu().IsZero() {
 		container.Resources.Limits[corev1.ResourceCPU] = value
 	}
 }
 
-func setResourceRequestCPUIfNotSet(container Container, value resource.Quantity) {
+func (container *Container) setResourceRequestCPUIfNotSet(value resource.Quantity) {
 	if container.Resources.Requests.Cpu().IsZero() {
 		container.Resources.Requests[corev1.ResourceCPU] = value
 	}
 }
 
-func setResourceLimitMemoryIfNotSet(container Container, value resource.Quantity) {
+func (container *Container) setResourceLimitMemoryIfNotSet(value resource.Quantity) {
 	if container.Resources.Limits.Memory().IsZero() {
 		container.Resources.Limits[corev1.ResourceMemory] = value
 	}
 }
 
-func setResourceRequestMemoryIfNotSet(container Container, value resource.Quantity) {
+func (container *Container) setResourceRequestMemoryIfNotSet(value resource.Quantity) {
 	if container.Resources.Requests.Memory().IsZero() {
 		container.Resources.Requests[corev1.ResourceMemory] = value
 	}

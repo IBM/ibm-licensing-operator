@@ -65,7 +65,8 @@ spec:
                 deployment
               type: string
             imagePullPolicy:
-              description: 'IBM License Service Pod pull policy, default: IfNotPresent'
+              description: PullPolicy describes a policy for if/when to pull a container
+                image
               enum:
               - Always
               - IfNotPresent
@@ -145,7 +146,7 @@ spec:
               - INFO
               type: string
             resources:
-              description: Resources and limits for container
+              description: ResourceRequirements describes the compute resource requirements.
               properties:
                 limits:
                   additionalProperties:

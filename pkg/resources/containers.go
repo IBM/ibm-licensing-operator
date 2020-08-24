@@ -59,7 +59,7 @@ func GetLivenessProbe(probeHandler corev1.Handler) *corev1.Probe {
 func GetContainerBase(container operatorv1alpha1.Container) corev1.Container {
 	return corev1.Container{
 		Image:           container.GetFullImage(),
-		ImagePullPolicy: corev1.PullPolicy(container.ImagePullPolicy),
+		ImagePullPolicy: container.ImagePullPolicy,
 		SecurityContext: GetSecurityContext(),
 		Resources:       container.Resources,
 	}
