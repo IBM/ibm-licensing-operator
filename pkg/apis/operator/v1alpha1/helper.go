@@ -104,13 +104,13 @@ func (container *Container) GetFullImage() string {
 	return container.ImageRegistry + "/" + container.ImageName + ":" + container.ImageTagPostfix
 }
 
-// IsImageEmpty returns true when any part of image name is not defined
-func (spec *IBMLicensingSpec) IsImageEmpty() bool {
-	return spec.ImageRegistry == "" && spec.ImageName == "" && spec.ImageTagPostfix == ""
+// isImageEmpty returns true when any part of image name is not defined
+func (container *Container) isImageEmpty() bool {
+	return container.ImageRegistry == "" && container.ImageName == "" && container.ImageTagPostfix == ""
 }
 
 // setImageParametersFromEnv set container image info from full image reference
-func (spec *IBMLicensingSpec) setImageParametersFromEnv(fullImageName string) error {
+func (container *Container) setImageParametersFromEnv(fullImageName string) error {
 	// First get imageName, to do that we need to split FullImage like path
 	imagePathSplitted := strings.Split(fullImageName, "/")
 	if len(imagePathSplitted) < 2 {
@@ -130,9 +130,9 @@ func (spec *IBMLicensingSpec) setImageParametersFromEnv(fullImageName string) er
 			return errors.New("your image ENV variable in operator deployment should have image tag and image name separated by only one \":\" symbol")
 		}
 	}
-	spec.ImageTagPostfix = imageWithTagSplitted[1]
-	spec.ImageName = imageWithTagSplitted[0]
-	spec.ImageRegistry = strings.Join(imagePathSplitted[:len(imagePathSplitted)-1], "/")
+	container.ImageTagPostfix = imageWithTagSplitted[1]
+	container.ImageName = imageWithTagSplitted[0]
+	container.ImageRegistry = strings.Join(imagePathSplitted[:len(imagePathSplitted)-1], "/")
 	return nil
 }
 
@@ -167,7 +167,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 	licensingFullImageFromEnv := os.Getenv("OPERAND_LICENSING_IMAGE")
 
 	// Check if operator image variable is set and CR has no overrides
-	if licensingFullImageFromEnv != "" && spec.IsImageEmpty() {
+	if licensingFullImageFromEnv != "" && spec.isImageEmpty() {
 		err := spec.setImageParametersFromEnv(licensingFullImageFromEnv)
 		if err != nil {
 			return err
@@ -196,33 +196,63 @@ func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 }
 
 func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logger, r client_reader.Reader) error {
-	if spec.DatabaseContainer.ImageName == "" {
-		spec.DatabaseContainer.ImageName = defaultDatabaseImageName
-	}
-	if spec.DatabaseContainer.ImageRegistry == "" {
-		spec.DatabaseContainer.ImageRegistry = defaultQuayRegistry
-	}
-	if spec.DatabaseContainer.ImageTagPostfix == "" {
-		spec.DatabaseContainer.ImageTagPostfix = defaultDatabaseImageTagPostfix
+	databaseFullImageFromEnv := os.Getenv("OPERAND_REPORTER_DATABASE_IMAGE")
+	// Check if operator image variable is set and CR has no overrides
+	if databaseFullImageFromEnv != "" && spec.DatabaseContainer.isImageEmpty() {
+		err := spec.DatabaseContainer.setImageParametersFromEnv(databaseFullImageFromEnv)
+		if err != nil {
+			return err
+		}
+	} else {
+		// If CR has at least one override, make sure all parts of the image are filled at least with default values
+		if spec.DatabaseContainer.ImageName == "" {
+			spec.DatabaseContainer.ImageName = defaultDatabaseImageName
+		}
+		if spec.DatabaseContainer.ImageRegistry == "" {
+			spec.DatabaseContainer.ImageRegistry = defaultQuayRegistry
+		}
+		if spec.DatabaseContainer.ImageTagPostfix == "" {
+			spec.DatabaseContainer.ImageTagPostfix = defaultDatabaseImageTagPostfix
+		}
 	}
 
-	if spec.ReceiverContainer.ImageName == "" {
-		spec.ReceiverContainer.ImageName = defaultReporterImageName
+	receiverFullImageFromEnv := os.Getenv("OPERAND_REPORTER_RECEIVER_IMAGE")
+	// Check if operator image variable is set and CR has no overrides
+	if receiverFullImageFromEnv != "" && spec.ReceiverContainer.isImageEmpty() {
+		err := spec.ReceiverContainer.setImageParametersFromEnv(receiverFullImageFromEnv)
+		if err != nil {
+			return err
+		}
+	} else {
+		// If CR has at least one override, make sure all parts of the image are filled at least with default values
+		if spec.ReceiverContainer.ImageName == "" {
+			spec.ReceiverContainer.ImageName = defaultReporterImageName
+		}
+		if spec.ReceiverContainer.ImageRegistry == "" {
+			spec.ReceiverContainer.ImageRegistry = defaultQuayRegistry
+		}
+		if spec.ReceiverContainer.ImageTagPostfix == "" {
+			spec.ReceiverContainer.ImageTagPostfix = defaultReporterImageTagPostfix
+		}
 	}
-	if spec.ReceiverContainer.ImageRegistry == "" {
-		spec.ReceiverContainer.ImageRegistry = defaultQuayRegistry
-	}
-	if spec.ReceiverContainer.ImageTagPostfix == "" {
-		spec.ReceiverContainer.ImageTagPostfix = defaultReporterImageTagPostfix
-	}
-	if spec.ReporterUIContainer.ImageName == "" {
-		spec.ReporterUIContainer.ImageName = defaultReporterUIImageName
-	}
-	if spec.ReporterUIContainer.ImageRegistry == "" {
-		spec.ReporterUIContainer.ImageRegistry = defaultQuayRegistry
-	}
-	if spec.ReporterUIContainer.ImageTagPostfix == "" {
-		spec.ReporterUIContainer.ImageTagPostfix = defaultReporterUIImageTagPostfix
+
+	uiFullImageFromEnv := os.Getenv("OPERAND_REPORTER_UI_IMAGE")
+	// Check if operator image variable is set and CR has no overrides
+	if uiFullImageFromEnv != "" && spec.ReporterUIContainer.isImageEmpty() {
+		err := spec.ReporterUIContainer.setImageParametersFromEnv(uiFullImageFromEnv)
+		if err != nil {
+			return err
+		}
+	} else {
+		if spec.ReporterUIContainer.ImageName == "" {
+			spec.ReporterUIContainer.ImageName = defaultReporterUIImageName
+		}
+		if spec.ReporterUIContainer.ImageRegistry == "" {
+			spec.ReporterUIContainer.ImageRegistry = defaultQuayRegistry
+		}
+		if spec.ReporterUIContainer.ImageTagPostfix == "" {
+			spec.ReporterUIContainer.ImageTagPostfix = defaultReporterUIImageTagPostfix
+		}
 	}
 
 	spec.DatabaseContainer.initResourcesIfNil()
