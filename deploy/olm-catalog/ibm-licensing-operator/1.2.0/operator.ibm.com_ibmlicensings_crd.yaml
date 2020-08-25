@@ -65,7 +65,8 @@ spec:
                 deployment
               type: string
             imagePullPolicy:
-              description: 'IBM License Service Pod pull policy, default: IfNotPresent'
+              description: PullPolicy describes a policy for if/when to pull a container
+                image
               enum:
               - Always
               - IfNotPresent
@@ -145,7 +146,7 @@ spec:
               - INFO
               type: string
             resources:
-              description: Resources and limits for container
+              description: ResourceRequirements describes the compute resource requirements.
               properties:
                 limits:
                   additionalProperties:
@@ -153,7 +154,6 @@ spec:
                     - type: integer
                     - type: string
                     pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                    x-kubernetes-int-or-string: true
                   description: 'Limits describes the maximum amount of compute resources
                     allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                   type: object
@@ -163,7 +163,6 @@ spec:
                     - type: integer
                     - type: string
                     pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                    x-kubernetes-int-or-string: true
                   description: 'Requests describes the minimum amount of compute resources
                     required. If Requests is omitted for a container, it defaults
                     to Limits if that is explicitly specified, otherwise to an implementation-defined

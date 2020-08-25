@@ -61,8 +61,10 @@ type Container struct {
 	// IBM Licensing Service docker Image Tag or Digest, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
 	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
 
-	// Resources and limits for container
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// +kubebuilder:validation:Enum=Always;IfNotPresent;Never
+	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
 
 type IBMLicenseServiceRouteOptions struct {
@@ -77,9 +79,6 @@ type IBMLicenseServiceBaseSpec struct {
 	APISecretToken string `json:"apiSecretToken,omitempty"`
 	// Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing image
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
-	// IBM License Service Pod pull policy, default: IfNotPresent
-	// +kubebuilder:validation:Enum=Always;IfNotPresent;Never
-	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
 	// options: self-signed or custom
 	// +kubebuilder:validation:Enum=self-signed;custom
 	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
@@ -97,21 +96,21 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
 
-func (spec *IBMLicensingSpec) GetFullImage() string {
+func (container *Container) GetFullImage() string {
 	// If there is ":" in image tag then we use "@" for digest as only digest can have it
-	if strings.ContainsAny(spec.ImageTagPostfix, ":") {
-		return spec.ImageRegistry + "/" + spec.ImageName + "@" + spec.ImageTagPostfix
+	if strings.ContainsAny(container.ImageTagPostfix, ":") {
+		return container.ImageRegistry + "/" + container.ImageName + "@" + container.ImageTagPostfix
 	}
-	return spec.ImageRegistry + "/" + spec.ImageName + ":" + spec.ImageTagPostfix
+	return container.ImageRegistry + "/" + container.ImageName + ":" + container.ImageTagPostfix
 }
 
-// IsImageEmpty returns true when any part of image name is not defined
-func (spec *IBMLicensingSpec) IsImageEmpty() bool {
-	return spec.ImageRegistry == "" && spec.ImageName == "" && spec.ImageTagPostfix == ""
+// isImageEmpty returns true when any part of image name is not defined
+func (container *Container) isImageEmpty() bool {
+	return container.ImageRegistry == "" && container.ImageName == "" && container.ImageTagPostfix == ""
 }
 
 // setImageParametersFromEnv set container image info from full image reference
-func (spec *IBMLicensingSpec) setImageParametersFromEnv(fullImageName string) error {
+func (container *Container) setImageParametersFromEnv(fullImageName string) error {
 	// First get imageName, to do that we need to split FullImage like path
 	imagePathSplitted := strings.Split(fullImageName, "/")
 	if len(imagePathSplitted) < 2 {
@@ -131,16 +130,20 @@ func (spec *IBMLicensingSpec) setImageParametersFromEnv(fullImageName string) er
 			return errors.New("your image ENV variable in operator deployment should have image tag and image name separated by only one \":\" symbol")
 		}
 	}
-	spec.ImageTagPostfix = imageWithTagSplitted[1]
-	spec.ImageName = imageWithTagSplitted[0]
-	spec.ImageRegistry = strings.Join(imagePathSplitted[:len(imagePathSplitted)-1], "/")
+	container.ImageTagPostfix = imageWithTagSplitted[1]
+	container.ImageName = imageWithTagSplitted[0]
+	container.ImageRegistry = strings.Join(imagePathSplitted[:len(imagePathSplitted)-1], "/")
 	return nil
 }
 
-func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
-	if spec.ImagePullPolicy == "" {
-		spec.ImagePullPolicy = "IfNotPresent"
+func (container *Container) setImagePullPolicyIfNotSet() {
+	if container.ImagePullPolicy == "" {
+		container.ImagePullPolicy = corev1.PullIfNotPresent
 	}
+}
+
+func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
+	spec.Container.setImagePullPolicyIfNotSet()
 	if spec.HTTPSCertsSource == "" {
 		spec.HTTPSCertsSource = "self-signed"
 	}
@@ -155,16 +158,16 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 		spec.APISecretToken = "ibm-licensing-token"
 	}
 
-	initResourcesIfNil(&spec.Container)
-	setResourceLimitMemoryIfNotSet(spec.Container, *memory512Mi)
-	setResourceRequestMemoryIfNotSet(spec.Container, *memory256Mi)
-	setResourceLimitCPUIfNotSet(spec.Container, *cpu500m)
-	setResourceRequestCPUIfNotSet(spec.Container, *cpu200m)
+	spec.Container.initResourcesIfNil()
+	spec.Container.setResourceLimitMemoryIfNotSet(*memory512Mi)
+	spec.Container.setResourceRequestMemoryIfNotSet(*memory256Mi)
+	spec.Container.setResourceLimitCPUIfNotSet(*cpu500m)
+	spec.Container.setResourceRequestCPUIfNotSet(*cpu200m)
 
 	licensingFullImageFromEnv := os.Getenv("OPERAND_LICENSING_IMAGE")
 
 	// Check if operator image variable is set and CR has no overrides
-	if licensingFullImageFromEnv != "" && spec.IsImageEmpty() {
+	if licensingFullImageFromEnv != "" && spec.isImageEmpty() {
 		err := spec.setImageParametersFromEnv(licensingFullImageFromEnv)
 		if err != nil {
 			return err
@@ -193,52 +196,85 @@ func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 }
 
 func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logger, r client_reader.Reader) error {
-	if spec.DatabaseContainer.ImageName == "" {
-		spec.DatabaseContainer.ImageName = defaultDatabaseImageName
-	}
-	if spec.DatabaseContainer.ImageRegistry == "" {
-		spec.DatabaseContainer.ImageRegistry = defaultQuayRegistry
-	}
-	if spec.DatabaseContainer.ImageTagPostfix == "" {
-		spec.DatabaseContainer.ImageTagPostfix = defaultDatabaseImageTagPostfix
-	}
-
-	if spec.ReceiverContainer.ImageName == "" {
-		spec.ReceiverContainer.ImageName = defaultReporterImageName
-	}
-	if spec.ReceiverContainer.ImageRegistry == "" {
-		spec.ReceiverContainer.ImageRegistry = defaultQuayRegistry
-	}
-	if spec.ReceiverContainer.ImageTagPostfix == "" {
-		spec.ReceiverContainer.ImageTagPostfix = defaultReporterImageTagPostfix
-	}
-	if spec.ReporterUIContainer.ImageName == "" {
-		spec.ReporterUIContainer.ImageName = defaultReporterUIImageName
-	}
-	if spec.ReporterUIContainer.ImageRegistry == "" {
-		spec.ReporterUIContainer.ImageRegistry = defaultQuayRegistry
-	}
-	if spec.ReporterUIContainer.ImageTagPostfix == "" {
-		spec.ReporterUIContainer.ImageTagPostfix = defaultReporterUIImageTagPostfix
+	databaseFullImageFromEnv := os.Getenv("OPERAND_REPORTER_DATABASE_IMAGE")
+	// Check if operator image variable is set and CR has no overrides
+	if databaseFullImageFromEnv != "" && spec.DatabaseContainer.isImageEmpty() {
+		err := spec.DatabaseContainer.setImageParametersFromEnv(databaseFullImageFromEnv)
+		if err != nil {
+			return err
+		}
+	} else {
+		// If CR has at least one override, make sure all parts of the image are filled at least with default values
+		if spec.DatabaseContainer.ImageName == "" {
+			spec.DatabaseContainer.ImageName = defaultDatabaseImageName
+		}
+		if spec.DatabaseContainer.ImageRegistry == "" {
+			spec.DatabaseContainer.ImageRegistry = defaultQuayRegistry
+		}
+		if spec.DatabaseContainer.ImageTagPostfix == "" {
+			spec.DatabaseContainer.ImageTagPostfix = defaultDatabaseImageTagPostfix
+		}
 	}
 
-	initResourcesIfNil(&spec.DatabaseContainer)
-	setResourceLimitMemoryIfNotSet(spec.DatabaseContainer, *memory300Mi)
-	setResourceRequestMemoryIfNotSet(spec.DatabaseContainer, *memory256Mi)
-	setResourceLimitCPUIfNotSet(spec.DatabaseContainer, *cpu300m)
-	setResourceRequestCPUIfNotSet(spec.DatabaseContainer, *cpu200m)
+	receiverFullImageFromEnv := os.Getenv("OPERAND_REPORTER_RECEIVER_IMAGE")
+	// Check if operator image variable is set and CR has no overrides
+	if receiverFullImageFromEnv != "" && spec.ReceiverContainer.isImageEmpty() {
+		err := spec.ReceiverContainer.setImageParametersFromEnv(receiverFullImageFromEnv)
+		if err != nil {
+			return err
+		}
+	} else {
+		// If CR has at least one override, make sure all parts of the image are filled at least with default values
+		if spec.ReceiverContainer.ImageName == "" {
+			spec.ReceiverContainer.ImageName = defaultReporterImageName
+		}
+		if spec.ReceiverContainer.ImageRegistry == "" {
+			spec.ReceiverContainer.ImageRegistry = defaultQuayRegistry
+		}
+		if spec.ReceiverContainer.ImageTagPostfix == "" {
+			spec.ReceiverContainer.ImageTagPostfix = defaultReporterImageTagPostfix
+		}
+	}
 
-	initResourcesIfNil(&spec.ReceiverContainer)
-	setResourceLimitMemoryIfNotSet(spec.ReceiverContainer, *memory300Mi)
-	setResourceRequestMemoryIfNotSet(spec.ReceiverContainer, *memory256Mi)
-	setResourceLimitCPUIfNotSet(spec.ReceiverContainer, *cpu300m)
-	setResourceRequestCPUIfNotSet(spec.ReceiverContainer, *cpu200m)
+	uiFullImageFromEnv := os.Getenv("OPERAND_REPORTER_UI_IMAGE")
+	// Check if operator image variable is set and CR has no overrides
+	if uiFullImageFromEnv != "" && spec.ReporterUIContainer.isImageEmpty() {
+		err := spec.ReporterUIContainer.setImageParametersFromEnv(uiFullImageFromEnv)
+		if err != nil {
+			return err
+		}
+	} else {
+		if spec.ReporterUIContainer.ImageName == "" {
+			spec.ReporterUIContainer.ImageName = defaultReporterUIImageName
+		}
+		if spec.ReporterUIContainer.ImageRegistry == "" {
+			spec.ReporterUIContainer.ImageRegistry = defaultQuayRegistry
+		}
+		if spec.ReporterUIContainer.ImageTagPostfix == "" {
+			spec.ReporterUIContainer.ImageTagPostfix = defaultReporterUIImageTagPostfix
+		}
+	}
 
-	initResourcesIfNil(&spec.ReporterUIContainer)
-	setResourceLimitMemoryIfNotSet(spec.ReporterUIContainer, *memory300Mi)
-	setResourceRequestMemoryIfNotSet(spec.ReporterUIContainer, *memory256Mi)
-	setResourceLimitCPUIfNotSet(spec.ReporterUIContainer, *cpu300m)
-	setResourceRequestCPUIfNotSet(spec.ReporterUIContainer, *cpu200m)
+	spec.DatabaseContainer.initResourcesIfNil()
+	spec.DatabaseContainer.setImagePullPolicyIfNotSet()
+	spec.DatabaseContainer.setResourceLimitMemoryIfNotSet(*memory300Mi)
+	spec.DatabaseContainer.setResourceRequestMemoryIfNotSet(*memory256Mi)
+	spec.DatabaseContainer.setResourceLimitCPUIfNotSet(*cpu300m)
+	spec.DatabaseContainer.setResourceRequestCPUIfNotSet(*cpu200m)
+
+	spec.ReceiverContainer.initResourcesIfNil()
+	spec.ReceiverContainer.setImagePullPolicyIfNotSet()
+	spec.ReceiverContainer.setResourceLimitMemoryIfNotSet(*memory300Mi)
+	spec.ReceiverContainer.setResourceRequestMemoryIfNotSet(*memory256Mi)
+	spec.ReceiverContainer.setResourceLimitCPUIfNotSet(*cpu300m)
+	spec.ReceiverContainer.setResourceRequestCPUIfNotSet(*cpu200m)
+
+	spec.ReporterUIContainer.initResourcesIfNil()
+	spec.ReporterUIContainer.setImagePullPolicyIfNotSet()
+	spec.ReporterUIContainer.setResourceLimitMemoryIfNotSet(*memory300Mi)
+	spec.ReporterUIContainer.setResourceRequestMemoryIfNotSet(*memory256Mi)
+	spec.ReporterUIContainer.setResourceLimitCPUIfNotSet(*cpu300m)
+	spec.ReporterUIContainer.setResourceRequestCPUIfNotSet(*cpu200m)
 
 	if spec.Capacity.IsZero() {
 		spec.Capacity = *size1Gi
@@ -290,7 +326,7 @@ func getStorageClass(reqLogger logr.Logger, r client_reader.Reader) (string, err
 	return "", fmt.Errorf("could not find dynamic provisioner default storage class in the cluster")
 }
 
-func initResourcesIfNil(container *Container) {
+func (container *Container) initResourcesIfNil() {
 	if container.Resources.Limits == nil {
 		container.Resources.Limits = corev1.ResourceList{}
 	}
@@ -299,25 +335,25 @@ func initResourcesIfNil(container *Container) {
 	}
 }
 
-func setResourceLimitCPUIfNotSet(container Container, value resource.Quantity) {
+func (container *Container) setResourceLimitCPUIfNotSet(value resource.Quantity) {
 	if container.Resources.Limits.Cpu().IsZero() {
 		container.Resources.Limits[corev1.ResourceCPU] = value
 	}
 }
 
-func setResourceRequestCPUIfNotSet(container Container, value resource.Quantity) {
+func (container *Container) setResourceRequestCPUIfNotSet(value resource.Quantity) {
 	if container.Resources.Requests.Cpu().IsZero() {
 		container.Resources.Requests[corev1.ResourceCPU] = value
 	}
 }
 
-func setResourceLimitMemoryIfNotSet(container Container, value resource.Quantity) {
+func (container *Container) setResourceLimitMemoryIfNotSet(value resource.Quantity) {
 	if container.Resources.Limits.Memory().IsZero() {
 		container.Resources.Limits[corev1.ResourceMemory] = value
 	}
 }
 
-func setResourceRequestMemoryIfNotSet(container Container, value resource.Quantity) {
+func (container *Container) setResourceRequestMemoryIfNotSet(value resource.Quantity) {
 	if container.Resources.Requests.Memory().IsZero() {
 		container.Resources.Requests[corev1.ResourceMemory] = value
 	}

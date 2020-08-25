@@ -21,7 +21,7 @@ spec:
       annotations:
         productName: IBM Cloud Platform Common Services
         productID: "068a62892a1e4db39641342e592daa25"
-        productVersion: "3.4.0"
+        productVersion: "3.5.0"
         productMetric: FREE
     spec:
       serviceAccountName: ibm-licensing-operator
@@ -48,6 +48,12 @@ spec:
           env:
             - name: OPERAND_LICENSING_IMAGE
               value: quay.io/opencloudio/ibm-licensing:1.2.0
+            - name: OPERAND_REPORTER_UI_IMAGE
+              value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.2.0
+            - name: OPERAND_REPORTER_DATABASE_IMAGE
+              value: quay.io/opencloudio/ibm-postgresql:12.0.0
+            - name: OPERAND_REPORTER_RECEIVER_IMAGE
+              value: quay.io/opencloudio/ibm-license-service-reporter:1.2.0
             - name: WATCH_NAMESPACE
             - name: POD_NAME
               valueFrom:

@@ -42,7 +42,7 @@ var Seconds60 int64 = 60
 const LicensingProductName = "IBM Cloud Platform Common Services"
 const LicensingProductID = "068a62892a1e4db39641342e592daa25"
 const LicensingProductMetric = "FREE"
-const LicensingProductVersion = "3.4.0"
+const LicensingProductVersion = "3.5.0"
 
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
