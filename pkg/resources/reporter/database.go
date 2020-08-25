@@ -42,7 +42,7 @@ func getDatabaseProbeHandler() corev1.Handler {
 func GetDatabaseContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
 	container := resources.GetContainerBase(instance.Spec.DatabaseContainer)
 	container.EnvFrom = getDatabaseEnvFromSourceVariables()
-	container.VolumeMounts = GetDatabaseVolumeMounts()
+	container.VolumeMounts = getDatabaseVolumeMounts()
 	container.Name = DatabaseContainerName
 	container.LivenessProbe = resources.GetLivenessProbe(getDatabaseProbeHandler())
 	container.ReadinessProbe = resources.GetReadinessProbe(getDatabaseProbeHandler())
