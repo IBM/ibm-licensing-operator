@@ -36,7 +36,7 @@ func getVolumeMounts() []corev1.VolumeMount {
 	}
 }
 
-func GetDatabaseVolumeMounts() []corev1.VolumeMount {
+func getDatabaseVolumeMounts() []corev1.VolumeMount {
 	return []corev1.VolumeMount{
 		{
 			Name:      persistentVolumeClaimVolumeName,
