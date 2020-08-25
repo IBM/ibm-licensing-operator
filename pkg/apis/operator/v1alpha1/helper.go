@@ -96,52 +96,6 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
 
-func (container *Container) GetFullImage() string {
-	// If there is ":" in image tag then we use "@" for digest as only digest can have it
-	if strings.ContainsAny(container.ImageTagPostfix, ":") {
-		return container.ImageRegistry + "/" + container.ImageName + "@" + container.ImageTagPostfix
-	}
-	return container.ImageRegistry + "/" + container.ImageName + ":" + container.ImageTagPostfix
-}
-
-// isImageEmpty returns true when any part of image name is not defined
-func (container *Container) isImageEmpty() bool {
-	return container.ImageRegistry == "" && container.ImageName == "" && container.ImageTagPostfix == ""
-}
-
-// setImageParametersFromEnv set container image info from full image reference
-func (container *Container) setImageParametersFromEnv(fullImageName string) error {
-	// First get imageName, to do that we need to split FullImage like path
-	imagePathSplitted := strings.Split(fullImageName, "/")
-	if len(imagePathSplitted) < 2 {
-		return errors.New("your image ENV variable in operator deployment should have registry and image separated with \"/\" symbol")
-	}
-	imageWithTag := imagePathSplitted[len(imagePathSplitted)-1]
-	var imageWithTagSplitted []string
-	// Check if digest and split into Image Name and TagPostfix
-	if strings.Contains(imageWithTag, "@") {
-		imageWithTagSplitted = strings.Split(imageWithTag, "@")
-		if len(imageWithTagSplitted) != 2 {
-			return errors.New("your image ENV variable in operator deployment should have digest and image name separated by only one \"@\" symbol")
-		}
-	} else {
-		imageWithTagSplitted = strings.Split(imageWithTag, ":")
-		if len(imageWithTagSplitted) != 2 {
-			return errors.New("your image ENV variable in operator deployment should have image tag and image name separated by only one \":\" symbol")
-		}
-	}
-	container.ImageTagPostfix = imageWithTagSplitted[1]
-	container.ImageName = imageWithTagSplitted[0]
-	container.ImageRegistry = strings.Join(imagePathSplitted[:len(imagePathSplitted)-1], "/")
-	return nil
-}
-
-func (container *Container) setImagePullPolicyIfNotSet() {
-	if container.ImagePullPolicy == "" {
-		container.ImagePullPolicy = corev1.PullIfNotPresent
-	}
-}
-
 func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 	spec.Container.setImagePullPolicyIfNotSet()
 	if spec.HTTPSCertsSource == "" {
@@ -356,5 +310,51 @@ func (container *Container) setResourceLimitMemoryIfNotSet(value resource.Quanti
 func (container *Container) setResourceRequestMemoryIfNotSet(value resource.Quantity) {
 	if container.Resources.Requests.Memory().IsZero() {
 		container.Resources.Requests[corev1.ResourceMemory] = value
+	}
+}
+
+func (container *Container) GetFullImage() string {
+	// If there is ":" in image tag then we use "@" for digest as only digest can have it
+	if strings.ContainsAny(container.ImageTagPostfix, ":") {
+		return container.ImageRegistry + "/" + container.ImageName + "@" + container.ImageTagPostfix
+	}
+	return container.ImageRegistry + "/" + container.ImageName + ":" + container.ImageTagPostfix
+}
+
+// isImageEmpty returns true when any part of image name is not defined
+func (container *Container) isImageEmpty() bool {
+	return container.ImageRegistry == "" && container.ImageName == "" && container.ImageTagPostfix == ""
+}
+
+// setImageParametersFromEnv set container image info from full image reference
+func (container *Container) setImageParametersFromEnv(fullImageName string) error {
+	// First get imageName, to do that we need to split FullImage like path
+	imagePathSplitted := strings.Split(fullImageName, "/")
+	if len(imagePathSplitted) < 2 {
+		return errors.New("your image ENV variable in operator deployment should have registry and image separated with \"/\" symbol")
+	}
+	imageWithTag := imagePathSplitted[len(imagePathSplitted)-1]
+	var imageWithTagSplitted []string
+	// Check if digest and split into Image Name and TagPostfix
+	if strings.Contains(imageWithTag, "@") {
+		imageWithTagSplitted = strings.Split(imageWithTag, "@")
+		if len(imageWithTagSplitted) != 2 {
+			return errors.New("your image ENV variable in operator deployment should have digest and image name separated by only one \"@\" symbol")
+		}
+	} else {
+		imageWithTagSplitted = strings.Split(imageWithTag, ":")
+		if len(imageWithTagSplitted) != 2 {
+			return errors.New("your image ENV variable in operator deployment should have image tag and image name separated by only one \":\" symbol")
+		}
+	}
+	container.ImageTagPostfix = imageWithTagSplitted[1]
+	container.ImageName = imageWithTagSplitted[0]
+	container.ImageRegistry = strings.Join(imagePathSplitted[:len(imagePathSplitted)-1], "/")
+	return nil
+}
+
+func (container *Container) setImagePullPolicyIfNotSet() {
+	if container.ImagePullPolicy == "" {
+		container.ImagePullPolicy = corev1.PullIfNotPresent
 	}
 }
