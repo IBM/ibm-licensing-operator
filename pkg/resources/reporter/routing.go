@@ -64,7 +64,7 @@ func GetUIIngress(instance *operatorv1alpha1.IBMLicenseServiceReporter) *extensi
 						HTTP: &extensionsv1.HTTPIngressRuleValue{
 							Paths: []extensionsv1.HTTPIngressPath{
 								{
-									Path: "/license-service",
+									Path: "/license-service-reporter",
 									Backend: extensionsv1.IngressBackend{
 										ServiceName: LicenseReporterResourceBase,
 										ServicePort: reporterUIServicePort,
