@@ -17,17 +17,20 @@
 package resources
 
 import (
+	"context"
 	"crypto/rand"
-	"math/big"
-	"reflect"
-
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"math/big"
+	"reflect"
+	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"time"
 )
 
 // cannot set to const due to k8s struct needing pointers to primitive types
@@ -110,4 +113,38 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 		StringData: map[string]string{secretKey: randString},
 	}
 	return expectedSecret, nil
+}
+
+func AnnotateForService(httpCertSource string, isOpenShift bool, certName string) map[string]string {
+	if isOpenShift && httpCertSource == "ocp" {
+		return map[string]string{"service.beta.openshift.io/serving-cert-secret-name": certName}
+	}
+	return map[string]string{}
+}
+
+func UpdateResource(reqLogger *logr.Logger, client c.Client,
+	expectedResource ResourceObject, foundResource ResourceObject) (reconcile.Result, error) {
+	resTypeString := reflect.TypeOf(expectedResource).String()
+	(*reqLogger).Info("Updating " + resTypeString)
+	err := client.Update(context.TODO(), expectedResource)
+	if err != nil {
+		// only need to delete resource as new will be recreated on next reconciliation
+		(*reqLogger).Error(err, "Failed to update "+resTypeString+", deleting...", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+		return DeleteResource(reqLogger, client, foundResource)
+	}
+	(*reqLogger).Info("Updated "+resTypeString+" successfully", "Namespace", expectedResource.GetNamespace(), "Name", expectedResource.GetName())
+	// Resource updated - return and do not requeue as it might not consider extra values
+	return reconcile.Result{}, nil
+}
+
+func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource ResourceObject) (reconcile.Result, error) {
+	resTypeString := reflect.TypeOf(foundResource).String()
+	err := client.Delete(context.TODO(), foundResource)
+	if err != nil {
+		(*reqLogger).Error(err, "Failed to delete "+resTypeString+" during recreation", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+		return reconcile.Result{}, err
+	}
+	// Resource deleted successfully - return and requeue to create new one
+	(*reqLogger).Info("Deleted "+resTypeString+" successfully", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+	return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 30}, nil
 }

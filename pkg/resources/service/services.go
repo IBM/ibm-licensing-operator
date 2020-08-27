@@ -18,6 +18,7 @@ package service
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	"github.com/ibm/ibm-licensing-operator/pkg/resources"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -48,15 +49,14 @@ func GetLicensingServiceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return GetResourceName(instance)
 }
 
-func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
+func GetLicensingService(instance *operatorv1alpha1.IBMLicensing, isOpenShift bool) *corev1.Service {
 	metaLabels := LabelsForMeta(instance)
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetLicensingServiceName(instance),
-			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    metaLabels,
-			// TODO: check if needed:
-			// Annotations: map[string]string{"prometheus.io/scrape": "false", "prometheus.io/scheme": "http"},
+			Name:        GetLicensingServiceName(instance),
+			Namespace:   instance.Spec.InstanceNamespace,
+			Labels:      metaLabels,
+			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, isOpenShift, LiceseServiceOCPCertName),
 		},
 		Spec: getServiceSpec(instance),
 	}

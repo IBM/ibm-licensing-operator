@@ -80,7 +80,7 @@ type IBMLicenseServiceBaseSpec struct {
 	// Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing image
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
 	// options: self-signed or custom
-	// +kubebuilder:validation:Enum=self-signed;custom
+	// +kubebuilder:validation:Enum=self-signed;custom;ocp
 	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
 	// Route parameters
 	RouteOptions *IBMLicenseServiceRouteOptions `json:"routeOptions,omitempty"`

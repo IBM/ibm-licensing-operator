@@ -21,6 +21,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/ibm/ibm-licensing-operator/pkg/resources/service"
+
 	extensionsv1 "k8s.io/api/extensions/v1beta1"
 
 	"github.com/go-logr/logr"
@@ -320,10 +322,26 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileAPISecretToken(instance *o
 }
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileService(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
-	expectedService := reporter.GetService(instance)
+	reqLogger := log.WithValues("reconcileService", "Entry", "instance.GetName()", instance.GetName())
+	expectedService := reporter.GetService(instance, isOpenshiftCluster)
 	foundService := &corev1.Service{}
 	namespacedName := types.NamespacedName{Name: expectedService.GetName(), Namespace: expectedService.GetNamespace()}
-	return r.reconcileResourceExistence(instance, expectedService, foundService, namespacedName)
+	reconcileResult, err := r.reconcileResourceExistence(instance, expectedService, foundService, namespacedName)
+	if err != nil || reconcileResult.Requeue {
+		return reconcileResult, err
+	}
+	if isOpenshiftCluster {
+		if instance.Spec.HTTPSCertsSource == "ocp" {
+			if foundService.Annotations["service.beta.openshift.io/serving-cert-secret-name"] != service.LiceseServiceOCPCertName {
+				return res.UpdateResource(&reqLogger, r.client, expectedService, foundService)
+			}
+		} else {
+			if foundService.Annotations["service.beta.openshift.io/serving-cert-secret-name"] != "" { //CHECK NULL
+				return res.UpdateResource(&reqLogger, r.client, expectedService, foundService)
+			}
+		}
+	}
+	return reconcile.Result{}, nil
 }
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
