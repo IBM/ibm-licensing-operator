@@ -16,11 +16,9 @@
 
 package controller
 
-import (
-	"github.com/ibm/ibm-licensing-operator/pkg/controller/ibmlicensing"
-)
+import "github.com/ibm/ibm-licensing-operator/pkg/controller/ibmlicenseservice"
 
 func init() {
 	// AddToManagerFuncs is a list of functions to create controllers and add them to a manager.
-	AddToManagerFuncs = append(AddToManagerFuncs, ibmlicensing.Add)
+	AddToManagerFuncs = append(AddToManagerFuncs, ibmlicenseservice.Add)
 }

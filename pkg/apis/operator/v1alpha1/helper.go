@@ -92,7 +92,15 @@ func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
 }
 
+func (spec *IBMLicenseServiceSpec) IsMetering() bool {
+	return spec.Datasource == "metering"
+}
+
 func (spec *IBMLicensingSpec) IsDebug() bool {
+	return spec.LogLevel == "DEBUG"
+}
+
+func (spec *IBMLicenseServiceSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
 
@@ -141,11 +149,64 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 	return nil
 }
 
+func (spec *IBMLicenseServiceSpec) FillDefaultValues(isOpenshiftCluster bool) error {
+	spec.Container.setImagePullPolicyIfNotSet()
+	if spec.HTTPSCertsSource == "" {
+		spec.HTTPSCertsSource = "self-signed"
+	}
+	if spec.RouteEnabled == nil {
+		spec.RouteEnabled = &isOpenshiftCluster
+	}
+	isNotOnOpenshiftCluster := !isOpenshiftCluster
+	if spec.IngressEnabled == nil {
+		spec.IngressEnabled = &isNotOnOpenshiftCluster
+	}
+	if spec.APISecretToken == "" {
+		spec.APISecretToken = "ibm-licensing-token"
+	}
+
+	spec.Container.initResourcesIfNil()
+	spec.Container.setResourceLimitMemoryIfNotSet(*memory512Mi)
+	spec.Container.setResourceRequestMemoryIfNotSet(*memory256Mi)
+	spec.Container.setResourceLimitCPUIfNotSet(*cpu500m)
+	spec.Container.setResourceRequestCPUIfNotSet(*cpu200m)
+
+	licensingFullImageFromEnv := os.Getenv("OPERAND_LICENSING_IMAGE")
+
+	// Check if operator image variable is set and CR has no overrides
+	if licensingFullImageFromEnv != "" && spec.isImageEmpty() {
+		err := spec.setImageParametersFromEnv(licensingFullImageFromEnv)
+		if err != nil {
+			return err
+		}
+	} else {
+		// If CR has at least one override, make sure all parts of the image are filled at least with default values
+		if spec.ImageRegistry == "" {
+			spec.ImageRegistry = defaultQuayRegistry
+		}
+		if spec.ImageName == "" {
+			spec.ImageName = defaultLicensingImageName
+		}
+		if spec.ImageTagPostfix == "" {
+			spec.ImageTagPostfix = defaultLicensingImageTagPostfix
+		}
+	}
+	return nil
+}
+
 func (spec *IBMLicensingSpec) IsRouteEnabled() bool {
 	return spec.RouteEnabled != nil && *spec.RouteEnabled
 }
 
+func (spec *IBMLicenseServiceSpec) IsRouteEnabled() bool {
+	return spec.RouteEnabled != nil && *spec.RouteEnabled
+}
+
 func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
+	return spec.IngressEnabled != nil && *spec.IngressEnabled
+}
+
+func (spec *IBMLicenseServiceSpec) IsIngressEnabled() bool {
 	return spec.IngressEnabled != nil && *spec.IngressEnabled
 }
 
