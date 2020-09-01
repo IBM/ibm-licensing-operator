@@ -23,6 +23,7 @@ import (
 const LicensingResourceBase = "ibm-licensing-service"
 const LicensingComponentName = "ibm-licensing-service-svc"
 const LicensingReleaseName = "ibm-licensing-service"
+const LiceseServiceOCPCertName = "ibm-license-service-cert"
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()

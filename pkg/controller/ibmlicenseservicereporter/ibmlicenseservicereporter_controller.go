@@ -320,10 +320,15 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileAPISecretToken(instance *o
 }
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileService(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
-	expectedService := reporter.GetService(instance)
+	reqLogger := log.WithValues("reconcileService", "Entry", "instance.GetName()", instance.GetName())
+	expectedService := reporter.GetService(instance, isOpenshiftCluster)
 	foundService := &corev1.Service{}
 	namespacedName := types.NamespacedName{Name: expectedService.GetName(), Namespace: expectedService.GetNamespace()}
-	return r.reconcileResourceExistence(instance, expectedService, foundService, namespacedName)
+	reconcileResult, err := r.reconcileResourceExistence(instance, expectedService, foundService, namespacedName)
+	if err != nil || reconcileResult.Requeue {
+		return reconcileResult, err
+	}
+	return res.UpdateServiceIfNeeded(&reqLogger, r.client, expectedService, foundService)
 }
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
