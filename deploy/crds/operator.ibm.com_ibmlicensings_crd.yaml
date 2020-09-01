@@ -54,6 +54,7 @@ spec:
               enum:
               - self-signed
               - custom
+              - ocp
               type: string
             httpsEnable:
               description: Enables https access at pod level, httpsCertsSource needed

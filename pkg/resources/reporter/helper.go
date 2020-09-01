@@ -42,6 +42,7 @@ const LicenseReporterUIBase = "ibm-license-service-reporter-ui"
 const LicenseReporterResourceBase = "ibm-license-service-reporter"
 const LicenseReporterComponentName = "ibm-license-service-reporter-svc"
 const LicenseReporterReleaseName = "ibm-license-service-reporter"
+const LicenseReportOCPCertName = "ibm-license-reporter-cert"
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicenseServiceReporter) string {
 	return LicenseReporterResourceBase + "-" + instance.GetName()

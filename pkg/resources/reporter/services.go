@@ -18,6 +18,7 @@ package reporter
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	"github.com/ibm/ibm-licensing-operator/pkg/resources"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -53,13 +54,14 @@ func getServiceSpec(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1
 	}
 }
 
-func GetService(instance *operatorv1alpha1.IBMLicenseServiceReporter) *corev1.Service {
+func GetService(instance *operatorv1alpha1.IBMLicenseServiceReporter, isOpenShift bool) *corev1.Service {
 	metaLabels := LabelsForMeta(instance)
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      LicenseReporterResourceBase,
-			Namespace: instance.GetNamespace(),
-			Labels:    metaLabels,
+			Name:        LicenseReporterResourceBase,
+			Namespace:   instance.GetNamespace(),
+			Labels:      metaLabels,
+			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, isOpenShift, LicenseReportOCPCertName),
 		},
 		Spec: getServiceSpec(instance),
 	}
