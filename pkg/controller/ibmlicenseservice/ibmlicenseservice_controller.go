@@ -154,12 +154,9 @@ func (r *ReconcileIBMLicenseService) Reconcile(request reconcile.Request) (recon
 	var recResult reconcile.Result
 
 	reconcileFunctions := []interface{}{
-		//r.reconcileNamespace,
 		r.reconcileServiceAccount,
 		r.reconcileRole,
 		r.reconcileRoleBinding,
-		//r.reconcileClusterRole,
-		//r.reconcileClusterRoleBinding,
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
 		r.reconcileUploadConfigMap,
@@ -279,29 +276,6 @@ func (r *ReconcileIBMLicenseService) reconcileRoleBinding(instance *operatorv1al
 	return r.reconcileResourceNamespacedExistence(instance, expectedRoleBinding, foundRoleBinding)
 }
 
-/*func (r *ReconcileIBMLicenseService) reconcileClusterRole(instance *operatorv1alpha1.IBMLicenseService) (reconcile.Result, error) {
-	expectedClusterRole := service.GetLicensingClusterRole(instance)
-	foundClusterRole := &rbacv1.ClusterRole{}
-	return r.reconcileResourceClusterExistence(instance, expectedClusterRole, foundClusterRole)
-}
-
-func (r *ReconcileIBMLicenseService) reconcileClusterRoleBinding(instance *operatorv1alpha1.IBMLicenseService) (reconcile.Result, error) {
-	expectedClusterRoleBinding := service.GetLicensingClusterRoleBinding(instance)
-	foundClusterRoleBinding := &rbacv1.ClusterRoleBinding{}
-	return r.reconcileResourceClusterExistence(instance, expectedClusterRoleBinding, foundClusterRoleBinding)
-}
-
-func (r *ReconcileIBMLicenseService) reconcileNamespace(instance *operatorv1alpha1.IBMLicenseService) (reconcile.Result, error) {
-	expectedNamespace := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: instance.GetNamespace(),
-		},
-	}
-	foundNamespace := &corev1.Namespace{}
-	return r.reconcileResourceClusterExistence(instance, expectedNamespace, foundNamespace)
-}
-*/
-
 func (r *ReconcileIBMLicenseService) reconcileAPISecretToken(instance *operatorv1alpha1.IBMLicenseService) (reconcile.Result, error) {
 	reqLogger := log.WithValues("reconcileAPISecretToken", "Entry", "instance.GetName()", instance.GetName())
 	expectedSecret, err := service.GetAPISecretToken(instance)
@@ -352,19 +326,7 @@ func (r *ReconcileIBMLicenseService) reconcileService(instance *operatorv1alpha1
 	if err != nil || reconcileResult.Requeue {
 		return reconcileResult, err
 	}
-	if isOpenshiftCluster {
-		if instance.Spec.HTTPSCertsSource == "ocp" {
-			if foundService.Annotations["service.beta.openshift.io/serving-cert-secret-name"] != service.LiceseServiceOCPCertName {
-				return res.UpdateResource(&reqLogger, r.client, expectedService, foundService)
-			}
-		} else {
-			if foundService.Annotations["service.beta.openshift.io/serving-cert-secret-name"] != "" { //CHECK NULL
-				return res.UpdateResource(&reqLogger, r.client, expectedService, foundService)
-			}
-		}
-	}
-	return reconcile.Result{}, nil
-
+	return res.UpdateServiceIfNeeded(&reqLogger, r.client, expectedService, foundService)
 }
 
 func (r *ReconcileIBMLicenseService) reconcileDeployment(instance *operatorv1alpha1.IBMLicenseService) (reconcile.Result, error) {

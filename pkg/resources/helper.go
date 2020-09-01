@@ -49,8 +49,11 @@ const LicensingProductMetric = "FREE"
 const LicensingProductVersion = "3.5.0"
 
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
 
 var randStringCharsetLength = big.NewInt(int64(len(randStringCharset)))
+
+var annotationsForServicesToCheck = [...]string{ocpCertSecretNameTag}
 
 type ResourceObject interface {
 	metav1.Object
@@ -118,7 +121,7 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 
 func AnnotateForService(httpCertSource string, isOpenShift bool, certName string) map[string]string {
 	if isOpenShift && httpCertSource == "ocp" {
-		return map[string]string{"service.beta.openshift.io/serving-cert-secret-name": certName}
+		return map[string]string{ocpCertSecretNameTag: certName}
 	}
 	return map[string]string{}
 }
@@ -135,6 +138,15 @@ func UpdateResource(reqLogger *logr.Logger, client c.Client,
 	}
 	(*reqLogger).Info("Updated "+resTypeString+" successfully", "Namespace", expectedResource.GetNamespace(), "Name", expectedResource.GetName())
 	// Resource updated - return and do not requeue as it might not consider extra values
+	return reconcile.Result{}, nil
+}
+
+func UpdateServiceIfNeeded(reqLogger *logr.Logger, client c.Client, expectedService *corev1.Service, foundService *corev1.Service) (reconcile.Result, error) {
+	for _, annotation := range annotationsForServicesToCheck {
+		if foundService.Annotations[annotation] != expectedService.Annotations[annotation] {
+			return UpdateResource(reqLogger, client, expectedService, foundService)
+		}
+	}
 	return reconcile.Result{}, nil
 }
 

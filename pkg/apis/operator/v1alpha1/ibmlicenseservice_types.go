@@ -19,7 +19,41 @@ package v1alpha1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	extensionsv1 "k8s.io/api/extensions/v1beta1"
+	routev1 "github.com/openshift/api/route/v1"
 )
+
+// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+
+type IBMLicensingIngressOptions struct {
+	// Path after host where API will be available f.e. https://<hostname>:<port>/ibm-licensing-service-instance
+	Path *string `json:"path,omitempty"`
+	// Additional annotations that should include f.e. ingress class if using not default ingress controller
+	Annotations map[string]string `json:"annotations,omitempty"`
+	// TLS Options to enable secure connection
+	TLS []extensionsv1.IngressTLS `json:"tls,omitempty"`
+	// If you use non-default host include it here
+	Host *string `json:"host,omitempty"`
+}
+
+type IBMLicensingRouteOptions struct {
+	TLS *routev1.TLSConfig `json:"tls,omitempty"`
+}
+
+type IBMLicensingSenderSpec struct {
+	// URL for License Service Reporter receiver that collects and aggregate multi cluster licensing data.
+	ReporterURL string `json:"reporterURL"`
+	// License Service Reporter authentication token, provided by secret that you need to create in instance namespace
+	ReporterSecretToken string `json:"reporterSecretToken"`
+	// What is the name of this reporting cluster in multi-cluster system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME at Operand level
+	ClusterName string `json:"clusterName,omitempty"`
+	// Unique ID of reporting cluster
+	ClusterID string `json:"clusterID"`
+}
+
+type IBMLicensingSecurityContext struct {
+	RunAsUser int64 `json:"runAsUser"`
+}
 
 // IBMLicensingSpec defines the desired state of IBMLicensing
 type IBMLicenseServiceSpec struct {
