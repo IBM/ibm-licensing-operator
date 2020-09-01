@@ -21,8 +21,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/ibm/ibm-licensing-operator/pkg/resources/service"
-
 	extensionsv1 "k8s.io/api/extensions/v1beta1"
 
 	"github.com/go-logr/logr"
@@ -330,18 +328,7 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileService(instance *operator
 	if err != nil || reconcileResult.Requeue {
 		return reconcileResult, err
 	}
-	if isOpenshiftCluster {
-		if instance.Spec.HTTPSCertsSource == "ocp" {
-			if foundService.Annotations["service.beta.openshift.io/serving-cert-secret-name"] != service.LiceseServiceOCPCertName {
-				return res.UpdateResource(&reqLogger, r.client, expectedService, foundService)
-			}
-		} else {
-			if foundService.Annotations["service.beta.openshift.io/serving-cert-secret-name"] != "" { //CHECK NULL
-				return res.UpdateResource(&reqLogger, r.client, expectedService, foundService)
-			}
-		}
-	}
-	return reconcile.Result{}, nil
+	return res.UpdateServiceIfNeeded(&reqLogger, r.client, expectedService, foundService)
 }
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {

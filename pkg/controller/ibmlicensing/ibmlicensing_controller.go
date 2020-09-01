@@ -351,19 +351,7 @@ func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBML
 	if err != nil || reconcileResult.Requeue {
 		return reconcileResult, err
 	}
-	if isOpenshiftCluster {
-		if instance.Spec.HTTPSCertsSource == "ocp" {
-			if foundService.Annotations["service.beta.openshift.io/serving-cert-secret-name"] != service.LiceseServiceOCPCertName {
-				return res.UpdateResource(&reqLogger, r.client, expectedService, foundService)
-			}
-		} else {
-			if foundService.Annotations["service.beta.openshift.io/serving-cert-secret-name"] != "" { //CHECK NULL
-				return res.UpdateResource(&reqLogger, r.client, expectedService, foundService)
-			}
-		}
-	}
-	return reconcile.Result{}, nil
-
+	return res.UpdateServiceIfNeeded(&reqLogger, r.client, expectedService, foundService)
 }
 
 func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
