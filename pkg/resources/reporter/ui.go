@@ -87,7 +87,7 @@ func getReporterUIEnvironmentVariables(instance *operatorv1alpha1.IBMLicenseServ
 func getReporterUIProbeHandler() corev1.Handler {
 	return corev1.Handler{
 		HTTPGet: &corev1.HTTPGetAction{
-			Path: "/license-service/version.txt",
+			Path: "/license-service-reporter/version.txt",
 			Port: intstr.IntOrString{
 				Type:   intstr.Int,
 				IntVal: reporterUIServicePort.IntVal,
