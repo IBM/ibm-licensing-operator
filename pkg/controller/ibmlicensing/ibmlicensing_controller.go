@@ -31,7 +31,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/api/extensions/v1beta1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -154,12 +153,6 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	var recResult reconcile.Result
 
 	reconcileFunctions := []interface{}{
-		r.reconcileNamespace,
-		r.reconcileServiceAccount,
-		r.reconcileRole,
-		r.reconcileRoleBinding,
-		r.reconcileClusterRole,
-		r.reconcileClusterRoleBinding,
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
 		r.reconcileUploadConfigMap,
@@ -231,74 +224,6 @@ func (r *ReconcileIBMLicensing) updateStatus(instance *operatorv1alpha1.IBMLicen
 
 	reqLogger.Info("reconcile all done")
 	return reconcile.Result{}, nil
-}
-
-func (r *ReconcileIBMLicensing) reconcileServiceAccount(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	reqLogger := log.WithValues("reconcileServiceAccount", "Entry", "instance.GetName()", instance.GetName())
-	expectedSA := service.GetLicensingServiceAccount(instance)
-	foundSA := &corev1.ServiceAccount{}
-	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedSA, foundSA)
-	if err != nil || reconcileResult.Requeue {
-		return reconcileResult, err
-	}
-	// Check if found SA has all necessary Pull Secrets
-	shouldUpdate := false
-	for _, imagePullSecret := range expectedSA.ImagePullSecrets {
-		if !res.Contains(foundSA.ImagePullSecrets, imagePullSecret) {
-			foundSA.ImagePullSecrets = append(foundSA.ImagePullSecrets, imagePullSecret)
-			shouldUpdate = true
-		}
-	}
-	if shouldUpdate {
-		// Update SA with foundSA as we added expectedPullSecrets to it
-		reconcileResult, err := res.UpdateResource(&reqLogger, r.client, foundSA, foundSA)
-		if err != nil {
-			return reconcileResult, err
-		}
-		// Update deployment by deleting old one and requeuing
-
-		return res.DeleteResource(&reqLogger, r.client, &appsv1.Deployment{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      service.GetResourceName(instance),
-				Namespace: instance.Spec.InstanceNamespace,
-			},
-		})
-	}
-	return reconcile.Result{}, nil
-}
-
-func (r *ReconcileIBMLicensing) reconcileRole(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	expectedRole := service.GetLicensingRole(instance)
-	foundRole := &rbacv1.Role{}
-	return r.reconcileResourceNamespacedExistence(instance, expectedRole, foundRole)
-}
-
-func (r *ReconcileIBMLicensing) reconcileRoleBinding(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	expectedRoleBinding := service.GetLicensingRoleBinding(instance)
-	foundRoleBinding := &rbacv1.RoleBinding{}
-	return r.reconcileResourceNamespacedExistence(instance, expectedRoleBinding, foundRoleBinding)
-}
-
-func (r *ReconcileIBMLicensing) reconcileClusterRole(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	expectedClusterRole := service.GetLicensingClusterRole(instance)
-	foundClusterRole := &rbacv1.ClusterRole{}
-	return r.reconcileResourceClusterExistence(instance, expectedClusterRole, foundClusterRole)
-}
-
-func (r *ReconcileIBMLicensing) reconcileClusterRoleBinding(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	expectedClusterRoleBinding := service.GetLicensingClusterRoleBinding(instance)
-	foundClusterRoleBinding := &rbacv1.ClusterRoleBinding{}
-	return r.reconcileResourceClusterExistence(instance, expectedClusterRoleBinding, foundClusterRoleBinding)
-}
-
-func (r *ReconcileIBMLicensing) reconcileNamespace(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	expectedNamespace := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: instance.Spec.InstanceNamespace,
-		},
-	}
-	foundNamespace := &corev1.Namespace{}
-	return r.reconcileResourceClusterExistence(instance, expectedNamespace, foundNamespace)
 }
 
 func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -455,13 +380,6 @@ func (r *ReconcileIBMLicensing) reconcileResourceNamespacedExistence(
 	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
-	return r.reconcileResourceExistence(instance, expectedRes, foundRes, namespacedName)
-}
-
-func (r *ReconcileIBMLicensing) reconcileResourceClusterExistence(
-	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
-
-	namespacedName := types.NamespacedName{Name: expectedRes.GetName()}
 	return r.reconcileResourceExistence(instance, expectedRes, foundRes, namespacedName)
 }
 

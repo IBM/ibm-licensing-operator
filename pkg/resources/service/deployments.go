@@ -53,7 +53,7 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 						GetLicensingContainer(instance.Spec),
 					},
 					TerminationGracePeriodSeconds: &res.Seconds60,
-					ServiceAccountName:            GetServiceAccountName(instance),
+					ServiceAccountName:            LicensingServciceAccount,
 					Affinity: &corev1.Affinity{
 						NodeAffinity: &corev1.NodeAffinity{
 							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
