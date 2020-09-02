@@ -34,13 +34,13 @@ import (
 const defaultQuayRegistry = "quay.io/opencloudio"
 
 const defaultLicensingImageName = "ibm-licensing"
-const defaultLicensingImageTagPostfix = "sha256:8035b7aa83782b3a01130f0c14e4a551c73bdd3622c13744b717f0792b7cdef8"
+const defaultLicensingImageTagPostfix = "sha256:135a2df422830f2e95a6eb47f1b89a0359f7995ba369488bb84f683e08f84d29"
 
 const defaultReporterImageName = "ibm-license-service-reporter"
-const defaultReporterImageTagPostfix = "sha256:f0a1557b72a3626956c5f13c18fce48fac418fc38b98aa920660935597402d2b"
+const defaultReporterImageTagPostfix = "sha256:d09a953ca5f4ec23350c381e1023ca8dda9f6ce5346aed1c6d476fe3a3d059c3"
 
 const defaultReporterUIImageName = "ibm-license-service-reporter-ui"
-const defaultReporterUIImageTagPostfix = "sha256:9485816745948b701df940b046eef2a1f39041aaac0655dbbb24e6863964e1c2"
+const defaultReporterUIImageTagPostfix = "sha256:a71fcdb6c67f650a1cb8ce6f50d45070843461b8c01d788e0f8c4ac41454d12e"
 
 const defaultDatabaseImageName = "ibm-postgresql"
 const defaultDatabaseImageTagPostfix = "sha256:5e68245c21a7252afcca65f82faabdc7551429b844896f8499a52bf092c49caf"
