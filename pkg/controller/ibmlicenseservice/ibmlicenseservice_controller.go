@@ -62,7 +62,7 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileIBMLicenseService{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &ReconcileIBMLicenseService{client: mgr.GetClient(), reader: mgr.GetAPIReader(), scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -116,6 +116,7 @@ type ReconcileIBMLicenseService struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client client.Client
+	reader client.Reader
 	scheme *runtime.Scheme
 }
 
@@ -154,6 +155,7 @@ func (r *ReconcileIBMLicenseService) Reconcile(request reconcile.Request) (recon
 	var recResult reconcile.Result
 
 	reconcileFunctions := []interface{}{
+		r.reconcileIBMLicenseServiceInstance,
 		r.reconcileServiceAccount,
 		r.reconcileRole,
 		r.reconcileRoleBinding,
@@ -476,5 +478,28 @@ func (r *ReconcileIBMLicenseService) reconcileResourceExistence(
 		return reconcile.Result{}, err
 	}
 	reqLogger.Info(resType.String() + " is correct!")
+	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileIBMLicenseService) reconcileIBMLicenseServiceInstance(instance *operatorv1alpha1.IBMLicenseService) (reconcile.Result, error) {
+	reqLogger := log.WithValues("reconcileIBMLicenseServiceInstance", "Entry", "instance.GetName()", instance.GetName())
+	migrationStatus, expectedLS, toDelete := res.GetLicenseServiceInstance(&reqLogger, instance, r.reader)
+	if migrationStatus {
+		foundLS := &operatorv1alpha1.IBMLicenseService{}
+
+		namespacedName := types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}
+		reconcileResult, err := r.reconcileResourceExistence(instance, expectedLS, foundLS, namespacedName)
+		if err != nil {
+			reqLogger.Error(err, "Failed to reconcileIBMLicenseServiceInstance ")
+			return reconcile.Result{}, err
+		}
+
+		err = r.client.Delete(context.TODO(), toDelete)
+		if err != nil {
+			reqLogger.Error(err, "Can not removed old CR in merging phase")
+		}
+
+		return reconcileResult, nil
+	}
 	return reconcile.Result{}, nil
 }

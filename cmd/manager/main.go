@@ -140,10 +140,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	migrate(
-		mgr,
-		&v1alpha1.IBMLicensingList{},
-		&v1alpha1.IBMLicenseServiceList{})
+	migrate(mgr)
 
 	log.Info("Controller", "Controller", mgr.GetConfig().GoString())
 	// Setup all Controllers
@@ -228,30 +225,39 @@ func serveCRMetrics(cfg *rest.Config) error {
 	return nil
 }
 
-func migrate(m manager.Manager,
-	from *v1alpha1.IBMLicensingList,
-	to *v1alpha1.IBMLicenseServiceList) {
-
+func migrate(m manager.Manager) {
+	crLicensing := &v1alpha1.IBMLicensingList{}
+	crLicenseService := &v1alpha1.IBMLicenseServiceList{}
 	reader := m.GetAPIReader()
 	client := m.GetClient()
 
-	err := reader.List(context.TODO(), from)
+	emptyCrd := map[string]bool{}
+
+	err := reader.List(context.TODO(), crLicensing)
 	if err != nil {
 		log.Error(err, "Can not migrate CR data ")
 		return
 	}
 
-	for index := range from.Items {
-		item := from.Items[index]
+	for index := range crLicensing.Items {
+		item := crLicensing.Items[index]
 		listOpts := []c1.ListOption{
 			c1.InNamespace(item.Spec.InstanceNamespace),
 		}
-		err = reader.List(context.TODO(), to, listOpts...)
+
+		// Read CR crLicenseService crLicenseService
+		err = reader.List(context.TODO(), crLicenseService, listOpts...)
 		if err != nil {
 			log.Error(err, "Can not migrate CR data ")
 			return
 		}
-		if len(to.Items) == 0 {
+
+		//check if there is no any CR in new CRD in this namespace (item.Spec.InstanceNamespace)
+		if _, exists := emptyCrd[item.Spec.InstanceNamespace]; !exists && (len(crLicenseService.Items) == 0) {
+			emptyCrd[item.Spec.InstanceNamespace] = true
+		}
+
+		if emptyCrd[item.Spec.InstanceNamespace] {
 			log.Info("Start CR IBMLicensing migration")
 			expectedRes := v1alpha1.IBMLicenseService{
 				ObjectMeta: metav1.ObjectMeta{
@@ -281,7 +287,6 @@ func migrate(m manager.Manager,
 			if err != nil {
 				log.Error(err, "Can not removed old CR in migration phase")
 			}
-
 		}
 	}
 }

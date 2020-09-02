@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -160,4 +161,50 @@ func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource Resou
 	// Resource deleted successfully - return and requeue to create new one
 	(*reqLogger).Info("Deleted "+resTypeString+" successfully", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
 	return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 30}, nil
+}
+
+func GetLicenseServiceInstance(reqLogger *logr.Logger,
+	instance *operatorv1alpha1.IBMLicenseService,
+	reader c.Reader) (bool, *operatorv1alpha1.IBMLicenseService, *operatorv1alpha1.IBMLicensing) {
+	const odlmLabel = "operator.ibm.com/opreq-control"
+
+	//Search one CR from the namespace where there is ibm-licesning-operator
+	//  with the name from alm
+	//  with label from ODLM
+	listOpts := []c.ListOption{
+		c.InNamespace(instance.GetNamespace()),
+		c.MatchingFields{"metadata.name": instance.Name},
+		c.MatchingLabels(map[string]string{odlmLabel: "true"}),
+	}
+
+	crLicensing := &operatorv1alpha1.IBMLicensingList{}
+	err := reader.List(context.TODO(), crLicensing, listOpts...)
+	if err != nil {
+		(*reqLogger).Info("None need reconcile ls instance")
+		return false, nil, nil
+	}
+
+	if len(crLicensing.Items) == 1 {
+		item := crLicensing.Items[0]
+		expectedRes := &operatorv1alpha1.IBMLicenseService{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        item.Name,
+				Namespace:   item.Spec.InstanceNamespace,
+				Labels:      item.Labels,
+				Annotations: item.Annotations,
+			},
+			Spec: operatorv1alpha1.IBMLicenseServiceSpec{
+				Container:                 item.Spec.Container,
+				IBMLicenseServiceBaseSpec: item.Spec.IBMLicenseServiceBaseSpec,
+				Datasource:                item.Spec.Datasource,
+				HTTPSEnable:               item.Spec.HTTPSEnable,
+				SecurityContext:           item.Spec.SecurityContext,
+				IngressEnabled:            item.Spec.IngressEnabled,
+				IngressOptions:            item.Spec.IngressOptions,
+				Sender:                    item.Spec.Sender,
+			},
+		}
+		return true, expectedRes, &item
+	}
+	return false, nil, nil
 }
