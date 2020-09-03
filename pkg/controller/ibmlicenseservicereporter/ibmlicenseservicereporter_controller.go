@@ -213,7 +213,7 @@ func (r *ReconcileIBMLicenseServiceReporter) updateStatus(
 	}
 
 	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingReporterPods) {
-		reqLogger.Info("Updating IBMLicenseServiceReporter status", "Instance", instance)
+		reqLogger.Info("Updating IBMLicenseServiceReporter status")
 		instance.Status.LicensingReporterPods = podStatuses
 		err := r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
@@ -345,7 +345,6 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileDeployment(instance *opera
 		&reqLogger,
 		&expectedDeployment.Spec.Template,
 		&foundDeployment.Spec.Template,
-		false,
 	)
 
 	if shouldUpdate {

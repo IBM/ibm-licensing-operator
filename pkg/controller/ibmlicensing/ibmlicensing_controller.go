@@ -368,7 +368,6 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 		&reqLogger,
 		&expectedDeployment.Spec.Template,
 		&foundDeployment.Spec.Template,
-		instance.Spec.IsMetering(),
 	)
 	if shouldUpdate {
 		return res.UpdateResource(&reqLogger, r.client, expectedDeployment, foundDeployment)
