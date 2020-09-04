@@ -30,6 +30,14 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 	metaLabels := LabelsForMeta(instance)
 	selectorLabels := LabelsForSelector(instance)
 	podLabels := LabelsForLicensingPod(instance)
+
+	imagePullSecrets := []corev1.LocalObjectReference{}
+	if instance.Spec.ImagePullSecrets != nil {
+		for _, pullSecret := range instance.Spec.ImagePullSecrets {
+			imagePullSecrets = append(imagePullSecrets, corev1.LocalObjectReference{Name: pullSecret})
+		}
+	}
+
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetResourceName(instance),
@@ -53,7 +61,8 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 						GetLicensingContainer(instance.Spec),
 					},
 					TerminationGracePeriodSeconds: &res.Seconds60,
-					ServiceAccountName:            LicensingServciceAccount,
+					ServiceAccountName:            LicensingServiceAccount,
+					ImagePullSecrets:              imagePullSecrets,
 					Affinity: &corev1.Affinity{
 						NodeAffinity: &corev1.NodeAffinity{
 							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
