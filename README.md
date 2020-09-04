@@ -71,6 +71,7 @@ It was tested on the following systems:
 - Google Kubernetes Engine (GKE)
 - Azure Kubernetes Service (AKS)
 - Amazon EKS - Managed Kubernetes Service (EKS)
+- Alibaba Cloud - Container Service for Kubernetes (ACK)
 
 ## Operator versions for ibm-licensing-operator with stand-alone IBM Containerized Software
 
