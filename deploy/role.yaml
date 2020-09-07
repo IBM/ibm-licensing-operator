@@ -154,19 +154,38 @@ rules:
       - ""
     resources:
       - pods
-      - configmaps
       - namespaces
       - nodes
     verbs:
       - get
       - list
-      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  name: ibm-license-service
+  namespace: ibm-common-services
+  labels:
+    app.kubernetes.io/instance: "ibm-licensing-operator"
+    app.kubernetes.io/managed-by: "ibm-licensing-operator"
+    app.kubernetes.io/name: "ibm-licensing"
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - create
+      - get
+      - list
+      - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: ibm-licensing-cluster-operator
+  name: ibm-licensing-operator
   labels:
     app.kubernetes.io/instance: "ibm-licensing-operator"
     app.kubernetes.io/managed-by: "ibm-licensing-operator"
@@ -175,7 +194,8 @@ rules:
   - apiGroups:
       - operator.ibm.com
     resources:
-      - '*'
+      - ibmlicensings
+      - ibmlicenseservicereporters
     verbs:
       - create
       - delete

@@ -222,19 +222,18 @@ spec:
                 - ""
               resources:
                 - pods
-                - configmaps
                 - namespaces
                 - nodes
               verbs:
                 - get
                 - list
-                - watch
           serviceAccountName: ibm-license-service
         - rules:
             - apiGroups:
                 - operator.ibm.com
               resources:
-                - '*'
+                - ibmlicensings
+                - ibmlicenseservicereporters
               verbs:
                 - create
                 - delete
@@ -243,7 +242,7 @@ spec:
                 - patch
                 - update
                 - watch
-          serviceAccountName: ibm-licensing-cluster-operator
+          serviceAccountName: ibm-licensing-operator
       permissions:
         - rules:
             - apiGroups:
@@ -377,6 +376,17 @@ spec:
                 - update
                 - watch
           serviceAccountName: ibm-licensing-operator
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - configmaps
+              verbs:
+                - create
+                - get
+                - list
+                - update
+          serviceAccountName: ibm-license-service
       deployments:
         - name: ibm-licensing-operator
           spec:
