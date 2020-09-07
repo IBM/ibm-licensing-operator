@@ -1,4 +1,4 @@
-kind: ClusterRoleBinding
+kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: ibm-licensing-operator
@@ -7,11 +7,11 @@ metadata:
     app.kubernetes.io/managed-by: "ibm-licensing-operator"
     app.kubernetes.io/name: "ibm-licensing"
 subjects:
-- kind: ServiceAccount
-  name: ibm-licensing-operator
-  namespace: ibm-common-services
+  - kind: ServiceAccount
+    name: ibm-licensing-operator
+    namespace: ibm-common-services
 roleRef:
-  kind: ClusterRole
+  kind: Role
   name: ibm-licensing-operator
   apiGroup: rbac.authorization.k8s.io
 ---
@@ -30,4 +30,21 @@ subjects:
 roleRef:
   kind: ClusterRole
   name: ibm-license-service
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ibm-licensing-cluster-operator
+  labels:
+    app.kubernetes.io/instance: "ibm-licensing-operator"
+    app.kubernetes.io/managed-by: "ibm-licensing-operator"
+    app.kubernetes.io/name: "ibm-licensing"
+subjects:
+  - kind: ServiceAccount
+    name: ibm-licensing-operator
+    namespace: ibm-common-services
+roleRef:
+  kind: ClusterRole
+  name: ibm-licensing-cluster-operator
   apiGroup: rbac.authorization.k8s.io
