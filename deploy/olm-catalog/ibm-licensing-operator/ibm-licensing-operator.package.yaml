@@ -1,7 +1,7 @@
 channels:
-- currentCSV: ibm-licensing-operator.v1.2.0
+- currentCSV: ibm-licensing-operator.v1.2.1
   name: beta
-- currentCSV: ibm-licensing-operator.v1.2.0
+- currentCSV: ibm-licensing-operator.v1.2.1
   name: dev
 - currentCSV: ibm-licensing-operator.v1.1.3
   name: stable-v1
