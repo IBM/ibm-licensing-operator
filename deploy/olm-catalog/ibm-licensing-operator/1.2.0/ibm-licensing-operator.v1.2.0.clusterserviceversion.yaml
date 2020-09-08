@@ -18,7 +18,7 @@ metadata:
           "spec": {
             "version": "1.2.0",
             "apiSecretToken": "ibm-licensing-token",
-            "datasource": "metering",
+            "datasource": "datacollector",
             "httpsEnable": true,
             "instanceNamespace": "ibm-common-services"
           }
@@ -66,16 +66,7 @@ metadata:
             "name": "ibm-licensing-request"
           },
           "spec": {
-            "requests": [
-              {
-                "operands": [
-                  {
-                    "name": "ibm-metering-operator"
-                  }
-                ],
-                "registry": "common-service"
-              }
-            ]
+            "requests": []
           }
         }
       ]

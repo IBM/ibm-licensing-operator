@@ -348,29 +348,7 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileDeployment(instance *opera
 	)
 
 	if shouldUpdate {
-		refreshedDeployment := foundDeployment.DeepCopy()
-		refreshedDeployment.Spec.Template.Spec.Volumes = expectedDeployment.Spec.Template.Spec.Volumes
-		refreshedDeployment.Spec.Template.Spec.Containers = expectedDeployment.Spec.Template.Spec.Containers
-		refreshedDeployment.Spec.Template.Spec.InitContainers = expectedDeployment.Spec.Template.Spec.InitContainers
-		refreshedDeployment.Spec.Template.Spec.ServiceAccountName = expectedDeployment.Spec.Template.Spec.ServiceAccountName
-		refreshedDeployment.Spec.Template.Annotations = expectedDeployment.Spec.Template.Annotations
-		reqLogger.Info("Updating Deployment Spec to", "RefreshedDeployment.Spec", refreshedDeployment.Spec)
-		err = r.client.Update(context.TODO(), refreshedDeployment)
-		if err != nil {
-			// only need to delete deployment as new will be recreated on next reconciliation
-			reqLogger.Error(err, "Failed to update Deployment, deleting...", "Namespace", foundDeployment.Namespace, "Name", foundDeployment.Name)
-			err = r.client.Delete(context.TODO(), foundDeployment)
-			if err != nil {
-				reqLogger.Error(err, "Failed to delete Deployment during recreation", "Namespace", foundDeployment.Namespace, "Name", foundDeployment.Name)
-				return reconcile.Result{}, err
-			}
-			// Deployment deleted successfully - return and requeue to create new one
-			reqLogger.Info("Deleted deployment successfully", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name)
-			return reconcile.Result{Requeue: true}, nil
-		}
-		reqLogger.Info("Updated deployment successfully", "Deployment.Namespace", refreshedDeployment.Namespace, "Deployment.Name", refreshedDeployment.Name)
-		// Spec updated - return and do not requeue as it might not consider extra values
-		return reconcile.Result{}, nil
+		return res.UpdateResource(&reqLogger, r.client, expectedDeployment, foundDeployment)
 	}
 
 	return reconcile.Result{}, nil
