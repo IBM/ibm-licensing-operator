@@ -9,6 +9,6 @@ metadata:
 spec:
   version: 1.2.0
   apiSecretToken: ibm-licensing-token
-  datasource: metering
+  datasource: datacollector
   httpsEnable: true
   instanceNamespace: ibm-common-services

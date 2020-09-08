@@ -84,8 +84,7 @@ func Contains(s []corev1.LocalObjectReference, e corev1.LocalObjectReference) bo
 
 func AnnotationsForPod() map[string]string {
 	return map[string]string{"productName": LicensingProductName,
-		"productID": LicensingProductID, "productVersion": LicensingProductVersion, "productMetric": LicensingProductMetric,
-		"clusterhealth.ibm.com/dependencies": "metering"}
+		"productID": LicensingProductID, "productVersion": LicensingProductVersion, "productMetric": LicensingProductMetric}
 }
 
 func WatchForResources(log logr.Logger, o runtime.Object, c controller.Controller, watchTypes []ResourceObject) error {
