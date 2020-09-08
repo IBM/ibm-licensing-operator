@@ -24,6 +24,11 @@ import (
 )
 
 func equalProbes(probe1 *corev1.Probe, probe2 *corev1.Probe) bool {
+	if probe1 == nil {
+		return probe2 == nil
+	} else if probe2 == nil {
+		return false
+	}
 	// need to set thresholds for not set values
 	if probe1.SuccessThreshold == 0 {
 		probe1.SuccessThreshold = probe2.SuccessThreshold
