@@ -20,6 +20,7 @@ rules:
       - events
       - configmaps
       - secrets
+      - secrets/finalizers
       - namespaces
       - serviceaccounts
     verbs:
@@ -58,6 +59,7 @@ rules:
       - ibm-licensing-operator
     resources:
       - deployments/finalizers
+      - secrets/finalizers      -
     verbs:
       - update
   - apiGroups:
@@ -194,8 +196,7 @@ rules:
   - apiGroups:
       - operator.ibm.com
     resources:
-      - ibmlicensings
-      - ibmlicenseservicereporters
+      - "*"
     verbs:
       - create
       - delete
