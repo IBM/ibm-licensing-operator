@@ -56,6 +56,12 @@ func getReceiverProbeHandler() corev1.Handler {
 
 func GetReceiverContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter, isOpenShift bool) corev1.Container {
 	container := res.GetContainerBase(instance.Spec.ReceiverContainer)
+	container.Env = []corev1.EnvVar{
+		{
+			Name:  "HTTPS_CERTS_SOURCE",
+			Value: instance.Spec.HTTPSCertsSource,
+		},
+	}
 	container.EnvFrom = getDatabaseEnvFromSourceVariables()
 	container.VolumeMounts = getVolumeMounts(instance.Spec, isOpenShift)
 	container.Name = ReceiverContainerName
