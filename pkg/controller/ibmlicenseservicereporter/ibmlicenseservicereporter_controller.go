@@ -142,8 +142,8 @@ func (r *ReconcileIBMLicenseServiceReporter) Reconcile(request reconcile.Request
 		r.reconcileAPISecretToken,
 		r.reconcileDatabaseSecret,
 		r.reconcilePersistentVolumeClaim,
-		r.reconcileDeployment,
 		r.reconcileService,
+		r.reconcileDeployment,
 		r.reconcileReporterRoute,
 		r.reconcileUIIngress,
 		r.reconcileIngressProxy,
@@ -333,7 +333,7 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileService(instance *operator
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
 	reqLogger := log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
-	expectedDeployment := reporter.GetDeployment(instance)
+	expectedDeployment := reporter.GetDeployment(instance, isOpenshiftCluster)
 	foundDeployment := &appsv1.Deployment{}
 	namespacedName := types.NamespacedName{Name: expectedDeployment.GetName(), Namespace: expectedDeployment.GetNamespace()}
 	reconcileResult, err := r.reconcileResourceExistence(instance, expectedDeployment, foundDeployment, namespacedName)

@@ -23,6 +23,24 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+func GetLicenseReporterInitContainers(spec operatorv1alpha1.IBMLicenseServiceReporterSpec, isOpenShift bool) []corev1.Container {
+	containers := []corev1.Container{}
+	if spec.HTTPSCertsSource == res.Ocp {
+		baseContainer := res.GetContainerBase(spec.ReceiverContainer)
+		ocpSecretCheckContainer := corev1.Container{}
+
+		baseContainer.DeepCopyInto(&ocpSecretCheckContainer)
+		ocpSecretCheckContainer.Name = res.OcpCheckString
+		ocpSecretCheckContainer.Command = []string{
+			"sh",
+			"-c",
+			res.GetOCPSecretCheckScript(),
+		}
+		containers = append(containers, ocpSecretCheckContainer)
+	}
+	return containers
+}
+
 func getReceiverProbeHandler() corev1.Handler {
 	return corev1.Handler{
 		HTTPGet: &corev1.HTTPGetAction{
@@ -36,10 +54,10 @@ func getReceiverProbeHandler() corev1.Handler {
 	}
 }
 
-func GetReceiverContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
+func GetReceiverContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter, isOpenShift bool) corev1.Container {
 	container := res.GetContainerBase(instance.Spec.ReceiverContainer)
 	container.EnvFrom = getDatabaseEnvFromSourceVariables()
-	container.VolumeMounts = getVolumeMounts()
+	container.VolumeMounts = getVolumeMounts(instance.Spec, isOpenShift)
 	container.Name = ReceiverContainerName
 	container.Ports = []corev1.ContainerPort{
 		{

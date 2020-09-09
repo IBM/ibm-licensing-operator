@@ -27,7 +27,7 @@ const APIUploadTokenVolumeName = "token-upload"
 const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
 
-func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.VolumeMount {
+func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec, isOpenShift bool) []corev1.VolumeMount {
 	var volumeMounts = []corev1.VolumeMount{
 		{
 			Name:      APISecretTokenVolumeName,
@@ -43,7 +43,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 		},
 	}
 	if spec.HTTPSEnable {
-		if spec.HTTPSCertsSource == "custom" {
+		if spec.HTTPSCertsSource == "custom" || (isOpenShift && spec.HTTPSCertsSource == res.Ocp) {
 			volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 				{
 					Name:      LicensingHTTPSCertsVolumeName,
@@ -52,6 +52,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 				},
 			}...)
 		}
+
 	}
 	if spec.IsMetering() {
 		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
@@ -65,7 +66,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 	return volumeMounts
 }
 
-func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume {
+func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec, isOpenShift bool) []corev1.Volume {
 	var volumes []corev1.Volume
 
 	apiSecretTokenVolume := corev1.Volume{
@@ -109,18 +110,9 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 
 	if spec.HTTPSEnable {
 		if spec.HTTPSCertsSource == "custom" {
-			licensingHTTPSCertsVolume := corev1.Volume{
-				Name: LicensingHTTPSCertsVolumeName,
-				VolumeSource: corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName:  "ibm-licensing-certs",
-						DefaultMode: &res.DefaultSecretMode,
-						Optional:    &res.TrueVar,
-					},
-				},
-			}
-
-			volumes = append(volumes, licensingHTTPSCertsVolume)
+			volumes = append(volumes, res.GetVolume(LicensingHTTPSCertsVolumeName, "ibm-licensing-certs"))
+		} else if isOpenShift && spec.HTTPSCertsSource == res.Ocp {
+			volumes = append(volumes, res.GetVolume(LicensingHTTPSCertsVolumeName, LiceseServiceOCPCertName))
 		}
 	}
 

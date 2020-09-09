@@ -26,7 +26,7 @@ import (
 
 var replicas = int32(1)
 
-func GetDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) *appsv1.Deployment {
+func GetDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter, isOpenShift bool) *appsv1.Deployment {
 	metaLabels := LabelsForMeta(instance)
 	selectorLabels := LabelsForSelector(instance)
 	podLabels := LabelsForPod(instance)
@@ -55,10 +55,11 @@ func GetDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) *appsv1
 					Annotations: res.AnnotationsForPod(),
 				},
 				Spec: corev1.PodSpec{
-					Volumes: getLicenseServiceReporterVolumes(instance.Spec),
+					Volumes:        getLicenseServiceReporterVolumes(instance.Spec, isOpenShift),
+					InitContainers: GetLicenseReporterInitContainers(instance.Spec, isOpenShift),
 					Containers: []corev1.Container{
 						GetDatabaseContainer(instance),
-						GetReceiverContainer(instance),
+						GetReceiverContainer(instance, isOpenShift),
 						GetReporterUIContainer(instance),
 					},
 					TerminationGracePeriodSeconds: &res.Seconds60,
