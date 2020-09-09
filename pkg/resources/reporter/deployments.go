@@ -30,6 +30,14 @@ func GetDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) *appsv1
 	metaLabels := LabelsForMeta(instance)
 	selectorLabels := LabelsForSelector(instance)
 	podLabels := LabelsForPod(instance)
+
+	imagePullSecrets := []corev1.LocalObjectReference{}
+	if instance.Spec.ImagePullSecrets != nil {
+		for _, pullSecret := range instance.Spec.ImagePullSecrets {
+			imagePullSecrets = append(imagePullSecrets, corev1.LocalObjectReference{Name: pullSecret})
+		}
+	}
+
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetResourceName(instance),
@@ -55,6 +63,7 @@ func GetDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) *appsv1
 					},
 					TerminationGracePeriodSeconds: &res.Seconds60,
 					ServiceAccountName:            GetServiceAccountName(instance),
+					ImagePullSecrets:              imagePullSecrets,
 					Affinity: &corev1.Affinity{
 						NodeAffinity: &corev1.NodeAffinity{
 							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
