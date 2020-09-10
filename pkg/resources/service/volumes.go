@@ -112,7 +112,7 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec, isOpenShift boo
 		if spec.HTTPSCertsSource == "custom" {
 			volumes = append(volumes, res.GetVolume(LicensingHTTPSCertsVolumeName, "ibm-licensing-certs"))
 		} else if isOpenShift && spec.HTTPSCertsSource == res.Ocp {
-			volumes = append(volumes, res.GetVolume(LicensingHTTPSCertsVolumeName, LiceseServiceOCPCertName))
+			volumes = append(volumes, res.GetVolume(LicensingHTTPSCertsVolumeName, LicenseServiceOCPCertName))
 		}
 	}
 
