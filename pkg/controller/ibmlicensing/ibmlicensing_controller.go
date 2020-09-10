@@ -156,8 +156,8 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
 		r.reconcileUploadConfigMap,
-		r.reconcileDeployment,
 		r.reconcileService,
+		r.reconcileDeployment,
 		r.reconcileIngress,
 	}
 
@@ -281,7 +281,7 @@ func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBML
 
 func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
-	expectedDeployment := service.GetLicensingDeployment(instance)
+	expectedDeployment := service.GetLicensingDeployment(instance, isOpenshiftCluster)
 
 	foundDeployment := &appsv1.Deployment{}
 	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedDeployment, foundDeployment)

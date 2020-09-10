@@ -49,6 +49,8 @@ const LicensingProductMetric = "FREE"
 
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
+const Ocp = "ocp"
+const OcpCheckString = "ocp-check-secret"
 
 var randStringCharsetLength = big.NewInt(int64(len(randStringCharset)))
 
@@ -118,7 +120,7 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 }
 
 func AnnotateForService(httpCertSource string, isOpenShift bool, certName string) map[string]string {
-	if isOpenShift && httpCertSource == "ocp" {
+	if isOpenShift && httpCertSource == Ocp {
 		return map[string]string{ocpCertSecretNameTag: certName}
 	}
 	return map[string]string{}
@@ -158,4 +160,16 @@ func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource Resou
 	// Resource deleted successfully - return and requeue to create new one
 	(*reqLogger).Info("Deleted "+resTypeString+" successfully", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
 	return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 30}, nil
+}
+
+func GetOCPSecretCheckScript() string {
+	script := `while true; do
+  echo "$(date): Checking for ocp secret"
+  ls /opt/licensing/certs/* && break
+  echo "$(date): Required ocp secret not found ... try again in 30s"
+  sleep 30
+done
+echo "$(date): All required secrets exist"
+`
+	return script
 }

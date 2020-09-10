@@ -23,17 +23,28 @@ import (
 )
 
 const APISecretTokenVolumeName = "api-token"
+const LicenseReporterHTTPSCertsVolumeName = "license-reporter-https-certs"
 
 const persistentVolumeClaimVolumeName = "data"
 
-func getVolumeMounts() []corev1.VolumeMount {
-	return []corev1.VolumeMount{
+func getVolumeMounts(spec operatorv1alpha1.IBMLicenseServiceReporterSpec, isOpenShift bool) []corev1.VolumeMount {
+	var volumeMounts = []corev1.VolumeMount{
 		{
 			Name:      APISecretTokenVolumeName,
 			MountPath: "/opt/ibm/licensing",
 			ReadOnly:  true,
 		},
 	}
+	if isOpenShift && spec.HTTPSCertsSource == res.Ocp {
+		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
+			{
+				Name:      LicenseReporterHTTPSCertsVolumeName,
+				MountPath: "/opt/licensing/certs/",
+				ReadOnly:  true,
+			},
+		}...)
+	}
+	return volumeMounts
 }
 
 func getDatabaseVolumeMounts() []corev1.VolumeMount {
@@ -45,7 +56,7 @@ func getDatabaseVolumeMounts() []corev1.VolumeMount {
 	}
 }
 
-func getLicenseServiceReporterVolumes(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []corev1.Volume {
+func getLicenseServiceReporterVolumes(spec operatorv1alpha1.IBMLicenseServiceReporterSpec, isOpenShift bool) []corev1.Volume {
 	volumes := []corev1.Volume{
 
 		{
@@ -65,6 +76,10 @@ func getLicenseServiceReporterVolumes(spec operatorv1alpha1.IBMLicenseServiceRep
 				},
 			},
 		},
+	}
+
+	if isOpenShift && spec.HTTPSCertsSource == res.Ocp {
+		volumes = append(volumes, res.GetVolume(LicenseReporterHTTPSCertsVolumeName, LicenseReportOCPCertName))
 	}
 	return volumes
 }
