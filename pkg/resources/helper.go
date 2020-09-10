@@ -167,7 +167,7 @@ func GetOCPSecretCheckScript() string {
 	script := `while true; do
   echo "$(date): Checking for metering secret"
   ls /opt/licensing/certs/* && break
-  echo "$(date): Required metering secret not found ... try again in 30s"
+  echo "$(date): Required ocp secret not found ... try again in 30s"
   sleep 30
 done
 echo "$(date): All required secrets exist"

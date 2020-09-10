@@ -56,7 +56,7 @@ func GetDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter, isOpenS
 				},
 				Spec: corev1.PodSpec{
 					Volumes:        getLicenseServiceReporterVolumes(instance.Spec, isOpenShift),
-					InitContainers: GetLicenseReporterInitContainers(instance.Spec, isOpenShift),
+					InitContainers: GetLicenseReporterInitContainers(instance, isOpenShift),
 					Containers: []corev1.Container{
 						GetDatabaseContainer(instance),
 						GetReceiverContainer(instance, isOpenShift),

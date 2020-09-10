@@ -23,12 +23,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func GetLicenseReporterInitContainers(spec operatorv1alpha1.IBMLicenseServiceReporterSpec, isOpenShift bool) []corev1.Container {
+func GetLicenseReporterInitContainers(instance *operatorv1alpha1.IBMLicenseServiceReporter, isOpenShift bool) []corev1.Container {
 	containers := []corev1.Container{}
-	if spec.HTTPSCertsSource == res.Ocp {
-		baseContainer := res.GetContainerBase(spec.ReceiverContainer)
+	if instance.Spec.HTTPSCertsSource == res.Ocp {
+		baseContainer := GetReceiverContainer(instance, isOpenShift)
+		baseContainer.LivenessProbe = nil
+		baseContainer.ReadinessProbe = nil
 		ocpSecretCheckContainer := corev1.Container{}
-
 		baseContainer.DeepCopyInto(&ocpSecretCheckContainer)
 		ocpSecretCheckContainer.Name = res.OcpCheckString
 		ocpSecretCheckContainer.Command = []string{

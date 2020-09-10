@@ -47,7 +47,7 @@ import (
 )
 
 var log = logf.Log.WithName("controller_ibmlicenseservicereporter")
-var isOpenshiftCluster = false
+var isOpenshiftCluster = true
 
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
