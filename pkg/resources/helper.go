@@ -165,7 +165,7 @@ func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource Resou
 
 func GetOCPSecretCheckScript() string {
 	script := `while true; do
-  echo "$(date): Checking for metering secret"
+  echo "$(date): Checking for ocp secret"
   ls /opt/licensing/certs/* && break
   echo "$(date): Required ocp secret not found ... try again in 30s"
   sleep 30

@@ -25,7 +25,7 @@ import (
 
 func GetLicenseReporterInitContainers(instance *operatorv1alpha1.IBMLicenseServiceReporter, isOpenShift bool) []corev1.Container {
 	containers := []corev1.Container{}
-	if instance.Spec.HTTPSCertsSource == res.Ocp {
+	if isOpenShift && instance.Spec.HTTPSCertsSource == res.Ocp {
 		baseContainer := GetReceiverContainer(instance, isOpenShift)
 		baseContainer.LivenessProbe = nil
 		baseContainer.ReadinessProbe = nil
