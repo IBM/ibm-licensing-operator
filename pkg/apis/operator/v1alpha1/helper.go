@@ -34,16 +34,16 @@ import (
 const defaultQuayRegistry = "quay.io/opencloudio"
 
 const defaultLicensingImageName = "ibm-licensing"
-const defaultLicensingImageTagPostfix = "sha256:135a2df422830f2e95a6eb47f1b89a0359f7995ba369488bb84f683e08f84d29"
+const defaultLicensingImageTagPostfix = "sha256:7e83ea45e7d75d276c400e24e36f754aeda61384a53f1eefb5733997d22a349d"
 
 const defaultReporterImageName = "ibm-license-service-reporter"
-const defaultReporterImageTagPostfix = "sha256:d09a953ca5f4ec23350c381e1023ca8dda9f6ce5346aed1c6d476fe3a3d059c3"
+const defaultReporterImageTagPostfix = "sha256:49dc2e2a724d3c44713abae3deec61df256827b0ef491034e6cd9172cd896ba0"
 
 const defaultReporterUIImageName = "ibm-license-service-reporter-ui"
-const defaultReporterUIImageTagPostfix = "sha256:a71fcdb6c67f650a1cb8ce6f50d45070843461b8c01d788e0f8c4ac41454d12e"
+const defaultReporterUIImageTagPostfix = "sha256:4252a87ee0b37ae90bb298e9fcc07d2efeef764e80ad0e1b595728ffb36cc113"
 
 const defaultDatabaseImageName = "ibm-postgresql"
-const defaultDatabaseImageTagPostfix = "sha256:5e68245c21a7252afcca65f82faabdc7551429b844896f8499a52bf092c49caf"
+const defaultDatabaseImageTagPostfix = "sha256:d92430cf17168778a05aa84d7776bb403e06ea6970828782d75cba35dd6f327f"
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)

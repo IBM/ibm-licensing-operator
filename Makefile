@@ -22,11 +22,11 @@ BUILD_LOCALLY ?= 1
 # Use your own docker registry and image name for dev/test by overriding the IMG, REGISTRY and CSV_VERSION environment variable.
 IMG ?= ibm-licensing-operator
 REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
-CSV_VERSION ?= 1.2.0
+CSV_VERSION ?= 1.2.1
 
 # Set the registry and tag for the operand images
 OPERAND_REGISTRY ?= $(REGISTRY)
-OPERAND_TAG ?= 1.2.0
+OPERAND_TAG ?= 1.2.1
 
 # When pushing CSV locally you need to have these credentials set as environment variables.
 QUAY_USERNAME ?=
