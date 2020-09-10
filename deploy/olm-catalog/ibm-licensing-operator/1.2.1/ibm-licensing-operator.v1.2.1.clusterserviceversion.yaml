@@ -227,8 +227,7 @@ spec:
             - apiGroups:
                 - operator.ibm.com
               resources:
-                - ibmlicensings
-                - ibmlicenseservicereporters
+                - "*"
               verbs:
                 - create
                 - delete
