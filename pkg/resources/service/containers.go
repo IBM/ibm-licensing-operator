@@ -136,7 +136,7 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec, isOpenSh
 		}
 		containers = append(containers, meteringSecretCheckContainer)
 	}
-	if spec.HTTPSCertsSource == res.Ocp {
+	if isOpenShift && spec.HTTPSCertsSource == res.Ocp {
 		baseContainer := getLicensingContainerBase(spec, isOpenShift)
 		ocpSecretCheckContainer := corev1.Container{}
 
