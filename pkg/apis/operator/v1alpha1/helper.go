@@ -40,10 +40,10 @@ const defaultReporterImageName = "ibm-license-service-reporter"
 const defaultReporterImageTagPostfix = "sha256:49dc2e2a724d3c44713abae3deec61df256827b0ef491034e6cd9172cd896ba0"
 
 const defaultReporterUIImageName = "ibm-license-service-reporter-ui"
-const defaultReporterUIImageTagPostfix = "sha256:4252a87ee0b37ae90bb298e9fcc07d2efeef764e80ad0e1b595728ffb36cc113"
+const defaultReporterUIImageTagPostfix = "sha256:eeb8fced404728bdc3eca9c61bd70cd58bc0a7205d38c056a8c54c2f79161a7f"
 
 const defaultDatabaseImageName = "ibm-postgresql"
-const defaultDatabaseImageTagPostfix = "sha256:d92430cf17168778a05aa84d7776bb403e06ea6970828782d75cba35dd6f327f"
+const defaultDatabaseImageTagPostfix = "sha256:397eca770b9526bbedfc1a30cbc1f60f2aefdc3366ae917688bbfa190d861440"
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
