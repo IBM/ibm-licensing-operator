@@ -46,7 +46,6 @@ var Seconds60 int64 = 60
 const LicensingProductName = "IBM Cloud Platform Common Services"
 const LicensingProductID = "068a62892a1e4db39641342e592daa25"
 const LicensingProductMetric = "FREE"
-const LicensingProductVersion = "3.5.0"
 
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
@@ -84,7 +83,7 @@ func Contains(s []corev1.LocalObjectReference, e corev1.LocalObjectReference) bo
 
 func AnnotationsForPod() map[string]string {
 	return map[string]string{"productName": LicensingProductName,
-		"productID": LicensingProductID, "productVersion": LicensingProductVersion, "productMetric": LicensingProductMetric}
+		"productID": LicensingProductID, "productMetric": LicensingProductMetric}
 }
 
 func WatchForResources(log logr.Logger, o runtime.Object, c controller.Controller, watchTypes []ResourceObject) error {
