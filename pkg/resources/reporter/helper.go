@@ -17,8 +17,12 @@
 package reporter
 
 import (
+	"context"
+
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	"github.com/ibm/ibm-licensing-operator/version"
 	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const DatabaseConfigSecretName = "license-service-hub-db-config"
@@ -76,4 +80,12 @@ func getDatabaseEnvFromSourceVariables() []corev1.EnvFromSource {
 			},
 		},
 	}
+}
+
+func UpdateVersion(client client.Client, instance *operatorv1alpha1.IBMLicenseServiceReporter) error {
+	if instance.Spec.Version != version.Version {
+		instance.Spec.Version = version.Version
+		return client.Update(context.TODO(), instance)
+	}
+	return nil
 }
