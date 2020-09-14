@@ -148,6 +148,11 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{}, err
 	}
 
+	err = service.UpdateVersion(r.client, instance)
+	if err != nil {
+		log.Error(err, "Can not update version in CR")
+	}
+
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
 
 	var recResult reconcile.Result
