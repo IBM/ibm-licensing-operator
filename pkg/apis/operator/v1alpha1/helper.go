@@ -40,7 +40,7 @@ const defaultReporterImageName = "ibm-license-service-reporter"
 const defaultReporterImageTagPostfix = "sha256:a1d1bff537c95a781ac8a95bef6f7fdebd24452c95f49eaf61648faba818e747"
 
 const defaultReporterUIImageName = "ibm-license-service-reporter-ui"
-const defaultReporterUIImageTagPostfix = "sha256:79f09b40090bc21323f0424add370c0ea2f84e56b4f90560e4db6825e0cb9075"
+const defaultReporterUIImageTagPostfix = "sha256:776973ec535c9562b630b4cb15ec5ee5d4cf8c7e8b8520e298405853533d0ad9"
 
 const defaultDatabaseImageName = "ibm-postgresql"
 const defaultDatabaseImageTagPostfix = "sha256:397eca770b9526bbedfc1a30cbc1f60f2aefdc3366ae917688bbfa190d861440"
