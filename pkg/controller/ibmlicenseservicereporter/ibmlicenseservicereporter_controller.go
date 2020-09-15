@@ -260,7 +260,7 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileServiceAccount(instance *o
 				return reconcile.Result{}, err
 			}
 			reqLogger.Info("Deleted ServiceAccount successfully")
-			return reconcile.Result{Requeue: true}, nil
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 		}
 		reqLogger.Info("Updated ServiceAccount successfully")
 		// Spec updated - return and do not requeue as it might not consider extra values
@@ -410,7 +410,7 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileResourceExistence(
 			return reconcile.Result{}, err
 		}
 		// Created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Minute}, nil
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())

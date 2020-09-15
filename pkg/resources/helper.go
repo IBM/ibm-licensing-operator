@@ -23,6 +23,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,7 +51,6 @@ const LicensingProductMetric = "FREE"
 
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
-const Ocp = "ocp"
 const OcpCheckString = "ocp-check-secret"
 
 var randStringCharsetLength = big.NewInt(int64(len(randStringCharset)))
@@ -119,8 +120,8 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 	return expectedSecret, nil
 }
 
-func AnnotateForService(httpCertSource string, isOpenShift bool, certName string) map[string]string {
-	if isOpenShift && httpCertSource == Ocp {
+func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isOpenShift bool, certName string) map[string]string {
+	if isOpenShift && httpCertSource == v1alpha1.OcpCertsSource {
 		return map[string]string{ocpCertSecretNameTag: certName}
 	}
 	return map[string]string{}
