@@ -50,7 +50,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 	if spec.HTTPSEnable {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "HTTPS_CERTS_SOURCE",
-			Value: spec.HTTPSCertsSource,
+			Value: string(spec.HTTPSCertsSource),
 		})
 	}
 	if spec.IsMetering() {
@@ -136,7 +136,7 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec, isOpenSh
 		}
 		containers = append(containers, meteringSecretCheckContainer)
 	}
-	if isOpenShift && spec.HTTPSCertsSource == res.Ocp {
+	if isOpenShift && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 		baseContainer := getLicensingContainerBase(spec, isOpenShift)
 		ocpSecretCheckContainer := corev1.Container{}
 

@@ -35,7 +35,7 @@ func getVolumeMounts(spec operatorv1alpha1.IBMLicenseServiceReporterSpec, isOpen
 			ReadOnly:  true,
 		},
 	}
-	if isOpenShift && spec.HTTPSCertsSource == res.Ocp {
+	if isOpenShift && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 			{
 				Name:      LicenseReporterHTTPSCertsVolumeName,
@@ -78,7 +78,7 @@ func getLicenseServiceReporterVolumes(spec operatorv1alpha1.IBMLicenseServiceRep
 		},
 	}
 
-	if isOpenShift && spec.HTTPSCertsSource == res.Ocp {
+	if isOpenShift && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 		volumes = append(volumes, res.GetVolume(LicenseReporterHTTPSCertsVolumeName, LicenseReportOCPCertName))
 	}
 	return volumes

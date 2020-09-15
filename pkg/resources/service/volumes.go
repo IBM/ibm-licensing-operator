@@ -43,7 +43,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec, isOpenShif
 		},
 	}
 	if spec.HTTPSEnable {
-		if spec.HTTPSCertsSource == "custom" || (isOpenShift && spec.HTTPSCertsSource == res.Ocp) {
+		if spec.HTTPSCertsSource == operatorv1alpha1.CustomCertsSource || (isOpenShift && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource) {
 			volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 				{
 					Name:      LicensingHTTPSCertsVolumeName,
@@ -109,9 +109,9 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec, isOpenShift boo
 	}
 
 	if spec.HTTPSEnable {
-		if spec.HTTPSCertsSource == "custom" {
+		if spec.HTTPSCertsSource == operatorv1alpha1.CustomCertsSource {
 			volumes = append(volumes, res.GetVolume(LicensingHTTPSCertsVolumeName, "ibm-licensing-certs"))
-		} else if isOpenShift && spec.HTTPSCertsSource == res.Ocp {
+		} else if isOpenShift && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 			volumes = append(volumes, res.GetVolume(LicensingHTTPSCertsVolumeName, LicenseServiceOCPCertName))
 		}
 	}

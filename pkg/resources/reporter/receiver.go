@@ -25,7 +25,7 @@ import (
 
 func GetLicenseReporterInitContainers(instance *operatorv1alpha1.IBMLicenseServiceReporter, isOpenShift bool) []corev1.Container {
 	containers := []corev1.Container{}
-	if isOpenShift && instance.Spec.HTTPSCertsSource == res.Ocp {
+	if isOpenShift && instance.Spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 		baseContainer := GetReceiverContainer(instance, isOpenShift)
 		baseContainer.LivenessProbe = nil
 		baseContainer.ReadinessProbe = nil
@@ -60,7 +60,7 @@ func GetReceiverContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter, 
 	container.Env = []corev1.EnvVar{
 		{
 			Name:  "HTTPS_CERTS_SOURCE",
-			Value: instance.Spec.HTTPSCertsSource,
+			Value: string(instance.Spec.HTTPSCertsSource),
 		},
 	}
 	container.EnvFrom = getDatabaseEnvFromSourceVariables()

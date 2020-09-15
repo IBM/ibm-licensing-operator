@@ -71,6 +71,18 @@ type IBMLicenseServiceRouteOptions struct {
 	TLS *routev1.TLSConfig `json:"tls,omitempty"`
 }
 
+// HTTPSCertsSource describes how certificate is set in available APIs
+type HTTPSCertsSource string
+
+const (
+	// OcpCertsSource means application will use cert manager
+	OcpCertsSource HTTPSCertsSource = "ocp"
+	// SelfSignedCertsSource means application will create certificate by itself and use it
+	SelfSignedCertsSource HTTPSCertsSource = "self-signed"
+	// CustomCertsSource means application will use certificate created by user
+	CustomCertsSource HTTPSCertsSource = "custom"
+)
+
 type IBMLicenseServiceBaseSpec struct {
 	// Should application pod show additional information, options: DEBUG, INFO
 	// +kubebuilder:validation:Enum=DEBUG;INFO
@@ -81,7 +93,7 @@ type IBMLicenseServiceBaseSpec struct {
 	ImagePullSecrets []string `json:"imagePullSecrets,omitempty"`
 	// options: self-signed or custom
 	// +kubebuilder:validation:Enum=self-signed;custom;ocp
-	HTTPSCertsSource string `json:"httpsCertsSource,omitempty"`
+	HTTPSCertsSource HTTPSCertsSource `json:"httpsCertsSource,omitempty"`
 	// Route parameters
 	RouteOptions *IBMLicenseServiceRouteOptions `json:"routeOptions,omitempty"`
 	// Version
@@ -99,7 +111,11 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 	spec.Container.setImagePullPolicyIfNotSet()
 	if spec.HTTPSCertsSource == "" {
-		spec.HTTPSCertsSource = "self-signed"
+		if isOpenshiftCluster {
+			spec.HTTPSCertsSource = OcpCertsSource
+		} else {
+			spec.HTTPSCertsSource = SelfSignedCertsSource
+		}
 	}
 	if spec.RouteEnabled == nil {
 		spec.RouteEnabled = &isOpenshiftCluster
@@ -236,6 +252,9 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 
 	if spec.APISecretToken == "" {
 		spec.APISecretToken = "ibm-licensing-reporter-token"
+	}
+	if spec.HTTPSCertsSource == "" {
+		spec.HTTPSCertsSource = OcpCertsSource
 	}
 	if spec.StorageClass == "" {
 		storageClass, err := getStorageClass(reqLogger, r)
