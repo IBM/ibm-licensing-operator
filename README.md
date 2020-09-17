@@ -202,7 +202,7 @@ d. Click **Subscribe**.
 
 5\. **Verify that the installation is successful**
 
-To check whether the installation is successful, wait for about 1 minute, and go to **Installed operators**. You should see IBM Licensing Operator with the **InstallSucceeded** status.
+To check whether the installation is successful, wait for about 1 minute, and go to **Installed operators**. You should see IBM Licensing Operator with the **Succeeded** status.
 
 ![IBM Licensing Installed](images/installed.png)
 
@@ -554,10 +554,10 @@ spec:
 
 After you successfully install IBM Licensing Operator, you need to create IBM Licensing instance to run IBM License Service on a cluster. You can either create an instance in OpenShift or in the console. Choose the option that fits your environment:
 
-- [Creat instance on OpenShift Console 4.2+](#create-instance-on-openshift-console-42)
+- [Create an instance on OpenShift Console 4.2+](#create-an-instance-on-openshift-console-42)
 - [Creating an instance from console](#creating-an-instance-from-console)
 
-#### Create instance on OpenShift Console 4.2+
+#### Create an instance on OpenShift Console 4.2+
 
 If you have OpenShift 4.2+ you can create the instance from the console.
 
