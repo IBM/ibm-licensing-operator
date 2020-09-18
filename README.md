@@ -300,7 +300,7 @@ curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releas
 
    **Troubleshooting:** If you get an error, you might have the old version of Kubernetes. You can try either upgrading your Kubernetes server version or using the older version of OLM.
 
-3\. **Create the CatalogSource**
+2\. **Create the CatalogSource**
 
 a. Make sure that GLOBAL_CATALOG_NAMESPACE has the global catalog namespace value and create `CatalogSource` to get operator bundles from `quay.io`.
 
@@ -355,7 +355,7 @@ upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
 
    **Troubleshooting:** In case of any problems, check the [troubleshooting section](#troubleshooting).
 
-5\. **View Available Operators**
+3\. **View Available Operators**
 
 Once the `OperatorSource` and `CatalogSource` are deployed, the following command can be used to list the available operators including ibm-licensing-operator-app.
 **Note:** The command assumes that the of the `OperatorSource` object is `opencloud-operators`. Adjust if needed.
@@ -366,7 +366,7 @@ NAME                  PACKAGES
 opencloud-operators   ibm-meta-operator-bridge-app,ibm-commonui-operator-app,ibm-catalog-ui-operator-app,ibm-metering-operator-app,ibm-helm-repo-operator-app,ibm-iam-operator-app,ibm-elastic-stack-operator-app,ibm-monitoring-exporters-operator-app,ibm-monitoring-prometheusext-operator-app,cp4foobar-operator-app,ibm-healthcheck-operator-app,ibm-platform-api-operator-app,ibm-management-ingress-operator-app,ibm-helm-api-operator-app,ibm-licensing-operator-app,ibm-ingress-nginx-operator-app,ibm-monitoring-grafana-operator-app,ibm-auditlogging-operator-app,operand-deployment-lifecycle-manager-app,ibm-mgmt-repo-operator-app,ibm-mongodb-operator-app,ibm-cert-manager-operator-app
 ```
 
-6\. **Create an OperatorGroup**
+4\. **Create an OperatorGroup**
 
 An `OperatorGroup` is used to denote which namespaces your Operator should watch.
 It must exist in the namespace where your operator is deployed, for example, `ibm-common-services`.
@@ -412,7 +412,7 @@ spec:
 EOF
 ```
 
-7\. **Create a Subscription**
+5\. **Create a Subscription**
 A subscription is created for the operator and is responsible for upgrades of IBM Licensing Operator when needed.
 
 a. Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
@@ -434,7 +434,7 @@ spec:
 EOF
 ```
 
-8\. **Verify Operator health**
+6\. **Verify Operator health**
 
 a. See if the IBM Licensing Operator is deployed by OLM from the `CatalogSource` with the following command.
 
