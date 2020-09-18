@@ -82,6 +82,7 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Installing License Service](#installing-license-service)
+    - [Cleaning past installation of License Service](#cleaning-past-installation-of-license-service)
     - [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)
     - [Manually installing License Service on OCP 4.2+](#manually-installing-license-service-on-ocp-42)
     - [Manually installing License Service on Kubernetes from scratch with `kubectl`](#manually-installing-license-service-on-kubernetes-from-scratch-with-kubectl)
@@ -101,7 +102,7 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 
 Choose the installation path that fits your environment best. You can choose an automatic or a manual procedure. You can also choose to perform offline installation.
 
-   **Note:** If you installed License Service in the past check [Cleaning past installation of License Service](#cleaning-past-installation-of-license-Service)
+   **Note:** If you installed License Service in the past check [Cleaning past installation of License Service](#cleaning-past-installation-of-license-service)
 
 - [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)
 - [Manually installing License Service on OCP 4.2+](#manually-installing-license-service-on-ocp-42)
@@ -110,7 +111,7 @@ Choose the installation path that fits your environment best. You can choose an 
 
 #### Cleaning past installation of License Service
 
-1. **Delete OperatorSource**
+1\. **Delete OperatorSource**
 
 ```bash
 # Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
@@ -136,7 +137,7 @@ kubectl delete Role marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
 kubectl delete ClusterRole marketplace-operator
 ```
 
-3\. **Follow normal installation, either use the automatic script or manual installation steps.**
+3\. **Follow normal installation, either use the automatic script or manual installation steps: [Installing License Service](#installing-license-service)**
 
 <!-- Section below is mentioned by READINESS WIKI that is used by other IBM teams, so after changing this section name, readiness wiki also needs to be changed -->
 
