@@ -81,8 +81,10 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Installing License Service](#installing-license-service)
+- [Cleaning no longer needed dependencies](#cleaning-no-longer-needed-dependencies)
     - [Cleaning no longer needed dependencies of License Service](#cleaning-no-longer-needed-dependencies-of-license-service)
+    - [Cleaning no longer needed dependencies of License Service on OpenShift Container Platform](#cleaning-no-longer-needed-dependencies-of-license-service-on-openshift-container-platform)
+- [Installing License Service](#installing-license-service)
     - [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)
     - [Manually installing License Service on OCP 4.2+](#manually-installing-license-service-on-ocp-42)
     - [Manually installing License Service on Kubernetes from scratch with `kubectl`](#manually-installing-license-service-on-kubernetes-from-scratch-with-kubectl)
@@ -96,35 +98,30 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 - [Troubleshooting](#troubleshooting)
     - [Prepare resources for offline installation without git](#prepare-resources-for-offline-installation-without-git)
 
+
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-### Installing License Service
+### Cleaning no longer needed dependencies
 
-Choose the installation path that fits your environment best. You can choose an automatic or a manual procedure. You can also choose to perform offline installation.
+If you installed License Service in the past you can delete no longer needed dependencies, check [Cleaning no longer needed dependencies of License Service](#cleaning-no-longer-needed-dependencies-of-license-service), or [Cleaning no longer needed dependencies of License Service on OpenShift Container Platform](#cleaning-no-longer-needed-dependencies-of-license-service-on-openshift-container-platform)
 
-   **Note:** If you installed License Service in the past you can delete no longer needed dependencies, check [Cleaning no longer needed dependencies of License Service](#cleaning-no-longer-needed-dependencies-of-license-service)
-
-- [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)
-- [Manually installing License Service on OCP 4.2+](#manually-installing-license-service-on-ocp-42)
-- [Manually installing License Service on Kubernetes from scratch with `kubectl`](#manually-installing-license-service-on-kubernetes-from-scratch-with-kubectl)
-- [Offline installation](#offline-installation)
 
 #### Cleaning no longer needed dependencies of License Service
 
-In the past License Service was using OperatorSource and OperatorMarketplace which are no longer needed. If you installed License Service in the past, then follow these steps to delete the remains:
+In earlier versions (up to 1.1.3) License Service was using OperatorSource and OperatorMarketplace which are no longer needed. If you installed License Service in the past, then follow these steps to delete the remains:
 
 1\. **Delete OperatorSource**
 
 ```bash
 # Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
-GLOBAL_CATALOG_NAMESPACE=olm # for OCP this would be "openshift-marketplace"
+GLOBAL_CATALOG_NAMESPACE=olm
 opencloudioSourceName=opencloud-operators
 kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
 ```
 
 2\. **Delete OperatorMarketplace**
 
-**Note:** Do not delete the OperatorMarketplace if it is used elsewhere, so e.g. if you use other operator sources or when you have OCP cluster.
+**Note:** Do not delete the OperatorMarketplace if it is used elsewhere, so e.g. you use other Operators from OperatorMarketplace or when you have OCP cluster.
 
 You can delete the OperatorMarketplace with the following command:
 
@@ -140,6 +137,31 @@ kubectl delete ClusterRole marketplace-operator
 ```
 
 3\. **Follow normal installation steps, as now Catalog Source needs to be installed instead: [Installing License Service](#installing-license-service)**
+
+#### Cleaning no longer needed dependencies of License Service on OpenShift Container Platform
+
+In earlier versions (up to 1.1.3) License Service was using OperatorSource which is no longer needed. If you installed License Service in the past, then follow these steps to delete the remains:
+
+1\. **Delete OperatorSource**
+
+```bash
+# Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
+GLOBAL_CATALOG_NAMESPACE=olm # for OCP this would be "openshift-marketplace"
+opencloudioSourceName=opencloud-operators
+kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
+```
+
+2\. **Follow normal installation steps, as now Catalog Source needs to be installed instead: [Installing License Service](#installing-license-service)**
+
+
+### Installing License Service
+
+Choose the installation path that fits your environment best. You can choose an automatic or a manual procedure. You can also choose to perform offline installation.
+
+- [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)
+- [Manually installing License Service on OCP 4.2+](#manually-installing-license-service-on-ocp-42)
+- [Manually installing License Service on Kubernetes from scratch with `kubectl`](#manually-installing-license-service-on-kubernetes-from-scratch-with-kubectl)
+- [Offline installation](#offline-installation)
 
 <!-- Section below is mentioned by READINESS WIKI that is used by other IBM teams, so after changing this section name, readiness wiki also needs to be changed -->
 
