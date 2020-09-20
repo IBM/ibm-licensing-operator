@@ -93,7 +93,7 @@ func getProbeScheme(spec operatorv1alpha1.IBMLicensingSpec) corev1.URIScheme {
 	if spec.HTTPSEnable {
 		return "HTTPS"
 	}
-	return ""
+	return "HTTP"
 }
 
 func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.Handler {
@@ -136,7 +136,7 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec, isOpenSh
 		}
 		containers = append(containers, meteringSecretCheckContainer)
 	}
-	if isOpenShift && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
+	if isOpenShift && spec.HTTPSEnable && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 		baseContainer := getLicensingContainerBase(spec, isOpenShift)
 		ocpSecretCheckContainer := corev1.Container{}
 

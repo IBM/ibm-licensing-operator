@@ -143,14 +143,15 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{}, err
 	}
 	instance := foundInstance.DeepCopy()
-	err = instance.Spec.FillDefaultValues(isOpenshiftCluster)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
 
 	err = service.UpdateVersion(r.client, instance)
 	if err != nil {
 		log.Error(err, "Can not update version in CR")
+	}
+
+	err = instance.Spec.FillDefaultValues(isOpenshiftCluster)
+	if err != nil {
+		return reconcile.Result{}, err
 	}
 
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)

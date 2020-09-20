@@ -61,7 +61,7 @@ func GetService(instance *operatorv1alpha1.IBMLicenseServiceReporter, isOpenShif
 			Name:        LicenseReporterResourceBase,
 			Namespace:   instance.GetNamespace(),
 			Labels:      metaLabels,
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, isOpenShift, LicenseReportOCPCertName),
+			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, true, isOpenShift, LicenseReportOCPCertName),
 		},
 		Spec: getServiceSpec(instance),
 	}
