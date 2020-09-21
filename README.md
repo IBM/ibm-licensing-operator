@@ -98,13 +98,11 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 - [Troubleshooting](#troubleshooting)
     - [Prepare resources for offline installation without git](#prepare-resources-for-offline-installation-without-git)
 
-
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ### Cleaning no longer needed dependencies
 
 If you installed License Service in the past you can delete no longer needed dependencies, check [Cleaning no longer needed dependencies of License Service](#cleaning-no-longer-needed-dependencies-of-license-service), or [Cleaning no longer needed dependencies of License Service on OpenShift Container Platform](#cleaning-no-longer-needed-dependencies-of-license-service-on-openshift-container-platform)
-
 
 #### Cleaning no longer needed dependencies of License Service
 
@@ -146,13 +144,12 @@ In earlier versions (up to 1.1.3) License Service was using OperatorSource which
 
 ```bash
 # Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
-GLOBAL_CATALOG_NAMESPACE=olm # for OCP this would be "openshift-marketplace"
+GLOBAL_CATALOG_NAMESPACE=openshift-marketplace
 opencloudioSourceName=opencloud-operators
 kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
 ```
 
 2\. **Follow normal installation steps, as now Catalog Source needs to be installed instead: [Installing License Service](#installing-license-service)**
-
 
 ### Installing License Service
 
@@ -632,7 +629,6 @@ To see the logs, go to **OCP UI->Workloads->Pods** and search for **licensing** 
 #### Creating an instance from console
 
 **Important:** The minimal setup requires applying this IBMLicensing instance. However, before applying the instance, get familiar with the entire configuration process.
-configuration.
 
 Create the IBMLicensing instance:
 
