@@ -166,14 +166,14 @@ func (r *ReconcileIBMLicenseServiceReporter) Reconcile(request reconcile.Request
 
 	instance := foundInstance.DeepCopy()
 
-	err = instance.Spec.FillDefaultValues(reqLogger, r.reader)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-
 	err = reporter.UpdateVersion(r.client, instance)
 	if err != nil {
 		log.Error(err, "Can not update version in CR")
+	}
+
+	err = instance.Spec.FillDefaultValues(reqLogger, r.reader)
+	if err != nil {
+		return reconcile.Result{}, err
 	}
 
 	reqLogger.Info("got IBM License Service Reporter application, version=" + instance.Spec.Version)

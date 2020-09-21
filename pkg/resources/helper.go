@@ -120,8 +120,8 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 	return expectedSecret, nil
 }
 
-func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isOpenShift bool, certName string) map[string]string {
-	if isOpenShift && httpCertSource == v1alpha1.OcpCertsSource {
+func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isHTTPS bool, isOpenShift bool, certName string) map[string]string {
+	if isOpenShift && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
 		return map[string]string{ocpCertSecretNameTag: certName}
 	}
 	return map[string]string{}
