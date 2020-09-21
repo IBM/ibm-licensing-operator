@@ -1,5 +1,5 @@
 
-# License Service for stand-alone IBM Containerized Software without IBM Cloud Paks(#ibm-licensing-operator-for-stand-alone-ibm-containerized-software)
+# License Service for stand-alone IBM Containerized Software without IBM Cloud Paks
 
 <b>Scenario: Learn how to deploy License Service on Kubernetes clusters and track license usage of the stand-alone IBM Containerized Software</b>
 
