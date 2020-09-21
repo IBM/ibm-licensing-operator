@@ -6,7 +6,7 @@ After you install License Service, you can configure License Service if needed.
 
 You might want to configure ingress. Here is an <b>example</b> of how you can do it:
 
-1\. Get the nginx ingress controller. You might get it, for example, from here: [https://kubernetes.github.io/ingress-nginx/deploy](https://kubernetes.github.io/ingress-nginx/deploy)
+1\. Get the nginx ingress controller. You might get it, for example, from here: [https://kubernetes.github.io/ingress-nginx/deploy](https://kubernetes.github.io/ingress-nginx/deploy).
 
 2\. Apply this IBMLicensing instance to your cluster:
 
@@ -81,7 +81,7 @@ EOF
 
 **Troubleshooting**: If the instance is not updated properly (for example after updating ingressOptions), try deleting the instance and creating new one with new parameters.
 
-## Check Components
+## Checking License Service components
 
 After you apply appropriate configuration for **IBM License Service** follow these steps to check whether it works:
 
@@ -100,8 +100,6 @@ kubectl get ingress -n ibm-common-services -o yaml
 ```
 
 Then examine the status part of the output. It should include host, path, tls (if configured), and other networking information.
-
-3\. At this point **License Service** should be running in your cluster. For more information about how to use License Service to retrieve license usage data, see [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
 
 ## Using custom certificates
 
@@ -141,3 +139,52 @@ kubectl create secret tls ibm-licensing-certs --key tls.key --cert tls.crt -n ${
       httpsCertsSource: custom # <- this makes License Service API use ibm-licensing-certs secret
    # ... append rest of the License Service configuration here
    ```
+
+## Cleaning existing License Service dependencies 
+
+Earlier versions of License Service, up to 1.1.3, used OperatorSource and Operator Marketplace. These dependencies are no longer needed. If you installed the earlier version of License Service, before installing the new version remove the existing dependencies from your system. 
+
+### Cleaning existing License Service dependencies outside of OpenShift
+
+1. Delete OperatorSource.
+
+To delete an existing OpenSource, run the following command:
+
+```
+GLOBAL_CATALOG_NAMESPACE=olm
+opencloudioSourceName=opencloud-operators
+kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
+```
+
+where `GLOBAL_CATALOG_NAMESPACE` value is your global catalog namespace.
+
+2. Delete OperatorMarketplace.
+
+**Note:** Before deleting OperatorMarketplace check whether it is not used elsewhere, for example, for other Operators from OperatorMarketplace, or an OCP cluster.
+
+To delete OperatorMarketplace, run the following command:
+
+```
+GLOBAL_CATALOG_NAMESPACE=olm
+kubectl delete Deployment marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
+kubectl delete RoleBinding marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
+kubectl delete ClusterRoleBinding marketplace-operator
+kubectl delete ServiceAccount marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
+kubectl delete Role marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
+kubectl delete ClusterRole marketplace-operator
+```
+
+where `GLOBAL_CATALOG_NAMESPACE` value is your global catalog namespace.
+
+### Cleaning existing License Service dependencies on OpenShift Container Platform
+
+1. Delete OperatorSource.
+
+To delete an existing OpenSource, run the following command:
+
+```
+GLOBAL_CATALOG_NAMESPACE= openshift-marketplaceolm
+opencloudioSourceName=opencloud-operators
+kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
+```
+

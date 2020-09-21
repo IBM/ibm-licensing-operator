@@ -102,7 +102,6 @@ upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
 [...]
 ```
 
-   **Troubleshooting:** In case of any problems, check the [troubleshooting section](#troubleshooting).
 
 3\. **View Available Operators**
 
