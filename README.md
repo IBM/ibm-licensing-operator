@@ -131,7 +131,7 @@ Use the automatic script to install License Service on any Kubernetes-orchestrat
 
 The script is supported on the following platforms:
 - Linux x86 architecture,
-- Linux on Power (ppc64le), Linux on IBM Z and LinuxONE on any other cluster that already has Operator Lifecycle Manager (OLM).
+- Linux on Power (ppc64le), Linux on IBM Z and LinuxONE on any cluster that already has Operator Lifecycle Manager (OLM).
 
 The script creates an instance, validates the steps, and is available in this repository at:
 [common/scripts/ibm_licensing_operator_install.sh](common/scripts/ibm_licensing_operator_install.sh).
