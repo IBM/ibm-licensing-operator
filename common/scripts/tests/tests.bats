@@ -78,18 +78,21 @@ EOF
   [ "$?" -eq "0" ]
 }
 
-@test "Wait 150s for instance to be running" {
+@test "Wait for instance to be running" {
   echo "Checking IBMLicensing instance status" >&3
-  retries=60
+  retries_start=60
+  retries=$retries_start
+  retries_wait=3
   until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" || "$ibmlicensing_phase" == "Failed" ]]; do
     new_ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicensing pod to appear")
     if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
       ibmlicensing_phase=$new_ibmlicensing_phase
       echo "IBMLicensing Pod phase: $ibmlicensing_phase" >&3
     fi
-    sleep 3
+    sleep $retries_wait
     retries=$((retries - 1))
   done
+  echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   [[ $new_ibmlicensing_phase == "Running" ]]
 }
 
@@ -98,14 +101,17 @@ EOF
   [ $? -eq 0 ]
 }
 
-@test "Wait 90s for pods to be deleted" {
+@test "Wait for pods to be deleted" {
   echo "Checking if License Service pod is deleted" >&3
-  retries=30
+  retries_start=60
+  retries=$retries_start
+  retries_wait=3
   results="$(kubectl get pods -n ibm-common-services | grep ibm-licensing-service-instance | wc -l)"
   until [[ $retries == 0 || $results -eq "0" ]]; do
     results="$(kubectl get pods -n ibm-common-services | grep ibm-licensing-service-instance | wc -l)"
     retries=$((retries - 1))
-    sleep 3
+    sleep $retries_wait
   done
+  echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   [ $results -eq "0" ]
 }
