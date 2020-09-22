@@ -956,7 +956,6 @@ spec:
       annotations:
         productName: IBM Cloud Platform Common Services
         productID: "068a62892a1e4db39641342e592daa25"
-        productVersion: "3.4.0"
         productMetric: FREE
     spec:
       serviceAccountName: ibm-licensing-operator
@@ -982,6 +981,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
+              value: ibm-common-services
             - name: POD_NAME
               valueFrom:
                 fieldRef:
@@ -997,7 +997,7 @@ spec:
           resources:
             limits:
               cpu: 20m
-              memory: 100Mi
+              memory: 150Mi
             requests:
               cpu: 10m
               memory: 50Mi
