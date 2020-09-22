@@ -81,7 +81,7 @@ It was tested on the following systems:
 
  |System|Supported deployment scenario|
  |---|---|
- |<ul><li>Red Hat OpenShift Container Platform 3.11, 4.1, 4.2, 4.3 or newer</li><li>Any cluster with pre-installed Operator Lifecycle Manager (OLM)</li></ul>|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](#manually-installing-license-service-on-kubernetes-from-scratch-with-kubectl)</li><li>[Offline installation](#offline-installation)</li></ul>|
+ |<ul><li>Any cluster with pre-installed Operator Lifecycle Manager (OLM)</li></ul>|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](#manually-installing-license-service-on-kubernetes-from-scratch-with-kubectl)</li><li>[Offline installation](#offline-installation)</li></ul>|
  |<ul><li>A cluster without Operator Lifecycle Manager (OLM)</li></ul>| <ul><li>[Offline installation](#offline-installation)</li></ul>|
 
 ## Operator versions for ibm-licensing-operator with stand-alone IBM Containerized Software
@@ -131,7 +131,7 @@ Use the automatic script to install License Service on any Kubernetes-orchestrat
 
 The script is supported on the following platforms:
 - Linux x86 architecture,
-- Linux on Power (ppc64le), Linux on IBM Z and LinuxONE on Red Hat OpenShift Container Platform 3.11, 4.1, 4.2, 4.3 or newer, or on any other cluster that already has Operator Lifecycle Manager (OLM).
+- Linux on Power (ppc64le), Linux on IBM Z and LinuxONE on any other cluster that already has Operator Lifecycle Manager (OLM).
 
 The script creates an instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `ICP cluster: v1.12.4+icp-ee`, `vanilla Kubernetes custer`, and is available in this repository at:
 [common/scripts/ibm_licensing_operator_install.sh](common/scripts/ibm_licensing_operator_install.sh).
