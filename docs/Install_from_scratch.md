@@ -105,7 +105,7 @@ upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
 
 3\. **View Available Operators**
 
-Once the `OperatorSource` and `CatalogSource` are deployed, the following command can be used to list the available operators including ibm-licensing-operator-app.
+Once the `CatalogSource` is deployed, the following command can be used to list the available operators including ibm-licensing-operator-app.
 **Note:** The command assumes that the of the `OperatorSource` object is `opencloud-operators`. Adjust if needed.
 
 ```console
