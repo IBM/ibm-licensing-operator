@@ -105,4 +105,4 @@ kubectl delete namespace ${GLOBAL_CATALOG_NAMESPACE}
 ```
 
 **Related links**
-- [Go back to home page](../License_Service_main.md)
+- [Go back to home page](../License_Service_main.md#documentation)

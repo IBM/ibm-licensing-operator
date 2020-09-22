@@ -154,6 +154,6 @@ Installation is complete and **License Service** is running in your cluster.
 
 **Related links**
 
-- [Go back to home page](../License_Service_main.md)
+- [Go back to home page](../License_Service_main.md#documentation)
 - [Configuration](Configuration.md)
 - [Retrieving license usage data from the cluster](Retrieving_data.md)

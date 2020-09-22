@@ -20,4 +20,4 @@ You can use the data that is collected by License Service from individual cluste
 You can use the non-automated procedure to create a cumulative report for your environment. For more information, see [Manually tracking license usage in multicluster environment in IBM Knowledge Center](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/multicluster.html).
 
 **Related links**
-- [Go back to home page](../License_Service_main.md)
+- [Go back to home page](../License_Service_main.md#documentation)

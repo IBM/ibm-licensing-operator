@@ -38,5 +38,5 @@ It was tested on the following systems:
 
 **Related links**
 
-- [Go back to home page](../License_Service_main.md)
+- [Go back to home page](../License_Service_main.md#documentation)
 - [Installing License Service](Installation_scenarios.md)
