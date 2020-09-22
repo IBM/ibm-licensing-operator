@@ -43,7 +43,7 @@
 }
 
 @test "Run Operator in backgroud" {
-  ./operator-sdk run --watch-namespace ibm-common-services --local > ./operator-sdk_logs.txt 2>&1 &
+  operator-sdk run --watch-namespace ibm-common-services --local > operator-sdk_logs.txt 2>&1 &
 }
 
 @test "List all POD in cluster" {
@@ -51,14 +51,17 @@
   [ "$results" -gt 0 ]
 }
 
-
-@test "Wait 10s for checking pod in ibm-common-services. List should be empty" {
-  sleep 10
-  kubectl get pods -n ibm-common-services
+@test "Wait 12s for checking pod in ibm-common-services. List should be empty" {
+  echo "Checking if License Service pod is deleted" >&3
+  retries=4
   results="$(kubectl get pods -n ibm-common-services | wc -l)"
-  [ "$results" -eq "0" ]
+  until [[ $retries == 0 || $results -eq "0" ]]; do
+    results="$(kubectl get pods -n ibm-common-services | wc -l)"
+    retries=$((retries - 1))
+    sleep 3
+  done
+  [ $results -eq "0" ]
 }
-
 
 @test "Load CR for LS" {
 cat <<EOF | kubectl apply -f -
@@ -75,15 +78,19 @@ EOF
   [ "$?" -eq "0" ]
 }
 
-@test "Wait 180s for checking pod in ibm-common-services. List should be one POD" {
-  sleep 180
-  kubectl get pods -n ibm-common-services | grep ibm-licensing-service-instance
-  results="$(kubectl get pods -n ibm-common-services | grep ibm-licensing-service-instance | wc -l)"
-  [ $results -eq "1" ]
-
-  results="$(kubectl get pods -n ibm-common-services | grep ibm-licensing-service-instance |grep Running |grep '1/1'| wc -l)"
-  [ $results -eq "1" ]
-
+@test "Wait 150s for instance to be running" {
+  echo "Checking IBMLicensing instance status" >&3
+  retries=50
+  until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" || "$ibmlicensing_phase" == "Failed" ]]; do
+    new_ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicensing pod to appear")
+    if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
+      ibmlicensing_phase=$new_ibmlicensing_phase
+      echo "IBMLicensing Pod phase: $ibmlicensing_phase" >&3
+    fi
+    sleep 3
+    retries=$((retries - 1))
+  done
+  [[ $new_ibmlicensing_phase == "Running" ]]
 }
 
 @test "Remove CR from IBMLicensing" {
@@ -91,9 +98,14 @@ EOF
   [ $? -eq 0 ]
 }
 
-@test "Wait 120s for checking pod in ibm-common-services. List should be empty" {
-  sleep 120
-  kubectl get pods -n ibm-common-services
+@test "Wait 90s for pods to be deleted" {
+  echo "Checking if License Service pod is deleted" >&3
+  retries=30
   results="$(kubectl get pods -n ibm-common-services | grep ibm-licensing-service-instance | wc -l)"
+  until [[ $retries == 0 || $results -eq "0" ]]; do
+    results="$(kubectl get pods -n ibm-common-services | grep ibm-licensing-service-instance | wc -l)"
+    retries=$((retries - 1))
+    sleep 3
+  done
   [ $results -eq "0" ]
 }
