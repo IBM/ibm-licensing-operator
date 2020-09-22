@@ -15,7 +15,7 @@ The script was tested on `OpenShift Container Platform 4.2+`, `ICP cluster: v1.1
 The script installs License Service, creates an instance and validates the installation steps. 
 
 1. Download the script from the following location in the repository:
-[common/scripts/ibm_licensing_operator_install.sh](../common/scripts/ibm_licensing_operator_install.sh). 
+[common/scripts/ibm_licensing_operator_install.sh](/../common/scripts/ibm_licensing_operator_install.sh). 
 
 2. Run the script.
 
