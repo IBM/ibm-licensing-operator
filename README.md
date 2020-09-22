@@ -133,7 +133,7 @@ The script is supported on the following platforms:
 - Linux x86 architecture,
 - Linux on Power (ppc64le), Linux on IBM Z and LinuxONE on any other cluster that already has Operator Lifecycle Manager (OLM).
 
-The script creates an instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `ICP cluster: v1.12.4+icp-ee`, `vanilla Kubernetes custer`, and is available in this repository at:
+The script creates an instance, validates the steps, and is available in this repository at:
 [common/scripts/ibm_licensing_operator_install.sh](common/scripts/ibm_licensing_operator_install.sh).
 
 #### Manually installing License Service on OCP 4.2+
