@@ -97,9 +97,11 @@ jobs:
         chmod +x ./kind
         cp ./common/scripts/tests/kind_config.yaml ./
         echo "$JSON_ARTIFACTORY"  > ./artifactory.yaml
+        ls -l
         ./kind create cluster --image kindest/node:v1.17.2 --config ./kind_config.yaml --name tests
         kubectl config set-context kind-tests        
-        
+        kubectl get nodes
+
     - name: Test Operator
       run: |
         export PATH=`pwd`:$PATH
