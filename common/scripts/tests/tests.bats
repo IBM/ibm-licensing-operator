@@ -73,6 +73,7 @@ cat <<EOF | kubectl apply -f -
     apiSecretToken: ibm-licensing-token
     datasource: datacollector
     httpsEnable: true
+    imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
     instanceNamespace: ibm-common-services
 EOF
   [ "$?" -eq "0" ]
