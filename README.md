@@ -82,7 +82,7 @@ It was tested on the following systems:
  |System|Supported deployment scenario|
  |---|---|
  |<ul><li>Red Hat OpenShift Container Platform 3.11, 4.1, 4.2, 4.3 or newer</li><li>Any cluster with pre-installed Operator Lifecycle Manager (OLM)</li></ul>|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](#manually-installing-license-service-on-kubernetes-from-scratch-with-kubectl)</li><li>[Offline installation](#offline-installation)</li></ul>|
- |<ul><li>A cluster without Operator Lifecycle Manager (OLM)</li></ul>| <ul><li>[Offline installation](Install_offline.md)</li></ul>|
+ |<ul><li>A cluster without Operator Lifecycle Manager (OLM)</li></ul>| <ul><li>[Offline installation](#offline-installation)</li></ul>|
 
 ## Operator versions for ibm-licensing-operator with stand-alone IBM Containerized Software
 
