@@ -62,6 +62,8 @@ Use this scenario, only when you do not have IBM Cloud Platform Common Services 
 
 ## Supported platforms for ibm-licensing-operator with stand-alone IBM Containerized Software
 
+<b>Linux x86_64</b>
+
 License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_64.
 
 It was tested on the following systems:
@@ -73,18 +75,18 @@ It was tested on the following systems:
 - Amazon EKS - Managed Kubernetes Service (EKS)
 - Alibaba Cloud - Container Service for Kubernetes (ACK)
 
+<b>Linux on Power (ppc64le), Linux on IBM Z and LinuxONE</b>
+
  License Service is supported on Linux on Power (ppc64le), Linux on IBM Z and LinuxONE in the following scenarios:
-   - On Red Hat OpenShift Container Platform 3.11, 4.1, 4.2, 4.3 or newer, or on any other cluster that already has Operator Lifecycle Manager (OLM), the following installation paths are supported: [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm), [Manually installing License Service on Kubernetes from scratch with `kubectl`](#manually-installing-license-service-on-kubernetes-from-scratch-with-kubectl) and [Offline installation](#offline-installation).
-   - On a cluster without Operator Lifecycle Manager (OLM), only [Offline installation](#offline-installation) is supported.
+
+ |System|Supported deployment scenario|
+ |---|---|
+ |<ul><li>Red Hat OpenShift Container Platform 3.11, 4.1, 4.2, 4.3 or newer</li><li>Any cluster with pre-installed Operator Lifecycle Manager (OLM)</li></ul>|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](Automatic_installation.md)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](Install_from_scratch.md)</li><li>[Offline installation](Install_offline.md)</li></ul>|
+ |<ul><li>A cluster without Operator Lifecycle Manager (OLM)</li></ul>| <ul><li>[Offline installation](Install_offline.md)</li></ul>|
 
 ## Operator versions for ibm-licensing-operator with stand-alone IBM Containerized Software
 
-- 1.0.0
-- 1.1.0
-- 1.1.1
-- 1.1.2
-- 1.1.3
-- 1.2.2
+- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.2
 
 ## Documentation for ibm-licensing-operator with stand-alone IBM Containerized Software
 
