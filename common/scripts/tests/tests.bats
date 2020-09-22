@@ -80,7 +80,7 @@ EOF
 
 @test "Wait 150s for instance to be running" {
   echo "Checking IBMLicensing instance status" >&3
-  retries=50
+  retries=70
   until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" || "$ibmlicensing_phase" == "Failed" ]]; do
     new_ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicensing pod to appear")
     if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
