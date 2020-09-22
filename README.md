@@ -319,18 +319,7 @@ upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
 
    **Troubleshooting:** In case of any problems, check the [troubleshooting section](#troubleshooting).
 
-3\. **View Available Operators**
-
-Once the `OperatorSource` and `CatalogSource` are deployed, the following command can be used to list the available operators including ibm-licensing-operator-app.
-**Note:** The command assumes that the of the `OperatorSource` object is `opencloud-operators`. Adjust if needed.
-
-```console
-$ kubectl get opsrc opencloud-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n $GLOBAL_CATALOG_NAMESPACE
-NAME                  PACKAGES
-opencloud-operators   ibm-meta-operator-bridge-app,ibm-commonui-operator-app,ibm-catalog-ui-operator-app,ibm-metering-operator-app,ibm-helm-repo-operator-app,ibm-iam-operator-app,ibm-elastic-stack-operator-app,ibm-monitoring-exporters-operator-app,ibm-monitoring-prometheusext-operator-app,cp4foobar-operator-app,ibm-healthcheck-operator-app,ibm-platform-api-operator-app,ibm-management-ingress-operator-app,ibm-helm-api-operator-app,ibm-licensing-operator-app,ibm-ingress-nginx-operator-app,ibm-monitoring-grafana-operator-app,ibm-auditlogging-operator-app,operand-deployment-lifecycle-manager-app,ibm-mgmt-repo-operator-app,ibm-mongodb-operator-app,ibm-cert-manager-operator-app
-```
-
-4\. **Create an OperatorGroup**
+3\. **Create an OperatorGroup**
 
 An `OperatorGroup` is used to denote which namespaces your Operator should watch.
 It must exist in the namespace where your operator is deployed, for example, `ibm-common-services`.
@@ -347,7 +336,7 @@ b. Check if you have tha operator group in that namespace by running the followi
 kubectl get OperatorGroup -n ibm-common-services
 ```
 
-- If you get the following response, the operator group is found and you can go to step 3. Create a Subscription.
+- If you get the following response, the operator group is found and you can go to step 4. Create a Subscription.
 
 ```console
 NAME            AGE
@@ -376,7 +365,8 @@ spec:
 EOF
 ```
 
-5\. **Create a Subscription**
+4\. **Create a Subscription**
+
 A subscription is created for the operator and is responsible for upgrades of IBM Licensing Operator when needed.
 
 a. Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
@@ -398,7 +388,7 @@ spec:
 EOF
 ```
 
-6\. **Verify Operator health**
+5\. **Verify Operator health**
 
 a. See if the IBM Licensing Operator is deployed by OLM from the `CatalogSource` with the following command.
 
@@ -768,11 +758,6 @@ kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMES
 ### Using License Service to retrieve license usage information
 
 For more information about how to use License Service to retrieve license usage data, see [License Service documentation in IBM Knowledge Center](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
-
-### Using License Service Reporter to track license usage information for multiple clusters
-
-License Reporter is an extension of License Service that aggregates the license usage data from multiple clusters where License Service is deployed. The collective license usage is presented on the user interface. For more information, see [Tracking license usage in multicluster environment with License Service Reporter
-](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/license-reporter.html).
 
 ### Using custom certificates
 
