@@ -18,6 +18,8 @@ For more information about the available IBM Cloud Platform Common Services, see
 
 Red Hat OpenShift Container Platform 4.2 or newer installed on one of the following platforms:
    - Linux x86_64
+   - Linux on Power (ppc64le)
+   - Linux on IBM Z and LinuxONE
 
 ## Operator versions
 
@@ -26,6 +28,7 @@ Red Hat OpenShift Container Platform 4.2 or newer installed on one of the follow
 - 1.1.1
 - 1.1.2
 - 1.1.3
+- 1.2.2
 
 ## Prerequisites
 
@@ -59,21 +62,31 @@ Use this scenario, only when you do not have IBM Cloud Platform Common Services 
 
 ## Supported platforms for ibm-licensing-operator with stand-alone IBM Containerized Software
 
-License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_64. It was tested on the following systems:
+<b>Linux x86_64</b>
+
+License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_64.
+
+It was tested on the following systems:
 - Red Hat OpenShift Container Platform 3.11, 4.1, 4.2, 4.3 or newer
 - Kubernetes 1.11.3 or higher
 - IBM Cloud Kubernetes Services (IKS)
 - Google Kubernetes Engine (GKE)
 - Azure Kubernetes Service (AKS)
 - Amazon EKS - Managed Kubernetes Service (EKS)
+- Alibaba Cloud - Container Service for Kubernetes (ACK)
+
+<b>Linux on Power (ppc64le), Linux on IBM Z and LinuxONE</b>
+
+ License Service is supported on Linux on Power (ppc64le), Linux on IBM Z and LinuxONE in the following scenarios:
+
+ |System|Supported deployment scenario|
+ |---|---|
+ |<ul><li>Any cluster with pre-installed Operator Lifecycle Manager (OLM)</li></ul>|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](#manually-installing-license-service-on-kubernetes-from-scratch-with-kubectl)</li><li>[Offline installation](#offline-installation)</li></ul>|
+ |<ul><li>A cluster without Operator Lifecycle Manager (OLM)</li></ul>| <ul><li>[Offline installation](#offline-installation)</li></ul>|
 
 ## Operator versions for ibm-licensing-operator with stand-alone IBM Containerized Software
 
-- 1.0.0
-- 1.1.0
-- 1.1.1
-- 1.1.2
-- 1.1.3
+- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.2
 
 ## Documentation for ibm-licensing-operator with stand-alone IBM Containerized Software
 
@@ -81,9 +94,6 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Cleaning no longer needed dependencies](#cleaning-no-longer-needed-dependencies)
-    - [Cleaning no longer needed dependencies of License Service](#cleaning-no-longer-needed-dependencies-of-license-service)
-    - [Cleaning no longer needed dependencies of License Service on OpenShift Container Platform](#cleaning-no-longer-needed-dependencies-of-license-service-on-openshift-container-platform)
 - [Installing License Service](#installing-license-service)
     - [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](#automatically-installing-ibm-licensing-operator-with-a-stand-alone-ibm-containerized-software-using-operator-lifecycle-manager-olm)
     - [Manually installing License Service on OCP 4.2+](#manually-installing-license-service-on-ocp-42)
@@ -92,64 +102,17 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 - [Post-installation steps](#post-installation-steps)
     - [Create an instance on OpenShift Console 4.2+](#create-an-instance-on-openshift-console-42)
     - [Creating an instance from console](#creating-an-instance-from-console)
+    - [Cleaning no longer needed dependencies](#cleaning-no-longer-needed-dependencies)
+        - [Cleaning no longer needed dependencies of License Service](#cleaning-no-longer-needed-dependencies-of-license-service)
+        - [Cleaning no longer needed dependencies of License Service on OpenShift Container Platform](#cleaning-no-longer-needed-dependencies-of-license-service-on-openshift-container-platform)
 - [Using License Service to retrieve license usage information](#using-license-service-to-retrieve-license-usage-information)
+- [Using License Service Reporter to track license usage information for multiple clusters](#using-license-service-reporter-to-track-license-usage-information-for-multiple-clusters)
 - [Using custom certificates](#using-custom-certificates)
 - [Uninstalling License Service from a Kubernetes cluster](#uninstalling-license-service-from-a-kubernetes-cluster)
 - [Troubleshooting](#troubleshooting)
     - [Prepare resources for offline installation without git](#prepare-resources-for-offline-installation-without-git)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-### Cleaning no longer needed dependencies
-
-If you installed License Service in the past you can delete no longer needed dependencies, check [Cleaning no longer needed dependencies of License Service](#cleaning-no-longer-needed-dependencies-of-license-service), or [Cleaning no longer needed dependencies of License Service on OpenShift Container Platform](#cleaning-no-longer-needed-dependencies-of-license-service-on-openshift-container-platform)
-
-#### Cleaning no longer needed dependencies of License Service
-
-In earlier versions (up to 1.1.3) License Service was using OperatorSource and OperatorMarketplace which are no longer needed. If you installed License Service in the past, then follow these steps to delete the remains:
-
-1\. **Delete OperatorSource**
-
-```bash
-# Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
-GLOBAL_CATALOG_NAMESPACE=olm
-opencloudioSourceName=opencloud-operators
-kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
-```
-
-2\. **Delete OperatorMarketplace**
-
-**Note:** Do not delete the OperatorMarketplace if it is used elsewhere, so e.g. you use other Operators from OperatorMarketplace or when you have OCP cluster.
-
-You can delete the OperatorMarketplace with the following command:
-
-```bash
-# Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
-GLOBAL_CATALOG_NAMESPACE=olm
-kubectl delete Deployment marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
-kubectl delete RoleBinding marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
-kubectl delete ClusterRoleBinding marketplace-operator
-kubectl delete ServiceAccount marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
-kubectl delete Role marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
-kubectl delete ClusterRole marketplace-operator
-```
-
-3\. **Follow normal installation steps, as now Catalog Source needs to be installed instead: [Installing License Service](#installing-license-service)**
-
-#### Cleaning no longer needed dependencies of License Service on OpenShift Container Platform
-
-In earlier versions (up to 1.1.3) License Service was using OperatorSource which is no longer needed. If you installed License Service in the past, then follow these steps to delete the remains:
-
-1\. **Delete OperatorSource**
-
-```bash
-# Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
-GLOBAL_CATALOG_NAMESPACE=openshift-marketplace
-opencloudioSourceName=opencloud-operators
-kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
-```
-
-2\. **Follow normal installation steps, as now Catalog Source needs to be installed instead: [Installing License Service](#installing-license-service)**
 
 ### Installing License Service
 
@@ -164,7 +127,13 @@ Choose the installation path that fits your environment best. You can choose an 
 
 #### Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)
 
-Use the automatic script to install License Service on any Kubernetes-orchestrated cloud. It supports cluster running on x86 architecture. The script creates an instance and validates the steps. It was tested to work on `OpenShift Container Platform 4.2+`, `ICP cluster: v1.12.4+icp-ee`, `vanilla Kubernetes custer`, and is available in this repository at:
+Use the automatic script to install License Service on any Kubernetes-orchestrated cloud.
+
+The script is supported on the following platforms:
+- Linux x86 architecture,
+- Linux on Power (ppc64le), Linux on IBM Z and LinuxONE on any cluster that already has Operator Lifecycle Manager (OLM).
+
+The script creates an instance, validates the steps, and is available in this repository at:
 [common/scripts/ibm_licensing_operator_install.sh](common/scripts/ibm_licensing_operator_install.sh).
 
 #### Manually installing License Service on OCP 4.2+
@@ -352,18 +321,7 @@ upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
 
    **Troubleshooting:** In case of any problems, check the [troubleshooting section](#troubleshooting).
 
-3\. **View Available Operators**
-
-Once the `OperatorSource` and `CatalogSource` are deployed, the following command can be used to list the available operators including ibm-licensing-operator-app.
-**Note:** The command assumes that the of the `OperatorSource` object is `opencloud-operators`. Adjust if needed.
-
-```console
-$ kubectl get opsrc opencloud-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n $GLOBAL_CATALOG_NAMESPACE
-NAME                  PACKAGES
-opencloud-operators   ibm-meta-operator-bridge-app,ibm-commonui-operator-app,ibm-catalog-ui-operator-app,ibm-metering-operator-app,ibm-helm-repo-operator-app,ibm-iam-operator-app,ibm-elastic-stack-operator-app,ibm-monitoring-exporters-operator-app,ibm-monitoring-prometheusext-operator-app,cp4foobar-operator-app,ibm-healthcheck-operator-app,ibm-platform-api-operator-app,ibm-management-ingress-operator-app,ibm-helm-api-operator-app,ibm-licensing-operator-app,ibm-ingress-nginx-operator-app,ibm-monitoring-grafana-operator-app,ibm-auditlogging-operator-app,operand-deployment-lifecycle-manager-app,ibm-mgmt-repo-operator-app,ibm-mongodb-operator-app,ibm-cert-manager-operator-app
-```
-
-4\. **Create an OperatorGroup**
+3\. **Create an OperatorGroup**
 
 An `OperatorGroup` is used to denote which namespaces your Operator should watch.
 It must exist in the namespace where your operator is deployed, for example, `ibm-common-services`.
@@ -380,7 +338,7 @@ b. Check if you have tha operator group in that namespace by running the followi
 kubectl get OperatorGroup -n ibm-common-services
 ```
 
-- If you get the following response, the operator group is found and you can go to step 3. Create a Subscription.
+- If you get the following response, the operator group is found and you can go to step 4. Create a Subscription.
 
 ```console
 NAME            AGE
@@ -409,7 +367,8 @@ spec:
 EOF
 ```
 
-5\. **Create a Subscription**
+4\. **Create a Subscription**
+
 A subscription is created for the operator and is responsible for upgrades of IBM Licensing Operator when needed.
 
 a. Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
@@ -431,14 +390,14 @@ spec:
 EOF
 ```
 
-6\. **Verify Operator health**
+5\. **Verify Operator health**
 
 a. See if the IBM Licensing Operator is deployed by OLM from the `CatalogSource` with the following command.
 
 ```console
 $ kubectl get clusterserviceversion -n ibm-common-services
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.1.3   IBM Licensing Operator   1.1.3     ibm-licensing-operator.v1.1.2   Succeeded
+ibm-licensing-operator.v1.2.2   IBM Licensing Operator   1.2.2     ibm-licensing-operator.v1.2.1   Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
@@ -468,8 +427,8 @@ Prepare your Docker images:
 ```bash
 # on machine with access to internet
 export my_docker_registry=<YOUR REGISTRY IMAGE PREFIX HERE e.g.: "my.registry:5000" or "quay.io/opencloudio">
-export operator_version=1.1.3
-export operand_version=1.1.2
+export operator_version=1.2.2
+export operand_version=1.2.1
 
 # pull needed images
 docker pull quay.io/opencloudio/ibm-licensing-operator:${operator_version}
@@ -515,7 +474,7 @@ kubectl config set-context --current --namespace=ibm-common-services
 e. Use `git clone`:
 
 ```bash
-export operator_release_version=v1.1.3-durham
+export operator_release_version=v1.2.2-durham
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
@@ -747,6 +706,57 @@ Then examine the status part of the output. It should include host, path, tls (i
 
 3\. At this point **License Service** should be running in your cluster. For more information about how to use License Service to retrieve license usage data, see [IBM Cloud Platform Common Services documentation](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
 
+#### Cleaning no longer needed dependencies
+
+If you installed License Service in the past you can delete no longer needed dependencies, check [Cleaning no longer needed dependencies of License Service](#cleaning-no-longer-needed-dependencies-of-license-service), or [Cleaning no longer needed dependencies of License Service on OpenShift Container Platform](#cleaning-no-longer-needed-dependencies-of-license-service-on-openshift-container-platform)
+
+##### Cleaning no longer needed dependencies of License Service
+
+In earlier versions (up to 1.1.3) License Service was using OperatorSource and OperatorMarketplace which are no longer needed. If you installed License Service in the past, then follow these steps to delete the remains:
+
+1\. **Delete OperatorSource**
+
+```bash
+# Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
+GLOBAL_CATALOG_NAMESPACE=olm
+opencloudioSourceName=opencloud-operators
+kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
+```
+
+2\. **Delete OperatorMarketplace**
+
+**Note:** Do not delete the OperatorMarketplace if it is used elsewhere, so e.g. you use other Operators from OperatorMarketplace or when you have OCP cluster.
+
+You can delete the OperatorMarketplace with the following command:
+
+```bash
+# Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
+GLOBAL_CATALOG_NAMESPACE=olm
+kubectl delete Deployment marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
+kubectl delete RoleBinding marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
+kubectl delete ClusterRoleBinding marketplace-operator
+kubectl delete ServiceAccount marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
+kubectl delete Role marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
+kubectl delete ClusterRole marketplace-operator
+```
+
+3\. **Follow normal installation steps, as now Catalog Source needs to be installed instead: [Installing License Service](#installing-license-service)**
+
+##### Cleaning no longer needed dependencies of License Service on OpenShift Container Platform
+
+In earlier versions (up to 1.1.3) License Service was using OperatorSource which is no longer needed. If you installed License Service in the past, then follow these steps to delete the remains:
+
+1\. **Delete OperatorSource**
+
+```bash
+# Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
+GLOBAL_CATALOG_NAMESPACE=openshift-marketplace
+opencloudioSourceName=opencloud-operators
+kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
+```
+
+2\. **Follow normal installation steps, as now Catalog Source needs to be installed instead: [Installing License Service](#installing-license-service)**
+
 ### Using License Service to retrieve license usage information
 
 For more information about how to use License Service to retrieve license usage data, see [License Service documentation in IBM Knowledge Center](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/retrieving.html).
@@ -902,7 +912,7 @@ Apply RBAC roles and CRD:
 
 ```bash
 # copy the yaml from here:
-export operator_release_version=v1.1.3-durham
+export operator_release_version=v1.2.2-durham
 https://github.com/IBM/ibm-licensing-operator/releases/download/${operator_release_version}/rbac_and_crd.yaml
 ```
 
@@ -917,8 +927,8 @@ EOF
 Make sure `${my_docker_registry}` variable has your private registry and apply the operator:
 
 ```bash
-export operator_version=1.1.3
-export operand_version=1.1.2
+export operator_version=1.2.2
+export operand_version=1.2.1
 ```
 
 ```yaml
