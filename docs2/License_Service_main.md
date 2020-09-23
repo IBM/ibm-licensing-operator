@@ -47,5 +47,6 @@ Audit snapshot needs to be generated at least once a quarter for the last 90 day
   - [Available APIs](Content/Retrieving_data.md#available-apis)
   - [Tracking license usage in multicluster environment](Content/Retrieving_data.md#tracking-license-usage-in-multicluster-environment)
 - [Uninstalling License Service from a Kubernetes cluster](Content/Uninstalling.md)
+- [Backup and upgrade](Content/Backup_and_upgrade.md)
 - [Troubleshooting](Content/Troubleshooting.md)
   - [Preparing resources for offline installation without git](Content/Troubleshooting.md#prepareing-resources-for-offline-installation-without-git)
