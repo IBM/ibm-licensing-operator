@@ -53,7 +53,7 @@ You can use the `ibm-licensing-operator` to install License Service on Kubernete
 
 ## Documentation
 
-For the overview and techhnical documentation, see [Stand-alone License Service](docs/License_Service_main.md).
+For the overview and techhnical documentation, see [Stand-alone License Service](docs2/License_Service_main.md).
 
 <!---
 - [Preparing for installation](docs/Preparing_for_installation.md)
