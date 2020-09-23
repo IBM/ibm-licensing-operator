@@ -37,7 +37,7 @@ Before decommissioning a cluster, you need to generate an audit snapshot to reco
 
 - [Preparing for installation](Content/Preparing_for_installation.md)
   - [Supported platforms](Content/Preparing_for_installation.md#supported-platforms)
-  - [Operator versions](Content/Preparing_for_installation.md#operator-versions)
+  - [Required resources](Content/Preparing_for_installation.md#required-resources)
 - [Installing License Service](Content/Installation_scenarios.md)
     - [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](Content/Automatic_installation.md)
     - [Manually installing License Service on OCP 4.2+](Content/Install_on_OCP.md)
