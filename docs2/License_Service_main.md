@@ -48,6 +48,7 @@ Before decommissioning a cluster, you need to generate an audit snapshot to reco
   - [Checking License Service components](Content/Configuration.md#checking-license-service-components)
   - [Using custom certificates](Content/Configuration.md#using-custom-certificates)
   - [Cleaning existing License Service dependencies](Content/Configuration.md#cleaning-existing-license-service-dependencies)
+  - [Modifying the application deployment resources](Content/Configuration.md#modifying-the-application-deployment-resources)
 - [Retrieving license usage data from the cluster](Content/Retrieving_data.md)
   - [Available APIs](Content/Retrieving_data.md#available-apis)
   - [Tracking license usage in multicluster environment](Content/Retrieving_data.md#tracking-license-usage-in-multicluster-environment)
