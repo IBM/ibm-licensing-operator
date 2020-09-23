@@ -485,8 +485,9 @@ cd ibm-licensing-operator/
 f. Apply RBAC roles and CRD:
 
 ```bash
-# add CRD:
+# add CRDs:
 kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
+kubectl apply -f deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
 # add RBAC:
 kubectl apply -f deploy/role.yaml
 kubectl apply -f deploy/service_account.yaml
@@ -912,22 +913,15 @@ kubectl delete namespace ${GLOBAL_CATALOG_NAMESPACE}
 Apply RBAC roles and CRD:
 
 ```bash
-# copy the yaml from here:
+# apply the yaml from here:
 export operator_release_version=v1.2.2-durham
-https://github.com/IBM/ibm-licensing-operator/releases/download/${operator_release_version}/rbac_and_crd.yaml
-```
-
-Then apply the copied yaml:
-
-```bash
-cat <<EOF | kubectl apply -f -
-# PASTE IT HERE
-EOF
+kubectl apply -f https://github.com/IBM/ibm-licensing-operator/releases/download/${operator_release_version}/rbac_and_crd.yaml
 ```
 
 Make sure `${my_docker_registry}` variable has your private registry and apply the operator:
 
 ```bash
+export my_docker_registry=<your private registry>
 export operator_version=1.2.2
 export operand_version=1.2.1
 ```
