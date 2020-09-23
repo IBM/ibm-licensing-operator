@@ -81,7 +81,7 @@ EOF
 
 @test "Wait for instance to be running" {
   echo "Checking IBMLicensing instance status" >&3
-  retries_start=60
+  retries_start=80
   retries=$retries_start
   retries_wait=3
   until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" || "$ibmlicensing_phase" == "Failed" ]]; do
@@ -105,7 +105,7 @@ EOF
 
 @test "Wait for pods to be deleted" {
   echo "Checking if License Service pod is deleted" >&3
-  retries_start=60
+  retries_start=80
   retries=$retries_start
   retries_wait=3
   results="$(kubectl get pods -n ibm-common-services | grep ibm-licensing-service-instance | wc -l)"
@@ -115,5 +115,10 @@ EOF
     sleep $retries_wait
   done
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
+  [ $results -eq "0" ]
+}
+
+@test "Check if operator log does not contains error" {
+  results="$(cat ./operator-sdk_logs.txt | grep "{\"level\":\"error\"" | wc -l)"
   [ $results -eq "0" ]
 }
