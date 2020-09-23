@@ -393,7 +393,6 @@ func (r *ReconcileIBMLicensing) reconcileResourceExistence(
 	expectedRes res.ResourceObject,
 	foundRes runtime.Object,
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
-
 	resType := reflect.TypeOf(expectedRes)
 	reqLogger := log.WithValues(resType.String(), "Entry", "instance.GetName()", instance.GetName())
 
@@ -417,7 +416,11 @@ func (r *ReconcileIBMLicensing) reconcileResourceExistence(
 				return reconcile.Result{}, err
 			}
 			// Created successfully - return and requeue
-			return reconcile.Result{Requeue: true, RequeueAfter: time.Second}, nil
+
+			// Pod created successfully - don't requeue
+			return reconcile.Result{}, nil
+
+//			return reconcile.Result{Requeue: true, RequeueAfter: time.Second}, nil
 		}
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())
