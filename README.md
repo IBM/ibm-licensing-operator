@@ -107,7 +107,6 @@ It was tested on the following systems:
         - [Cleaning no longer needed dependencies of License Service](#cleaning-no-longer-needed-dependencies-of-license-service)
         - [Cleaning no longer needed dependencies of License Service on OpenShift Container Platform](#cleaning-no-longer-needed-dependencies-of-license-service-on-openshift-container-platform)
 - [Using License Service to retrieve license usage information](#using-license-service-to-retrieve-license-usage-information)
-- [Using License Service Reporter to track license usage information for multiple clusters](#using-license-service-reporter-to-track-license-usage-information-for-multiple-clusters)
 - [Using custom certificates](#using-custom-certificates)
 - [Uninstalling License Service from a Kubernetes cluster](#uninstalling-license-service-from-a-kubernetes-cluster)
 - [Troubleshooting](#troubleshooting)
