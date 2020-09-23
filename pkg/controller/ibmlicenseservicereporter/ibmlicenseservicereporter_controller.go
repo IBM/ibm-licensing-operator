@@ -91,7 +91,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	routeTestInstance := &routev1.Route{}
 	err = mgr.GetClient().Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
 	if err != nil && metaErrors.IsNoMatchError(err) {
-		log.Error(err, "Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
+		log.Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
 		isOpenshiftCluster = false
 	}
 

@@ -90,7 +90,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	routeTestInstance := &routev1.Route{}
 	err = mgr.GetClient().Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
 	if err != nil && metaErrors.IsNoMatchError(err) {
-		log.Error(err, "Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
+		log.Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
 		isOpenshiftCluster = false
 	}
 
@@ -416,11 +416,7 @@ func (r *ReconcileIBMLicensing) reconcileResourceExistence(
 				return reconcile.Result{}, err
 			}
 			// Created successfully - return and requeue
-
-			// Pod created successfully - don't requeue
-			return reconcile.Result{}, nil
-
-//			return reconcile.Result{Requeue: true, RequeueAfter: time.Second}, nil
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		}
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())
