@@ -53,7 +53,9 @@ You can use the `ibm-licensing-operator` to install License Service on Kubernete
 
 ## Documentation
 
-- [Stand-alone License Service](docs/License_Service_main.md)
+For the overview and techhnical documentation, see [Stand-alone License Service](docs/License_Service_main.md).
+
+<!---
 - [Preparing for installation](docs/Preparing_for_installation.md)
   - [Supported platforms](docs/Preparing_for_installation.md#supported-platforms)
   - [Operator versions](docs/Preparing_for_installation.md#operator-versions)
@@ -73,5 +75,7 @@ You can use the `ibm-licensing-operator` to install License Service on Kubernete
 - [Uninstalling License Service from a Kubernetes cluster](docs/Uninstalling.md)
 - [Troubleshooting](docs/Troubleshooting.md)
   - [Preparing resources for offline installation without git](docs/Troubleshooting.md#prepareing-resources-for-offline-installation-without-git)
+--->
+
 
 
