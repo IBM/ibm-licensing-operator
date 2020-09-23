@@ -73,6 +73,7 @@ cat <<EOF | kubectl apply -f -
     apiSecretToken: ibm-licensing-token
     datasource: datacollector
     httpsEnable: true
+    imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
     instanceNamespace: ibm-common-services
 EOF
   [ "$?" -eq "0" ]
@@ -92,6 +93,7 @@ EOF
     sleep $retries_wait
     retries=$((retries - 1))
   done
+  kubectl get pods -n ibm-common-services >&3
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   [[ $new_ibmlicensing_phase == "Running" ]]
 }
