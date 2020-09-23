@@ -27,7 +27,7 @@ It was tested on the following systems:
 
 ## Required resources
 
-License Service consists of two main components that require resources: the operator Deployment and the application Deployment.
+License Service consists of two main components that require resources: the operator deployment and the application deployment.
 
  |Parameter|Operator|Application|Overall resources|
  |---|---|---|---|
@@ -38,7 +38,7 @@ License Service consists of two main components that require resources: the oper
  
  *_where m stands for Millicores, and Mi for Mebibytes_
  
- **Note:** You can modify the limits for thee Deployment for Application by editing the IBMLicensing instance. For more information, see [Configuration](Configuration.md).
+ **Note:** You can modify the limits and requests for the application deployment by editing the IBMLicensing instance. For more information, see [Configuration](Configuration.md).
 
 **Related links**
 
