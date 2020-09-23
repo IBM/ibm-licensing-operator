@@ -188,6 +188,37 @@ opencloudioSourceName=opencloud-operators
 kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
 ```
 
+## Modifying the application deployment resources
+
+You can modify the resources that are requested and limited by the Deployment for Application by editing the IBMLicensing instance.
+
+1. To modify the IBMLicensing instance, run the following command:
+
+```bash
+kubectl edit IBMLicensing instance
+```
+2. Modify the resource limits and resources in the following yaml and paste it in the command line. 
+
+```yaml
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+# ...
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+# ...
+```
+
+
+
+
 **Related links**
 
 - [Go back to home page](../License_Service_main.md#documentation)
