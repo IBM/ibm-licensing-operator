@@ -2,6 +2,12 @@
 
 After you install License Service, you can configure License Service if needed.
 
+- [Configuring ingress](#configuring-ingress)
+- [Checking License Service components](#checking-license-service-components)
+- [Using custom certificates](#using-custom-certificates)
+- [Cleaning existing License Service dependencies](#cleaning-existing-license-service-dependencies)
+- [Modifying the application deployment resources](#modifying-the-application-deployment-resources)
+
 ## Configuring ingress
 
 You might want to configure ingress. Here is an <b>example</b> of how you can do it:
@@ -215,9 +221,6 @@ spec:
       memory: 256Mi
 # ...
 ```
-
-
-
 
 **Related links**
 
