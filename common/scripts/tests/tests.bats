@@ -119,7 +119,6 @@ EOF
 }
 
 @test "Check if operator log does not contains error" {
-  cat ./operator-sdk_logs.txt | grep "{\"level\":\"error\"" >&3
-  results="$(cat operator-sdk_logs.txt | grep "{\"level\":\"error\"" | wc -l)"
+  results="$(cat ./operator-sdk_logs.txt | grep "{\"level\":\"error\"" | wc -l)"
   [ $results -eq "0" ]
 }
