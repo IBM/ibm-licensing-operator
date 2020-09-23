@@ -27,12 +27,6 @@ License Service collects data that is required for compliance and audit purposes
 Audit snapshot needs to be generated at least once a quarter for the last 90 days, and stored for 2 years. It needs to be stored in a location from which it could be retrieved and delievered to auditors. For legal requirements, see 
 [IBM Container Licenses on Passport Advantage](https://www.ibm.com/software/passportadvantage/containerlicenses.html).
 
-## Backup
-
-The license usage data that is collected by License Service is stored in the cluster memory. Nonetheless, it is a good practice to generate an audit snapshot periodically for backup purposes and store it in a safe location. You do not need to perform any other backup.
-
-Before decommissioning a cluster, you need to generate an audit snapshot to record the cluster license usage until the day of decommissioning.
-
 ## Documentation
 
 - [Preparing for installation](Content/Preparing_for_installation.md)
