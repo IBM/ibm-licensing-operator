@@ -1,13 +1,6 @@
 
 # Preparing for installation
 
-- Preparing for installation
-  - Supported platforms and versions
-  - Operator versions
-  - Cleaning existing License Service dependencies 
-
-  Questions: Resources?
-
 ## Supported platforms
 
 **Linux x86_64**
@@ -32,9 +25,20 @@ It was tested on the following systems:
  |<ul><li>Red Hat OpenShift Container Platform 3.11, 4.1, 4.2, 4.3 or newer</li><li>Any cluster with pre-installed Operator Lifecycle Manager (OLM)</li></ul>|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](Automatic_installation.md)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](Install_from_scratch.md)</li><li>[Offline installation](Install_offline.md)</li></ul>|
 |<ul><li>A cluster without Operator Lifecycle Manager (OLM)</li></ul>| <ul><li>[Offline installation](Install_offline.md)</li></ul>|
 
-## Operator versions
+## Required resources
 
-- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.0
+License Service consists of two main components that require resources: the operator Deployment and the application Deployment.
+
+ |Parameter|Operator|Application|Overall resources|
+ |---|---|---|---|
+ |CPU Limits| 20m| 500m| |
+ |Memory Limits| 150Mi|512Mi|
+ |CPU Requests| 10m|200m|**210m**|
+ |Memory Requests|50Mi|256Mi|**306Mi**|
+ 
+ *_where m stands for Millicores, and Mi for Mebibytes_
+ 
+ **Note:** You can modify the limits for thee Deployment for Application by editing the IBMLicensing instance. For more information, see [Configuration](Configuration.md).
 
 **Related links**
 
