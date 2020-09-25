@@ -1,5 +1,9 @@
 # Manual installation on OpenShift Container Platform (OCP) version 4.2 or higher
 
+* [Prerequisites](#prerequisites)
+* [Installation](#installation)
+* [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+
 ## Prerequisites
 - A cluster with OCP version 4.2 or higher
 - Administrator permissions for the OCP cluster
@@ -49,6 +53,7 @@ d. Enter **ibm-common-services** as a name and click **Create**.
 
 ![Create Project](/images/create-project-2.png)
 
+
 3\. **Install IBM Licensing Operator package in OperatorHub**
 
 a. Go to **OperatorHub** and search for **IBM Licensing Operator**.
@@ -85,7 +90,6 @@ Configure an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
-
 1\. Log in to the Openshift console and go to **Installed Operators > IBM Licensing Operator > IBM Licensing tab > Create IBMLicensing**.
 
 ![OCP click Create IBM Licensing](/images/ocp_create_instance.png)
@@ -112,4 +116,10 @@ To see the logs, go to **OCP UI->Workloads->Pods** and search for **licensing** 
 5\. To investigate further, click the name of the pod starting with `ibm-licensing-service-instance` and check its logs and events.
 
 **Results:** 
-Installation is complete and **License Service** is running in your cluster.
+Installation is complete and **License Service** is running in your cluster. To check if License Service components are properly installed, and perform extra configuration, see [Configuration](Configuration.md).
+
+**Related links**
+
+- [Go back to home page](../License_Service_main.md#documentation)
+- [Configuration](Configuration.md)
+- [Retrieving license usage data from the cluster](Retrieving_data.md)

@@ -1,5 +1,7 @@
 # Troubleshooting
 
+* [Preparing resources for offline installation without git](#preparing-resources-for-offline-installation-without-git)
+
 ## Preparing resources for offline installation without git
 
 Apply RBAC roles and CRD:

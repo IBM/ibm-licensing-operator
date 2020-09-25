@@ -1,8 +1,14 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/IBM/ibm-licensing-operator)](https://goreportcard.com/report/github.com/IBM/ibm-licensing-operator)
 
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
-* [License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)](#ibm-licensing-operator)
-* [License Service for stand-alone IBM Containerized Software without IBM Cloud Paks](#ibm-licensing-operator-for-installing-license-service-without-an-ibm-cloud-pak)
+* [ibm-licensing-operator](#ibm-licensing-operator)
+  * [Supported platforms](#supported-platforms)
+  * [Operator versions](#operator-versions)
+  * [Prerequisites](#prerequisites)
+  * [Documentation](#documentation)
+  * [SecurityContextConstraints Requirements](#securitycontextconstraints-requirements)
+* [ibm-licensing-operator for installing License Service without an IBM Cloud Pak](#ibm-licensing-operator-for-installing-license-service-without-an-ibm-cloud-pak)
+  * [Documentation](#documentation-1)
 
 # ibm-licensing-operator
 
@@ -16,8 +22,7 @@ For more information about the available IBM Cloud Platform Common Services, see
 
 ## Supported platforms
 
-Red Hat OpenShift Container Platform 4.2 or newer installed on one of the following platforms:
-   - Linux x86_64
+Red Hat OpenShift Container Platform 4.2 or newer installed on Linux x86_64, Linux on Power (ppc64le), Linux on IBM Z and LinuxONE
 
 ## Operator versions
 
@@ -37,7 +42,7 @@ Before you install this operator, you need to first install the operator depende
 To install the operator with the IBM Common Services Operator follow the the installation and configuration instructions within the IBM Knowledge Center.
 
 - If you are using the operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak. For a list of IBM Cloud Paks, see [IBM Cloud Paks that use Common Services](http://ibm.biz/cpcs_cloudpaks).
-- If you are using the operator with an IBM Containerized Software, see the IBM Cloud Platform Common Services Knowledge Center [Installer documentation](http://ibm.biz/cpcs_opinstall).
+- If you are using the operator with an IBM Containerized Software as a part of IBM Cloud Platform Common Services, see the [Installer documentation](http://ibm.biz/cpcs_opinstall) in Knowledge Center.
 
 ## SecurityContextConstraints Requirements
 
@@ -47,13 +52,13 @@ For more information about the OpenShift Container Platform Security Context Con
 
 # ibm-licensing-operator for installing License Service without an IBM Cloud Pak
 
-<b>Scenario: Learn how to deploy License Service on Kubernetes clusters and track license usage of the stand-alone IBM Containerized Software</b>
+<b>Scenario: Learn how to deploy License Service on Kubernetes clusters witout an IBM CLoud Pak</b>
 
-You can use the `ibm-licensing-operator` to install License Service on Kubernetes clusters. License Service collects information about license usage of IBM containerized products. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
+You can use the `ibm-licensing-operator` to install License Service on any Kubernetes cluster without an IBM CLoud Pak. License Service collects information about license usage of IBM Containerized Products. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 
 ## Documentation
 
-For the overview and technical documentation, see [Stand-alone License Service](docs2/License_Service_main.md).
+For the overview and technical documentation, see [License Service deployment without an IBM Cloud Pak](docs/License_Service_main.md).
 
 <!---
 - [Preparing for installation](docs/Preparing_for_installation.md)

@@ -2,11 +2,14 @@
 
 After you install License Service, you can configure License Service if needed.
 
-- [Configuring ingress](#configuring-ingress)
-- [Checking License Service components](#checking-license-service-components)
-- [Using custom certificates](#using-custom-certificates)
-- [Cleaning existing License Service dependencies](#cleaning-existing-license-service-dependencies)
-- [Modifying the application deployment resources](#modifying-the-application-deployment-resources)
+* [Configuring ingress](#configuring-ingress)
+* [Checking License Service components](#checking-license-service-components)
+* [Using custom certificates](#using-custom-certificates)
+* [Cleaning existing License Service dependencies](#cleaning-existing-license-service-dependencies)
+  * [Cleaning existing License Service dependencies outside of OpenShift](#cleaning-existing-license-service-dependencies-outside-of-openshift)
+  * [Cleaning existing License Service dependencies on OpenShift Container Platform](#cleaning-existing-license-service-dependencies-on-openshift-container-platform)
+* [Modifying the application deployment resources](#modifying-the-application-deployment-resources)
+
 
 ## Configuring ingress
 
@@ -89,9 +92,9 @@ EOF
 
 ## Checking License Service components
 
-After you apply appropriate configuration for **IBM License Service** follow these steps to check whether it works:
+After you install **IBM License Service**, complete the following steps to check whether it works:
 
-1\. Check if the pod is running, by running the following commands:
+1\. To check if the pod is running, by running the following commands:
 
 ```bash
 podName=`kubectl get pod -n ibm-common-services -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}" | grep ibm-licensing-service-instance`
@@ -203,6 +206,7 @@ You can modify the resources that are requested and limited by the Deployment fo
 ```bash
 kubectl edit IBMLicensing instance
 ```
+
 2. Modify the resource limits and resources in the following yaml and paste it in the command line. 
 
 ```yaml

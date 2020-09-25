@@ -1,6 +1,11 @@
 # Offline installation
 
+* [Prerequisites](#prerequisites)
+* [Installation](#installation)
+* [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+
 ## Prerequisites
+
 - A private Docker image registry where you can push the images using `Docker` and from where your cluster can pull images.
 - Machine with access to your cluster with `kubectl` command.
 
@@ -13,8 +18,8 @@ Prepare your Docker images:
 ```bash
 # on machine with access to internet
 export my_docker_registry=<YOUR REGISTRY IMAGE PREFIX HERE e.g.: "my.registry:5000" or "quay.io/opencloudio">
-export operator_version=1.1.3
-export operand_version=1.1.2
+export operator_version=1.2.2
+export operand_version=1.2.1
 
 # pull needed images
 docker pull quay.io/opencloudio/ibm-licensing-operator:${operator_version}
@@ -57,7 +62,7 @@ kubectl config set-context --current --namespace=ibm-common-services
 e. Use `git clone`:
 
 ```bash
-export operator_release_version=v1.1.3-durham
+export operator_release_version=v1.2.2-durham
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
@@ -100,8 +105,6 @@ You have created the **Operator** for **IBM Licensing Service**. The **Operator*
 Configure the IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
-
-**Important:** The minimal setup requires applying this IBMLicensing instance. However, before applying the instance, get familiar with the entire configuration process.
 
 1. To create the the IBM Licensing instance, run the following command:
 
@@ -151,3 +154,9 @@ spec:
 
 **Results:** 
 Installation is complete and **License Service** is running in your cluster.
+
+**Related links**
+
+- [Go back to home page](../License_Service_main.md#documentation)
+- [Configuration](Configuration.md)
+- [Retrieving license usage data from the cluster](Retrieving_data.md)

@@ -1,5 +1,9 @@
 # Manual installation on Kubernetes from scratch with `kubectl`
 
+* [Prerequisites](#prerequisites)
+* [Installation](#installation)
+* [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+
 ## Prerequisites
 - Administrator permissions for the cluster
 - `kubectl` 1.11.3 or higher
@@ -102,19 +106,7 @@ upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
 [...]
 ```
 
-
-3\. **View Available Operators**
-
-Once the `CatalogSource` is deployed, the following command can be used to list the available operators including ibm-licensing-operator-app.
-**Note:** The command assumes that the of the `OperatorSource` object is `opencloud-operators`. Adjust if needed.
-
-```console
-$ kubectl get opsrc opencloud-operators -o=custom-columns=NAME:.metadata.name,PACKAGES:.status.packages -n $GLOBAL_CATALOG_NAMESPACE
-NAME                  PACKAGES
-opencloud-operators   ibm-meta-operator-bridge-app,ibm-commonui-operator-app,ibm-catalog-ui-operator-app,ibm-metering-operator-app,ibm-helm-repo-operator-app,ibm-iam-operator-app,ibm-elastic-stack-operator-app,ibm-monitoring-exporters-operator-app,ibm-monitoring-prometheusext-operator-app,cp4foobar-operator-app,ibm-healthcheck-operator-app,ibm-platform-api-operator-app,ibm-management-ingress-operator-app,ibm-helm-api-operator-app,ibm-licensing-operator-app,ibm-ingress-nginx-operator-app,ibm-monitoring-grafana-operator-app,ibm-auditlogging-operator-app,operand-deployment-lifecycle-manager-app,ibm-mgmt-repo-operator-app,ibm-mongodb-operator-app,ibm-cert-manager-operator-app
-```
-
-4\. **Create an OperatorGroup**
+3\. **Create an OperatorGroup**
 
 An `OperatorGroup` is used to denote which namespaces your Operator should watch.
 It must exist in the namespace where your operator is deployed, for example, `ibm-common-services`.
@@ -131,7 +123,7 @@ b. Check if you have tha operator group in that namespace by running the followi
 kubectl get OperatorGroup -n ibm-common-services
 ```
 
-- If you get the following response, the operator group is found and you can go to step 3. Create a Subscription.
+- If you get the following response, the operator group is found and you can go to step 4. Create a Subscription.
 
 ```console
 NAME            AGE
@@ -160,7 +152,7 @@ spec:
 EOF
 ```
 
-5\. **Create a Subscription**
+4\. **Create a Subscription**
 A subscription is created for the operator and is responsible for upgrades of IBM Licensing Operator when needed.
 
 a. Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
@@ -182,14 +174,14 @@ spec:
 EOF
 ```
 
-6\. **Verify Operator health**
+5\. **Verify Operator health**
 
 a. See if the IBM Licensing Operator is deployed by OLM from the `CatalogSource` with the following command.
 
 ```console
 $ kubectl get clusterserviceversion -n ibm-common-services
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.1.3   IBM Licensing Operator   1.1.3     ibm-licensing-operator.v1.1.2   Succeeded
+ibm-licensing-operator.v1.2.2   IBM Licensing Operator   1.2.2     ibm-licensing-operator.v1.2.1   Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
@@ -227,4 +219,10 @@ spec:
 EOF
 ```
 **Results:** 
-Installation is complete and **License Service** is running in your cluster.
+Installation is complete and **License Service** is running in your cluster. To check if License Service components are properly installed, and perform extra configuration, see [Configuration](Configuration.md).
+
+**Related links**
+
+- [Go back to home page](../License_Service_main.md#documentation)
+- [Configuration](Configuration.md)
+- [Retrieving license usage data from the cluster](Retrieving_data.md)
