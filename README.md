@@ -1,14 +1,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/IBM/ibm-licensing-operator)](https://goreportcard.com/report/github.com/IBM/ibm-licensing-operator)
 
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
-* [ibm-licensing-operator](#ibm-licensing-operator)
-  * [Supported platforms](#supported-platforms)
-  * [Operator versions](#operator-versions)
-  * [Prerequisites](#prerequisites)
-  * [Documentation](#documentation)
-  * [SecurityContextConstraints Requirements](#securitycontextconstraints-requirements)
-* [ibm-licensing-operator for installing License Service without an IBM Cloud Pak](#ibm-licensing-operator-for-installing-license-service-without-an-ibm-cloud-pak)
-  * [Documentation](#documentation-1)
+* [License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)](#ibm-licensing-operator)
+* [License Service that is deployed without an IBM Cloud Pak](#ibm-licensing-for-deplyoying-License-Service-without-an-iBM-cloud-pak)
 
 # ibm-licensing-operator
 
@@ -50,7 +44,7 @@ License Service supports running with the OpenShift Container Platform 4.3 defau
 
 For more information about the OpenShift Container Platform Security Context Constraints, see [Managing Security Context Constraints](https://docs.openshift.com/container-platform/4.3/authentication/managing-security-context-constraints.html).
 
-# ibm-licensing-operator for installing License Service without an IBM Cloud Pak
+# ibm-licensing-operator for deplyoying License Service without an IBM Cloud Pak
 
 <b>Scenario: Learn how to deploy License Service on Kubernetes clusters witout an IBM CLoud Pak</b>
 
