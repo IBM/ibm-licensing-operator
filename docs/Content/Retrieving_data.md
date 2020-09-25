@@ -23,5 +23,7 @@ You can use the data that is collected by License Service from individual cluste
 
 You can use the non-automated procedure to create a cumulative report for your environment. For more information, see [Manually tracking license usage in multicluster environment in IBM Knowledge Center](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/multicluster.html).
 
+**Note:** License Service has recently been upgraded with an extension for tracking license usage in multicluster environment called License Service Reporter. However, at this point License Service Reporter is only supported with License Service instance that is shipped with IBM Cloud Platform Common Services and integrated with IBM Cloud Pak solutions.
+
 **Related links**
 - [Go back to home page](../License_Service_main.md#documentation)
