@@ -41,6 +41,9 @@ teardown() {
 
   kubectl create namespace ibm-common-services$SUFIX
   [ "$?" -eq 0 ]
+
+  kubectl get namespaces >> k8s.txt
+  [ "$?" -eq 0 ]
 }
 
 @test "Build Operator" {
@@ -80,6 +83,8 @@ teardown() {
 }
 
 @test "List all POD in cluster" {
+  kubectl get pods --all-namespaces >> k8s.txt
+
   results="$(kubectl get pods --all-namespaces | wc -l)"
   [ "$results" -gt 0 ]
 }
@@ -93,11 +98,17 @@ teardown() {
     retries=$((retries - 1))
     sleep 3
   done
+  kubectl get pods -n ibm-common-services$SUFIX >> k8s.txt
+
   [ $results -eq "0" ]
 }
 
 @test "create secret for artifactory" {
    kubectl create secret generic my-registry-token -n ibm-common-services$SUFIX --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson
+   [ $? -eq "0" ]
+
+   kubectl get secrets -n ibm-common-services$SUFIX >> k8s.txt
+   [ $? -eq "0" ]
 }
 
 
@@ -116,6 +127,9 @@ cat <<EOF | kubectl apply -f -
       - my-registry-token
     instanceNamespace: ibm-common-services$SUFIX
 EOF
+  [ "$?" -eq "0" ]
+
+  kubectl get IBMLicensing >> k8s.txt
   [ "$?" -eq "0" ]
 
   kubectl describe IBMLicensing instance$SUFIX >> k8s.txt
@@ -145,6 +159,9 @@ EOF
 @test "Remove CR from IBMLicensing" {
   kubectl delete IBMLicensing instance$SUFIX
   [ $? -eq 0 ]
+
+  kubectl get IBMLicensing >> k8s.txt
+  [ "$?" -eq "0" ]
 }
 
 @test "Wait for pods to be deleted" {
