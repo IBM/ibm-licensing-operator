@@ -74,9 +74,9 @@ teardown() {
 @test "Run Operator in backgroud" {
   operator-sdk run --watch-namespace ibm-common-services$SUFIX --local > operator-sdk_logs.txt 2>&1 &
   export OPERATOR_PID=$!
+  sleep 30
   echo $OPERATOR_PID > ./operator.pid
   [ "$?" -eq 0 ]
-
 }
 
 @test "List all POD in cluster" {
