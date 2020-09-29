@@ -117,15 +117,18 @@ cat <<EOF | kubectl apply -f -
     instanceNamespace: ibm-common-services$SUFIX
 EOF
   [ "$?" -eq "0" ]
+
+  kubectl describe IBMLicensing instance$SUFIX >> k8s.txt
+  [ "$?" -eq "0" ]
 }
 
 @test "Wait for instance to be running" {
-  echo "Checking IBMLicensing instance status" >&3
+  echo "Checking IBMLicensing instance$SUFIX status" >&3
   retries_start=80
   retries=$retries_start
   retries_wait=3
   until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" || "$ibmlicensing_phase" == "Failed" ]]; do
-    new_ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicensing pod to appear")
+    new_ibmlicensing_phase=$(kubectl get IBMLicensing instance$SUFIX -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicensing pod to appear")
     if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
       ibmlicensing_phase=$new_ibmlicensing_phase
       echo "IBMLicensing Pod phase: $ibmlicensing_phase" >&3
