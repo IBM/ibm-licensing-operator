@@ -15,8 +15,31 @@
 # limitations under the License.
 #
 
-@test "Create namespace ibm-common-services" {
-  kubectl create namespace ibm-common-services
+setup_file() {
+  echo "start tests in namespace ibm-common-services$SUFIX" > k8s.txt
+}
+
+
+setup() {
+  echo "  " >> k8s.txt
+  echo "-----------------------------------------" >> k8s.txt
+  echo "Start $BATS_TEST_NAME" >> k8s.txt
+  echo "-----------------------------------------" >> k8s.txt
+  echo "  " >> k8s.txt
+}
+
+teardown() {
+  echo "  " >> k8s.txt
+  echo "-----------------------------------------" >> k8s.txt
+  echo "End $BATS_TEST_NAME" >> k8s.txt
+  echo "-----------------------------------------" >> k8s.txt
+  echo "  " >> k8s.txt
+}
+
+@test "Create namespace ibm-common-services$SUFIX" {
+  echo Create namespace ibm-common-services$SUFIX >&3
+
+  kubectl create namespace ibm-common-services$SUFIX
   [ "$?" -eq 0 ]
 }
 
@@ -32,18 +55,28 @@
   kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
   [ "$?" -eq 0 ]
 
-  kubectl apply -f ./deploy/service_account.yaml -n ibm-common-services
+  kubectl apply -f ./deploy/service_account.yaml -n ibm-common-services$SUFIX
   [ "$?" -eq 0 ]
 
-  kubectl apply -f ./deploy/role.yaml
+  sed "s/ibm-common-services/ibm-common-services$SUFIX/g" < ./deploy/role.yaml > ./deploy/role_ns.yaml
   [ "$?" -eq 0 ]
 
-  kubectl apply -f ./deploy/role_binding.yaml 
+  kubectl apply -f ./deploy/role_ns.yaml
+  [ "$?" -eq 0 ]
+
+  sed "s/ibm-common-services/ibm-common-services$SUFIX/g" < ./deploy/role_binding.yaml > ./deploy/role_binding_ns.yaml
+  [ "$?" -eq 0 ]
+
+  kubectl apply -f ./deploy/role_binding_ns.yaml
   [ "$?" -eq 0 ]
 }
 
 @test "Run Operator in backgroud" {
-  operator-sdk run --watch-namespace ibm-common-services --local > operator-sdk_logs.txt 2>&1 &
+  operator-sdk run --watch-namespace ibm-common-services$SUFIX --local > operator-sdk_logs.txt 2>&1 &
+  export OPERATOR_PID=$!
+  echo $OPERATOR_PID > ./operator.pid
+  [ "$?" -eq 0 ]
+
 }
 
 @test "List all POD in cluster" {
@@ -51,30 +84,37 @@
   [ "$results" -gt 0 ]
 }
 
-@test "Wait 12s for checking pod in ibm-common-services. List should be empty" {
+@test "Wait 12s for checking pod in ibm-common-services$SUFIX. List should be empty" {
   echo "Checking if License Service pod is deleted" >&3
   retries=4
-  results="$(kubectl get pods -n ibm-common-services | wc -l)"
+  results="$(kubectl get pods -n ibm-common-services$SUFIX | wc -l)"
   until [[ $retries == 0 || $results -eq "0" ]]; do
-    results="$(kubectl get pods -n ibm-common-services | wc -l)"
+    results="$(kubectl get pods -n ibm-common-services$SUFIX | wc -l)"
     retries=$((retries - 1))
     sleep 3
   done
   [ $results -eq "0" ]
 }
 
+@test "create secret for artifactory" {
+   kubectl create secret generic my-registry-token -n ibm-common-services$SUFIX --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson
+}
+
+
 @test "Load CR for LS" {
 cat <<EOF | kubectl apply -f -
   apiVersion: operator.ibm.com/v1alpha1
   kind: IBMLicensing
   metadata:
-    name: instance
+    name: instance$SUFIX
   spec:
     apiSecretToken: ibm-licensing-token
     datasource: datacollector
     httpsEnable: true
     imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
-    instanceNamespace: ibm-common-services
+    imagePullSecrets:
+      - my-registry-token
+    instanceNamespace: ibm-common-services$SUFIX
 EOF
   [ "$?" -eq "0" ]
 }
@@ -93,13 +133,14 @@ EOF
     sleep $retries_wait
     retries=$((retries - 1))
   done
-  kubectl get pods -n ibm-common-services >&3
+  kubectl get pods -n ibm-common-services$SUFIX  >> k8s.txt
+  kubectl describe pods -n ibm-common-services$SUFIX >> k8s.txt
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   [[ $new_ibmlicensing_phase == "Running" ]]
 }
 
 @test "Remove CR from IBMLicensing" {
-  kubectl delete IBMLicensing --all
+  kubectl delete IBMLicensing instance$SUFIX
   [ $? -eq 0 ]
 }
 
@@ -108,18 +149,31 @@ EOF
   retries_start=80
   retries=$retries_start
   retries_wait=3
-  results="$(kubectl get pods -n ibm-common-services | grep ibm-licensing-service-instance | wc -l)"
+  results="$(kubectl get pods -n ibm-common-services$SUFIX | grep ibm-licensing-service-instance | wc -l)"
   until [[ $retries == 0 || $results -eq "0" ]]; do
-    results="$(kubectl get pods -n ibm-common-services | grep ibm-licensing-service-instance | wc -l)"
+    results="$(kubectl get pods -n ibm-common-services$SUFIX | grep ibm-licensing-service-instance | wc -l)"
     retries=$((retries - 1))
     sleep $retries_wait
   done
+  kubectl get pods -n ibm-common-services$SUFIX  >> k8s.txt
+  kubectl describe pods -n ibm-common-services$SUFIX >> k8s.txt
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   [ $results -eq "0" ]
 }
 
 @test "Check if operator log does not contains error" {
-  skip
-  results="$(cat ./operator-sdk_logs.txt | grep "{\"level\":\"error\"" | wc -l)"
+  results="$(cat ./operator-sdk_logs.txt | grep "{\"level\":\"error\"" | grep -v "already exists" | wc -l)"
   [ $results -eq "0" ]
 }
+
+@test "Delete namespace" {
+  kubectl delete namespace ibm-common-services$SUFIX
+  [ $? -eq "0" ]
+}
+
+@test "Kill operator" {
+  export OPERATOR_PID=`cat ./operator.pid`
+  kill  $OPERATOR_PID
+  [ $? -eq "0" ]
+}
+
