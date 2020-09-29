@@ -393,6 +393,7 @@ func (r *ReconcileIBMLicensing) reconcileResourceExistence(
 	expectedRes res.ResourceObject,
 	foundRes runtime.Object,
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
+
 	resType := reflect.TypeOf(expectedRes)
 	reqLogger := log.WithValues(resType.String(), "Entry", "instance.GetName()", instance.GetName())
 
@@ -411,12 +412,15 @@ func (r *ReconcileIBMLicensing) reconcileResourceExistence(
 				"Namespace", expectedRes.GetNamespace())
 			err = r.client.Create(context.TODO(), expectedRes)
 			if err != nil {
-				reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
-					"Namespace", expectedRes.GetNamespace())
-				return reconcile.Result{}, err
+				if !errors.IsAlreadyExists(err) {
+					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
+						"Namespace", expectedRes.GetNamespace())
+					return reconcile.Result{}, err
+				}
 			}
-			// Created successfully - return and requeue
-			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
+			// Created successfully, or already exists - return and requeue
+			time.Sleep(time.Second * 5)
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second}, nil
 		}
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())
