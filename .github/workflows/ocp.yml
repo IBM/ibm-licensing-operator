@@ -22,6 +22,10 @@ on:
       - master
       - development
 
+# Environment variables available to all jobs and steps in this workflow
+env:
+  IBM_CLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
+
 jobs:
   setup-build-publish-deploy:
     name: Operator tests on OCP
@@ -51,8 +55,8 @@ jobs:
     # Authenticate with IBM Cloud CLI
     - name: Authenticate with IBM Cloud CLI
       run: |
-        ibmcloud login --apikey "${IBM_CLOUD_API_KEY}" -r "${IBM_CLOUD_REGION}" -g "${IBM_CLOUD_RESOURCE_GROUP}"
-        ibmcloud cr region-set "${IBM_CLOUD_REGION}"
+        ibmcloud login --apikey "${IBM_CLOUD_API_KEY}" -r eu-de -g Default
+        ibmcloud cr region-set eu-de
         ibmcloud cr login
 
     - name: Checkout
