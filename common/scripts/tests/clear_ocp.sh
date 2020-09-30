@@ -37,7 +37,7 @@ then
         kubectl get configmap |grep "$CNAME"
         ret=$?
     done
-    kubectl create configmap $CN
+    kubectl create configmap "$CN"
 fi
 
 export ret=0
@@ -57,7 +57,7 @@ else
     echo "Check if any other tests works on Cluster and clear from old ibm-licensing resources"
 
     export ret=0
-    kubectl delete namespace `kubectl get namespace | grep "$COMMON_SERVICE_NAMESPACE" | awk '{print $1}'| tr '\n' ' , '`
+    kubectl delete namespace "$(kubectl get namespace | grep "$COMMON_SERVICE_NAMESPACE" | awk '{print $1}'| tr '\n' ' , ')"
     while [ $ret -eq 0 ] ; do
         sleep 3
         kubectl get namespace |grep "$COMMON_SERVICE_NAMESPACE"
@@ -86,7 +86,6 @@ fi
 if $MUTEX_OFF
 then
     echo "remove mutex $CN"
-    kubectl delete configmap $CN
+    kubectl delete configmap "$CN"
 fi
-echo "The Cluster is clear."
-exit 0
+echo The Cluster is clear
