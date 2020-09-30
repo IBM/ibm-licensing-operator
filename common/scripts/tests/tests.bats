@@ -39,6 +39,7 @@ teardown() {
 @test "Create namespace ibm-common-services$SUFIX" {
   echo Create namespace ibm-common-services$SUFIX >&3
 
+
   kubectl create namespace ibm-common-services$SUFIX
   [ "$?" -eq 0 ]
 
@@ -76,8 +77,10 @@ teardown() {
 
 @test "Run Operator in backgroud" {
   operator-sdk run --watch-namespace ibm-common-services$SUFIX --local > operator-sdk_logs.txt 2>&1 &
+
   export OPERATOR_PID=$!
-  sleep 30
+  [ "$OPERATOR_PID" -gt 0 ]
+
   echo $OPERATOR_PID > ./operator.pid
   [ "$?" -eq 0 ]
 }
