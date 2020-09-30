@@ -64,3 +64,4 @@ For more information, see the following resources:
 - [Backup and upgrade](Content/Backup_and_upgrade.md)
 - [Troubleshooting](Content/Troubleshooting.md)
   - [Preparing resources for offline installation without git](Content/Troubleshooting.md#prepareing-resources-for-offline-installation-without-git)
+  - [License Service pods are crashing and License Service cannot run](Content/Troubleshooting.md#license-service-pods-are-crashing-and-license-service-cannot-run)

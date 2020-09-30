@@ -1,6 +1,7 @@
 # Troubleshooting
 
 * [Preparing resources for offline installation without git](#preparing-resources-for-offline-installation-without-git)
+* [License Service pods are crashing and License Service cannot run](#license-service-pods-are-crashing-and-license-service-cannot-run)
 
 ## Preparing resources for offline installation without git
 
