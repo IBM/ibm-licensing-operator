@@ -16,7 +16,8 @@
 #
 export CNAME=ibm-ls-automation-
 export CN="$CNAME$SUFIX"
-export LS_NAMESPACE=ibm-common-services$SUFIX
+export COMMON_SERVICE_NAMESPACE=ibm-common-services
+export LS_NAMESPACE=$COMMON_SERVICE_NAMESPACE$SUFIX
 export IKS_CLUSTER_ZONE=dal10
 #ibmcloud ks vlan ls --zone $IKS_CLUSTER_ZONE
 export IKS_CLUSTER_PRIVATE_VLAN=2918270
@@ -25,6 +26,7 @@ export VERSION="4.4_openshift"
 export IKS_CLUSTER_FLAVOR=b3c.4x16.encrypted
 export clustername=$1
 export IKS_CLUSTER_TAG_NAMES="owner:artur.obrzut,team:CP4MCM,Usage:temp,Usage_desc:certification_tests,Review_freq:month"
+export YOUR_CLUSTER=false
 if [ -z "$clustername" ]
 then
    echo "try to find cluster $CNAME"
@@ -40,6 +42,7 @@ else
   echo "$clustername" > ./clustername.txt
   CN=$(cat ./clustername.txt)
   export CN
+  export YOUR_CLUSTER=true
 fi
 
 if ibmcloud oc cluster ls |grep "$CN"
@@ -73,23 +76,3 @@ then
   echo "ERROR CANNOT GET NODES!!!"
   exit 1
 fi
-i=0
-kubectl get namespace |grep "$LS_NAMESPACE"
-ret=$?
-while [ $ret -eq 0 ] ; do
-    echo "There is namespace $LS_NAMESPACE inside cluster. Wait 2 minutes for removing it. Please remove it"
-    sleep 30
-    i=$i+1
-    if [[ $i -gt 4 ]]
-    then
-        echo "Delete tests data like ibm-common-services"
-        kubectl delete namespace "$LS_NAMESPACE"
-
-        #kubectl delete crd ibmlicensings.operator.ibm.com
-        #kubectl delete crd ibmlicenseservicereporters.operator.ibm.com
-    fi
-    kubectl get namespace |grep "$LS_NAMESPACE"
-    ret=$?
-done
-echo There is not "$LS_NAMESPACE" namespace.
-

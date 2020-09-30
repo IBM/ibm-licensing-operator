@@ -72,15 +72,27 @@ jobs:
         wget https://github.com/operator-framework/operator-sdk/releases/download/v0.17.0/operator-sdk-v0.17.0-x86_64-linux-gnu
         mv ./operator-sdk-v0.17.0-x86_64-linux-gnu ./operator-sdk
         chmod +x ./operator-sdk
-        ./common/scripts/tests/start_ocp.sh
-        kubectl get nodes
+        export MUTEX_ON=true
+        export MUTEX_OFF=false
+        ./common/scripts/tests/connect_ocp.sh
+        ./common/scripts/tests/clear_ocp.sh
+
 
     - name: Test Operator
       run: |
         export PATH=`pwd`:$PATH
         export SUFIX=`cat ./random.txt`
         bats ./common/scripts/tests/tests.bats > ./test_logs.txt 2>&1
-       
+
+
+    - name: Clear
+      if: always()
+      run: |
+        export MUTEX_ON=false
+        export MUTEX_OFF=true
+        export SUFIX=`cat ./random.txt`
+        ./common/scripts/tests/clear_ocp.sh
+
     - name: Archive logs
       uses: actions/upload-artifact@v2
       if: always()
