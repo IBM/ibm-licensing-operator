@@ -185,7 +185,7 @@ EOF
 }
 
 @test "Check if operator log does not contains error" {
-  results="$(cat ./operator-sdk_logs.txt | grep "{\"level\":\"error\"" | grep -v "already exists" | wc -l)"
+  results="$(cat ./operator-sdk_logs.txt | grep "{\"level\":\"error\"" | wc -l)"
   [ $results -eq "0" ]
 }
 
