@@ -43,7 +43,7 @@ INSTALL_HOOKS := $(shell find .git/hooks -type l -exec rm {} \; && \
 # lint section
 ############################################################
 
-FINDFILES=find . \( -path ./.git -o -path ./.github \) -prune -o -type f
+FINDFILES=find . \( -path ./.git -o -path ./.github -o -path ./common/scripts/catalog -o -path ./.go\) -prune -o -type f
 XARGS = xargs -0 ${XARGS_FLAGS}
 CLEANXARGS = xargs ${XARGS_FLAGS}
 
