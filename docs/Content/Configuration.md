@@ -218,13 +218,14 @@ spec:
 # ...
   resources:
     limits:
-      cpu: 500m
-      memory: 512Mi
+      cpu: 500m <- set the CPU limit to the desired value
+      memory: 512Mi <- set the memory limit to the desired value
     requests:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 200m <- set the requests limit to the desired value
+      memory: 256Mi <- set the memory limit to the desired value
 # ...
 ```
+*where m stands for Millicores, and Mi for Mebibytes
 
 **Related links**
 
