@@ -10,15 +10,15 @@ You can use an automatic script to install License Service on the cluster, and a
 
 The script is supported on the following platforms: 
 
-- Linux x86 architecture,
-- Linux on Power (ppc64le), Linux on IBM Z and LinuxONE on Red Hat OpenShift Container Platform 3.11, 4.1, 4.2, 4.3 or newer, or on any other cluster that already has Operator Lifecycle Manager (OLM) installed.
+- Linux x86 architecture
+- Any cluster that already has Operator Lifecycle Manager (OLM) installed
 
 ## Installation
 
 The script installs License Service, creates an instance and validates the installation steps. 
 
 1. Download the script from the following location in the repository:
-[common/scripts/ibm_licensing_operator_install.sh](/../common/scripts/ibm_licensing_operator_install.sh). 
+[common/scripts/ibm_licensing_operator_install.sh](/common/scripts/ibm_licensing_operator_install.sh). 
 
 2. Run the script.
 
