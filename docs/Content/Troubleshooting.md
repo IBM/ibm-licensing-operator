@@ -5,27 +5,20 @@
 
 ## Preparing resources for offline installation without git
 
-Apply RBAC roles and CRD:
+1. Apply RBAC roles and CRD:
 
 ```bash
-# copy the yaml from here:
-export operator_release_version=v1.1.3-durham
-https://github.com/IBM/ibm-licensing-operator/releases/download/${operator_release_version}/rbac_and_crd.yaml
+# apply the yaml from here:
+export operator_release_version=v1.2.2-durham
+kubectl apply -f https://github.com/IBM/ibm-licensing-operator/releases/download/${operator_release_version}/rbac_and_crd.yaml
 ```
 
-Then apply the copied yaml:
+2. Make sure that the `my_docker_registry` variable is set to your private registry and apply the operator:
 
 ```bash
-cat <<EOF | kubectl apply -f -
-# PASTE IT HERE
-EOF
-```
-
-Make sure `${my_docker_registry}` variable has your private registry and apply the operator:
-
-```bash
-export operator_version=1.1.3
-export operand_version=1.1.2
+export my_docker_registry=<your private registry>
+export operator_version=1.2.2
+export operand_version=1.2.1
 ```
 
 ```yaml
@@ -53,7 +46,6 @@ spec:
       annotations:
         productName: IBM Cloud Platform Common Services
         productID: "068a62892a1e4db39641342e592daa25"
-        productVersion: "3.4.0"
         productMetric: FREE
     spec:
       serviceAccountName: ibm-licensing-operator
@@ -79,6 +71,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
+              value: ibm-common-services
             - name: POD_NAME
               valueFrom:
                 fieldRef:
@@ -94,7 +87,7 @@ spec:
           resources:
             limits:
               cpu: 20m
-              memory: 100Mi
+              memory: 150Mi
             requests:
               cpu: 10m
               memory: 50Mi
