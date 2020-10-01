@@ -38,7 +38,7 @@ mv manifests/ibm-licensing-operator/"$CATALOG_VERSION"/ibm* "$NEW_CSV"
 sed -i "/replaces/c\  replaces: ibm-licensing-operator.v$LATEST_VERSION" "$NEW_CSV"
 sed -i "/olm.skipRange:/c\    olm.skipRange: \'>=1.0.0 <$CATALOG_VERSION\'" "$NEW_CSV"
 sed -i "/name: ibm-licensing-operator.v/c\  name: ibm-licensing-operator.v$CATALOG_VERSION" "$NEW_CSV"
-sed -i "s/ibm-licensing-operator:.*/ibm-licensing-operator@$DIGEST/" "$NEW_CSV"
+sed -i "s|quay.io/opencloudio/ibm-licensing-operator:.*|${IMAGE_REPO}/${IMAGE_NAME}@${DIGEST}|" "$NEW_CSV"
 
 sed -i "/channels:/a\- currentCSV: ibm-licensing-operator.v$CATALOG_VERSION\n  name: devops" "$PACKAGE"
 
