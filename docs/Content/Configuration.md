@@ -169,7 +169,7 @@ where `GLOBAL_CATALOG_NAMESPACE` value is your global catalog namespace.
 
 2. Delete OperatorMarketplace.
 
-**Note:** Before deleting OperatorMarketplace check whether it is not used elsewhere, for example, for other Operators from OperatorMarketplace, or an OCP cluster.
+**Note:** Before deleting OperatorMarketplace check whether it is not used elsewhere, for example, for other Operators from OperatorMarketplace.
 
 To delete OperatorMarketplace, run the following command:
 
