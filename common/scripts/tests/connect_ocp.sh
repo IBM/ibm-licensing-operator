@@ -14,19 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+export clustername=$1
+
 export CNAME=ibm-ls-automation-
 export CN="$CNAME$SUFIX"
 export COMMON_SERVICE_NAMESPACE=ibm-common-services
 export LS_NAMESPACE=$COMMON_SERVICE_NAMESPACE$SUFIX
-export IKS_CLUSTER_ZONE=dal10
-#ibmcloud ks vlan ls --zone $IKS_CLUSTER_ZONE
-export IKS_CLUSTER_PRIVATE_VLAN=2918270
-export IKS_CLUSTER_PUBLIC_VLAN=2918268
+
+export IKS_CLUSTER_ZONE=ams03
 export VERSION="4.4_openshift"
 export IKS_CLUSTER_FLAVOR=b3c.4x16.encrypted
-export clustername=$1
 export IKS_CLUSTER_TAG_NAMES="owner:artur.obrzut,team:CP4MCM,Usage:temp,Usage_desc:certification_tests,Review_freq:month"
+export IKS_CLUSTER_NOTE="artur.obrzut@pl.ibm.com;CP4MCM;infra;certification;month"
+
+
 export YOUR_CLUSTER=false
+
 if [ -z "$clustername" ]
 then
    echo "try to find cluster $CNAME"
@@ -50,7 +53,9 @@ then
    echo "Cluster exists"
 else
    echo "Start creating cluster $CN"
-   ibmcloud oc cluster create classic --name "$CN" --flavor $IKS_CLUSTER_FLAVOR --hardware shared --workers 1 --zone "$IKS_CLUSTER_ZONE" --public-vlan "$IKS_CLUSTER_PUBLIC_VLAN" --private-vlan "$IKS_CLUSTER_PRIVATE_VLAN"  --version "$VERSION"  --public-service-endpoint
+   export IKS_CLUSTER_PUBLIC_VLAN=$(ibmcloud oc vlan ls --zone lon06 |grep -m1 public | awk '{print $1}')
+   export IKS_CLUSTER_PRIVATE_VLAN=$(ibmcloud oc vlan ls --zone lon06 |grep -m1 private | awk '{print $1}')
+   ibmcloud oc cluster create classic --name "$CN" --flavor $IKS_CLUSTER_FLAVOR --workers 1 --zone "$IKS_CLUSTER_ZONE" --public-vlan "$IKS_CLUSTER_PUBLIC_VLAN" --private-vlan "$IKS_CLUSTER_PRIVATE_VLAN"  --version "$VERSION"
    sleep 10
 
    ibmcloud oc cluster ls | grep "$CN" | grep normal
