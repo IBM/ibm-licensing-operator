@@ -10,7 +10,6 @@ After you install License Service, you can configure License Service if needed.
   * [Cleaning existing License Service dependencies on OpenShift Container Platform](#cleaning-existing-license-service-dependencies-on-openshift-container-platform)
 * [Modifying the application deployment resources](#modifying-the-application-deployment-resources)
 
-
 ## Configuring ingress
 
 You might want to configure ingress. Here is an <b>example</b> of how you can do it:
