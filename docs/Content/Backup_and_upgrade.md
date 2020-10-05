@@ -5,7 +5,9 @@
 
 ## Backup
 
-The license usage data that is collected by License Service is stored in the cluster memory. Nonetheless, it is a good practice to generate an audit snapshot periodically for backup purposes and store it in a safe location. You do not need to perform any other backup.
+The license usage data that is collected by License Service is stored in the persistent cluster memory and is not affected when you kill or restart a pod.
+
+Nonetheless, it is a good practice to generate an audit snapshot periodically for backup purposes and store it in a safe location. You do not need to perform any other backup.
 
 **Note:** Before decommissioning a cluster, record the license usage of the products that are deployed on this cluster by generating an audit snapshot until the day of decommissioning.
 
@@ -13,6 +15,8 @@ The license usage data that is collected by License Service is stored in the clu
 
 * For online environments, License Service is automatically upgraded with each new operator release.
 * For offline environments, to upgrade License Service to a new version, first uninstall License Service from the cluster and redeploy it.
+    
+    **Note:** The license usage data is stored in the persistent cluster memory and should not be affected by reinstallation of License Service. However, it is a good practice to create an audit snapshot before reinstalling License Service as a safety precaution. 
 
 **Related links**
 

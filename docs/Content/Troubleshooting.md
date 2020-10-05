@@ -1,7 +1,12 @@
 # Troubleshooting
 
+* [Verifying completeness of license usage data](#verifying-completeness-of-license-usage-data)
 * [Preparing resources for offline installation without git](#preparing-resources-for-offline-installation-without-git)
 * [License Service pods are crashing and License Service cannot run](#license-service-pods-are-crashing-and-license-service-cannot-run)
+
+## Verifying completeness of license usage data
+
+You can verify if License Service is properly deployed and whether it collects the complete license usage data. For more information, see [Verifying completeness of license usage data and troubleshooting](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/monitoring.html).
 
 ## Preparing resources for offline installation without git
 

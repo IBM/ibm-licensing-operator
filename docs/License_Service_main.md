@@ -63,5 +63,6 @@ For more information, see the following resources:
 - [Uninstalling License Service from a Kubernetes cluster](Content/Uninstalling.md)
 - [Backup and upgrade](Content/Backup_and_upgrade.md)
 - [Troubleshooting](Content/Troubleshooting.md)
+  - [Verifying completeness of license usage data](Content/Troubleshooting.md#verifying-completeness-of-license-usage-data)
   - [Preparing resources for offline installation without git](Content/Troubleshooting.md#prepareing-resources-for-offline-installation-without-git)
   - [License Service pods are crashing and License Service cannot run](Content/Troubleshooting.md#license-service-pods-are-crashing-and-license-service-cannot-run)
