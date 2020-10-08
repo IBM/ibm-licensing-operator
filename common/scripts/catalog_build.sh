@@ -20,6 +20,9 @@ echo "Building catalog"
 IMAGE_REPO=${1}
 IMAGE_NAME=${2}
 MANIFEST_VERSION=${3}
+
+docker pull "$IMAGE_REPO/$IMAGE_NAME:$MANIFEST_VERSION"
+
 DIGEST="$(docker images --digests "$IMAGE_REPO/$IMAGE_NAME" | grep "$MANIFEST_VERSION" | awk 'FNR==1{print $3}')"
 CATALOG_NAME="${IMAGE_REPO}/ibm-licensing-catalog"
 TIMESTAMP=$(date +%s)
