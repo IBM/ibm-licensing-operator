@@ -52,7 +52,8 @@ jobs:
       env:
         JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
       run: |
-        echo $AWS_OCP_KUBECONFIG > ./kubeconfig
+        echo "${$AWS_OCP_KUBECONFIG}" > ./kubeconfig
+        ls -lrt
         export KUBECONFIG=`pwd`/kubeconfig
         echo $RANDOM > ./random.txt
         export SUFIX=`cat ./random.txt`
