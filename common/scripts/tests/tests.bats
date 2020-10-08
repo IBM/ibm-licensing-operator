@@ -161,35 +161,31 @@ EOF
   retries_start=10
   retries=$retries_start
   retries_wait=3
-  kubectl get pods -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance | grep 1/1
-  until [[ $retries == 0 || $? == "0" ]]; do
-    kubectl get pods -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance | grep 1/1
+
+  until [[ $retries == 0 || $number_of_line == "1" ]]; do
+    number_of_line="$(kubectl get pods -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance | grep 1/1 | wc -l)"
     sleep $retries_wait
     retries=$((retries - 1))
   done
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   kubectl get pods -n ibm-common-services$SUFIX  >> k8s.txt
   kubectl describe pods -n ibm-common-services$SUFIX >> k8s.txt
-  kubectl get pods -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance | grep 1/1
-  [[ $? == "0" ]]
+  [[ $number_of_line == "1" ]]
 }
 
 @test "Check Services" {
   kubectl get services -n ibm-common-services$SUFIX >> k8s.txt
-  kubectl get services -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance$SUFIX >> k8s.txt
-  [[ $? == "0" ]]
+  number_of_line="$(kubectl get services -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance$SUFIX)"
+  [[ $number_of_line == "1" ]]
 }
 
 @test "Check Route" {
-  kubectl get deployment  --all-namespaces|grep openshift-ingress
-  export routeExists=$?
-  kubectl get route -n ibm-common-services$SUFIX  |grep ibm-licensing-service-instance
-  export routeCreated=$?
-  export status="failed"
-  if [[ $routeExists == "0" && routeCreated == "1" ]]; then
+  routeExists="$(kubectl get deployment --all-namespaces|grep openshift-ingress-operator| wc -l)"
+  routeCreated="$(kubectl get route -n ibm-common-services$SUFIX  |grep ibm-licensing-service-instance | wc -l)"
+  if [[ $routeExists == "1" && routeCreated == "1" ]]; then
     export status="ok"
   fi
-  if [[ $routeExists == "1" ]]; then
+  if [[ $routeExists == "0" ]]; then
     export status="ok"
   fi
   [[ $status == "ok" ]]
