@@ -181,7 +181,7 @@ EOF
 }
 
 @test "Check Route" {
-  kubectl get route
+  kubectl get deployment  --all-namespaces|grep openshift-ingress
   export routeExists=$?
   kubectl get route -n ibm-common-services  |grep ibm-licensing-service-instance
   export routeCreated=$?
