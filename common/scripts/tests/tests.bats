@@ -86,7 +86,7 @@ teardown() {
 }
 
 @test "List all POD in cluster" {
-  "$(kubectl get pods --all-namespaces >> k8s.txt)"
+  empty="$(kubectl get pods --all-namespaces >> k8s.txt)"
 
   results="$(kubectl get pods --all-namespaces | wc -l)"
   [ "$results" -gt 0 ]
@@ -101,7 +101,7 @@ teardown() {
     retries=$((retries - 1))
     sleep 3
   done
-  "$(kubectl get pods -n ibm-common-services$SUFIX >> k8s.txt)"
+  empty="$(kubectl get pods -n ibm-common-services$SUFIX >> k8s.txt)"
 
   [ $results -eq "0" ]
 }
@@ -168,13 +168,13 @@ EOF
     retries=$((retries - 1))
   done
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
-  "$(kubectl get pods -n ibm-common-services$SUFIX  >> k8s.txt)"
-  "$(kubectl describe pods -n ibm-common-services$SUFIX >> k8s.txt)"
+  empty="$(kubectl get pods -n ibm-common-services$SUFIX  >> k8s.txt)"
+  empty="$(kubectl describe pods -n ibm-common-services$SUFIX >> k8s.txt)"
   [[ $number_of_line == "1" ]]
 }
 
 @test "Check Services" {
-  "$(kubectl get services -n ibm-common-services$SUFIX >> k8s.txt)"
+  empty="$(kubectl get services -n ibm-common-services$SUFIX >> k8s.txt)"
   number_of_line="$(kubectl get services -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance$SUFIX | wc -l)"
   [[ $number_of_line == "1" ]]
 }
@@ -188,7 +188,7 @@ EOF
   if [[ $routeExists == "0" ]]; then
     export status="ok"
   fi
-  "$(kubectl get route -n ibm-common-services$SUFIX >> k8s.txt)"
+  empty="$(kubectl get route -n ibm-common-services$SUFIX >> k8s.txt)"
   [[ $status == "ok" ]]
 }
 
@@ -211,8 +211,8 @@ EOF
     retries=$((retries - 1))
     sleep $retries_wait
   done
-  "$(kubectl get pods -n ibm-common-services$SUFIX  >> k8s.txt)"
-  "$(kubectl describe pods -n ibm-common-services$SUFIX >> k8s.txt)"
+  empty="$(kubectl get pods -n ibm-common-services$SUFIX  >> k8s.txt)"
+  empty="$(kubectl describe pods -n ibm-common-services$SUFIX >> k8s.txt)"
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   [ $results -eq "0" ]
 }
