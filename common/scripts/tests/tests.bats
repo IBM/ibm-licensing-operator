@@ -175,7 +175,7 @@ EOF
 
 @test "Check Services" {
   empty="$(kubectl get services -n ibm-common-services$SUFIX >> k8s.txt)"
-  number_of_line="$(kubectl get services -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance$SUFIX | wc -l)"
+  number_of_line="$(kubectl get services -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance | wc -l)"
   [[ $number_of_line == "1" ]]
 }
 
@@ -188,7 +188,6 @@ EOF
   if [[ $routeExists == "0" ]]; then
     export status="ok"
   fi
-  empty="$(kubectl get route -n ibm-common-services$SUFIX >> k8s.txt)"
   [[ $status == "ok" ]]
 }
 
