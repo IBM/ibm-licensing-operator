@@ -16,7 +16,7 @@
 #
 
 setup_file() {
-  echo "start tests in namespace ibm-common-services$SUFIX" > k8s.txt
+  echo "start tests in namespace ibm-common-services$SUFIX for LS" > k8s.txt
 }
 
 
@@ -153,10 +153,46 @@ EOF
     sleep $retries_wait
     retries=$((retries - 1))
   done
-  kubectl get pods -n ibm-common-services$SUFIX  >> k8s.txt
-  kubectl describe pods -n ibm-common-services$SUFIX >> k8s.txt
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   [[ $new_ibmlicensing_phase == "Running" ]]
+}
+
+@test "Wait for Pod to starts all containers" {
+  retries_start=10
+  retries=$retries_start
+  retries_wait=3
+  kubectl get pods -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance | grep 1/1
+  until [[ $retries == 0 || $? == "0" ]]; do
+    kubectl get pods -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance | grep 1/1
+    sleep $retries_wait
+    retries=$((retries - 1))
+  done
+  echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
+  kubectl get pods -n ibm-common-services$SUFIX  >> k8s.txt
+  kubectl describe pods -n ibm-common-services$SUFIX >> k8s.txt
+  kubectl get pods -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance | grep 1/1
+  [[ $? == "0" ]]
+}
+
+@test "Check Services" {
+  kubectl get services -n ibm-common-services$SUFIX >> k8s.txt
+  kubectl get services -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance$SUFIX >> k8s.txt
+  [[ $? == "0" ]]
+}
+
+@test "Check Route" {
+  kubectl get route
+  export routeExists=$?
+  kubectl get route -n ibm-common-services  |grep ibm-licensing-service-instance
+  export routeCreated=$?
+  export status="failed"
+  if [[ $routeExists == "0" && routeCreated == "1" ]]; then
+    export status="ok"
+  fi
+  if [[ $routeExists == "1" ]]; then
+    export status="ok"
+  fi
+  [[ $status == "ok" ]]
 }
 
 @test "Remove CR from IBMLicensing" {
