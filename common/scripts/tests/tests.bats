@@ -183,7 +183,7 @@ EOF
 @test "Check Route" {
   kubectl get deployment  --all-namespaces|grep openshift-ingress
   export routeExists=$?
-  kubectl get route -n ibm-common-services  |grep ibm-licensing-service-instance
+  kubectl get route -n ibm-common-services$SUFIX  |grep ibm-licensing-service-instance
   export routeCreated=$?
   export status="failed"
   if [[ $routeExists == "0" && routeCreated == "1" ]]; then
