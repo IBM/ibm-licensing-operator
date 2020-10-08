@@ -24,8 +24,7 @@ on:
 
 # Environment variables available to all jobs and steps in this workflow
 env:
-  IBM_CLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
-
+  AWS_OCP_KUBECONFIG: ${{ secrets.AWS_OCP_KUBECONFIG }}
 jobs:
   setup-build-publish-deploy:
     name: Operator tests on OCP
@@ -43,21 +42,8 @@ jobs:
       with:
         bats-version: 1.1.0
 
-    # Download and Install IBM Cloud CLI
-    - name: Install IBM Cloud CLI
+    - name: Authenticate with AWS
       run: |
-        curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
-        ibmcloud --version
-        ibmcloud config --check-version=false
-        ibmcloud plugin install -f kubernetes-service
-        ibmcloud plugin install -f container-registry
-
-    # Authenticate with IBM Cloud CLI
-    - name: Authenticate with IBM Cloud CLI
-      run: |
-        ibmcloud login --apikey "${IBM_CLOUD_API_KEY}" -r eu-de -g SREREFARCH
-        ibmcloud cr region-set eu-de
-        ibmcloud cr login
 
     - name: Checkout
       uses: actions/checkout@v2
@@ -66,6 +52,8 @@ jobs:
       env:
         JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
       run: |
+        echo $AWS_OCP_KUBECONFIG > ./kubeconfig
+        export KUBECONFIG=`pwd`/kubeconfig
         echo $RANDOM > ./random.txt
         export SUFIX=`cat ./random.txt`
         echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
@@ -74,12 +62,12 @@ jobs:
         chmod +x ./operator-sdk
         export MUTEX_ON=true
         export MUTEX_OFF=false
-        ./common/scripts/tests/connect_ocp.sh
         ./common/scripts/tests/clear_ocp.sh
 
 
     - name: Test Operator
       run: |
+        export KUBECONFIG=`pwd`/kubeconfig
         export PATH=`pwd`:$PATH
         export SUFIX=`cat ./random.txt`
         bats ./common/scripts/tests/tests.bats > ./test_logs.txt 2>&1
@@ -91,6 +79,7 @@ jobs:
         export MUTEX_ON=false
         export MUTEX_OFF=true
         export SUFIX=`cat ./random.txt`
+        export KUBECONFIG=`pwd`/kubeconfig
         ./common/scripts/tests/clear_ocp.sh
 
     - name: Archive logs
