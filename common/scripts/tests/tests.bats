@@ -182,7 +182,7 @@ EOF
 @test "Check Route" {
   routeExists="$(kubectl get deployment --all-namespaces|grep openshift-ingress-operator| wc -l)"
   routeCreated="$(kubectl get route -n ibm-common-services$SUFIX  |grep ibm-licensing-service-instance | wc -l)"
-  if [[ $routeExists == "1" && routeCreated == "1" ]]; then
+  if [[ $routeExists == "1" && $routeCreated == "1" ]]; then
     export status="ok"
   fi
   if [[ $routeExists == "0" ]]; then
