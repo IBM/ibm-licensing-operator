@@ -68,13 +68,12 @@ teardown() {
   kubectl apply -f ./deploy/role_binding_ns.yaml
   [ "$?" -eq 0 ]
 
-  kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
+  kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
   [ "$?" -eq 0 ]
-
 }
 
 @test "Run Operator in backgroud" {
-  operator-sdk run --watch-namespace ibm-common-services$SUFIX --local > operator-sdk-ls_logs.txt 2>&1 &
+  operator-sdk run --watch-namespace ibm-common-services$SUFIX --local > operator-sdk-lsr_logs.txt 2>&1 &
 
   export OPERATOR_PID=$!
   [ "$OPERATOR_PID" -gt 0 ]
@@ -115,38 +114,45 @@ teardown() {
 
 @test "Load CR for LS" {
 cat <<EOF | kubectl apply -f -
-  apiVersion: operator.ibm.com/v1alpha1
-  kind: IBMLicensing
-  metadata:
-    name: instance$SUFIX
-  spec:
-    apiSecretToken: ibm-licensing-token
-    datasource: datacollector
-    httpsEnable: true
-    imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
-    imagePullSecrets:
-      - my-registry-token
-    instanceNamespace: ibm-common-services$SUFIX
+    apiVersion: operator.ibm.com/v1alpha1
+    kind: IBMLicenseServiceReporter
+    metadata:
+      name: instance$SUFIX
+      namespace: ibm-common-services$SUFIX
+      labels:
+        app.kubernetes.io/instance: ibm-licensing-operator
+        app.kubernetes.io/managed-by: ibm-licensing-operator
+        app.kubernetes.io/name: ibm-licensing
+    spec:
+      version: 1.2.3
+      imagePullSecrets:
+        - my-registry-token
+      databaseContainer:
+        imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
+      reporterUIContainer:
+        imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
+      receiverContainer:
+        imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
 EOF
   [ "$?" -eq "0" ]
 
-  kubectl get IBMLicensing >> k8s.txt
+  kubectl get IBMLicenseServiceReporter >> k8s.txt
   [ "$?" -eq "0" ]
 
-  kubectl describe IBMLicensing instance$SUFIX >> k8s.txt
+  kubectl describe IBMLicenseServiceReporter instance$SUFIX >> k8s.txt
   [ "$?" -eq "0" ]
 }
 
 @test "Wait for instance to be running" {
-  echo "Checking IBMLicensing instance$SUFIX status" >&3
-  retries_start=80
+  echo "Checking IBMLicenseServiceReporter instance$SUFIX status" >&3
+  retries_start=160
   retries=$retries_start
   retries_wait=3
   until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" || "$ibmlicensing_phase" == "Failed" ]]; do
-    new_ibmlicensing_phase=$(kubectl get IBMLicensing instance$SUFIX -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicensing pod to appear")
+    new_ibmlicensing_phase=$(kubectl get IBMLicenseServiceReporter instance$SUFIX -n -n ibm-common-services$SUFIX -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicenseServiceReporter pod to appear")
     if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
       ibmlicensing_phase=$new_ibmlicensing_phase
-      echo "IBMLicensing Pod phase: $ibmlicensing_phase" >&3
+      echo "IBMLicenseServiceReporter Pod phase: $ibmlicensing_phase" >&3
     fi
     sleep $retries_wait
     retries=$((retries - 1))
@@ -161,7 +167,7 @@ EOF
   retries_wait=3
 
   until [[ $retries == 0 || $number_of_line == "1" ]]; do
-    number_of_line="$(kubectl get pods -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance | grep 1/1 | wc -l)"
+    number_of_line="$(kubectl get pods -n ibm-common-services$SUFIX |grep ibm-license-service-reporter-instance | grep 3/3 | wc -l)"
     sleep $retries_wait
     retries=$((retries - 1))
   done
@@ -173,42 +179,33 @@ EOF
 
 @test "Check Services" {
   kubectl get services -n ibm-common-services$SUFIX &>> k8s.txt || true
-  number_of_line="$(kubectl get services -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance | wc -l)"
+  number_of_line="$(kubectl get services -n ibm-common-services$SUFIX |grep ibm-license-service-reporter | wc -l)"
   [[ $number_of_line == "1" ]]
 }
 
-@test "Check Route" {
-  routeExists="$(kubectl get deployment --all-namespaces|grep openshift-ingress-operator| wc -l)"
-  routeCreated="$(kubectl get route -n ibm-common-services$SUFIX  |grep ibm-licensing-service-instance | wc -l)"
-  if [[ $routeExists == "1" && $routeCreated == "1" ]]; then
-    export status="ok"
-  fi
-  if [[ $routeExists == "0" ]]; then
-    export status="ok"
-  fi
-  if [[ $routeExists == "1" ]]; then
-    kubectl get route -n ibm-common-services$SUFIX &>> k8s.txt || true
-  fi
 
-  [[ $status == "ok" ]]
+@test "Check Route" {
+  routeCreated="$(kubectl get route -n ibm-common-services$SUFIX  |grep ibm-licensing-service-instance | wc -l)"
+  kubectl get route -n ibm-common-services$SUFIX &>> k8s.txt || true
+  [[ $routeCreated == "1" ]]
 }
 
-@test "Remove CR from IBMLicensing" {
-  kubectl delete IBMLicensing instance$SUFIX
+@test "Remove CR from IBMLicenseServiceReporter" {
+  kubectl delete IBMLicenseServiceReporter instance$SUFIX -n ibm-common-services$SUFIX
   [ $? -eq 0 ]
 
-  kubectl get IBMLicensing >> k8s.txt
+  kubectl get IBMLicenseServiceReporter >> k8s.txt
   [ "$?" -eq "0" ]
 }
 
 @test "Wait for pods to be deleted" {
-  echo "Checking if License Service pod is deleted" >&3
+  echo "Checking if License Service Reporter pod is deleted" >&3
   retries_start=80
   retries=$retries_start
   retries_wait=3
-  results="$(kubectl get pods -n ibm-common-services$SUFIX | grep ibm-licensing-service-instance | wc -l)"
+  results="$(kubectl get pods -n ibm-common-services$SUFIX | grep ibm-license-service-reporter-instance | wc -l)"
   until [[ $retries == 0 || $results -eq "0" ]]; do
-    results="$(kubectl get pods -n ibm-common-services$SUFIX | grep ibm-licensing-service-instance | wc -l)"
+    results="$(kubectl get pods -n ibm-common-services$SUFIX | grep ibm-license-service-reporter-instance | wc -l)"
     retries=$((retries - 1))
     sleep $retries_wait
   done
