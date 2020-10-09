@@ -16,24 +16,24 @@
 #
 
 setup_file() {
-  echo "start tests in namespace ibm-common-services$SUFIX for LS" > k8s.txt
+  echo "start tests in namespace ibm-common-services$SUFIX for LS" > k8s_reporter.txt
 }
 
 
 setup() {
-  echo "  " >> k8s.txt
-  echo "-----------------------------------------" >> k8s.txt
-  echo "Start $BATS_TEST_NAME" >> k8s.txt
-  echo "-----------------------------------------" >> k8s.txt
-  echo "  " >> k8s.txt
+  echo "  " >> k8s_reporter.txt
+  echo "-----------------------------------------" >> k8s_reporter.txt
+  echo "Start $BATS_TEST_NAME" >> k8s_reporter.txt
+  echo "-----------------------------------------" >> k8s_reporter.txt
+  echo "  " >> k8s_reporter.txt
 }
 
 teardown() {
-  echo "  " >> k8s.txt
-  echo "-----------------------------------------" >> k8s.txt
-  echo "End $BATS_TEST_NAME" >> k8s.txt
-  echo "-----------------------------------------" >> k8s.txt
-  echo "  " >> k8s.txt
+  echo "  " >> k8s_reporter.txt
+  echo "-----------------------------------------" >> k8s_reporter.txt
+  echo "End $BATS_TEST_NAME" >> k8s_reporter.txt
+  echo "-----------------------------------------" >> k8s_reporter.txt
+  echo "  " >> k8s_reporter.txt
 }
 
 @test "Create namespace ibm-common-services$SUFIX" {
@@ -43,7 +43,7 @@ teardown() {
   kubectl create namespace ibm-common-services$SUFIX
   [ "$?" -eq 0 ]
 
-  kubectl get namespaces >> k8s.txt
+  kubectl get namespaces >> k8s_reporter.txt
   [ "$?" -eq 0 ]
 }
 
@@ -86,7 +86,7 @@ teardown() {
 }
 
 @test "List all POD in cluster" {
-  kubectl get pods --all-namespaces &>> k8s.txt || true
+  kubectl get pods --all-namespaces &>> k8s_reporter.txt || true
 
   results="$(kubectl get pods --all-namespaces | wc -l)"
   [ "$results" -gt 0 ]
@@ -101,7 +101,7 @@ teardown() {
     retries=$((retries - 1))
     sleep 3
   done
-  kubectl get pods -n ibm-common-services$SUFIX &>> k8s.txt ||true
+  kubectl get pods -n ibm-common-services$SUFIX &>> k8s_reporter.txt ||true
 
   [ $results -eq "0" ]
 }
@@ -110,7 +110,7 @@ teardown() {
    kubectl create secret generic my-registry-token -n ibm-common-services$SUFIX --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson
    [ $? -eq "0" ]
 
-   kubectl get secrets -n ibm-common-services$SUFIX >> k8s.txt
+   kubectl get secrets -n ibm-common-services$SUFIX >> k8s_reporter.txt
    [ $? -eq "0" ]
 }
 
@@ -139,31 +139,32 @@ cat <<EOF | kubectl apply -f -
 EOF
   [ "$?" -eq "0" ]
 
-  kubectl get IBMLicenseServiceReporter -n ibm-common-services$SUFIX >> k8s.txt
+  kubectl get IBMLicenseServiceReporter -n ibm-common-services$SUFIX >> k8s_reporter.txt
   [ "$?" -eq "0" ]
 
-  kubectl describe IBMLicenseServiceReporter -n ibm-common-services$SUFIX instance$SUFIX >> k8s.txt
+  kubectl describe IBMLicenseServiceReporter -n ibm-common-services$SUFIX instance$SUFIX >> k8s_reporter.txt
   [ "$?" -eq "0" ]
 }
 
-#//@test "Wait for instance to be running" {
-#//  echo "Checking IBMLicenseServiceReporter instance$SUFIX status" >&3
-#//  retries_start=160
-#//  retries=$retries_start
-#//  retries_wait=3
-#//  until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" || "$ibmlicensing_phase" == "Failed" ]]; do
-#//    new_ibmlicensing_phase=$(kubectl get IBMLicenseServiceReporter instance$SUFIX -n ibm-common-services$SUFIX -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicenseServiceReporter pod to appear")
-#//    if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
-#//      ibmlicensing_phase=$new_ibmlicensing_phase
-#//      echo "IBMLicenseServiceReporter Pod phase: $ibmlicensing_phase" >&3
-#//    fi
-#//    sleep $retries_wait
-#//    retries=$((retries - 1))
-#//  done
-#//  echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
-#//  [[ $new_ibmlicensing_phase == "Running" ]]
-#//}
-#
+@test "Wait for instance to be running" {
+  echo "Checking IBMLicenseServiceReporter instance$SUFIX status" >&3
+  retries_start=80
+  retries=$retries_start
+  retries_wait=3
+  sleep 10
+#  until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" || "$ibmlicensing_phase" == "Failed" ]]; do
+#    new_ibmlicensing_phase=$(kubectl get IBMLicenseServiceReporter instance$SUFIX -n ibm-common-services$SUFIX -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicenseServiceReporter pod to appear")
+#    if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
+#      ibmlicensing_phase=$new_ibmlicensing_phase
+#      echo "IBMLicenseServiceReporter Pod phase: $ibmlicensing_phase" >&3
+#    fi
+#    sleep $retries_wait
+#    retries=$((retries - 1))
+#  done
+#  echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
+#  [[ $new_ibmlicensing_phase == "Running" ]]
+}
+
 #//@test "Wait for Pod to starts all containers" {
 #//  retries_start=100
 #//  retries=$retries_start
@@ -175,13 +176,13 @@ EOF
 #//    retries=$((retries - 1))
 #//  done
 #//  echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
-#//  kubectl get pods -n ibm-common-services$SUFIX  &>> k8s.txt || true
-#//  kubectl describe pods -n ibm-common-services$SUFIX &>> k8s.txt || true
+#//  kubectl get pods -n ibm-common-services$SUFIX  &>> k8s_reporter.txt || true
+#//  kubectl describe pods -n ibm-common-services$SUFIX &>> k8s_reporter.txt || true
 #//  [[ $number_of_line == "1" ]]
 #//}
 
 @test "Check Services" {
-  kubectl get services -n ibm-common-services$SUFIX &>> k8s.txt || true
+  kubectl get services -n ibm-common-services$SUFIX &>> k8s_reporter.txt || true
   number_of_line="$(kubectl get services -n ibm-common-services$SUFIX |grep ibm-license-service-reporter | wc -l)"
   [[ $number_of_line == "1" ]]
 }
@@ -189,7 +190,7 @@ EOF
 
 @test "Check Route" {
   routeCreated="$(kubectl get route -n ibm-common-services$SUFIX  |grep ibm-licensing-service-instance | wc -l)"
-  kubectl get route -n ibm-common-services$SUFIX &>> k8s.txt || true
+  kubectl get route -n ibm-common-services$SUFIX &>> k8s_reporter.txt || true
   [[ $routeCreated == "1" ]]
 }
 
@@ -197,7 +198,7 @@ EOF
   kubectl delete IBMLicenseServiceReporter instance$SUFIX -n ibm-common-services$SUFIX
   [ $? -eq 0 ]
 
-  kubectl get IBMLicenseServiceReporter >> k8s.txt
+  kubectl get IBMLicenseServiceReporter >> k8s_reporter.txt
   [ "$?" -eq "0" ]
 }
 
@@ -212,8 +213,8 @@ EOF
     retries=$((retries - 1))
     sleep $retries_wait
   done
-  kubectl get pods -n ibm-common-services$SUFIX &>> k8s.txt || true
-  kubectl describe pods -n ibm-common-services$SUFIX &>> k8s.txt || true
+  kubectl get pods -n ibm-common-services$SUFIX &>> k8s_reporter.txt || true
+  kubectl describe pods -n ibm-common-services$SUFIX &>> k8s_reporter.txt || true
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   [ $results -eq "0" ]
 }
