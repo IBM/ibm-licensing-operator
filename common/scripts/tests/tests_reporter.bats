@@ -151,7 +151,6 @@ EOF
   retries_start=80
   retries=$retries_start
   retries_wait=3
-  sleep 120
 #  until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" || "$ibmlicensing_phase" == "Failed" ]]; do
 #    new_ibmlicensing_phase=$(kubectl get IBMLicenseServiceReporter instance$SUFIX -n ibm-common-services$SUFIX -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicenseServiceReporter pod to appear")
 #    if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
@@ -165,21 +164,21 @@ EOF
 #  [[ $new_ibmlicensing_phase == "Running" ]]
 }
 
-#//@test "Wait for Pod to starts all containers" {
-#//  retries_start=100
-#//  retries=$retries_start
-#//  retries_wait=3
-#//
-#//  until [[ $retries == 0 || $number_of_line == "1" ]]; do
-#//    number_of_line="$(kubectl get pods -n ibm-common-services$SUFIX |grep ibm-license-service-reporter-instance | grep 3/3 | wc -l)"
-#//    sleep $retries_wait
-#//    retries=$((retries - 1))
-#//  done
-#//  echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
-#//  kubectl get pods -n ibm-common-services$SUFIX  &>> k8s_reporter.txt || true
-#//  kubectl describe pods -n ibm-common-services$SUFIX &>> k8s_reporter.txt || true
-#//  [[ $number_of_line == "1" ]]
-#//}
+@test "Wait for Pod to starts all containers" {
+  retries_start=40
+  retries=$retries_start
+  retries_wait=3
+
+  until [[ $retries == 0 || $number_of_line == "1" ]]; do
+    number_of_line="$(kubectl get pods -n ibm-common-services$SUFIX |grep ibm-license-service-reporter-instance | wc -l)"
+    sleep $retries_wait
+    retries=$((retries - 1))
+  done
+  echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
+  kubectl get pods -n ibm-common-services$SUFIX  &>> k8s_reporter.txt || true
+  kubectl describe pods -n ibm-common-services$SUFIX &>> k8s_reporter.txt || true
+  [[ $number_of_line == "1" ]]
+}
 
 @test "Check Services" {
   kubectl get services -n ibm-common-services$SUFIX &>> k8s_reporter.txt || true
@@ -189,7 +188,7 @@ EOF
 
 
 @test "Check Route" {
-  routeCreated="$(kubectl get route -n ibm-common-services$SUFIX  |grep ibm-licensing-service-instance | wc -l)"
+  routeCreated="$(kubectl get route -n ibm-common-services$SUFIX  |grep ibm-license-service-reporter | wc -l)"
   kubectl get route -n ibm-common-services$SUFIX &>> k8s_reporter.txt || true
   [[ $routeCreated == "1" ]]
 }
