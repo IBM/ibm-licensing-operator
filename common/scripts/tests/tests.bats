@@ -86,7 +86,7 @@ teardown() {
 }
 
 @test "List all POD in cluster" {
-  empty="$(kubectl get pods --all-namespaces >> k8s.txt)"
+  kubectl get pods --all-namespaces &>> k8s.txt || true
 
   results="$(kubectl get pods --all-namespaces | wc -l)"
   [ "$results" -gt 0 ]
@@ -101,7 +101,7 @@ teardown() {
     retries=$((retries - 1))
     sleep 3
   done
-  empty="$(kubectl get pods -n ibm-common-services$SUFIX >> k8s.txt)"
+  kubectl get pods -n ibm-common-services$SUFIX &>> k8s.txt ||true
 
   [ $results -eq "0" ]
 }
@@ -168,13 +168,13 @@ EOF
     retries=$((retries - 1))
   done
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
-  empty="$(kubectl get pods -n ibm-common-services$SUFIX  >> k8s.txt)"
-  empty="$(kubectl describe pods -n ibm-common-services$SUFIX >> k8s.txt)"
+  kubectl get pods -n ibm-common-services$SUFIX  &>> k8s.txt || true
+  kubectl describe pods -n ibm-common-services$SUFIX &>> k8s.txt || true
   [[ $number_of_line == "1" ]]
 }
 
 @test "Check Services" {
-  empty="$(kubectl get services -n ibm-common-services$SUFIX >> k8s.txt)"
+  kubectl get services -n ibm-common-services$SUFIX &>> k8s.txt || true
   number_of_line="$(kubectl get services -n ibm-common-services$SUFIX |grep ibm-licensing-service-instance | wc -l)"
   [[ $number_of_line == "1" ]]
 }
@@ -210,8 +210,8 @@ EOF
     retries=$((retries - 1))
     sleep $retries_wait
   done
-  empty="$(kubectl get pods -n ibm-common-services$SUFIX  >> k8s.txt)"
-  empty="$(kubectl describe pods -n ibm-common-services$SUFIX >> k8s.txt)"
+  kubectl get pods -n ibm-common-services$SUFIX &>> k8s.txt || true
+  kubectl describe pods -n ibm-common-services$SUFIX &>> k8s.txt || true
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   [ $results -eq "0" ]
 }
