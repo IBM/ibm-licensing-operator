@@ -225,8 +225,11 @@ EOF
   [ $results -eq "0" ]
 }
 
-@test "Delete namespace" {
+@test "Delete namespace and CRD" {
   kubectl delete namespace ibm-common-services$SUFIX
+  kubectl delete crd ibmlicensings.operator.ibm.com
+  kubectl delete crd ibmlicenseservicereporters.operator.ibm.com
+
   [ $? -eq "0" ]
 }
 
