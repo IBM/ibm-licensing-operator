@@ -53,6 +53,12 @@ teardown() {
 }
 
 @test "Apply CRD and RBAC" {
+  kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
+  [ "$?" -eq 0 ]
+
+  kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
+  [ "$?" -eq 0 ]
+
   kubectl apply -f ./deploy/service_account.yaml -n ibm-common-services$SUFIX
   [ "$?" -eq 0 ]
 
@@ -67,10 +73,6 @@ teardown() {
 
   kubectl apply -f ./deploy/role_binding_ns.yaml
   [ "$?" -eq 0 ]
-
-  kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
-  [ "$?" -eq 0 ]
-
 }
 
 @test "Run Operator in backgroud" {
