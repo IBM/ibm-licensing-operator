@@ -400,23 +400,26 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileResourceExistence(
 
 	// foundRes already initialized before and passed via parameter
 	err = r.client.Get(context.TODO(), namespacedName, foundRes)
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
-			"Namespace", expectedRes.GetNamespace())
-		err = r.client.Create(context.TODO(), expectedRes)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
+	if err != nil {
+		if errors.IsNotFound(err) {
+			reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
 				"Namespace", expectedRes.GetNamespace())
-			return reconcile.Result{}, err
+			err = r.client.Create(context.TODO(), expectedRes)
+			if err != nil {
+				if !errors.IsAlreadyExists(err) {
+					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
+						"Namespace", expectedRes.GetNamespace())
+					return reconcile.Result{}, err
+				}
+			}
+			// Created successfully, or already exists - return and requeue
+			time.Sleep(time.Second * 5)
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second}, nil
 		}
-		// Created successfully - return and requeue
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
-	} else if err != nil {
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())
 		return reconcile.Result{}, err
-	} else {
-		reqLogger.Info(resType.String() + " is correct!")
 	}
+	reqLogger.Info(resType.String() + " is correct!")
 	return reconcile.Result{}, nil
 }
