@@ -151,7 +151,7 @@ EOF
   retries_start=80
   retries=$retries_start
   retries_wait=3
-  sleep 10
+  sleep 120
 #  until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" || "$ibmlicensing_phase" == "Failed" ]]; do
 #    new_ibmlicensing_phase=$(kubectl get IBMLicenseServiceReporter instance$SUFIX -n ibm-common-services$SUFIX -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicenseServiceReporter pod to appear")
 #    if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
