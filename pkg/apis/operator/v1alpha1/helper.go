@@ -45,6 +45,10 @@ const defaultReporterUIImageTagPostfix = "sha256:996b9acd06d8d8399d646cfe396ebd2
 const defaultDatabaseImageName = "ibm-postgresql"
 const defaultDatabaseImageTagPostfix = "sha256:397eca770b9526bbedfc1a30cbc1f60f2aefdc3366ae917688bbfa190d861440"
 
+const localReporterURL = "https://ibm-license-service-reporter:8080"
+const defaultLicensingTokenSecretName = "ibm-licensing-token"
+const defaultReporterTokenSecretName = "ibm-licensing-reporter-token"
+
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
 var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
@@ -104,6 +108,14 @@ func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
 }
 
+func (spec *IBMLicensingSpec) GetLocalReporterURL() string {
+	return localReporterURL
+}
+
+func (spec *IBMLicensingSpec) GetDefaultReporterTokenName() string {
+	return defaultReporterTokenSecretName
+}
+
 func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
@@ -125,7 +137,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 		spec.IngressEnabled = &isNotOnOpenshiftCluster
 	}
 	if spec.APISecretToken == "" {
-		spec.APISecretToken = "ibm-licensing-token"
+		spec.APISecretToken = defaultLicensingTokenSecretName
 	}
 
 	spec.Container.initResourcesIfNil()
@@ -251,7 +263,7 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 	}
 
 	if spec.APISecretToken == "" {
-		spec.APISecretToken = "ibm-licensing-reporter-token"
+		spec.APISecretToken = defaultReporterTokenSecretName
 	}
 	if spec.HTTPSCertsSource == "" {
 		spec.HTTPSCertsSource = OcpCertsSource

@@ -68,13 +68,13 @@ type IBMLicensingSpec struct {
 
 type IBMLicensingSenderSpec struct {
 	// URL for License Service Reporter receiver that collects and aggregate multi cluster licensing data.
-	ReporterURL string `json:"reporterURL"`
+	ReporterURL string `json:"reporterURL,omitempty"`
 	// License Service Reporter authentication token, provided by secret that you need to create in instance namespace
-	ReporterSecretToken string `json:"reporterSecretToken"`
+	ReporterSecretToken string `json:"reporterSecretToken,omitempty"`
 	// What is the name of this reporting cluster in multi-cluster system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME at Operand level
-	ClusterName string `json:"clusterName,omitempty"`
+	ClusterName string `json:"clusterName,omitempty,omitempty"`
 	// Unique ID of reporting cluster
-	ClusterID string `json:"clusterID"`
+	ClusterID string `json:"clusterID,omitempty"`
 }
 
 type IBMLicensingSecurityContext struct {
