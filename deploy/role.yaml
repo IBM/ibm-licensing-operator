@@ -3,7 +3,6 @@ kind: Role
 metadata:
   creationTimestamp: null
   name: ibm-licensing-operator
-  namespace: ibm-common-services
   labels:
     app.kubernetes.io/instance: "ibm-licensing-operator"
     app.kubernetes.io/managed-by: "ibm-licensing-operator"
@@ -165,7 +164,6 @@ kind: Role
 metadata:
   creationTimestamp: null
   name: ibm-license-service
-  namespace: ibm-common-services
   labels:
     app.kubernetes.io/instance: "ibm-licensing-operator"
     app.kubernetes.io/managed-by: "ibm-licensing-operator"

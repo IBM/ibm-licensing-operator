@@ -62,16 +62,10 @@ teardown() {
   kubectl apply -f ./deploy/service_account.yaml -n ibm-common-services$SUFIX
   [ "$?" -eq 0 ]
 
-  sed "s/ibm-common-services/ibm-common-services$SUFIX/g" < ./deploy/role.yaml > ./deploy/role_ns.yaml
+  kubectl apply -f ./deploy/role_ns.yaml  -n ibm-common-services$SUFIX
   [ "$?" -eq 0 ]
 
-  kubectl apply -f ./deploy/role_ns.yaml
-  [ "$?" -eq 0 ]
-
-  sed "s/ibm-common-services/ibm-common-services$SUFIX/g" < ./deploy/role_binding.yaml > ./deploy/role_binding_ns.yaml
-  [ "$?" -eq 0 ]
-
-  kubectl apply -f ./deploy/role_binding_ns.yaml
+  kubectl apply -f ./deploy/role_binding_ns.yaml  -n ibm-common-services$SUFIX
   [ "$?" -eq 0 ]
 }
 
