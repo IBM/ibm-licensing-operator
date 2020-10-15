@@ -45,7 +45,12 @@ jobs:
         ./kind create cluster --image kindest/node:v1.17.2
         ./kind get clusters
         kubectl config get-contexts
-        kubectl config set-context kind-kind 
+        kubectl config set-context kind-kind
+
+    - name: Install OLM
+      run: |
+        kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.13.0/crds.yaml -n olm
+        kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.13.0/olm.yaml -n olm
    
     - name: Deploy Operators YAML
       run: |
