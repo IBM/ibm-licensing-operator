@@ -109,7 +109,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 					},
 				},
 			}...)
-		} else if res.IsReporterInstalled == true {
+		} else {
 			environmentVariables = append(environmentVariables, []corev1.EnvVar{
 				{
 					Name: "HUB_TOKEN",
