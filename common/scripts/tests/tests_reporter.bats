@@ -67,6 +67,13 @@ teardown() {
 
   kubectl apply -f ./deploy/role_binding.yaml -n ibm-common-services$SUFIX
   [ "$?" -eq 0 ]
+
+  kubectl apply -f ./deploy/cluster_role.yaml
+  [ "$?" -eq 0 ]
+
+  kubectl apply -f ./deploy/cluster_role_binding.yaml
+  [ "$?" -eq 0 ]
+
 }
 
 @test "Run Operator in backgroud" {

@@ -491,8 +491,10 @@ kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
 kubectl apply -f deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
 # add RBAC:
 kubectl apply -f deploy/role.yaml
+kubectl apply -f deploy/cluster_role.yaml
 kubectl apply -f deploy/service_account.yaml
 kubectl apply -f deploy/role_binding.yaml
+kubectl apply -f deploy/cluster_role_binding.yaml
 ```
 
 g. Modify the `operator.yaml` image so that your private registry is used:

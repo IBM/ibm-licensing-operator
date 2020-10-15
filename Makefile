@@ -124,8 +124,10 @@ install: ## Install all resources (CR/CRD's, RBAC and operator)
 	- kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
 	@echo ....... Applying RBAC .......
 	- kubectl apply -f deploy/service_account.yaml -n ${NAMESPACE}
-	- kubectl apply -f deploy/role.yaml
-	- kubectl apply -f deploy/role_binding.yaml
+	- kubectl apply -f deploy/role.yaml -n ${NAMESPACE}
+	- kubectl apply -f deploy/cluster_role.yaml
+	- kubectl apply -f deploy/role_binding.yaml -n ${NAMESPACE}
+	- kubectl apply -f deploy/cluster_role_binding.yaml
 	@echo ....... Applying Operator .......
 	- kubectl apply -f deploy/operator.yaml -n ${NAMESPACE}
 	@echo ....... Creating the Instances .......
@@ -139,9 +141,11 @@ uninstall: ## Uninstall all that all performed in the $ make install, without na
 	@echo ....... Deleting CRDs .......
 	- kubectl delete -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml --ignore-not-found
 	@echo ....... Deleting RBAC .......
-	- kubectl delete -f deploy/role_binding.yaml --ignore-not-found
+	- kubectl delete -f deploy/role_binding.yaml -n ${NAMESPACE} --ignore-not-found
+	- kubectl delete -f deploy/cluster_role_binding.yaml --ignore-not-found
 	- kubectl delete -f deploy/service_account.yaml -n ${NAMESPACE} --ignore-not-found
-	- kubectl delete -f deploy/role.yaml --ignore-not-found
+	- kubectl delete -f deploy/role.yaml -n ${NAMESPACE} --ignore-not-found
+	- kubectl delete -f deploy/cluster_role.yaml --ignore-not-found
 
 ############################################################
 # work section
