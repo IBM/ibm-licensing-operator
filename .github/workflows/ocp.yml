@@ -17,6 +17,8 @@ name: ocp
 on:
   workflow_dispatch:
   pull_request:
+  schedule:
+    - cron: "0 0 * * *"    
   push:
     branches:
       - master
