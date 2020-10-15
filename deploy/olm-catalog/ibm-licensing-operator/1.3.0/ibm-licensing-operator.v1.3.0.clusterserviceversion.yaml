@@ -130,6 +130,24 @@ spec:
       - kind: RoleBinding
         name: ''
         version: v1
+      - kind: ReplicaSets
+        name: ''
+        version: v1
+      - kind: Ingresses
+        name: ''
+        version: v1beta1
+      - kind: status
+        name: ''
+        version: v1alpha1
+      - kind: configmaps
+        name: ''
+        version: v1  
+      - kind: ibmlicensings
+        name: ''
+        version: v1alpha1  
+      - kind: ibmlicenseservicereporters
+        name: ''
+        version: v1alpha1          
       specDescriptors:
         - description: Should aplication have https enabled
           displayName: HTTPS Enable
@@ -154,10 +172,55 @@ spec:
           path: instanceNamespace
           x-descriptors:
             - urn:alm:descriptor:com.tectonic.ui:text
+        - description: image Registry
+          displayName: imageRegistry
+          path: imageRegistry
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:text
+        - description: Version
+          displayName: Version auto update
+          path: version
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:text
+        - description: HTTPS CertsSource
+          displayName: HTTPS Certs Source
+          path: httpsCertsSource
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:text
+        - description: Image Name
+          displayName: Image Name
+          path: imageName
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:text
+        - description: Image Pull Policy
+          displayName: Image Pull Policy
+          path: imagePullPolicy
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:text
+        - description: Image Tag Postfix
+          displayName: Image Tag Postfix
+          path: imageTagPostfix
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:text
+        - description: Ingress Enabled
+          displayName: Ingress Enabled
+          path: ingressEnabled
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:text  
+        - description: Route Enabled
+          displayName: Route Enabled
+          path: routeEnabled
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:text
+        - description: Resources
+          displayName: Resources
+          path: resources
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:text
       statusDescriptors:
         - description: The status of IBM Licensing Pods.
           displayName: IBM Licensing Status
-          path: pods
+          path: licensingPods
           x-descriptors:
             - urn:alm:descriptor:com.tectonic.ui:podStatuses
     - description: IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters API
