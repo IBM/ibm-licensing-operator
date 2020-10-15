@@ -63,11 +63,9 @@ jobs:
     - name: Run Scorecard tests
       run: |
         cp ./common/scripts/tests/.osdk-scorecard.yaml ./.osdk-scorecard.yaml
-        mkdir ./deploy/olm-catalog/ibm-licensing-operator/manifests
         export VERSION=1.3.0
-        cp ./deploy/olm-catalog/ibm-licensing-operator/$VERSION/* ./deploy/olm-catalog/ibm-licensing-operator/manifests/ 
         set -o pipefail
-        ./operator-sdk scorecard namespace ibm-common-services --config ./.osdk-scorecard.yaml -b ./deploy/olm-catalog/ibm-licensing-operator/manifests/  --verbose 2>&1 | tee ./scorecard_logs.txt
+        ./operator-sdk scorecard namespace ibm-common-services --config ./.osdk-scorecard.yaml -b ./deploy/olm-catalog/ibm-licensing-operator/$VERSION/  --verbose 2>&1 | tee ./scorecard_logs.txt
 
     - name: Archive scorecard logs
       uses: actions/upload-artifact@v2
