@@ -98,6 +98,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		// Watch for changes to openshift resources if on OC
 		err = res.WatchForResources(log, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
 			&routev1.Route{},
+			&operatorv1alpha1.IBMLicenseServiceReporter{},
 		})
 		if err != nil {
 			return err

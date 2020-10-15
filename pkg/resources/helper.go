@@ -44,6 +44,8 @@ var FalseVar = false
 var DefaultSecretMode int32 = 420
 var Seconds60 int64 = 60
 
+var IsReporterInstalled = false
+
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"
 const LicensingProductID = "068a62892a1e4db39641342e592daa25"
