@@ -47,6 +47,8 @@ const defaultDatabaseImageTagPostfix = "sha256:397eca770b9526bbedfc1a30cbc1f60f2
 
 const localReporterURL = "https://ibm-license-service-reporter:8080"
 const defaultLicensingTokenSecretName = "ibm-licensing-token"
+
+// #nosec
 const defaultReporterTokenSecretName = "ibm-licensing-reporter-token"
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)

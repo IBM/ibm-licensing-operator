@@ -17,7 +17,7 @@
 package ibmlicenseservicereporter
 
 import (
-    "testing"
+	"testing"
 )
 
 func TestCheckReconcileLicenseReporter(t *testing.T) {
