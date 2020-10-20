@@ -25,7 +25,7 @@ The script installs License Service, creates an instance and validates the insta
 **Results:** 
 Installation is complete and **License Service** is running in your cluster. To check if License Service components are properly installed, and perform extra configuration, see [Configuration](Configuration.md).
 
-**Related links**
+<b>Related links</b>
 
 - [Go back to home page](../License_Service_main.md#documentation)
 - [Configuration](Configuration.md)

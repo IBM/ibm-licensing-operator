@@ -230,6 +230,6 @@ spec:
 ```
 *where m stands for Millicores, and Mi for Mebibytes
 
-**Related links**
+<b>Related links</b>
 
 - [Go back to home page](../License_Service_main.md#documentation)

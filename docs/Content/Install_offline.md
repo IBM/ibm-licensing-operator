@@ -155,8 +155,9 @@ spec:
 **Results:** 
 Installation is complete and **License Service** is running in your cluster.
 
-**Related links**
+<b>Related links</b>
 
 - [Go back to home page](../License_Service_main.md#documentation)
 - [Configuration](Configuration.md)
 - [Retrieving license usage data from the cluster](Retrieving_data.md)
+- 

@@ -5,6 +5,7 @@
 * [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
 
 ## Prerequisites
+
 - A cluster with OCP version 4.2 or higher
 - Administrator permissions for the OCP cluster
 - Access to the OpenShift Console
@@ -52,7 +53,6 @@ c. Select **Create Project**.
 d. Enter **ibm-common-services** as a name and click **Create**.
 
 ![Create Project](/images/create-project-2.png)
-
 
 3\. **Install IBM Licensing Operator package in OperatorHub**
 
@@ -118,7 +118,7 @@ To see the logs, go to **OCP UI->Workloads->Pods** and search for **licensing** 
 **Results:** 
 Installation is complete and **License Service** is running in your cluster. To check if License Service components are properly installed, and perform extra configuration, see [Configuration](Configuration.md).
 
-**Related links**
+<b>Related links</b>
 
 - [Go back to home page](../License_Service_main.md#documentation)
 - [Configuration](Configuration.md)

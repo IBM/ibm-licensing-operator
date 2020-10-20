@@ -5,6 +5,7 @@
 * [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
 
 ## Prerequisites
+
 - Administrator permissions for the cluster
 - `kubectl` 1.11.3 or higher
 - Linux or iOS
@@ -218,11 +219,12 @@ spec:
   instanceNamespace: ibm-common-services
 EOF
 ```
-**Results:** 
-Installation is complete and **License Service** is running in your cluster. To check if License Service components are properly installed, and perform extra configuration, see [Configuration](Configuration.md).
 
-**Related links**
+**Results:** Installation is complete and **License Service** is running in your cluster. To check if License Service components are properly installed, and perform extra configuration, see [Configuration](Configuration.md).
+
+<b>Related links</b>
 
 - [Go back to home page](../License_Service_main.md#documentation)
 - [Configuration](Configuration.md)
 - [Retrieving license usage data from the cluster](Retrieving_data.md)
+- 

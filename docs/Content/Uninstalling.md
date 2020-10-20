@@ -104,5 +104,5 @@ operatorgroups.operators.coreos.com
 kubectl delete namespace ${GLOBAL_CATALOG_NAMESPACE}
 ```
 
-**Related links**
+<b>Related links</b>
 - [Go back to home page](../License_Service_main.md#documentation)

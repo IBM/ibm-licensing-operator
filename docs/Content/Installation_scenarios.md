@@ -11,6 +11,6 @@ Installing License Service
 - [Manual installation on Kubernetes from scratch with `kubectl`](Install_from_scratch.md)
 - [Offline installation](Install_offline.md)
 
-**Related links**
+<b>Related links</b>
 
 - [Go back to home page](../License_Service_main.md#documentation)

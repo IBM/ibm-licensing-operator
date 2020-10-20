@@ -30,6 +30,5 @@ You can use the non-automated procedure to create a cumulative report for your e
 
 If you have an IBM Cloud Pak deployed in your environment and you deployed License Service Reporter, you can configure a non-OpenShift cluster to deliver licensing data to License Service Reporter. For more information, see [Tracking license usage in multicluster environment with License Service Reporter](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/license_reporter.html).
 
-
-**Related links**
+<b>Related links</b>
 - [Go back to home page](../License_Service_main.md#documentation)

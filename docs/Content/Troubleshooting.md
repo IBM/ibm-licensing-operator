@@ -120,5 +120,5 @@ Complete the following steps to fix the problem:
 
 2. If the response contains information about the running pod, uninstall License Service from `kube-system` namespace.
 
-**Related links**
+<b>Related links</b>
 - [Go back to home page](../License_Service_main.md#documentation)

@@ -6,7 +6,7 @@
 
 ## Supported platforms
 
-**Linux x86_64**
+<b>Linux x86_64</b>
 
 License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_64.
    
@@ -20,7 +20,7 @@ It was tested on the following systems:
 - Amazon EKS - Managed Kubernetes Service (EKS)
 - Alibaba Cloud - Container Service for Kubernetes (ACK)
    
-**Linux on Power (ppc64le), Linux on IBM Z and LinuxONE**
+<b>Linux on Power (ppc64le), Linux on IBM Z and LinuxONE</b>
 
  License Service is supported on Linux on Power (ppc64le), Linux on IBM Z and LinuxONE in the following scenarios:
 
@@ -44,7 +44,7 @@ License Service consists of two main components that require resources: the oper
  
  **Note:** You can modify the limits and requests for the application deployment by editing the IBMLicensing instance. For more information, see [Configuration](Configuration.md).
 
-**Related links**
+<b>Related links</b>
 
 - [Go back to home page](../License_Service_main.md#documentation)
 - [Installing License Service](Installation_scenarios.md)
