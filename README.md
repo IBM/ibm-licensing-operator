@@ -45,9 +45,7 @@ License Service supports running with the OpenShift Container Platform 4.3 defau
 
 For more information about the OpenShift Container Platform Security Context Constraints, see [Managing Security Context Constraints](https://docs.openshift.com/container-platform/4.3/authentication/managing-security-context-constraints.html).
 
-<h1 id="ibm-licensing-operator-for-stand-alone-ibm-containerized-software">
-  ibm-licensing-operator for deploying License Service without an IBM Cloud Pak
-</h1>
+<h1 id="ibm-licensing-operator-for-stand-alone-ibm-containerized-software">ibm-licensing-operator for deploying License Service without an IBM Cloud Pak</h1>
 
 <b>Scenario: Learn how to deploy License Service on Kubernetes clusters witout an IBM CLoud Pak</b>
 
