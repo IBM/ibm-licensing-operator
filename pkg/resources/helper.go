@@ -19,6 +19,7 @@ package resources
 import (
 	"context"
 	"crypto/rand"
+	"fmt"
 	"math/big"
 	"reflect"
 	"time"
@@ -196,7 +197,7 @@ func UpdateCache(reqLogger *logr.Logger, client c.Client, silent bool) {
 		if !silent && metaErrors.IsNoMatchError(err) {
 			(*reqLogger).Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
 		}
-		(*reqLogger).Info("ERROR Route %s ", err.Error() )
+		(*reqLogger).Info(fmt.Sprintf("Error in route %s", err) )
 	}
 //apiVersion: operator.openshift.io/v1
 //kind: ServiceCA
@@ -210,7 +211,7 @@ func UpdateCache(reqLogger *logr.Logger, client c.Client, silent bool) {
 		if metaErrors.IsNoMatchError(err) {
 			(*reqLogger).Info("OCP Cert Manager CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
 		}
-		(*reqLogger).Info("ERROR OCP %s ", err.Error() )
+		(*reqLogger).Info(fmt.Sprintf("Error in OCP %s", err) )
 
 	}
 }
