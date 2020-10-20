@@ -88,7 +88,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 	res.UpdateCache(&reqLogger, mgr.GetClient(), false)
 
-	if res.IsRouteAPI() {
+	if res.IsRouteAPI {
 		// Watch for changes to openshift resources if on OC
 		err = res.WatchForResources(log, &operatorv1alpha1.IBMLicenseServiceReporter{}, c, []res.ResourceObject{
 			&routev1.Route{},

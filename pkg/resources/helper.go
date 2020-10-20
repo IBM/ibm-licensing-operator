@@ -17,7 +17,6 @@
 package resources
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"math/big"
@@ -52,6 +51,8 @@ var IsReporterInstalled = false
 var cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(20 * 365 * 24 * time.Hour))
 var isTrue = []byte("1")
 var isFalse = []byte("0")
+var IsRouteAPI = false
+var IsOCPCertManagerAPI = false
 
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"
@@ -61,8 +62,6 @@ const LicensingProductMetric = "FREE"
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
 const OcpCheckString = "ocp-check-secret"
-const isRouteEnabled = "isRouteAPI"
-const isOCPEnabled = "isAPICertManagerAPI"
 
 var randStringCharsetLength = big.NewInt(int64(len(randStringCharset)))
 
@@ -132,7 +131,7 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 }
 
 func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isHTTPS bool, certName string) map[string]string {
-	if IsOCPCertManagerAPI() && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
+	if IsOCPCertManagerAPI && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
 		return map[string]string{ocpCertSecretNameTag: certName}
 	}
 	return map[string]string{}
@@ -190,10 +189,9 @@ func UpdateCache(reqLogger *logr.Logger, client c.Client, silent bool) {
 	routeTestInstance := &routev1.Route{}
 	err := client.Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
 	if err == nil {
-		cache.Set(isRouteEnabled, isTrue)
+		IsRouteAPI = true
 	} else {
-		cache.Set(isRouteEnabled, isFalse)
-
+		IsRouteAPI = false
 		if !silent && metaErrors.IsNoMatchError(err) {
 			(*reqLogger).Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
 		}
@@ -202,28 +200,12 @@ func UpdateCache(reqLogger *logr.Logger, client c.Client, silent bool) {
 	routeTestInstance1 := &routev1.Route{}
 	err = client.Get(context.TODO(), types.NamespacedName{}, routeTestInstance1)
 	if err == nil {
-		cache.Set(isOCPEnabled, isTrue)
+		IsOCPCertManagerAPI = true
 	} else {
-		cache.Set(isOCPEnabled, isFalse)
+		IsOCPCertManagerAPI = false
 		if metaErrors.IsNoMatchError(err) {
 			(*reqLogger).Info("OCP Cert Manager CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
 		}
 
 	}
-}
-
-func IsRouteAPI() bool {
-	got, err := cache.Get(isRouteEnabled)
-	if err == nil && bytes.Compare(got, isTrue) == 0 {
-		return true
-	}
-	return false
-}
-
-func IsOCPCertManagerAPI() bool {
-	got, err := cache.Get(isOCPEnabled)
-	if err == nil && bytes.Compare(got, isTrue) == 0 {
-		return true
-	}
-	return false
 }

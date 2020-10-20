@@ -175,7 +175,7 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 		}
 		containers = append(containers, meteringSecretCheckContainer)
 	}
-	if res.IsOCPCertManagerAPI() && spec.HTTPSEnable && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
+	if res.IsOCPCertManagerAPI && spec.HTTPSEnable && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 		baseContainer := getLicensingContainerBase(spec)
 		ocpSecretCheckContainer := corev1.Container{}
 
