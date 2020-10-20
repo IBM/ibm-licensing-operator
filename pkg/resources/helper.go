@@ -214,7 +214,7 @@ func UpdateCache(reqLogger *logr.Logger, client c.Client, silent bool) {
 
 func IsRouteAPI() bool {
 	got, err := cache.Get(isRouteEnabled)
-	if err != nil && bytes.Compare(got, isTrue) == 0 {
+	if err == nil && bytes.Compare(got, isTrue) == 0 {
 		return true
 	}
 	return false
@@ -222,7 +222,7 @@ func IsRouteAPI() bool {
 
 func IsOCPCertManagerAPI() bool {
 	got, err := cache.Get(isOCPEnabled)
-	if err != nil && bytes.Compare(got, isTrue) == 0 {
+	if err == nil && bytes.Compare(got, isTrue) == 0 {
 		return true
 	}
 	return false
