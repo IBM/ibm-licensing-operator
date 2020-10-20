@@ -160,7 +160,6 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		r.reconcileUploadConfigMap,
 		r.reconcileService,
 		r.reconcileDeployment,
-		r.reconcileIngress,
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
@@ -173,6 +172,17 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	if res.IsRouteAPI() {
 		reconcileOpenShiftFunctions := []interface{}{
 			r.reconcileRoute,
+		}
+
+		for _, reconcileFunction := range reconcileOpenShiftFunctions {
+			recResult, err = reconcileFunction.(reconcileFunctionType)(instance)
+			if err != nil || recResult.Requeue {
+				return recResult, err
+			}
+		}
+	} else {
+		reconcileOpenShiftFunctions := []interface{}{
+			r.reconcileIngress,
 		}
 
 		for _, reconcileFunction := range reconcileOpenShiftFunctions {
