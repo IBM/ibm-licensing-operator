@@ -190,22 +190,27 @@ func UpdateCache(reqLogger *logr.Logger, client c.Client, silent bool) {
 	err := client.Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
 	if err == nil {
 		IsRouteAPI = true
+		(*reqLogger).Info("Route EXISTS")
 	} else {
 		IsRouteAPI = false
 		if !silent && metaErrors.IsNoMatchError(err) {
 			(*reqLogger).Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
 		}
+		(*reqLogger).Info("ERROR Route %s ", err.Error() )
 	}
-
+//apiVersion: operator.openshift.io/v1
+//kind: ServiceCA
 	routeTestInstance1 := &routev1.Route{}
 	err = client.Get(context.TODO(), types.NamespacedName{}, routeTestInstance1)
 	if err == nil {
 		IsOCPCertManagerAPI = true
+		(*reqLogger).Info("OCP EXISTS")
 	} else {
 		IsOCPCertManagerAPI = false
 		if metaErrors.IsNoMatchError(err) {
 			(*reqLogger).Info("OCP Cert Manager CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
 		}
+		(*reqLogger).Info("ERROR OCP %s ", err.Error() )
 
 	}
 }
