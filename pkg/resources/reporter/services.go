@@ -54,14 +54,14 @@ func getServiceSpec(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1
 	}
 }
 
-func GetService(instance *operatorv1alpha1.IBMLicenseServiceReporter, isOpenShift bool) *corev1.Service {
+func GetService(instance *operatorv1alpha1.IBMLicenseServiceReporter) *corev1.Service {
 	metaLabels := LabelsForMeta(instance)
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        LicenseReporterResourceBase,
 			Namespace:   instance.GetNamespace(),
 			Labels:      metaLabels,
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, true, isOpenShift, LicenseReportOCPCertName),
+			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, true, LicenseReportOCPCertName),
 		},
 		Spec: getServiceSpec(instance),
 	}

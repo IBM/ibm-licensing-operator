@@ -3,6 +3,7 @@ module github.com/ibm/ibm-licensing-operator
 go 1.15
 
 require (
+	github.com/allegro/bigcache v1.2.1
 	github.com/go-logr/logr v0.1.0
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
 	github.com/operator-framework/operator-sdk v0.19.4

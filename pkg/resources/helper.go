@@ -17,18 +17,22 @@
 package resources
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"math/big"
 	"reflect"
 	"time"
 
-	"github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
-
+	"github.com/allegro/bigcache"
 	"github.com/go-logr/logr"
+	"github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
+	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -45,6 +49,9 @@ var DefaultSecretMode int32 = 420
 var Seconds60 int64 = 60
 
 var IsReporterInstalled = false
+var cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(20 * 365 * 24 * time.Hour))
+var isTrue = []byte("1")
+var isFalse = []byte("0")
 
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"
@@ -54,6 +61,8 @@ const LicensingProductMetric = "FREE"
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
 const OcpCheckString = "ocp-check-secret"
+const isRouteEnabled = "isRouteAPI"
+const isOCPEnabled = "isAPICertManagerAPI"
 
 var randStringCharsetLength = big.NewInt(int64(len(randStringCharset)))
 
@@ -122,8 +131,8 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 	return expectedSecret, nil
 }
 
-func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isHTTPS bool, isOpenShift bool, certName string) map[string]string {
-	if isOpenShift && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
+func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isHTTPS bool, certName string) map[string]string {
+	if IsOCPCertManagerAPI() && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
 		return map[string]string{ocpCertSecretNameTag: certName}
 	}
 	return map[string]string{}
@@ -175,4 +184,46 @@ done
 echo "$(date): All required secrets exist"
 `
 	return script
+}
+
+func UpdateCache(reqLogger *logr.Logger, client c.Client, silent bool) {
+	routeTestInstance := &routev1.Route{}
+	err := client.Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
+	if err == nil {
+		cache.Set(isRouteEnabled, isTrue)
+	} else {
+		cache.Set(isRouteEnabled, isFalse)
+
+		if !silent && metaErrors.IsNoMatchError(err) {
+			(*reqLogger).Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
+		}
+	}
+
+	routeTestInstance1 := &routev1.Route{}
+	err = client.Get(context.TODO(), types.NamespacedName{}, routeTestInstance1)
+	if err == nil {
+		cache.Set(isOCPEnabled, isTrue)
+	} else {
+		cache.Set(isOCPEnabled, isFalse)
+		if metaErrors.IsNoMatchError(err) {
+			(*reqLogger).Info("OCP Cert Manager CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
+		}
+
+	}
+}
+
+func IsRouteAPI() bool {
+	got, err := cache.Get(isRouteEnabled)
+	if err != nil && bytes.Compare(got, isTrue) == 0 {
+		return false
+	}
+	return false
+}
+
+func IsOCPCertManagerAPI() bool {
+	got, err := cache.Get(isOCPEnabled)
+	if err != nil && bytes.Compare(got, isTrue) == 0 {
+		return false
+	}
+	return false
 }

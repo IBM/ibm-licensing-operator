@@ -27,7 +27,7 @@ const APIUploadTokenVolumeName = "token-upload"
 const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
 
-func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec, isOpenShift bool) []corev1.VolumeMount {
+func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.VolumeMount {
 	var volumeMounts = []corev1.VolumeMount{
 		{
 			Name:      APISecretTokenVolumeName,
@@ -43,7 +43,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec, isOpenShif
 		},
 	}
 	if spec.HTTPSEnable {
-		if spec.HTTPSCertsSource == operatorv1alpha1.CustomCertsSource || (isOpenShift && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource) {
+		if spec.HTTPSCertsSource == operatorv1alpha1.CustomCertsSource || (res.IsOCPCertManagerAPI() && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource) {
 			volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 				{
 					Name:      LicensingHTTPSCertsVolumeName,
@@ -66,7 +66,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec, isOpenShif
 	return volumeMounts
 }
 
-func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec, isOpenShift bool) []corev1.Volume {
+func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume {
 	var volumes []corev1.Volume
 
 	apiSecretTokenVolume := corev1.Volume{
@@ -111,7 +111,7 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec, isOpenShift boo
 	if spec.HTTPSEnable {
 		if spec.HTTPSCertsSource == operatorv1alpha1.CustomCertsSource {
 			volumes = append(volumes, res.GetVolume(LicensingHTTPSCertsVolumeName, "ibm-licensing-certs"))
-		} else if isOpenShift && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
+		} else if res.IsOCPCertManagerAPI() && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 			volumes = append(volumes, res.GetVolume(LicensingHTTPSCertsVolumeName, LicenseServiceOCPCertName))
 		}
 	}
