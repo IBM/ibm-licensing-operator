@@ -59,32 +59,71 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "https://metering-server:4002/api/v1/metricData",
 		})
 	}
-	if spec.Sender != nil {
-		environmentVariables = append(environmentVariables, []corev1.EnvVar{
-			{
-				Name:  "CLUSTER_ID",
-				Value: spec.Sender.ClusterID,
-			},
-			{
-				Name: "HUB_TOKEN",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: spec.Sender.ReporterSecretToken,
+	if spec.Sender != nil || res.IsReporterInstalled == true {
+
+		if spec.Sender != nil && spec.Sender.ClusterID != "" {
+			environmentVariables = append(environmentVariables, []corev1.EnvVar{
+				{
+					Name:  "CLUSTER_ID",
+					Value: spec.Sender.ClusterID,
+				},
+			}...)
+		}
+
+		if spec.Sender != nil && spec.Sender.ClusterID != "" {
+			environmentVariables = append(environmentVariables, []corev1.EnvVar{
+				{
+					Name:  "CLUSTER_NAME",
+					Value: spec.Sender.ClusterName,
+				},
+			}...)
+		}
+
+		if spec.Sender != nil && spec.Sender.ReporterURL != "" {
+			environmentVariables = append(environmentVariables, []corev1.EnvVar{
+				{
+					Name:  "HUB_URL",
+					Value: spec.Sender.ReporterURL,
+				},
+			}...)
+		} else if res.IsReporterInstalled == true {
+			environmentVariables = append(environmentVariables, []corev1.EnvVar{
+				{
+					Name:  "HUB_URL",
+					Value: spec.GetLocalReporterURL(),
+				},
+			}...)
+		}
+
+		if spec.Sender != nil && spec.Sender.ReporterURL != "" {
+			environmentVariables = append(environmentVariables, []corev1.EnvVar{
+				{
+					Name: "HUB_TOKEN",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: spec.Sender.ReporterSecretToken,
+							},
+							Key: ReporterSecretTokenKeyName,
 						},
-						Key: ReporterSecretTokenKeyName,
 					},
 				},
-			},
-			{
-				Name:  "HUB_URL",
-				Value: spec.Sender.ReporterURL,
-			},
-			{
-				Name:  "CLUSTER_NAME",
-				Value: spec.Sender.ClusterName,
-			},
-		}...)
+			}...)
+		} else {
+			environmentVariables = append(environmentVariables, []corev1.EnvVar{
+				{
+					Name: "HUB_TOKEN",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: spec.GetDefaultReporterTokenName(),
+							},
+							Key: ReporterSecretTokenKeyName,
+						},
+					},
+				},
+			}...)
+		}
 	}
 	return environmentVariables
 }
@@ -93,7 +132,7 @@ func getProbeScheme(spec operatorv1alpha1.IBMLicensingSpec) corev1.URIScheme {
 	if spec.HTTPSEnable {
 		return "HTTPS"
 	}
-	return ""
+	return "HTTP"
 }
 
 func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.Handler {
@@ -136,7 +175,7 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec, isOpenSh
 		}
 		containers = append(containers, meteringSecretCheckContainer)
 	}
-	if isOpenShift && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
+	if isOpenShift && spec.HTTPSEnable && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 		baseContainer := getLicensingContainerBase(spec, isOpenShift)
 		ocpSecretCheckContainer := corev1.Container{}
 

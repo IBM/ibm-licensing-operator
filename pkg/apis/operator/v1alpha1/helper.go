@@ -40,10 +40,14 @@ const defaultReporterImageName = "ibm-license-service-reporter"
 const defaultReporterImageTagPostfix = "sha256:a1d1bff537c95a781ac8a95bef6f7fdebd24452c95f49eaf61648faba818e747"
 
 const defaultReporterUIImageName = "ibm-license-service-reporter-ui"
-const defaultReporterUIImageTagPostfix = "sha256:a70b0a57524f095269f7e13481bc734b33e5393b048b31c67ed63d28d367bf66"
+const defaultReporterUIImageTagPostfix = "sha256:996b9acd06d8d8399d646cfe396ebd29ae0325df8bf073c72c1cec72554b7851"
 
 const defaultDatabaseImageName = "ibm-postgresql"
 const defaultDatabaseImageTagPostfix = "sha256:397eca770b9526bbedfc1a30cbc1f60f2aefdc3366ae917688bbfa190d861440"
+
+const localReporterURL = "https://ibm-license-service-reporter:8080"
+const defaultLicensingTokenSecretName = "ibm-licensing-token"
+const defaultReporterTokenSecretName = "ibm-licensing-reporter-token"
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
@@ -104,6 +108,14 @@ func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
 }
 
+func (spec *IBMLicensingSpec) GetLocalReporterURL() string {
+	return localReporterURL
+}
+
+func (spec *IBMLicensingSpec) GetDefaultReporterTokenName() string {
+	return defaultReporterTokenSecretName
+}
+
 func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
@@ -125,7 +137,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
 		spec.IngressEnabled = &isNotOnOpenshiftCluster
 	}
 	if spec.APISecretToken == "" {
-		spec.APISecretToken = "ibm-licensing-token"
+		spec.APISecretToken = defaultLicensingTokenSecretName
 	}
 
 	spec.Container.initResourcesIfNil()
@@ -251,7 +263,7 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 	}
 
 	if spec.APISecretToken == "" {
-		spec.APISecretToken = "ibm-licensing-reporter-token"
+		spec.APISecretToken = defaultReporterTokenSecretName
 	}
 	if spec.HTTPSCertsSource == "" {
 		spec.HTTPSCertsSource = OcpCertsSource

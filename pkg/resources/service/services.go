@@ -56,7 +56,7 @@ func GetLicensingService(instance *operatorv1alpha1.IBMLicensing, isOpenShift bo
 			Name:        GetLicensingServiceName(instance),
 			Namespace:   instance.Spec.InstanceNamespace,
 			Labels:      metaLabels,
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, isOpenShift, LicenseServiceOCPCertName),
+			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, isOpenShift, LicenseServiceOCPCertName),
 		},
 		Spec: getServiceSpec(instance),
 	}

@@ -13,8 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-package version
 
-var (
-	Version = "1.3.0"
+package ibmlicensing
+
+import (
+	"testing"
 )
+
+func TestCheckReconcileLicensing(t *testing.T) {
+}

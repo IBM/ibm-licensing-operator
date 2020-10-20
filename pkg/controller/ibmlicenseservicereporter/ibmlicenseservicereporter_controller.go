@@ -91,7 +91,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	routeTestInstance := &routev1.Route{}
 	err = mgr.GetClient().Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
 	if err != nil && metaErrors.IsNoMatchError(err) {
-		log.Error(err, "Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
+		log.Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
 		isOpenshiftCluster = false
 	}
 
@@ -154,6 +154,7 @@ func (r *ReconcileIBMLicenseServiceReporter) Reconcile(request reconcile.Request
 	err := r.client.Get(context.TODO(), request.NamespacedName, foundInstance)
 	if err != nil {
 		if errors.IsNotFound(err) {
+			res.IsReporterInstalled = false
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
@@ -164,16 +165,18 @@ func (r *ReconcileIBMLicenseServiceReporter) Reconcile(request reconcile.Request
 		return reconcile.Result{}, err
 	}
 
-	instance := foundInstance.DeepCopy()
+	res.IsReporterInstalled = true
 
-	err = instance.Spec.FillDefaultValues(reqLogger, r.reader)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
+	instance := foundInstance.DeepCopy()
 
 	err = reporter.UpdateVersion(r.client, instance)
 	if err != nil {
 		log.Error(err, "Can not update version in CR")
+	}
+
+	err = instance.Spec.FillDefaultValues(reqLogger, r.reader)
+	if err != nil {
+		return reconcile.Result{}, err
 	}
 
 	reqLogger.Info("got IBM License Service Reporter application, version=" + instance.Spec.Version)
@@ -400,23 +403,26 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileResourceExistence(
 
 	// foundRes already initialized before and passed via parameter
 	err = r.client.Get(context.TODO(), namespacedName, foundRes)
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
-			"Namespace", expectedRes.GetNamespace())
-		err = r.client.Create(context.TODO(), expectedRes)
-		if err != nil {
-			reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
+	if err != nil {
+		if errors.IsNotFound(err) {
+			reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
 				"Namespace", expectedRes.GetNamespace())
-			return reconcile.Result{}, err
+			err = r.client.Create(context.TODO(), expectedRes)
+			if err != nil {
+				if !errors.IsAlreadyExists(err) {
+					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
+						"Namespace", expectedRes.GetNamespace())
+					return reconcile.Result{}, err
+				}
+			}
+			// Created successfully, or already exists - return and requeue
+			time.Sleep(time.Second * 5)
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second}, nil
 		}
-		// Created successfully - return and requeue
-		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
-	} else if err != nil {
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())
 		return reconcile.Result{}, err
-	} else {
-		reqLogger.Info(resType.String() + " is correct!")
 	}
+	reqLogger.Info(resType.String() + " is correct!")
 	return reconcile.Result{}, nil
 }

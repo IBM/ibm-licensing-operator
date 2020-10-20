@@ -90,7 +90,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	routeTestInstance := &routev1.Route{}
 	err = mgr.GetClient().Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
 	if err != nil && metaErrors.IsNoMatchError(err) {
-		log.Error(err, "Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
+		log.Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
 		isOpenshiftCluster = false
 	}
 
@@ -98,6 +98,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		// Watch for changes to openshift resources if on OC
 		err = res.WatchForResources(log, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
 			&routev1.Route{},
+			&operatorv1alpha1.IBMLicenseServiceReporter{},
 		})
 		if err != nil {
 			return err
@@ -143,14 +144,15 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		return reconcile.Result{}, err
 	}
 	instance := foundInstance.DeepCopy()
-	err = instance.Spec.FillDefaultValues(isOpenshiftCluster)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
 
 	err = service.UpdateVersion(r.client, instance)
 	if err != nil {
 		log.Error(err, "Can not update version in CR")
+	}
+
+	err = instance.Spec.FillDefaultValues(isOpenshiftCluster)
+	if err != nil {
+		return reconcile.Result{}, err
 	}
 
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
@@ -411,11 +413,14 @@ func (r *ReconcileIBMLicensing) reconcileResourceExistence(
 				"Namespace", expectedRes.GetNamespace())
 			err = r.client.Create(context.TODO(), expectedRes)
 			if err != nil {
-				reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
-					"Namespace", expectedRes.GetNamespace())
-				return reconcile.Result{}, err
+				if !errors.IsAlreadyExists(err) {
+					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
+						"Namespace", expectedRes.GetNamespace())
+					return reconcile.Result{}, err
+				}
 			}
-			// Created successfully - return and requeue
+			// Created successfully, or already exists - return and requeue
+			time.Sleep(time.Second * 5)
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Second}, nil
 		}
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),

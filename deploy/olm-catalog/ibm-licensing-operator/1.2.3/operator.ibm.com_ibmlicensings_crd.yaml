@@ -247,6 +247,10 @@ spec:
                   description: URL for License Service Reporter receiver that collects
                     and aggregate multi cluster licensing data.
                   type: string
+              required:
+              - clusterID
+              - reporterSecretToken
+              - reporterURL
               type: object
             version:
               description: Version

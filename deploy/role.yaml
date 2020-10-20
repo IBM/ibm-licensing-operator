@@ -76,7 +76,12 @@ rules:
   - apiGroups:
       - operator.ibm.com
     resources:
-      - '*'
+      - ibmlicensings
+      - ibmlicenseservicereporters
+      - ibmlicensings/status
+      - ibmlicenseservicereporters/status
+      - ibmlicensings/finalizers
+      - ibmlicenseservicereporters/finalizers
     verbs:
       - create
       - delete

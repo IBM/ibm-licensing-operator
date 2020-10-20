@@ -44,6 +44,8 @@ var FalseVar = false
 var DefaultSecretMode int32 = 420
 var Seconds60 int64 = 60
 
+var IsReporterInstalled = false
+
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"
 const LicensingProductID = "068a62892a1e4db39641342e592daa25"
@@ -120,8 +122,8 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 	return expectedSecret, nil
 }
 
-func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isOpenShift bool, certName string) map[string]string {
-	if isOpenShift && httpCertSource == v1alpha1.OcpCertsSource {
+func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isHTTPS bool, isOpenShift bool, certName string) map[string]string {
+	if isOpenShift && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
 		return map[string]string{ocpCertSecretNameTag: certName}
 	}
 	return map[string]string{}
