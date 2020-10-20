@@ -24,7 +24,7 @@ License Service
 
 ## Using License Service for container licensing
 
-License Service collects data that is required for compliance and audit purposes. With License Service, you can retrieve of an audit snapshot per cluster without any configuration.
+License Service collects data that is required for compliance and audit purposes. With License Service, you can retrieve an audit snapshot per cluster without any configuration.
 
 It is required to generate an audit snapshot at least once a quarter for the last 90 days, and to store it for 2 years in a location from which it could be retrieved and delivered to auditors.
 
