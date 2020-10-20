@@ -51,8 +51,8 @@ var IsReporterInstalled = false
 var cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(20 * 365 * 24 * time.Hour))
 var isTrue = []byte("1")
 var isFalse = []byte("0")
-var IsRouteAPI = false
-var IsOCPCertManagerAPI = false
+var IsRouteAPI = true
+var IsOCPCertManagerAPI = true
 
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"
