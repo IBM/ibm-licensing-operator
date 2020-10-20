@@ -10,8 +10,8 @@ You can use an automatic script to install License Service on the cluster, and a
 
 The script is supported on the following platforms: 
 
-- Linux x86 architecture
-- Any cluster that already has Operator Lifecycle Manager (OLM) installed
+- Linux x86 architecture with or without Operator Lifecycle Manager (OLM)
+- Any other cluster that already has Operator Lifecycle Manager (OLM) installed
 
 ## Installation
 

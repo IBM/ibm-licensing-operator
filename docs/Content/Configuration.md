@@ -184,6 +184,8 @@ kubectl delete ClusterRole marketplace-operator
 
 where `GLOBAL_CATALOG_NAMESPACE` value is your global catalog namespace.
 
+3. Reinstall License Service to get CatalogSource that is missing. For more information, see [Installing License Service](Content/Installation_scenarios.md).
+
 ### Cleaning existing License Service dependencies on OpenShift Container Platform
 
 1. Delete OperatorSource.
@@ -195,6 +197,8 @@ GLOBAL_CATALOG_NAMESPACE= openshift-marketplaceolm
 opencloudioSourceName=opencloud-operators
 kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
 ```
+
+2. Reinstall License Service to get CatalogSource that is missing. For more information, see [Installing License Service](Content/Installation_scenarios.md).
 
 ## Modifying the application deployment resources
 
