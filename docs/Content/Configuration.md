@@ -2,13 +2,13 @@
 
 After you install License Service, you can configure License Service if needed.
 
-* [Configuring ingress](#configuring-ingress)
-* [Checking License Service components](#checking-license-service-components)
-* [Using custom certificates](#using-custom-certificates)
-* [Cleaning existing License Service dependencies](#cleaning-existing-license-service-dependencies)
-  * [Cleaning existing License Service dependencies outside of OpenShift](#cleaning-existing-license-service-dependencies-outside-of-openshift)
-  * [Cleaning existing License Service dependencies on OpenShift Container Platform](#cleaning-existing-license-service-dependencies-on-openshift-container-platform)
-* [Modifying the application deployment resources](#modifying-the-application-deployment-resources)
+- [Configuring ingress](#configuring-ingress)
+- [Checking License Service components](#checking-license-service-components)
+- [Using custom certificates](#using-custom-certificates)
+- [Cleaning existing License Service dependencies](#cleaning-existing-license-service-dependencies)
+    - [Cleaning existing License Service dependencies outside of OpenShift](#cleaning-existing-license-service-dependencies-outside-of-openshift)
+    - [Cleaning existing License Service dependencies on OpenShift Container Platform](#cleaning-existing-license-service-dependencies-on-openshift-container-platform)
+- [Modifying the application deployment resources](#modifying-the-application-deployment-resources)
 
 ## Configuring ingress
 
@@ -148,17 +148,17 @@ kubectl create secret tls ibm-licensing-certs --key tls.key --cert tls.crt -n ${
    # ... append rest of the License Service configuration here
    ```
 
-## Cleaning existing License Service dependencies 
+## Cleaning existing License Service dependencies
 
-Earlier versions of License Service, up to 1.1.3, used OperatorSource and Operator Marketplace. These dependencies are no longer needed. If you installed the earlier version of License Service, before installing the new version remove the existing dependencies from your system. 
+Earlier versions of License Service, up to 1.1.3, used OperatorSource and Operator Marketplace. These dependencies are no longer needed. If you installed the earlier version of License Service, before installing the new version remove the existing dependencies from your system.
 
 ### Cleaning existing License Service dependencies outside of OpenShift
 
-1. Delete OperatorSource.
+1\. Delete OperatorSource.
 
 To delete an existing OpenSource, run the following command:
 
-```
+```bash
 GLOBAL_CATALOG_NAMESPACE=olm
 opencloudioSourceName=opencloud-operators
 kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
@@ -166,13 +166,13 @@ kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMES
 
 where `GLOBAL_CATALOG_NAMESPACE` value is your global catalog namespace.
 
-2. Delete OperatorMarketplace.
+2\. Delete OperatorMarketplace.
 
 **Note:** Before deleting OperatorMarketplace check whether it is not used elsewhere, for example, for other Operators from OperatorMarketplace.
 
 To delete OperatorMarketplace, run the following command:
 
-```
+```bash
 GLOBAL_CATALOG_NAMESPACE=olm
 kubectl delete Deployment marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
 kubectl delete RoleBinding marketplace-operator -n ${GLOBAL_CATALOG_NAMESPACE}
@@ -184,33 +184,33 @@ kubectl delete ClusterRole marketplace-operator
 
 where `GLOBAL_CATALOG_NAMESPACE` value is your global catalog namespace.
 
-3. Reinstall License Service to get CatalogSource that is missing. For more information, see [Installing License Service](Content/Installation_scenarios.md).
+3\. Reinstall License Service to get CatalogSource that is missing. For more information, see [Installing License Service](Content/Installation_scenarios.md).
 
 ### Cleaning existing License Service dependencies on OpenShift Container Platform
 
-1. Delete OperatorSource.
+1\. Delete OperatorSource.
 
 To delete an existing OpenSource, run the following command:
 
-```
+```bash
 GLOBAL_CATALOG_NAMESPACE= openshift-marketplaceolm
 opencloudioSourceName=opencloud-operators
 kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESPACE}
 ```
 
-2. Reinstall License Service to get CatalogSource that is missing. For more information, see [Installing License Service](Content/Installation_scenarios.md).
+2\. Reinstall License Service to get CatalogSource that is missing. For more information, see [Installing License Service](Content/Installation_scenarios.md).
 
 ## Modifying the application deployment resources
 
 You can modify the resources that are requested and limited by the Deployment for Application by editing the IBMLicensing instance.
 
-1. To modify the IBMLicensing instance, run the following command:
+1\. To modify the IBMLicensing instance, run the following command:
 
 ```bash
 kubectl edit IBMLicensing instance
 ```
 
-2. Modify the resource limits and resources in the following yaml and paste it in the command line. 
+2\. Modify the resource limits and resources in the following yaml and paste it in the command line.
 
 ```yaml
 apiVersion: operator.ibm.com/v1alpha1
@@ -228,6 +228,7 @@ spec:
       memory: 256Mi <- set the memory limit to the desired value
 # ...
 ```
+
 *where m stands for Millicores, and Mi for Mebibytes
 
 <b>Related links</b>

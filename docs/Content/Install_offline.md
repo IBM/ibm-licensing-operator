@@ -1,8 +1,8 @@
 # Offline installation
 
-* [Prerequisites](#prerequisites)
-* [Installation](#installation)
-* [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
 
 ## Prerequisites
 
@@ -59,6 +59,7 @@ d. Set the context so that the resources are made in the `ibm-common-services` n
 ```bash
 kubectl config set-context --current --namespace=ibm-common-services
 ```
+
 e. Use `git clone`:
 
 ```bash
@@ -106,7 +107,7 @@ Configure the IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
-1. To create the the IBM Licensing instance, run the following command:
+1\. To create the the IBM Licensing instance, run the following command:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -122,7 +123,7 @@ spec:
 EOF
 ```
 
-2. If you created the secret that is needed to access the images, add it to the configuration.
+2\. If you created the secret that is needed to access the images, add it to the configuration.
 
 ```yaml
 apiVersion: operator.ibm.com/v1alpha1
@@ -152,7 +153,7 @@ spec:
     - my-registry-token
 ```
 
-**Results:** 
+**Results:**
 Installation is complete and **License Service** is running in your cluster.
 
 <b>Related links</b>
@@ -160,4 +161,3 @@ Installation is complete and **License Service** is running in your cluster.
 - [Go back to home page](../License_Service_main.md#documentation)
 - [Configuration](Configuration.md)
 - [Retrieving license usage data from the cluster](Retrieving_data.md)
-- 

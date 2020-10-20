@@ -28,7 +28,7 @@ License Service collects data that is required for compliance and audit purposes
 
 It is required to generate an audit snapshot at least once a quarter for the last 90 days, and to store it for 2 years in a location from which it could be retrieved and delivered to auditors.
 
-For more information, see the following resources: 
+For more information, see the following resources:
 
 - [IBM Container Licenses on Passport Advantage](https://www.ibm.com/software/passportadvantage/containerlicenses.html)
 - [Container licensing FAQs](https://www.ibm.com/software/passportadvantage/containerfaqov.html)
@@ -43,26 +43,26 @@ For more information, see the following resources:
 ## Documentation
 
 - [Preparing for installation](Content/Preparing_for_installation.md)
-  - [Supported platforms](Content/Preparing_for_installation.md#supported-platforms)
-  - [Required resources](Content/Preparing_for_installation.md#required-resources)
+    - [Supported platforms](Content/Preparing_for_installation.md#supported-platforms)
+    - [Required resources](Content/Preparing_for_installation.md#required-resources)
 - [Installing License Service](Content/Installation_scenarios.md)
-  - [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](Content/Automatic_installation.md)
-  - [Manually installing License Service on OCP 4.2+](Content/Install_on_OCP.md)
-  - [Manually installing License Service on Kubernetes from scratch with `kubectl`](Content/Install_from_scratch.md)
-  - [Offline installation](Content/Install_offline.md)
+    - [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](Content/Automatic_installation.md)
+    - [Manually installing License Service on OCP 4.2+](Content/Install_on_OCP.md)
+    - [Manually installing License Service on Kubernetes from scratch with `kubectl`](Content/Install_from_scratch.md)
+    - [Offline installation](Content/Install_offline.md)
 - [Configuration](Content/Configuration.md)
-  - [Configuring ingress](Content/Configuration.md#configuring-ingress)
-  - [Checking License Service components](Content/Configuration.md#checking-license-service-components)
-  - [Using custom certificates](Content/Configuration.md#using-custom-certificates)
-  - [Cleaning existing License Service dependencies](Content/Configuration.md#cleaning-existing-license-service-dependencies)
-  - [Modifying the application deployment resources](Content/Configuration.md#modifying-the-application-deployment-resources)
+    - [Configuring ingress](Content/Configuration.md#configuring-ingress)
+    - [Checking License Service components](Content/Configuration.md#checking-license-service-components)
+    - [Using custom certificates](Content/Configuration.md#using-custom-certificates)
+    - [Cleaning existing License Service dependencies](Content/Configuration.md#cleaning-existing-license-service-dependencies)
+    - [Modifying the application deployment resources](Content/Configuration.md#modifying-the-application-deployment-resources)
 - [Retrieving license usage data from the cluster](Content/Retrieving_data.md)
-  - [Available APIs](Content/Retrieving_data.md#available-apis)
-  - [Retrieving an audit snapshot](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/APIs.html#auditSnapshot)
-  - [Tracking license usage in multicluster environment](Content/Retrieving_data.md#tracking-license-usage-in-multicluster-environment)
+    - [Available APIs](Content/Retrieving_data.md#available-apis)
+    - [Retrieving an audit snapshot](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/APIs.html#auditSnapshot)
+    - [Tracking license usage in multicluster environment](Content/Retrieving_data.md#tracking-license-usage-in-multicluster-environment)
 - [Uninstalling License Service from a Kubernetes cluster](Content/Uninstalling.md)
 - [Backup and upgrade](Content/Backup_and_upgrade.md)
 - [Troubleshooting](Content/Troubleshooting.md)
-  - [Verifying completeness of license usage data](Content/Troubleshooting.md#verifying-completeness-of-license-usage-data)
-  - [Preparing resources for offline installation without git](Content/Troubleshooting.md#prepareing-resources-for-offline-installation-without-git)
-  - [License Service pods are crashing and License Service cannot run](Content/Troubleshooting.md#license-service-pods-are-crashing-and-license-service-cannot-run)
+    - [Verifying completeness of license usage data](Content/Troubleshooting.md#verifying-completeness-of-license-usage-data)
+    - [Preparing resources for offline installation without git](Content/Troubleshooting.md#prepareing-resources-for-offline-installation-without-git)
+    - [License Service pods are crashing and License Service cannot run](Content/Troubleshooting.md#license-service-pods-are-crashing-and-license-service-cannot-run)

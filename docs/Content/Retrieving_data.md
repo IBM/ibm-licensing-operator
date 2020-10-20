@@ -1,7 +1,7 @@
 # Retrieving license usage data from the cluster
 
-* [Available APIs](#available-apis)
-* [Tracking license usage in multicluster environment](#tracking-license-usage-in-multicluster-environment)
+- [Available APIs](#available-apis)
+- [Tracking license usage in multicluster environment](#tracking-license-usage-in-multicluster-environment)
 
 ## Available APIs
 

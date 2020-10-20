@@ -1,8 +1,8 @@
 # Manual installation on Kubernetes from scratch with `kubectl`
 
-* [Prerequisites](#prerequisites)
-* [Installation](#installation)
-* [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
 
 ## Prerequisites
 
@@ -227,4 +227,3 @@ EOF
 - [Go back to home page](../License_Service_main.md#documentation)
 - [Configuration](Configuration.md)
 - [Retrieving license usage data from the cluster](Retrieving_data.md)
-- 
