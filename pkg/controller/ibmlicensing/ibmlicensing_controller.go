@@ -87,7 +87,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	res.UpdateCache(&reqLogger, mgr.GetAPIReader(), false)
+	res.UpdateCache(&reqLogger, mgr.GetAPIReader())
 
 	if res.IsRouteAPI {
 		// Watch for changes to openshift resources if on OC
@@ -145,7 +145,7 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	if err != nil {
 		log.Error(err, "Can not update version in CR")
 	}
-	res.UpdateCache(&reqLogger, r.reader, true)
+	res.UpdateCache(&reqLogger, r.reader)
 
 	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI)
 	if err != nil {

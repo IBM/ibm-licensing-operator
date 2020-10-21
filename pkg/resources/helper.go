@@ -180,7 +180,7 @@ echo "$(date): All required secrets exist"
 	return script
 }
 
-func UpdateCache(reqLogger *logr.Logger, client c.Reader, silent bool) {
+func UpdateCache(reqLogger *logr.Logger, client c.Reader) {
 	routeTestInstance := &routev1.Route{}
 	err := client.List(context.TODO(), routeTestInstance)
 	if err == nil {
