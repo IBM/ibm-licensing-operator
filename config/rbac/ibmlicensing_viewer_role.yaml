@@ -1,0 +1,20 @@
+# permissions for end users to view ibmlicensings.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ibmlicensing-viewer-role
+rules:
+- apiGroups:
+  - operator.ibm.com
+  resources:
+  - ibmlicensings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - operator.ibm.com
+  resources:
+  - ibmlicensings/status
+  verbs:
+  - get
