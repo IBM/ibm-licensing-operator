@@ -17,8 +17,9 @@
 package service
 
 import (
-	"github.com/ibm/ibm-licensing-operator/controllers/resources"
 	"strconv"
+
+	"github.com/ibm/ibm-licensing-operator/controllers/resources"
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"

@@ -18,6 +18,7 @@ package reporter
 
 import (
 	"context"
+
 	"github.com/ibm/ibm-licensing-operator/controllers/resources"
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
