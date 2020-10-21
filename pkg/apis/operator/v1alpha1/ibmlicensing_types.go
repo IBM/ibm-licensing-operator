@@ -72,7 +72,7 @@ type IBMLicensingSenderSpec struct {
 	// License Service Reporter authentication token, provided by secret that you need to create in instance namespace
 	ReporterSecretToken string `json:"reporterSecretToken,omitempty"`
 	// What is the name of this reporting cluster in multi-cluster system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME at Operand level
-	ClusterName string `json:"clusterName,omitempty,omitempty"`
+	ClusterName string `json:"clusterName,omitempty"`
 	// Unique ID of reporting cluster
 	ClusterID string `json:"clusterID,omitempty"`
 }

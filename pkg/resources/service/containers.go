@@ -59,7 +59,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "https://metering-server:4002/api/v1/metricData",
 		})
 	}
-	if spec.Sender != nil || res.IsReporterInstalled == true {
+	if spec.Sender != nil || res.IsReporterInstalled {
 
 		if spec.Sender != nil && spec.Sender.ClusterID != "" {
 			environmentVariables = append(environmentVariables, []corev1.EnvVar{
@@ -86,7 +86,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 					Value: spec.Sender.ReporterURL,
 				},
 			}...)
-		} else if res.IsReporterInstalled == true {
+		} else if res.IsReporterInstalled {
 			environmentVariables = append(environmentVariables, []corev1.EnvVar{
 				{
 					Name:  "HUB_URL",
