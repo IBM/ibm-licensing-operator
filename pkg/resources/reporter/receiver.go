@@ -25,7 +25,7 @@ import (
 
 func GetLicenseReporterInitContainers(instance *operatorv1alpha1.IBMLicenseServiceReporter) []corev1.Container {
 	containers := []corev1.Container{}
-	if res.IsOCPCertManagerAPI && instance.Spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
+	if res.IsServiceCAAPI && instance.Spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 		baseContainer := GetReceiverContainer(instance)
 		baseContainer.LivenessProbe = nil
 		baseContainer.ReadinessProbe = nil

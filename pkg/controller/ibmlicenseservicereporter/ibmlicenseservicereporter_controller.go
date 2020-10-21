@@ -21,15 +21,15 @@ import (
 	"reflect"
 	"time"
 
-	extensionsv1 "k8s.io/api/extensions/v1beta1"
+	routev1 "github.com/openshift/api/route/v1"
 
 	"github.com/go-logr/logr"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
 	"github.com/ibm/ibm-licensing-operator/pkg/resources/reporter"
-	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extensionsv1 "k8s.io/api/extensions/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -86,7 +86,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
-	res.UpdateCache(&reqLogger, mgr.GetClient(), false)
+	res.UpdateCache(&reqLogger, mgr.GetAPIReader(), false)
 
 	if res.IsRouteAPI {
 		// Watch for changes to openshift resources if on OC
@@ -167,7 +167,7 @@ func (r *ReconcileIBMLicenseServiceReporter) Reconcile(request reconcile.Request
 		log.Error(err, "Can not update version in CR")
 	}
 
-	res.UpdateCache(&reqLogger, r.client, true)
+	res.UpdateCache(&reqLogger, r.reader, true)
 
 	err = instance.Spec.FillDefaultValues(reqLogger, r.reader)
 	if err != nil {

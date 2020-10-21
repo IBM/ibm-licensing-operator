@@ -24,15 +24,13 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/allegro/bigcache"
 	"github.com/go-logr/logr"
 	"github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
-	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -49,11 +47,8 @@ var DefaultSecretMode int32 = 420
 var Seconds60 int64 = 60
 
 var IsReporterInstalled = false
-var cache, _ = bigcache.NewBigCache(bigcache.DefaultConfig(20 * 365 * 24 * time.Hour))
-var isTrue = []byte("1")
-var isFalse = []byte("0")
 var IsRouteAPI = true
-var IsOCPCertManagerAPI = true
+var IsServiceCAAPI = true
 
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"
@@ -132,7 +127,7 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 }
 
 func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isHTTPS bool, certName string) map[string]string {
-	if IsOCPCertManagerAPI && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
+	if IsServiceCAAPI && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
 		return map[string]string{ocpCertSecretNameTag: certName}
 	}
 	return map[string]string{}
@@ -186,32 +181,27 @@ echo "$(date): All required secrets exist"
 	return script
 }
 
-func UpdateCache(reqLogger *logr.Logger, client c.Client, silent bool) {
+func UpdateCache(reqLogger *logr.Logger, client c.Reader, silent bool) {
 	routeTestInstance := &routev1.Route{}
-	err := client.Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
+	err := client.List(context.TODO(), routeTestInstance)
 	if err == nil {
 		IsRouteAPI = true
 		(*reqLogger).Info("Route EXISTS")
 	} else {
 		IsRouteAPI = false
-		if !silent && metaErrors.IsNoMatchError(err) {
-			(*reqLogger).Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
-		}
-		(*reqLogger).Info(fmt.Sprintf("Error in route %s", err) )
+		(*reqLogger).Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
+		(*reqLogger).Info(fmt.Sprintf("Error in route %s", err))
 	}
-//apiVersion: operator.openshift.io/v1
-//kind: ServiceCA
-	routeTestInstance1 := &routev1.Route{}
-	err = client.Get(context.TODO(), types.NamespacedName{}, routeTestInstance1)
+
+	serviceCAInstance := &servicecav1.ServiceCA{}
+	err = client.List(context.TODO(), serviceCAInstance)
 	if err == nil {
-		IsOCPCertManagerAPI = true
+		IsServiceCAAPI = true
 		(*reqLogger).Info("OCP EXISTS")
 	} else {
-		IsOCPCertManagerAPI = false
-		if metaErrors.IsNoMatchError(err) {
-			(*reqLogger).Info("OCP Cert Manager CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
-		}
-		(*reqLogger).Info(fmt.Sprintf("Error in OCP %s", err) )
+		IsServiceCAAPI = false
+		(*reqLogger).Info("OCP Cert Manager CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
+		(*reqLogger).Info(fmt.Sprintf("Error in OCP %s", err))
 
 	}
 }

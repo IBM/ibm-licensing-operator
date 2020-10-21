@@ -59,7 +59,7 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileIBMLicensing{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &ReconcileIBMLicensing{client: mgr.GetClient(), reader: mgr.GetAPIReader(), scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -86,7 +86,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
-	res.UpdateCache(&reqLogger, mgr.GetClient(), false)
+
+	res.UpdateCache(&reqLogger, mgr.GetAPIReader(), false)
 
 	if res.IsRouteAPI {
 		// Watch for changes to openshift resources if on OC
@@ -110,6 +111,7 @@ type ReconcileIBMLicensing struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client client.Client
+	reader client.Reader
 	scheme *runtime.Scheme
 }
 
@@ -143,9 +145,9 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	if err != nil {
 		log.Error(err, "Can not update version in CR")
 	}
-	res.UpdateCache(&reqLogger, r.client, true)
+	res.UpdateCache(&reqLogger, r.reader, true)
 
-	err = instance.Spec.FillDefaultValues(res.IsOCPCertManagerAPI, res.IsRouteAPI)
+	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI)
 	if err != nil {
 		return reconcile.Result{}, err
 	}

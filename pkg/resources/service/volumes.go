@@ -43,7 +43,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 		},
 	}
 	if spec.HTTPSEnable {
-		if spec.HTTPSCertsSource == operatorv1alpha1.CustomCertsSource || (res.IsOCPCertManagerAPI && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource) {
+		if spec.HTTPSCertsSource == operatorv1alpha1.CustomCertsSource || (res.IsServiceCAAPI && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource) {
 			volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 				{
 					Name:      LicensingHTTPSCertsVolumeName,
@@ -111,7 +111,7 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 	if spec.HTTPSEnable {
 		if spec.HTTPSCertsSource == operatorv1alpha1.CustomCertsSource {
 			volumes = append(volumes, res.GetVolume(LicensingHTTPSCertsVolumeName, "ibm-licensing-certs"))
-		} else if res.IsOCPCertManagerAPI && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
+		} else if res.IsServiceCAAPI && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 			volumes = append(volumes, res.GetVolume(LicensingHTTPSCertsVolumeName, LicenseServiceOCPCertName))
 		}
 	}
