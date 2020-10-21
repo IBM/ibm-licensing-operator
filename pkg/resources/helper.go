@@ -19,7 +19,6 @@ package resources
 import (
 	"context"
 	"crypto/rand"
-	"fmt"
 	"math/big"
 	"reflect"
 	"time"
@@ -186,22 +185,17 @@ func UpdateCache(reqLogger *logr.Logger, client c.Reader, silent bool) {
 	err := client.List(context.TODO(), routeTestInstance)
 	if err == nil {
 		IsRouteAPI = true
-		(*reqLogger).Info("Route EXISTS")
 	} else {
 		IsRouteAPI = false
 		(*reqLogger).Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
-		(*reqLogger).Info(fmt.Sprintf("Error in route %s", err))
 	}
 
 	serviceCAInstance := &servicecav1.ServiceCA{}
 	err = client.List(context.TODO(), serviceCAInstance)
 	if err == nil {
 		IsServiceCAAPI = true
-		(*reqLogger).Info("OCP EXISTS")
 	} else {
 		IsServiceCAAPI = false
-		(*reqLogger).Info("OCP Cert Manager CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
-		(*reqLogger).Info(fmt.Sprintf("Error in OCP %s", err))
-
+		(*reqLogger).Info("ServiceCA not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
 	}
 }
