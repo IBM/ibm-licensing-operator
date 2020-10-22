@@ -137,33 +137,42 @@ include common/Makefile.common.mk
 
 ##@ Application
 
-install: ## Install all resources (CR/CRD's, RBAC and operator)
-	@echo ....... Set environment variables ......
-	- export WATCH_NAMESPACE=
-	@echo ....... Creating namespace .......
-	- kubectl create namespace ${NAMESPACE}
-	@echo ....... Applying CRDs .......
-	- kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
-	@echo ....... Applying RBAC .......
-	- kubectl apply -f deploy/service_account.yaml -n ${NAMESPACE}
-	- kubectl apply -f deploy/role.yaml
-	- kubectl apply -f deploy/role_binding.yaml
-	@echo ....... Applying Operator .......
-	- kubectl apply -f deploy/operator.yaml -n ${NAMESPACE}
-	@echo ....... Creating the Instances .......
-	- kubectl apply -f deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
-uninstall: ## Uninstall all that all performed in the $ make install, without namespace as there might be other things there
-	@echo ....... Uninstalling .......
-	@echo ....... Deleting the Instances .......
-	- kubectl delete -f deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml --ignore-not-found
-	@echo ....... Deleting Operator .......
-	- kubectl delete -f deploy/operator.yaml -n ${NAMESPACE}
-	@echo ....... Deleting CRDs .......
-	- kubectl delete -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml --ignore-not-found
-	@echo ....... Deleting RBAC .......
-	- kubectl delete -f deploy/role_binding.yaml --ignore-not-found
-	- kubectl delete -f deploy/service_account.yaml -n ${NAMESPACE} --ignore-not-found
-	- kubectl delete -f deploy/role.yaml --ignore-not-found
+# Install CRDs into a cluster
+install: manifests kustomize
+	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+
+# Uninstall CRDs from a cluster
+uninstall: manifests kustomize
+	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+
+
+# install: ## Install all resources (CR/CRD's, RBAC and operator)
+# 	@echo ....... Set environment variables ......
+# 	- export WATCH_NAMESPACE=
+# 	@echo ....... Creating namespace .......
+# 	- kubectl create namespace ${NAMESPACE}
+# 	@echo ....... Applying CRDs .......
+# 	- kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
+# 	@echo ....... Applying RBAC .......
+# 	- kubectl apply -f deploy/service_account.yaml -n ${NAMESPACE}
+# 	- kubectl apply -f deploy/role.yaml
+# 	- kubectl apply -f deploy/role_binding.yaml
+# 	@echo ....... Applying Operator .......
+# 	- kubectl apply -f deploy/operator.yaml -n ${NAMESPACE}
+# 	@echo ....... Creating the Instances .......
+# 	- kubectl apply -f deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
+# uninstall: ## Uninstall all that all performed in the $ make install, without namespace as there might be other things there
+# 	@echo ....... Uninstalling .......
+# 	@echo ....... Deleting the Instances .......
+# 	- kubectl delete -f deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml --ignore-not-found
+# 	@echo ....... Deleting Operator .......
+# 	- kubectl delete -f deploy/operator.yaml -n ${NAMESPACE}
+# 	@echo ....... Deleting CRDs .......
+# 	- kubectl delete -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml --ignore-not-found
+# 	@echo ....... Deleting RBAC .......
+# 	- kubectl delete -f deploy/role_binding.yaml --ignore-not-found
+# 	- kubectl delete -f deploy/service_account.yaml -n ${NAMESPACE} --ignore-not-found
+# 	- kubectl delete -f deploy/role.yaml --ignore-not-found
 
 ############################################################
 # work section
@@ -198,15 +207,15 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 #    eg: lint: lint-go lint-yaml
 lint: lint-all
 
-test: ## Run all tests if available
-	@go test ${TESTARGS} ./...
+test: generate fmt vet manifests   ## Run all tests if available
+	@go test ${TESTARGS} ./... -coverprofile cover.out
 
 coverage: ## Run coverage if possible
 	@common/scripts/codecov.sh ${BUILD_LOCALLY}
 
-run: ## Run against the configured Kubernetes cluster in ~/.kube/config
+run: generate fmt vet manifests  ## Run against the configured Kubernetes cluster in ~/.kube/config
 	@echo ....... Start Operator locally with go run ......
-	WATCH_NAMESPACE= go run ./cmd/manager/main.go
+	go run ./main.go
 
 ############################################################
 # install operator sdk section
@@ -276,13 +285,21 @@ csv: ## Push CSV package to the catalog
 ##@ Red Hat Certificate Section
 
 .PHONY: bundle
-bundle: ## bundle zip file for certification
-	@echo --- Updating the bundle directory with latest yamls from olm-catalog ---
-	-mkdir bundle
-	rm -rf bundle/*
-	cp -r deploy/olm-catalog/ibm-licensing-operator/${CSV_VERSION}/* bundle/
-	cp deploy/olm-catalog/ibm-licensing-operator/ibm-licensing-operator.package.yaml bundle/
-	cd bundle && zip ibm-licensing-metadata ./*.yaml && cd ..
+# bundle: ## bundle zip file for certification
+# 	@echo --- Updating the bundle directory with latest yamls from olm-catalog ---
+# 	-mkdir bundle
+# 	rm -rf bundle/*
+# 	cp -r deploy/olm-catalog/ibm-licensing-operator/${CSV_VERSION}/* bundle/
+# 	cp deploy/olm-catalog/ibm-licensing-operator/ibm-licensing-operator.package.yaml bundle/
+# 	cd bundle && zip ibm-licensing-metadata ./*.yaml && cd ..
+
+# Generate bundle manifests and metadata, then validate generated files.
+bundle: manifests
+	operator-sdk generate kustomize manifests -q
+	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	operator-sdk bundle validate ./bundle
+
+
 
 .PHONY: install-operator-courier
 install-operator-courier: ## installs courier for certification check
@@ -375,32 +392,4 @@ deploy: manifests kustomize
 
 .PHONY: all build run install uninstall code-dev check lint test coverage build multiarch-image csv clean help
 
-
-
-
-
-
-
-
-# # Run tests
-# test: generate fmt vet manifests
-# 	go test ./... -coverprofile cover.out
-
-# # Run against the configured Kubernetes cluster in ~/.kube/config
-# run: generate fmt vet manifests
-# 	go run ./main.go
-
-# # Install CRDs into a cluster
-# install: manifests kustomize
-# 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
-
-# # Uninstall CRDs from a cluster
-# uninstall: manifests kustomize
-# 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
-
-# # Generate bundle manifests and metadata, then validate generated files.
-# bundle: manifests
-# 	operator-sdk generate kustomize manifests -q
-# 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
-# 	operator-sdk bundle validate ./bundle
 
