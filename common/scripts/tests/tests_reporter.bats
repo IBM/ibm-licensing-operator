@@ -48,7 +48,7 @@ teardown() {
 }
 
 @test "Build Operator" {
-  make build
+  make manager
   [ "$?" -eq 0 ]
 }
 
@@ -76,7 +76,8 @@ teardown() {
 }
 
 @test "Run Operator in backgroud" {
-  operator-sdk run --watch-namespace ibm-common-services$SUFIX --local > operator-sdk-lsr_logs.txt 2>&1 &
+  export WATCH_NAMESPACE=bm-common-services$SUFIX
+  ./bin/manager > operator-sdk-ls_logs.txt 2>&1 &
 
   export OPERATOR_PID=$!
   [ "$OPERATOR_PID" -gt 0 ]
