@@ -120,15 +120,19 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	if res.IsRouteAPI {
 		return ctrl.NewControllerManagedBy(mgr).
-			For(&operatorv1alpha1.IBMLicensing{}).
+			For(&operatorv1alpha1.IBMLicenseServiceReporter{}).
 			Owns(&appsv1.Deployment{}).
+			Owns(&corev1.Service{}).
+			Owns(&routev1.Route{}).
 			Complete(r)
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&operatorv1alpha1.IBMLicensing{}).
+		For(&operatorv1alpha1.IBMLicenseServiceReporter{}).
 		Owns(&appsv1.Deployment{}).
+		Owns(&corev1.Service{}).
 		Complete(r)
+
 }
 
 func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLicensing, reqLogger logr.Logger) (reconcile.Result, error) {

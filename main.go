@@ -43,6 +43,9 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(operatorv1alpha1.AddToScheme(scheme))
+
+//	utilruntime.Must(routev1.AddToScheme(scheme))
+//	utilruntime.Must(servicecav1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 

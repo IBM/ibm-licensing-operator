@@ -21,11 +21,8 @@ import (
 	"reflect"
 	"time"
 
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-
 	routev1 "github.com/openshift/api/route/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/go-logr/logr"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
@@ -131,16 +128,16 @@ func (r *IBMLicenseServiceReporterReconciler) SetupWithManager(mgr ctrl.Manager)
 	if res.IsRouteAPI {
 		return ctrl.NewControllerManagedBy(mgr).
 			For(&operatorv1alpha1.IBMLicenseServiceReporter{}).
-			Watches(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForObject{}).
-			Watches(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForObject{}).
-			Watches(&source.Kind{Type: &routev1.Route{}}, &handler.EnqueueRequestForObject{}).
+			Owns(&appsv1.Deployment{}).
+			Owns(&corev1.Service{}).
+			Owns(&routev1.Route{}).
 			Complete(r)
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.IBMLicenseServiceReporter{}).
-		Watches(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForObject{}).
-		Watches(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForObject{}).
+		Owns(&appsv1.Deployment{}).
+		Owns(&corev1.Service{}).
 		Complete(r)
 
 }
