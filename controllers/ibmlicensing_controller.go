@@ -347,15 +347,11 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	// foundRes already initialized before and passed via parameter
 	err = r.Client.Get(context.TODO(), namespacedName, foundRes)
 	if err != nil {
-		reqLogger.Error(err, "ERROR STEP1")
-		reqLogger.Info(namespacedName.Namespace)
 		if errors.IsNotFound(err) {
 			reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
 				"Namespace", expectedRes.GetNamespace())
 			err = r.Client.Create(context.TODO(), expectedRes)
 			if err != nil {
-				reqLogger.Error(err, "ERROR STEP2")
-				reqLogger.Info(expectedRes.GetNamespace())
 				if !errors.IsAlreadyExists(err) {
 					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
 						"Namespace", expectedRes.GetNamespace())
