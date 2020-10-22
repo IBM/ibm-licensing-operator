@@ -45,7 +45,6 @@ var FalseVar = false
 var DefaultSecretMode int32 = 420
 var Seconds60 int64 = 60
 
-var IsReporterInstalled = false
 var IsRouteAPI = true
 var IsServiceCAAPI = true
 

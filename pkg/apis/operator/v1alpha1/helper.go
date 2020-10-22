@@ -110,10 +110,6 @@ func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
 }
 
-func (spec *IBMLicensingSpec) GetLocalReporterURL() string {
-	return localReporterURL
-}
-
 func (spec *IBMLicensingSpec) GetDefaultReporterTokenName() string {
 	return defaultReporterTokenSecretName
 }
@@ -390,4 +386,26 @@ func (container *Container) setImagePullPolicyIfNotSet() {
 	if container.ImagePullPolicy == "" {
 		container.ImagePullPolicy = corev1.PullIfNotPresent
 	}
+}
+
+func (spec *IBMLicensingSpec) SetDefaultSenderParameters() bool {
+
+	//returns true if any changes were made
+	changed := false
+
+	if spec.Sender == nil {
+		spec.Sender = &IBMLicensingSenderSpec{}
+	}
+
+	if spec.Sender.ReporterURL == "" {
+		spec.Sender.ReporterURL = localReporterURL
+		changed = true
+	}
+
+	if spec.Sender.ReporterSecretToken == "" {
+		spec.Sender.ReporterSecretToken = defaultReporterTokenSecretName
+		changed = true
+	}
+
+	return changed
 }
