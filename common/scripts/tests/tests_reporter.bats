@@ -76,7 +76,7 @@ teardown() {
 }
 
 @test "Run Operator in backgroud" {
-  export WATCH_NAMESPACE=bm-common-services$SUFIX
+  export WATCH_NAMESPACE=ibm-common-services$SUFIX
   ./bin/manager > operator-sdk-ls_logs.txt 2>&1 &
 
   export OPERATOR_PID=$!
