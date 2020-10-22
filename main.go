@@ -44,8 +44,8 @@ func init() {
 
 	utilruntime.Must(operatorv1alpha1.AddToScheme(scheme))
 
-//	utilruntime.Must(routev1.AddToScheme(scheme))
-//	utilruntime.Must(servicecav1.AddToScheme(scheme))
+	utilruntime.Must(routev1.AddToScheme(scheme))
+	utilruntime.Must(servicecav1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -93,7 +93,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Add Route resource for OpenShift clusters
+/*	// Add Route resource for OpenShift clusters
 	if err := routev1.Install(mgr.GetScheme()); err != nil {
 		setupLog.Error(err, "")
 		os.Exit(1)
@@ -104,7 +104,7 @@ func main() {
 		setupLog.Error(err, "")
 		os.Exit(1)
 	}
-
+*/
 	if err = (&controllers.IBMLicensingReconciler{
 		Client: mgr.GetClient(),
 		Reader: mgr.GetAPIReader(),
