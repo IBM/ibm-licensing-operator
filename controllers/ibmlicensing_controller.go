@@ -159,15 +159,15 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 		podStatuses = append(podStatuses, pod.Status)
 	}
 
-/*	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) {
-		reqLogger.Info("Updating IBMLicensing status")
-		instance.Status.LicensingPods = podStatuses
-		err := r.Client.Status().Update(context.TODO(), instance)
-		if err != nil {
-			reqLogger.Info("Warning: Failed to update pod status, this does not affect License Service")
+	/*	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) {
+			reqLogger.Info("Updating IBMLicensing status")
+			instance.Status.LicensingPods = podStatuses
+			err := r.Client.Status().Update(context.TODO(), instance)
+			if err != nil {
+				reqLogger.Info("Warning: Failed to update pod status, this does not affect License Service")
+			}
 		}
-	}
-*/
+	*/
 	reqLogger.Info("reconcile all done")
 	return reconcile.Result{}, nil
 }
@@ -347,13 +347,15 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	// foundRes already initialized before and passed via parameter
 	err = r.Client.Get(context.TODO(), namespacedName, foundRes)
 	if err != nil {
-		reqLogger.Error(err,"ERROR STEP1")
+		reqLogger.Error(err, "ERROR STEP1")
+		reqLogger.Info(namespacedName.Namespace)
 		if errors.IsNotFound(err) {
 			reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
 				"Namespace", expectedRes.GetNamespace())
 			err = r.Client.Create(context.TODO(), expectedRes)
 			if err != nil {
-				reqLogger.Error(err,"ERROR STEP2")
+				reqLogger.Error(err, "ERROR STEP2")
+				reqLogger.Info(expectedRes.GetNamespace())
 				if !errors.IsAlreadyExists(err) {
 					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
 						"Namespace", expectedRes.GetNamespace())
