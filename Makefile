@@ -209,7 +209,7 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 #    eg: lint: lint-go lint-yaml
 lint: lint-all
 
-test: generate fmt vet manifests   ## Run all tests if available
+test: ## Run all tests if available
 	echo ${ENVTEST_ASSETS_DIR}
 	mkdir -p ${ENVTEST_ASSETS_DIR}
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
