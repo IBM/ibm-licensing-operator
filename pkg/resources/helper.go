@@ -180,14 +180,14 @@ echo "$(date): All required secrets exist"
 	return script
 }
 
-func UpdateCache(reqLogger *logr.Logger, client c.Reader) {
+func UpdateAvailableClusterExtensions(reqLogger *logr.Logger, client c.Reader) {
 	routeTestInstance := &routev1.Route{}
 	err := client.List(context.TODO(), routeTestInstance)
 	if err == nil {
 		IsRouteAPI = true
 	} else {
 		IsRouteAPI = false
-		(*reqLogger).Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
+		(*reqLogger).Info("Route CR not found")
 	}
 
 	serviceCAInstance := &servicecav1.ServiceCA{}
@@ -196,6 +196,6 @@ func UpdateCache(reqLogger *logr.Logger, client c.Reader) {
 		IsServiceCAAPI = true
 	} else {
 		IsServiceCAAPI = false
-		(*reqLogger).Info("ServiceCA not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
+		(*reqLogger).Info("ServiceCA not found")
 	}
 }
