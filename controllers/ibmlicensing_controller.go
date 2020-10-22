@@ -159,14 +159,14 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 		podStatuses = append(podStatuses, pod.Status)
 	}
 
-		if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) {
-			reqLogger.Info("Updating IBMLicensing status")
-			instance.Status.LicensingPods = podStatuses
-			err := r.Client.Status().Update(context.TODO(), instance)
-			if err != nil {
-				reqLogger.Info("Warning: Failed to update pod status, this does not affect License Service")
-			}
+	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) {
+		reqLogger.Info("Updating IBMLicensing status")
+		instance.Status.LicensingPods = podStatuses
+		err := r.Client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			reqLogger.Info("Warning: Failed to update pod status, this does not affect License Service")
 		}
+	}
 
 	reqLogger.Info("reconcile all done")
 	return reconcile.Result{}, nil
