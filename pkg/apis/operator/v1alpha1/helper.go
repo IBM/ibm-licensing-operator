@@ -122,19 +122,19 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
 
-func (spec *IBMLicensingSpec) FillDefaultValues(isOpenshiftCluster bool) error {
+func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool) error {
 	spec.Container.setImagePullPolicyIfNotSet()
 	if spec.HTTPSCertsSource == "" {
-		if isOpenshiftCluster {
+		if isOCP4CertManager {
 			spec.HTTPSCertsSource = OcpCertsSource
 		} else {
 			spec.HTTPSCertsSource = SelfSignedCertsSource
 		}
 	}
 	if spec.RouteEnabled == nil {
-		spec.RouteEnabled = &isOpenshiftCluster
+		spec.RouteEnabled = &isRouteEnabled
 	}
-	isNotOnOpenshiftCluster := !isOpenshiftCluster
+	isNotOnOpenshiftCluster := !isRouteEnabled
 	if spec.IngressEnabled == nil {
 		spec.IngressEnabled = &isNotOnOpenshiftCluster
 	}

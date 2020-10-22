@@ -23,9 +23,10 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
-
 	"github.com/go-logr/logr"
+	"github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
+	servicecav1 "github.com/openshift/api/operator/v1"
+	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -45,6 +46,8 @@ var DefaultSecretMode int32 = 420
 var Seconds60 int64 = 60
 
 var IsReporterInstalled = false
+var IsRouteAPI = true
+var IsServiceCAAPI = true
 
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"
@@ -122,8 +125,8 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 	return expectedSecret, nil
 }
 
-func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isHTTPS bool, isOpenShift bool, certName string) map[string]string {
-	if isOpenShift && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
+func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isHTTPS bool, certName string) map[string]string {
+	if IsServiceCAAPI && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
 		return map[string]string{ocpCertSecretNameTag: certName}
 	}
 	return map[string]string{}
@@ -175,4 +178,24 @@ done
 echo "$(date): All required secrets exist"
 `
 	return script
+}
+
+func UpdateAvailableClusterExtensions(reqLogger *logr.Logger, client c.Reader) {
+	routeTestInstance := &routev1.Route{}
+	err := client.List(context.TODO(), routeTestInstance)
+	if err == nil {
+		IsRouteAPI = true
+	} else {
+		IsRouteAPI = false
+		(*reqLogger).Info("Route CR not found")
+	}
+
+	serviceCAInstance := &servicecav1.ServiceCA{}
+	err = client.List(context.TODO(), serviceCAInstance)
+	if err == nil {
+		IsServiceCAAPI = true
+	} else {
+		IsServiceCAAPI = false
+		(*reqLogger).Info("ServiceCA not found")
+	}
 }

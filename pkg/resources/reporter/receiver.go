@@ -23,10 +23,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func GetLicenseReporterInitContainers(instance *operatorv1alpha1.IBMLicenseServiceReporter, isOpenShift bool) []corev1.Container {
+func GetLicenseReporterInitContainers(instance *operatorv1alpha1.IBMLicenseServiceReporter) []corev1.Container {
 	containers := []corev1.Container{}
-	if isOpenShift && instance.Spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
-		baseContainer := GetReceiverContainer(instance, isOpenShift)
+	if res.IsServiceCAAPI && instance.Spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
+		baseContainer := GetReceiverContainer(instance)
 		baseContainer.LivenessProbe = nil
 		baseContainer.ReadinessProbe = nil
 		ocpSecretCheckContainer := corev1.Container{}
@@ -55,7 +55,7 @@ func getReceiverProbeHandler() corev1.Handler {
 	}
 }
 
-func GetReceiverContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter, isOpenShift bool) corev1.Container {
+func GetReceiverContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
 	container := res.GetContainerBase(instance.Spec.ReceiverContainer)
 	container.Env = []corev1.EnvVar{
 		{
@@ -64,7 +64,7 @@ func GetReceiverContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter, 
 		},
 	}
 	container.EnvFrom = getDatabaseEnvFromSourceVariables()
-	container.VolumeMounts = getVolumeMounts(instance.Spec, isOpenShift)
+	container.VolumeMounts = getVolumeMounts(instance.Spec)
 	container.Name = ReceiverContainerName
 	container.Ports = []corev1.ContainerPort{
 		{

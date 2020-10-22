@@ -32,7 +32,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -47,8 +46,7 @@ import (
 )
 
 var (
-	log                = logf.Log.WithName("controller_ibmlicensing")
-	isOpenshiftCluster = true
+	log = logf.Log.WithName("controller_ibmlicensing")
 )
 
 type reconcileFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
@@ -61,12 +59,14 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileIBMLicensing{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &ReconcileIBMLicensing{client: mgr.GetClient(), reader: mgr.GetAPIReader(), scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
+	reqLogger := log.WithValues("add", "Entry")
+
 	c, err := controller.New("ibmlicensing-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
@@ -87,14 +87,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	routeTestInstance := &routev1.Route{}
-	err = mgr.GetClient().Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
-	if err != nil && metaErrors.IsNoMatchError(err) {
-		log.Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
-		isOpenshiftCluster = false
-	}
+	res.UpdateAvailableClusterExtensions(&reqLogger, mgr.GetAPIReader())
 
-	if isOpenshiftCluster {
+	if res.IsRouteAPI {
 		// Watch for changes to openshift resources if on OC
 		err = res.WatchForResources(log, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
 			&routev1.Route{},
@@ -116,6 +111,7 @@ type ReconcileIBMLicensing struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client client.Client
+	reader client.Reader
 	scheme *runtime.Scheme
 }
 
@@ -149,8 +145,9 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	if err != nil {
 		log.Error(err, "Can not update version in CR")
 	}
+	res.UpdateAvailableClusterExtensions(&reqLogger, r.reader)
 
-	err = instance.Spec.FillDefaultValues(isOpenshiftCluster)
+	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -166,25 +163,13 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 		r.reconcileService,
 		r.reconcileDeployment,
 		r.reconcileIngress,
+		r.reconcileRoute,
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
 		recResult, err = reconcileFunction.(reconcileFunctionType)(instance)
 		if err != nil || recResult.Requeue {
 			return recResult, err
-		}
-	}
-
-	if isOpenshiftCluster {
-		reconcileOpenShiftFunctions := []interface{}{
-			r.reconcileRoute,
-		}
-
-		for _, reconcileFunction := range reconcileOpenShiftFunctions {
-			recResult, err = reconcileFunction.(reconcileFunctionType)(instance)
-			if err != nil || recResult.Requeue {
-				return recResult, err
-			}
 		}
 	}
 
@@ -277,7 +262,7 @@ func (r *ReconcileIBMLicensing) reconcileUploadConfigMap(instance *operatorv1alp
 
 func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := log.WithValues("reconcileService", "Entry", "instance.GetName()", instance.GetName())
-	expectedService := service.GetLicensingService(instance, isOpenshiftCluster)
+	expectedService := service.GetLicensingService(instance)
 	foundService := &corev1.Service{}
 	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedService, foundService)
 	if err != nil || reconcileResult.Requeue {
@@ -288,7 +273,7 @@ func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBML
 
 func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
-	expectedDeployment := service.GetLicensingDeployment(instance, isOpenshiftCluster)
+	expectedDeployment := service.GetLicensingDeployment(instance)
 
 	foundDeployment := &appsv1.Deployment{}
 	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedDeployment, foundDeployment)
@@ -309,7 +294,7 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 }
 
 func (r *ReconcileIBMLicensing) reconcileRoute(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	if instance.Spec.IsRouteEnabled() {
+	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
 		expectedRoute := service.GetLicensingRoute(instance)
 		foundRoute := &routev1.Route{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)

@@ -21,18 +21,17 @@ import (
 	"reflect"
 	"time"
 
-	extensionsv1 "k8s.io/api/extensions/v1beta1"
+	routev1 "github.com/openshift/api/route/v1"
 
 	"github.com/go-logr/logr"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
 	"github.com/ibm/ibm-licensing-operator/pkg/resources/reporter"
-	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extensionsv1 "k8s.io/api/extensions/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -47,7 +46,6 @@ import (
 )
 
 var log = logf.Log.WithName("controller_ibmlicenseservicereporter")
-var isOpenshiftCluster = true
 
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
@@ -67,6 +65,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
+	reqLogger := log.WithValues("add", "Entry")
 	// Create a new controller
 	c, err := controller.New("ibmlicenseservicereporter-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -87,15 +86,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
+	res.UpdateAvailableClusterExtensions(&reqLogger, mgr.GetAPIReader())
 
-	routeTestInstance := &routev1.Route{}
-	err = mgr.GetClient().Get(context.TODO(), types.NamespacedName{}, routeTestInstance)
-	if err != nil && metaErrors.IsNoMatchError(err) {
-		log.Info("Route CR not found, assuming not on OpenShift Cluster, restart operator if this is wrong")
-		isOpenshiftCluster = false
-	}
-
-	if isOpenshiftCluster {
+	if res.IsRouteAPI {
 		// Watch for changes to openshift resources if on OC
 		err = res.WatchForResources(log, &operatorv1alpha1.IBMLicenseServiceReporter{}, c, []res.ResourceObject{
 			&routev1.Route{},
@@ -173,6 +166,8 @@ func (r *ReconcileIBMLicenseServiceReporter) Reconcile(request reconcile.Request
 	if err != nil {
 		log.Error(err, "Can not update version in CR")
 	}
+
+	res.UpdateAvailableClusterExtensions(&reqLogger, r.reader)
 
 	err = instance.Spec.FillDefaultValues(reqLogger, r.reader)
 	if err != nil {
@@ -331,7 +326,7 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileAPISecretToken(instance *o
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileService(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
 	reqLogger := log.WithValues("reconcileService", "Entry", "instance.GetName()", instance.GetName())
-	expectedService := reporter.GetService(instance, isOpenshiftCluster)
+	expectedService := reporter.GetService(instance)
 	foundService := &corev1.Service{}
 	namespacedName := types.NamespacedName{Name: expectedService.GetName(), Namespace: expectedService.GetNamespace()}
 	reconcileResult, err := r.reconcileResourceExistence(instance, expectedService, foundService, namespacedName)
@@ -343,7 +338,7 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileService(instance *operator
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
 	reqLogger := log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
-	expectedDeployment := reporter.GetDeployment(instance, isOpenshiftCluster)
+	expectedDeployment := reporter.GetDeployment(instance)
 	foundDeployment := &appsv1.Deployment{}
 	namespacedName := types.NamespacedName{Name: expectedDeployment.GetName(), Namespace: expectedDeployment.GetNamespace()}
 	reconcileResult, err := r.reconcileResourceExistence(instance, expectedDeployment, foundDeployment, namespacedName)

@@ -25,13 +25,14 @@ import (
 	"runtime"
 	"time"
 
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"k8s.io/client-go/rest"
-
 	"github.com/ibm/ibm-licensing-operator/pkg/apis"
 	"github.com/ibm/ibm-licensing-operator/pkg/controller"
 	"github.com/ibm/ibm-licensing-operator/version"
+	servicecav1 "github.com/openshift/api/operator/v1"
+
+	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/rest"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
@@ -135,6 +136,12 @@ func main() {
 
 	// Add Route resource for OpenShift clusters
 	if err := routev1.Install(mgr.GetScheme()); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	// Add ServiceCA resource for OpenShift clusters
+	if err := servicecav1.Install(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}

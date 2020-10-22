@@ -161,10 +161,10 @@ echo "$(date): All required secrets exist"
 	return script
 }
 
-func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec, isOpenShift bool) []corev1.Container {
+func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Container {
 	containers := []corev1.Container{}
 	if spec.IsMetering() {
-		baseContainer := getLicensingContainerBase(spec, isOpenShift)
+		baseContainer := getLicensingContainerBase(spec)
 		meteringSecretCheckContainer := corev1.Container{}
 		baseContainer.DeepCopyInto(&meteringSecretCheckContainer)
 		meteringSecretCheckContainer.Name = "metering-check-secret"
@@ -175,8 +175,8 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec, isOpenSh
 		}
 		containers = append(containers, meteringSecretCheckContainer)
 	}
-	if isOpenShift && spec.HTTPSEnable && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
-		baseContainer := getLicensingContainerBase(spec, isOpenShift)
+	if res.IsServiceCAAPI && spec.HTTPSEnable && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
+		baseContainer := getLicensingContainerBase(spec)
 		ocpSecretCheckContainer := corev1.Container{}
 
 		baseContainer.DeepCopyInto(&ocpSecretCheckContainer)
@@ -191,12 +191,12 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec, isOpenSh
 	return containers
 }
 
-func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec, isOpenShift bool) corev1.Container {
+func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
 	container := res.GetContainerBase(spec.Container)
 	if spec.SecurityContext != nil {
 		container.SecurityContext.RunAsUser = &spec.SecurityContext.RunAsUser
 	}
-	container.VolumeMounts = getLicensingVolumeMounts(spec, isOpenShift)
+	container.VolumeMounts = getLicensingVolumeMounts(spec)
 	container.Env = getLicensingEnvironmentVariables(spec)
 	container.Ports = []corev1.ContainerPort{
 		{
@@ -207,8 +207,8 @@ func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec, isOpenShi
 	return container
 }
 
-func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec, isOpenShift bool) corev1.Container {
-	container := getLicensingContainerBase(spec, isOpenShift)
+func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
+	container := getLicensingContainerBase(spec)
 	probeHandler := getProbeHandler(spec)
 	container.Name = "license-service"
 	container.LivenessProbe = res.GetLivenessProbe(probeHandler)
