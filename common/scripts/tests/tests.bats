@@ -155,7 +155,7 @@ EOF
     sleep $retries_wait
     retries=$((retries - 1))
   done
-  kubectl get IBMLicensing instance$SUFIX &>> k8s.txt || true
+  kubectl describe IBMLicensing instance$SUFIX &>> k8s.txt || true
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   [[ $new_ibmlicensing_phase == "Running" ]]
 }
