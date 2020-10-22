@@ -40,9 +40,9 @@ jobs:
     - name: Build
       run: |
         make build
-        curl -Lo ./operator-sdk "https://github.com/operator-framework/operator-sdk/releases/download/v0.19.2/operator-sdk-v0.19.2-x86_64-linux-gnu"
-        curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.9.0/kind-$(uname)-amd64"
+        curl -Lo ./operator-sdk "https://github.com/operator-framework/operator-sdk/releases/download/v1.1.0/operator-sdk-v1.1.0-x86_64-linux-gnu"
         chmod +x ./operator-sdk
+        curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.9.0/kind-$(uname)-amd64"
         chmod +x ./kind
         ./kind create cluster --image kindest/node:v1.17.2
         ./kind get clusters
@@ -100,7 +100,7 @@ jobs:
       env:
         JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
       run: |
-        curl -Lo ./operator-sdk "https://github.com/operator-framework/operator-sdk/releases/download/v0.19.2/operator-sdk-v0.19.2-x86_64-linux-gnu"
+        curl -Lo ./operator-sdk "https://github.com/operator-framework/operator-sdk/releases/download/v1.1.0/operator-sdk-v1.1.0-x86_64-linux-gnu"
         chmod +x ./operator-sdk
         wget https://github.com/kubernetes-sigs/kind/releases/download/v0.8.0/kind-linux-amd64
         mv ./kind-linux-amd64 ./kind

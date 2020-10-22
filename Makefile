@@ -379,7 +379,7 @@ CONTROLLER_GEN=$(shell which controller-gen)
 endif
 
 # Build manager binary
-manager: generate fmt vet
+manager:
 	go build -o bin/manager main.go
 
 # Generate manifests e.g. CRD, RBAC etc.
