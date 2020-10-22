@@ -120,7 +120,7 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	if res.IsRouteAPI {
 		return ctrl.NewControllerManagedBy(mgr).
-			For(&operatorv1alpha1.IBMLicenseServiceReporter{}).
+			For(&operatorv1alpha1.IBMLicensing{}).
 			Owns(&appsv1.Deployment{}).
 //			Owns(&corev1.Service{}).
 //			Owns(&routev1.Route{}).
@@ -128,7 +128,7 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&operatorv1alpha1.IBMLicenseServiceReporter{}).
+		For(&operatorv1alpha1.IBMLicensing{}).
 		Owns(&appsv1.Deployment{}).
 //		Owns(&corev1.Service{}).
 		Complete(r)
