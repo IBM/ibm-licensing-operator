@@ -17,7 +17,7 @@
 # Override this variable in CI env.
 
 # Current Operator version
-VERSION ?= 0.0.1
+VERSION ?= 1.3.0
 # Default bundle image tag
 BUNDLE_IMG ?= controller-bundle:$(VERSION)
 # Options for 'bundle-build'
@@ -36,6 +36,8 @@ CRD_OPTIONS ?= "crd:trivialVersions=true"
 # Override this variable in CI env.
 BUILD_LOCALLY ?= 1
 
+ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
+export KUBEBUILDER_ASSETS=${ENVTEST_ASSETS_DIR}/bin
 # Image URL to use all building/pushing image targets;
 # Use your own docker registry and image name for dev/test by overriding the IMG, REGISTRY and CSV_VERSION environment variable.
 IMG ?= ibm-licensing-operator
@@ -208,7 +210,11 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 lint: lint-all
 
 test: generate fmt vet manifests   ## Run all tests if available
-	@go test ${TESTARGS} ./... -coverprofile cover.out
+	echo ${ENVTEST_ASSETS_DIR}
+	mkdir -p ${ENVTEST_ASSETS_DIR}
+	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
+	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR);  go test ./controllers/... -coverprofile cover.out
+
 
 coverage: ## Run coverage if possible
 	@common/scripts/codecov.sh ${BUILD_LOCALLY}
@@ -238,7 +244,7 @@ endif
 
 build:
 	@echo "Building the $(IMAGE_NAME) binary for $(LOCAL_ARCH)..."
-	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh build/_output/bin/$(IMAGE_NAME) ./cmd/manager
+	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh build/_output/bin/$(IMAGE_NAME) ./main.go
 	@strip $(STRIP_FLAGS) build/_output/bin/$(IMAGE_NAME)
 
 build-push-image: build-image push-image
@@ -391,5 +397,4 @@ deploy: manifests kustomize
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 .PHONY: all build run install uninstall code-dev check lint test coverage build multiarch-image csv clean help
-
 

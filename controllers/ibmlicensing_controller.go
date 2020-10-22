@@ -100,36 +100,14 @@ func (r *IBMLicensingReconciler) Reconcile(request ctrl.Request) (ctrl.Result, e
 		r.reconcileUploadConfigMap,
 		r.reconcileService,
 		r.reconcileDeployment,
+		r.reconcileIngress,
+		r.reconcileRoute,
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
 		recResult, err = reconcileFunction.(reconcileLSFunctionType)(instance)
 		if err != nil || recResult.Requeue {
 			return recResult, err
-		}
-	}
-
-	if res.IsRouteAPI {
-		reconcileOpenShiftFunctions := []interface{}{
-			r.reconcileRoute,
-		}
-
-		for _, reconcileFunction := range reconcileOpenShiftFunctions {
-			recResult, err = reconcileFunction.(reconcileLSFunctionType)(instance)
-			if err != nil || recResult.Requeue {
-				return recResult, err
-			}
-		}
-	} else {
-		reconcileOpenShiftFunctions := []interface{}{
-			r.reconcileIngress,
-		}
-
-		for _, reconcileFunction := range reconcileOpenShiftFunctions {
-			recResult, err = reconcileFunction.(reconcileLSFunctionType)(instance)
-			if err != nil || recResult.Requeue {
-				return recResult, err
-			}
 		}
 	}
 
@@ -277,7 +255,7 @@ func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.
 }
 
 func (r *IBMLicensingReconciler) reconcileRoute(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	if instance.Spec.IsRouteEnabled() {
+	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
 		expectedRoute := service.GetLicensingRoute(instance)
 		foundRoute := &routev1.Route{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
