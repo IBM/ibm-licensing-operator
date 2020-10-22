@@ -22,11 +22,8 @@ import (
 	"reflect"
 	"time"
 
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-
 	"github.com/go-logr/logr"
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	res "github.com/ibm/ibm-licensing-operator/controllers/resources"
@@ -124,17 +121,13 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if res.IsRouteAPI {
 		return ctrl.NewControllerManagedBy(mgr).
 			For(&operatorv1alpha1.IBMLicensing{}).
-			Watches(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForObject{}).
-			Watches(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForObject{}).
-			Watches(&source.Kind{Type: &routev1.Route{}}, &handler.EnqueueRequestForObject{}).
-			Watches(&source.Kind{Type: &operatorv1alpha1.IBMLicenseServiceReporter{}}, &handler.EnqueueRequestForObject{}).
+			Owns(&appsv1.Deployment{}).
 			Complete(r)
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.IBMLicensing{}).
-		Watches(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForObject{}).
-		Watches(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForObject{}).
+		Owns(&appsv1.Deployment{}).
 		Complete(r)
 }
 
@@ -166,7 +159,7 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 		podStatuses = append(podStatuses, pod.Status)
 	}
 
-	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) {
+/*	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) {
 		reqLogger.Info("Updating IBMLicensing status")
 		instance.Status.LicensingPods = podStatuses
 		err := r.Client.Status().Update(context.TODO(), instance)
@@ -174,7 +167,7 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 			reqLogger.Info("Warning: Failed to update pod status, this does not affect License Service")
 		}
 	}
-
+*/
 	reqLogger.Info("reconcile all done")
 	return reconcile.Result{}, nil
 }
@@ -354,11 +347,13 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	// foundRes already initialized before and passed via parameter
 	err = r.Client.Get(context.TODO(), namespacedName, foundRes)
 	if err != nil {
+		reqLogger.Error(err,"ERROR STEP1")
 		if errors.IsNotFound(err) {
 			reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
 				"Namespace", expectedRes.GetNamespace())
 			err = r.Client.Create(context.TODO(), expectedRes)
 			if err != nil {
+				reqLogger.Error(err,"ERROR STEP2")
 				if !errors.IsAlreadyExists(err) {
 					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
 						"Namespace", expectedRes.GetNamespace())
