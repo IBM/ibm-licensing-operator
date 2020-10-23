@@ -122,15 +122,15 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return ctrl.NewControllerManagedBy(mgr).
 			For(&operatorv1alpha1.IBMLicensing{}).
 			Owns(&appsv1.Deployment{}).
-//			Owns(&corev1.Service{}).
-//			Owns(&routev1.Route{}).
+			Owns(&corev1.Service{}).
+			Owns(&routev1.Route{}).
 			Complete(r)
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.IBMLicensing{}).
 		Owns(&appsv1.Deployment{}).
-//		Owns(&corev1.Service{}).
+		Owns(&corev1.Service{}).
 		Complete(r)
 
 }
