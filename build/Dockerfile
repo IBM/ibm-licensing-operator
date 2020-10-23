@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.2-267
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.2-349
 
 ARG IMAGE_NAME
 ARG IMAGE_DISPLAY_NAME
@@ -50,7 +50,8 @@ LABEL org.label-schema.vendor="$IMAGE_VENDOR" \
 ENV OPERATOR=/usr/local/bin/ibm-licensing-operator \
   DEPLOY_DIR=/deploy \
   USER_UID=1001 \
-  USER_NAME=ibm-licensing-operator
+  USER_NAME=ibm-licensing-operator \
+  IMAGE_RELEASE="$IMAGE_RELEASE"
 
 # install operator binary
 COPY build/_output/bin/ibm-licensing-operator ${OPERATOR}
@@ -62,6 +63,9 @@ RUN  /usr/local/bin/user_setup
 # copy licenses
 RUN mkdir /licenses
 COPY LICENSE /licenses
+
+# add commit image release
+RUN  echo "$IMAGE_RELEASE" > /IMAGE_RELEASE
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
 

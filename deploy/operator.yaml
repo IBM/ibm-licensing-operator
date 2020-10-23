@@ -21,7 +21,6 @@ spec:
       annotations:
         productName: IBM Cloud Platform Common Services
         productID: "068a62892a1e4db39641342e592daa25"
-        productVersion: "3.4.0"
         productMetric: FREE
     spec:
       serviceAccountName: ibm-licensing-operator
@@ -34,19 +33,28 @@ spec:
                     operator: In
                     values:
                       - amd64
+                      - ppc64le
+                      - s390x
       hostIPC: false
       hostNetwork: false
       hostPID: false
       containers:
         - name: ibm-licensing-operator
-          image: quay.io/opencloudio/ibm-licensing-operator:1.1.0
+          image: quay.io/opencloudio/ibm-licensing-operator@sha256:d58b20ca0e7a14400656717837e86d9fe1cad52c5695b9fd8d4ef21caf60825b
           command:
             - ibm-licensing-operator
           imagePullPolicy: Always
           env:
             - name: OPERAND_LICENSING_IMAGE
-              value: quay.io/opencloudio/ibm-licensing:1.1.0
+              value: quay.io/opencloudio/ibm-licensing@sha256:9a709edfa816072e8abeb80dbd23a58a4853c73a961fa85d49dc84965bba7013
+            - name: OPERAND_REPORTER_UI_IMAGE
+              value: quay.io/opencloudio/ibm-license-service-reporter-ui@sha256:a70b0a57524f095269f7e13481bc734b33e5393b048b31c67ed63d28d367bf66
+            - name: OPERAND_REPORTER_DATABASE_IMAGE
+              value: quay.io/opencloudio/ibm-postgresql@sha256:397eca770b9526bbedfc1a30cbc1f60f2aefdc3366ae917688bbfa190d861440
+            - name: OPERAND_REPORTER_RECEIVER_IMAGE
+              value: quay.io/opencloudio/ibm-license-service-reporter@sha256:a1d1bff537c95a781ac8a95bef6f7fdebd24452c95f49eaf61648faba818e747
             - name: WATCH_NAMESPACE
+              value: ibm-common-services
             - name: POD_NAME
               valueFrom:
                 fieldRef:
@@ -60,10 +68,10 @@ spec:
           resources:
             limits:
               cpu: 20m
-              memory: 200Mi
+              memory: 150Mi
             requests:
               cpu: 10m
-              memory: 100Mi
+              memory: 50Mi
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

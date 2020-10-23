@@ -8,9 +8,9 @@ metadata:
     app.kubernetes.io/name: "ibm-licensing"
 spec:
   additionalPrinterColumns:
-  - JSONPath: .status..phase
-    name: Pod Phase
-    type: string
+    - JSONPath: .status..phase
+      name: Pod Phase
+      type: string
   group: operator.ibm.com
   names:
     kind: IBMLicensing
@@ -43,26 +43,28 @@ spec:
               description: Secret name used to store application token, either one
                 that exists, or one that will be created, for now only one value possible
               enum:
-              - ibm-licensing-token
+                - ibm-licensing-token
               type: string
             datasource:
               description: 'Where should data be collected, options: metering, datacollector'
               enum:
-              - metering
-              - datacollector
+                - metering
+                - datacollector
               type: string
             httpsCertsSource:
               description: 'options: self-signed or custom'
               enum:
-              - self-signed
-              - custom
+                - self-signed
+                - custom
               type: string
             httpsEnable:
               description: Enables https access at pod level, httpsCertsSource needed
                 if true
               type: boolean
             imageName:
-              description: deprecated, define image in operator.yaml
+              description: IBM Licensing Service docker Image Name, will override
+                default value and disable OPERAND_LICENSING_IMAGE env value in operator
+                deployment
               type: string
             imagePullSecrets:
               description: Array of pull secrets which should include existing at
@@ -71,10 +73,14 @@ spec:
                 type: string
               type: array
             imageRegistry:
-              description: deprecated, define image in operator.yaml
+              description: IBM Licensing Service docker Image Registry, will override
+                default value and disable OPERAND_LICENSING_IMAGE env value in operator
+                deployment
               type: string
             imageTagPostfix:
-              description: deprecated, define image in operator.yaml
+              description: IBM Licensing Service docker Image Tag or Digest, will
+                override default value and disable OPERAND_LICENSING_IMAGE env value
+                in operator deployment
               type: string
             ingressEnabled:
               description: Should Ingress be created to expose IBM Licensing Service
@@ -130,8 +136,8 @@ spec:
               description: 'Should application pod show additional information, options:
                 DEBUG, INFO'
               enum:
-              - DEBUG
-              - INFO
+                - DEBUG
+                - INFO
               type: string
             routeEnabled:
               description: Should Route be created to expose IBM Licensing Service
@@ -177,7 +183,7 @@ spec:
                       description: termination indicates termination type.
                       type: string
                   required:
-                  - termination
+                    - termination
                   type: object
               type: object
             securityContext:
@@ -188,12 +194,12 @@ spec:
                   format: int64
                   type: integer
               required:
-              - runAsUser
+                - runAsUser
               type: object
           required:
-          - datasource
-          - httpsEnable
-          - instanceNamespace
+            - datasource
+            - httpsEnable
+            - instanceNamespace
           type: object
         status:
           description: IBMLicensingStatus defines the observed state of IBMLicensing
@@ -237,8 +243,8 @@ spec:
                             https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-conditions'
                           type: string
                       required:
-                      - status
-                      - type
+                        - status
+                        - type
                       type: object
                     type: array
                   containerStatuses:
@@ -308,7 +314,7 @@ spec:
                                   format: date-time
                                   type: string
                               required:
-                              - exitCode
+                                - exitCode
                               type: object
                             waiting:
                               description: Details about a waiting container
@@ -394,7 +400,7 @@ spec:
                                   format: date-time
                                   type: string
                               required:
-                              - exitCode
+                                - exitCode
                               type: object
                             waiting:
                               description: Details about a waiting container
@@ -410,11 +416,11 @@ spec:
                               type: object
                           type: object
                       required:
-                      - image
-                      - imageID
-                      - name
-                      - ready
-                      - restartCount
+                        - image
+                        - imageID
+                        - name
+                        - ready
+                        - restartCount
                       type: object
                     type: array
                   ephemeralContainerStatuses:
@@ -484,7 +490,7 @@ spec:
                                   format: date-time
                                   type: string
                               required:
-                              - exitCode
+                                - exitCode
                               type: object
                             waiting:
                               description: Details about a waiting container
@@ -570,7 +576,7 @@ spec:
                                   format: date-time
                                   type: string
                               required:
-                              - exitCode
+                                - exitCode
                               type: object
                             waiting:
                               description: Details about a waiting container
@@ -586,11 +592,11 @@ spec:
                               type: object
                           type: object
                       required:
-                      - image
-                      - imageID
-                      - name
-                      - ready
-                      - restartCount
+                        - image
+                        - imageID
+                        - name
+                        - ready
+                        - restartCount
                       type: object
                     type: array
                   hostIP:
@@ -665,7 +671,7 @@ spec:
                                   format: date-time
                                   type: string
                               required:
-                              - exitCode
+                                - exitCode
                               type: object
                             waiting:
                               description: Details about a waiting container
@@ -751,7 +757,7 @@ spec:
                                   format: date-time
                                   type: string
                               required:
-                              - exitCode
+                                - exitCode
                               type: object
                             waiting:
                               description: Details about a waiting container
@@ -767,11 +773,11 @@ spec:
                               type: object
                           type: object
                       required:
-                      - image
-                      - imageID
-                      - name
-                      - ready
-                      - restartCount
+                        - image
+                        - imageID
+                        - name
+                        - ready
+                        - restartCount
                       type: object
                     type: array
                   message:
@@ -848,11 +854,11 @@ spec:
                 type: object
               type: array
           required:
-          - licensingPods
+            - licensingPods
           type: object
       type: object
   version: v1alpha1
   versions:
-  - name: v1alpha1
-    served: true
-    storage: true
+    - name: v1alpha1
+      served: true
+      storage: true
