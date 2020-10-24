@@ -1,0 +1,48 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - operator.ibm.com
+  resources:
+  - ibmlicenseservicereporters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operator.ibm.com
+  resources:
+  - ibmlicenseservicereporters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - operator.ibm.com
+  resources:
+  - ibmlicensings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operator.ibm.com
+  resources:
+  - ibmlicensings/status
+  verbs:
+  - get
+  - patch
+  - update
