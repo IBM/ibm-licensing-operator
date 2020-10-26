@@ -152,6 +152,7 @@ func (r *ReconcileIBMLicenseServiceReporter) Reconcile(request reconcile.Request
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
 			// reqLogger.Info("IBMLicenseServiceReporter resource not found. Ignoring since object must be deleted")
+			reporter.ClearDefaultSenderConfiguration(r.client, log)
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
@@ -379,30 +380,7 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileIngressProxy(instance *ope
 }
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileSenderConfiguration(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
-	licensingList := &operatorv1alpha1.IBMLicensingList{}
-	reqLogger := log.WithName("reconcileSenderConfiguration")
-
-	err := r.client.List(context.TODO(), licensingList)
-	if err != nil {
-		reqLogger.Error(err, "Failed to get IBMLicensing resource")
-		return reconcile.Result{}, err
-	}
-	if len(licensingList.Items) == 0 {
-		reqLogger.Info("License Service not installed")
-		return reconcile.Result{}, nil
-	}
-
-	for _, lic := range licensingList.Items {
-		if lic.Spec.SetDefaultSenderParameters() {
-			err := r.client.Update(context.TODO(), &lic)
-			if err != nil {
-				reqLogger.Error(err, "Failed to configure sender for: ", lic.Name)
-				return reconcile.Result{}, err
-			}
-			reqLogger.Info("Successfully configured sender for ", lic.Name)
-		}
-	}
-	return reconcile.Result{}, nil
+	return reconcile.Result{}, reporter.AddSenderConfiguration(r.client, log)
 }
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileResourceExistence(

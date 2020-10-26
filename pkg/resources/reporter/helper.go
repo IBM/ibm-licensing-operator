@@ -18,7 +18,7 @@ package reporter
 
 import (
 	"context"
-
+	"github.com/go-logr/logr"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	"github.com/ibm/ibm-licensing-operator/version"
 	corev1 "k8s.io/api/core/v1"
@@ -88,4 +88,57 @@ func UpdateVersion(client client.Client, instance *operatorv1alpha1.IBMLicenseSe
 		return client.Update(context.TODO(), instance)
 	}
 	return nil
+}
+
+func AddSenderConfiguration(client client.Client, log logr.Logger) error {
+	licensingList := &operatorv1alpha1.IBMLicensingList{}
+	reqLogger := log.WithName("reconcileSenderConfiguration")
+
+	err := client.List(context.TODO(), licensingList)
+	if err != nil {
+		reqLogger.Error(err, "Failed to get IBMLicensing resource")
+		return err
+	}
+	if len(licensingList.Items) == 0 {
+		reqLogger.Info("License Service not installed")
+		return nil
+	}
+
+	for _, lic := range licensingList.Items {
+		if lic.Spec.SetDefaultSenderParameters() {
+			err := client.Update(context.TODO(), &lic)
+			if err != nil {
+				reqLogger.Error(err, "Failed to configure sender for: ", lic.Name)
+				return err
+			}
+			reqLogger.Info("Successfully configured sender for ", lic.Name)
+		}
+	}
+	return nil
+}
+
+func ClearDefaultSenderConfiguration(client client.Client, log logr.Logger) {
+	licensingList := &operatorv1alpha1.IBMLicensingList{}
+	reqLogger := log.WithName("reconcileSenderConfiguration")
+
+	err := client.List(context.TODO(), licensingList)
+	if err != nil {
+		reqLogger.Error(err, "Failed to get IBMLicensing resource")
+		return
+	}
+	if len(licensingList.Items) == 0 {
+		reqLogger.Info("License Service not installed")
+		return
+	}
+
+	for _, lic := range licensingList.Items {
+		if lic.Spec.RemoveDefaultSenderParameters() {
+			err := client.Update(context.TODO(), &lic)
+			if err != nil {
+				reqLogger.Error(err, "Failed to removed sender for: ", lic.Name)
+				return
+			}
+			reqLogger.Info("Successfully removed sender for ", lic.Name)
+		}
+	}
 }
