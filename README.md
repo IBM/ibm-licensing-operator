@@ -5,8 +5,9 @@
 [![Code Coverage](https://codecov.io/gh/IBM/ibm-licensing-operator/branch/master/graphs/badge.svg?branch=master)](https://codecov.io/gh/IBM/ibm-licensing-operator?branch=master)
 
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
+
 * [License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)](#ibm-licensing-operator)
-* [License Service without an IBM Cloud Pak](#ibm-licensing-operator-for-stand-alone-ibm-containerized-software)
+* [License Service without an IBM Cloud Pak](#ibm-licensing-operator-for-deploying-license-service-without-an-ibm-cloud-pak)
 
 # ibm-licensing-operator
 
@@ -20,7 +21,9 @@ For more information about the available IBM Cloud Platform Common Services, see
 
 ## Supported platforms
 
-Red Hat OpenShift Container Platform 4.2 or newer installed on Linux x86_64, Linux on Power (ppc64le), Linux on IBM Z and LinuxONE
+Red Hat OpenShift Container Platform 4.2 or newer installed on Linux x86_64, Linux on Power (ppc64le), Linux on IBM Z and LinuxONE.
+
+> **Note:** On Red Hat OpenShift Container Platform 4.2
 
 ## Operator versions
 
@@ -50,7 +53,7 @@ For more information about the OpenShift Container Platform Security Context Con
 
 # ibm-licensing-operator for deploying License Service without an IBM Cloud Pak
 
-<!--- This documentation is linked under the following short link: https://ibm.biz/license_service4certified_containers. If content is moved update the link through the: Hybrid Cloud ID Team
+<!--- This documentation is linked under the following short link: https://ibm.biz/license_service4containers. If content is moved update the link through the: Hybrid Cloud ID Team
 --->
 
 <b>Scenario: Learn how to deploy License Service on Kubernetes clusters witout an IBM CLoud Pak</b>
