@@ -18,6 +18,7 @@ package reporter
 
 import (
 	"context"
+
 	"github.com/go-logr/logr"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	"github.com/ibm/ibm-licensing-operator/version"
@@ -105,13 +106,14 @@ func AddSenderConfiguration(client client.Client, log logr.Logger) error {
 	}
 
 	for _, lic := range licensingList.Items {
-		if lic.Spec.SetDefaultSenderParameters() {
-			err := client.Update(context.TODO(), &lic)
+		licensing := lic
+		if licensing.Spec.SetDefaultSenderParameters() {
+			err := client.Update(context.TODO(), &licensing)
 			if err != nil {
-				reqLogger.Error(err, "Failed to configure sender for: ", lic.Name)
+				reqLogger.Error(err, "Failed to configure sender for: ", licensing.Name)
 				return err
 			}
-			reqLogger.Info("Successfully configured sender for ", lic.Name)
+			reqLogger.Info("Successfully configured sender for ", licensing.Name)
 		}
 	}
 	return nil
@@ -132,13 +134,14 @@ func ClearDefaultSenderConfiguration(client client.Client, log logr.Logger) {
 	}
 
 	for _, lic := range licensingList.Items {
-		if lic.Spec.RemoveDefaultSenderParameters() {
-			err := client.Update(context.TODO(), &lic)
+		licensing := lic
+		if licensing.Spec.RemoveDefaultSenderParameters() {
+			err := client.Update(context.TODO(), &licensing)
 			if err != nil {
-				reqLogger.Error(err, "Failed to removed sender for: ", lic.Name)
+				reqLogger.Error(err, "Failed to removed sender for: ", licensing.Name)
 				return
 			}
-			reqLogger.Info("Successfully removed sender for ", lic.Name)
+			reqLogger.Info("Successfully removed sender for ", licensing.Name)
 		}
 	}
 }
