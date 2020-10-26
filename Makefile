@@ -44,7 +44,6 @@ IMG ?= ibm-licensing-operator
 ## # Image URL to use all building/pushing image targets
 ## IMG ?= controller:latest
 
-
 REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
 CSV_VERSION ?= 1.3.0
 
