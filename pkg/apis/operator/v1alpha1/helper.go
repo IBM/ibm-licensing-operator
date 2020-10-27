@@ -110,10 +110,6 @@ func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
 }
 
-func (spec *IBMLicensingSpec) GetLocalReporterURL() string {
-	return localReporterURL
-}
-
 func (spec *IBMLicensingSpec) GetDefaultReporterTokenName() string {
 	return defaultReporterTokenSecretName
 }
@@ -390,4 +386,40 @@ func (container *Container) setImagePullPolicyIfNotSet() {
 	if container.ImagePullPolicy == "" {
 		container.ImagePullPolicy = corev1.PullIfNotPresent
 	}
+}
+
+func (spec *IBMLicensingSpec) SetDefaultSenderParameters() bool {
+
+	//returns true if any changes were made
+	changed := false
+
+	if spec.Sender == nil {
+		spec.Sender = &IBMLicensingSenderSpec{}
+	}
+
+	if spec.Sender.ReporterURL == "" {
+		spec.Sender.ReporterURL = localReporterURL
+		changed = true
+	}
+
+	if spec.Sender.ReporterSecretToken == "" {
+		spec.Sender.ReporterSecretToken = defaultReporterTokenSecretName
+		changed = true
+	}
+
+	return changed
+}
+
+func (spec *IBMLicensingSpec) RemoveDefaultSenderParameters() bool {
+
+	//returns true if any changes were made
+
+	//checking only token because secret removes automatically and may cause k8s config error
+	//if checking also url and not removing on only url change
+	if spec.Sender != nil && spec.Sender.ReporterSecretToken == defaultReporterTokenSecretName {
+		spec.Sender = nil
+		return true
+	}
+
+	return false
 }
