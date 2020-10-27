@@ -174,10 +174,11 @@ docker rmi ${my_docker_registry}/ibm-licensing:${operand_version}
 # you might want to check if you don't have other images and delete them as well:
 docker images | grep ibm-licensing
 ```
-  
+
 - If you cloned the [ibm-licensing-operator repository](https://github.com/IBM/ibm-licensing-operator) into your local system, delete it.
 
 **Results**: License Service offline installation is completely removed and License Service uninstallation is completed.
 
 <b>Related links</b>
+
 - [Go back to home page](../License_Service_main.md#documentation)
