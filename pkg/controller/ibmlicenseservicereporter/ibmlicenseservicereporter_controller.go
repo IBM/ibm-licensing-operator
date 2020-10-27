@@ -140,6 +140,7 @@ func (r *ReconcileIBMLicenseServiceReporter) Reconcile(request reconcile.Request
 		r.reconcileReporterRoute,
 		r.reconcileUIIngress,
 		r.reconcileIngressProxy,
+		r.reconcileSenderConfiguration,
 	}
 
 	// Fetch the IBMLicenseServiceReporter instance
@@ -147,18 +148,16 @@ func (r *ReconcileIBMLicenseServiceReporter) Reconcile(request reconcile.Request
 	err := r.client.Get(context.TODO(), request.NamespacedName, foundInstance)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			res.IsReporterInstalled = false
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
 			// reqLogger.Info("IBMLicenseServiceReporter resource not found. Ignoring since object must be deleted")
+			reporter.ClearDefaultSenderConfiguration(r.client, log)
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
-
-	res.IsReporterInstalled = true
 
 	instance := foundInstance.DeepCopy()
 
@@ -378,6 +377,10 @@ func (r *ReconcileIBMLicenseServiceReporter) reconcileIngressProxy(instance *ope
 	foundIngress := &extensionsv1.Ingress{}
 	namespacedName := types.NamespacedName{Name: expectedIngress.GetName(), Namespace: expectedIngress.GetNamespace()}
 	return r.reconcileResourceExistence(instance, expectedIngress, foundIngress, namespacedName)
+}
+
+func (r *ReconcileIBMLicenseServiceReporter) reconcileSenderConfiguration(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
+	return reconcile.Result{}, reporter.AddSenderConfiguration(r.client, log)
 }
 
 func (r *ReconcileIBMLicenseServiceReporter) reconcileResourceExistence(
