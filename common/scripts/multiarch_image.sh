@@ -52,18 +52,21 @@ rm -r ~/.docker/manifest
 
 # create multi-arch manifest
 echo "Creating the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${MANIFEST_VERSION}..."
-${CONTAINER_CLI} manifest create "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}" \
+${CONTAINER_CLI} manifest create  "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}" \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-amd64:"${VERSION}" \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-ppc64le:"${VERSION}" \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-s390x:"${VERSION}"
 echo "Creating the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:latest..."
-${CONTAINER_CLI} manifest create "${IMAGE_REPO}"/"${IMAGE_NAME}":latest \
+${CONTAINER_CLI} manifest create  "${IMAGE_REPO}"/"${IMAGE_NAME}":latest \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-amd64:"${VERSION}" \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-ppc64le:"${VERSION}" \
     "${IMAGE_REPO}"/"${IMAGE_NAME}"-s390x:"${VERSION}"
 
+${CONTAINER_CLI} manifest inspect -v ${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}"
+${CONTAINER_CLI} manifest inspect -v ${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}"
+
 # push multi-arch manifest
 echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${MANIFEST_VERSION}..."
-${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}"
+${CONTAINER_CLI} manifest push -p "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}"
 echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:latest..."
-${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":latest
+${CONTAINER_CLI} manifest push -p "${IMAGE_REPO}"/"${IMAGE_NAME}":latest
