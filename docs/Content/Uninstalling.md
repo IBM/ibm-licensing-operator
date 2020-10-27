@@ -11,10 +11,10 @@ If you plan to reinstall License Service, the license usage data is stored in th
 
 Complete the following steps to uninstall License Service in online and offline environments.
 
-* [Step 1: Deleting the IBM Licensing resource](#step-1-deleting-the-ibm-licensing-resource)
-* [Step 2: Uninstalling License Service](#step-2-uninstalling-license-service)
-  * [Online uninstallation](#online-uninstallation)
-  * [Offline uninstallation](#offline-uninstallation)
+- [Step 1: Deleting the IBM Licensing resource](#step-1-deleting-the-ibm-licensing-resource)
+- [Step 2: Uninstalling License Service](#step-2-uninstalling-license-service)
+  - [Online uninstallation](#online-uninstallation)
+  - [Offline uninstallation](#offline-uninstallation)
 
 ## Step 1: Deleting the IBM Licensing resource
 
@@ -40,8 +40,8 @@ kubectl delete ibmlicensing ${instanceName} -n ${licensingNamespace}
 
 Select the procedure for your environment:
 
-* [Online uninstallation](#online-uninstallation)
-* [Offline uninstallation](#offline-uninstallation)
+- [Online uninstallation](#online-uninstallation)
+- [Offline uninstallation](#offline-uninstallation)
 
 ### Online uninstallation
 
@@ -157,7 +157,7 @@ kubectl delete ClusterRole ibm-licensing-operator
 
 3\. Remove the remaining License Service elements.
 
-- If you pushed the IBM Licensing Docker images to your private registry, delete the imagise directly from that registry.
+- If you pushed the IBM Licensing Docker images to your private registry, delete the images directly from that registry.
 
 - Delete the images from the system where you downloaded the IBM Licensing images that you later pushed to your private registry with the following command.
 
