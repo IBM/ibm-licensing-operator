@@ -48,6 +48,8 @@ done
 # support other container tools, e.g. podman
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
+rm -r ~/.docker/manifest
+
 # create multi-arch manifest
 echo "Creating the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${MANIFEST_VERSION}..."
 ${CONTAINER_CLI} manifest create "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}" \
