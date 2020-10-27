@@ -425,6 +425,12 @@ spec:
                 - update
                 - watch
             - apiGroups:
+                - serviceca.openshift.io
+              resources:
+                - servicecas
+              verbs:
+                - list
+            - apiGroups:
                 - networking.k8s.io
                 - extensions
               resources:

@@ -23,6 +23,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
+
 	"github.com/go-logr/logr"
 	"github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	servicecav1 "github.com/openshift/api/operator/v1"
@@ -180,8 +182,18 @@ echo "$(date): All required secrets exist"
 }
 
 func UpdateAvailableClusterExtensions(reqLogger *logr.Logger, client c.Reader) {
+	namespace, err := k8sutil.GetWatchNamespace()
+	if err != nil {
+		(*reqLogger).Error(err, "Failed to get watch namespace in UpdateAvailableClusterExtensions")
+		return
+	}
+
+	listOpts := []c.ListOption{
+		c.InNamespace(namespace),
+	}
+
 	routeTestInstance := &routev1.Route{}
-	err := client.List(context.TODO(), routeTestInstance)
+	err = client.List(context.TODO(), routeTestInstance, listOpts...)
 	if err == nil {
 		IsRouteAPI = true
 	} else {
@@ -190,7 +202,7 @@ func UpdateAvailableClusterExtensions(reqLogger *logr.Logger, client c.Reader) {
 	}
 
 	serviceCAInstance := &servicecav1.ServiceCA{}
-	err = client.List(context.TODO(), serviceCAInstance)
+	err = client.List(context.TODO(), serviceCAInstance, listOpts...)
 	if err == nil {
 		IsServiceCAAPI = true
 	} else {
