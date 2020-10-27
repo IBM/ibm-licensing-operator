@@ -13,8 +13,8 @@ Complete the following steps to uninstall License Service in online and offline 
 
 - [Step 1: Deleting the IBM Licensing resource](#step-1-deleting-the-ibm-licensing-resource)
 - [Step 2: Uninstalling License Service](#step-2-uninstalling-license-service)
-  - [Online uninstallation](#online-uninstallation)
-  - [Offline uninstallation](#offline-uninstallation)
+    - [Online uninstallation](#online-uninstallation)
+    - [Offline uninstallation](#offline-uninstallation)
 
 ## Step 1: Deleting the IBM Licensing resource
 
