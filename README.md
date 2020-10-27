@@ -6,8 +6,8 @@
 
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
 
-* [License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)](#ibm-licensing-operator)
-* [License Service without an IBM Cloud Pak](#ibm-licensing-operator-for-deploying-license-service-without-an-ibm-cloud-pak)
+- [License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)](#ibm-licensing-operator)
+- [License Service without an IBM Cloud Pak](#ibm-licensing-operator-for-deploying-license-service-without-an-ibm-cloud-pak)
 
 # ibm-licensing-operator
 
