@@ -59,9 +59,9 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "https://metering-server:4002/api/v1/metricData",
 		})
 	}
-	if spec.Sender != nil || res.IsReporterInstalled {
+	if spec.Sender != nil {
 
-		if spec.Sender != nil && spec.Sender.ClusterID != "" {
+		if spec.Sender.ClusterID != "" {
 			environmentVariables = append(environmentVariables, []corev1.EnvVar{
 				{
 					Name:  "CLUSTER_ID",
@@ -70,7 +70,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			}...)
 		}
 
-		if spec.Sender != nil && spec.Sender.ClusterID != "" {
+		if spec.Sender.ClusterName != "" {
 			environmentVariables = append(environmentVariables, []corev1.EnvVar{
 				{
 					Name:  "CLUSTER_NAME",
@@ -79,51 +79,31 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			}...)
 		}
 
-		if spec.Sender != nil && spec.Sender.ReporterURL != "" {
-			environmentVariables = append(environmentVariables, []corev1.EnvVar{
-				{
-					Name:  "HUB_URL",
-					Value: spec.Sender.ReporterURL,
-				},
-			}...)
-		} else if res.IsReporterInstalled {
-			environmentVariables = append(environmentVariables, []corev1.EnvVar{
-				{
-					Name:  "HUB_URL",
-					Value: spec.GetLocalReporterURL(),
-				},
-			}...)
+		var secretName string
+		if spec.Sender.ReporterSecretToken != "" {
+			secretName = spec.Sender.ReporterSecretToken
+		} else {
+			secretName = spec.GetDefaultReporterTokenName()
 		}
 
-		if spec.Sender != nil && spec.Sender.ReporterURL != "" {
-			environmentVariables = append(environmentVariables, []corev1.EnvVar{
-				{
-					Name: "HUB_TOKEN",
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: spec.Sender.ReporterSecretToken,
-							},
-							Key: ReporterSecretTokenKeyName,
+		environmentVariables = append(environmentVariables, []corev1.EnvVar{
+			{
+				Name:  "HUB_URL",
+				Value: spec.Sender.ReporterURL,
+			},
+			{
+				Name: "HUB_TOKEN",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: secretName,
 						},
+						Key: ReporterSecretTokenKeyName,
 					},
 				},
-			}...)
-		} else {
-			environmentVariables = append(environmentVariables, []corev1.EnvVar{
-				{
-					Name: "HUB_TOKEN",
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: spec.GetDefaultReporterTokenName(),
-							},
-							Key: ReporterSecretTokenKeyName,
-						},
-					},
-				},
-			}...)
-		}
+			},
+		}...)
+
 	}
 	return environmentVariables
 }
