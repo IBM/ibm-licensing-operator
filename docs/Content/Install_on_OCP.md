@@ -86,7 +86,7 @@ To check whether the installation is successful, wait for about 1 minute, and go
 You have created the **Operator** for **IBM Licensing Service**. The **Operator** is only responsible for watching over the configuration and managing resources used by **IBM Licensing Service**.
 
 **What's next:**
-Configure an IBM Licensing instance.
+Create an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
