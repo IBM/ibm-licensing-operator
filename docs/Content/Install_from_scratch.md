@@ -198,7 +198,7 @@ kubectl get deployment -n ibm-common-services | grep ibm-licensing-operator
 You have created the **Operator** for **IBM Licensing Service**. The **Operator** is only responsible for watching over the configuration and managing resources used by **IBM Licensing Service**.
 
 **What's Next:**
-Configure the IBM Licensing instance.
+Create an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 

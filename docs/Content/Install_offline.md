@@ -103,7 +103,7 @@ kubectl apply -f deploy/operator.yaml
 You have created the **Operator** for **IBM Licensing Service**. The **Operator** is only responsible for watching over the configuration and managing resources used by **IBM Licensing Service**.
 
 **What's Next:**
-Configure the IBM Licensing instance.
+Create the IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
