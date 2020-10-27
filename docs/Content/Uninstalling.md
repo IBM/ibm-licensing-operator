@@ -4,7 +4,7 @@ Complete the following procedure to uninstall License Service from your Kubernet
 
 **Note:** The following procedure assumes that you have deployed IBM License Service in the `ibm-common-services` namespace.
 
-<b>Before you begin</b> 
+<b>Before you begin</b>
 
 Before uninstalling License Service, create an audit snapshot to record your license usage until the uninstallation for audit purposes.
 If you plan to reinstall License Service, the license usage data is stored in the persistent cluster memory and should not be affected by reinstallation. However, it is still a good practice to create an audit snapshot before reinstalling License Service as a precaution.
