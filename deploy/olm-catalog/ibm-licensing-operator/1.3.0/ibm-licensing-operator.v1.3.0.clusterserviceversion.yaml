@@ -288,6 +288,12 @@ spec:
           serviceAccountName: ibm-license-service
         - rules:
             - apiGroups:
+                - operator.openshift.io
+              resources:
+                - servicecas
+              verbs:
+                - list
+            - apiGroups:
                 - operator.ibm.com
               resources:
                 - ibmlicensings
@@ -424,12 +430,6 @@ spec:
                 - patch
                 - update
                 - watch
-            - apiGroups:
-                - serviceca.openshift.io
-              resources:
-                - servicecas
-              verbs:
-                - list
             - apiGroups:
                 - networking.k8s.io
                 - extensions

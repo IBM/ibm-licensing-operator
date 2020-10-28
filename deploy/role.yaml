@@ -132,12 +132,6 @@ rules:
       - update
       - watch
   - apiGroups:
-      - serviceca.openshift.io
-    resources:
-      - servicecas
-    verbs:
-      - list
-  - apiGroups:
       - networking.k8s.io
       - extensions
     resources:
@@ -205,7 +199,12 @@ rules:
   - apiGroups:
       - operator.ibm.com
     resources:
-      - "*"
+      - ibmlicensings
+      - ibmlicenseservicereporters
+      - ibmlicensings/status
+      - ibmlicenseservicereporters/status
+      - ibmlicensings/finalizers
+      - ibmlicenseservicereporters/finalizers
     verbs:
       - create
       - delete
@@ -214,3 +213,9 @@ rules:
       - patch
       - update
       - watch
+  - apiGroups:
+      - operator.openshift.io
+    resources:
+      - servicecas
+    verbs:
+      - list
