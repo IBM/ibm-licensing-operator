@@ -36,6 +36,7 @@ d. Apply RBAC roles and CRD:
 ```bash
 # add CRD:
 kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
+kubectl apply -f deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
 # add RBAC:
 kubectl apply -f deploy/role.yaml
 kubectl apply -f deploy/service_account.yaml
@@ -68,7 +69,7 @@ Create an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
-1\. To create the the IBM Licensing instance, run the following command:
+1\. To create the the IBM Licensing instance, run the following command.
 
 ```yaml
 cat <<EOF | kubectl apply -f -

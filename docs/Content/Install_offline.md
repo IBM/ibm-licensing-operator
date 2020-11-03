@@ -75,6 +75,7 @@ f. Apply RBAC roles and CRD:
 ```bash
 # add CRD:
 kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
+kubectl apply -f deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
 # add RBAC:
 kubectl apply -f deploy/role.yaml
 kubectl apply -f deploy/service_account.yaml
