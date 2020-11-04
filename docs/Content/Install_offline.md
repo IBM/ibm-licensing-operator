@@ -24,20 +24,20 @@ export operand_version=1.2.1
 
 b. Pull the required images with the following command.
 
-```
+```bash
 docker pull quay.io/opencloudio/ibm-licensing-operator:${operator_version}
 docker pull quay.io/opencloudio/ibm-licensing:${operand_version}
 ```
 
-c. Before pushing the images to your private registry, make sure that you are logged in. Use the following command. 
+c. Before pushing the images to your private registry, make sure that you are logged in. Use the following command.
 
-```
-docker login ${my_docker_registry} 
+```bash
+docker login ${my_docker_registry}
 ```
 
 d. Tag the images with your registry prefix and push with the following commands.
 
-```
+```bash
 docker tag quay.io/opencloudio/ibm-licensing-operator:${operator_version} ${my_docker_registry}/ibm-licensing-operator:${operator_version}
 docker push ${my_docker_registry}/ibm-licensing-operator:${operator_version}
 
