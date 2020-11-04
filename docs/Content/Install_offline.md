@@ -11,21 +11,33 @@
 
 ## Installation
 
-1\. **Prepare Docker images**
+1\. Prepare Docker images.
 
-Prepare your Docker images:
+a.  Run the following command to prepare your Docker images.
 
 ```bash
 # on machine with access to internet
 export my_docker_registry=<YOUR REGISTRY IMAGE PREFIX HERE e.g.: "my.registry:5000" or "quay.io/opencloudio">
 export operator_version=1.2.2
 export operand_version=1.2.1
+```
 
-# pull needed images
+b. Pull the required images with the following command.
+
+```
 docker pull quay.io/opencloudio/ibm-licensing-operator:${operator_version}
 docker pull quay.io/opencloudio/ibm-licensing:${operand_version}
+```
 
-# tag them with your registry prefix and push
+c. Before pushing the images to your private registry, make sure that you are logged in. Use the following command. 
+
+```
+docker login ${my_docker_registry} 
+```
+
+d. Tag the images with your registry prefix and push with the following commands.
+
+```
 docker tag quay.io/opencloudio/ibm-licensing-operator:${operator_version} ${my_docker_registry}/ibm-licensing-operator:${operator_version}
 docker push ${my_docker_registry}/ibm-licensing-operator:${operator_version}
 
@@ -33,7 +45,7 @@ docker tag quay.io/opencloudio/ibm-licensing:${operand_version} ${my_docker_regi
 docker push ${my_docker_registry}/ibm-licensing:${operand_version}
 ```
 
-2\. **Create needed resources**
+2\. Create the required resources.
 
 a. Run the following command on machine where you have access to your cluster and can use `kubectl`.
 
@@ -87,16 +99,24 @@ g. Modify the `operator.yaml` image so that your private registry is used:
 - For **LINUX** users:
 
 ```bash
+export operator_version=1.2.2
+export operand_version=1.2.1
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
+sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
+sed -i 's/@sha256.*/:'"${operand_version}"'/g' deploy/operator.yaml
 kubectl apply -f deploy/operator.yaml
 ```
 
 - For **MAC** users:
 
 ```bash
+export operator_version=1.2.2
+export operand_version=1.2.1
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i "" 's/quay.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
+sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
+sed -i "" 's/@sha256.*/:'"${operand_version}"'/g' deploy/operator.yaml
 kubectl apply -f deploy/operator.yaml
 ```
 
