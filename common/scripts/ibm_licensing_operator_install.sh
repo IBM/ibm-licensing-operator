@@ -326,14 +326,12 @@ EOF
     echo "Error: IBMLicensing instance pod failed to reach phase Running"
     exit 21
   fi
-  echo "IBM License Service should be running, you can check post installation section in README to see possible configurations of IBM Licensing instance, and how to configure ingress/route if needed"
 }
 
 show_token(){
   if [ "$no_secret_output" != "1" ]; then
     if ! licensing_token=$(kubectl get secret ibm-licensing-token -o jsonpath='{.data.token}' -n "$INSTALL_NAMESPACE" | base64 -d) || [ "${licensing_token}" == "" ]; then
-      verbose_output_command echo "Could not get ibm-licensing-token in $INSTALL_NAMESPACE , something might be wrong"
-      exit 29
+      verbose_output_command echo "Could not get ibm-licensing-token in $INSTALL_NAMESPACE, something might be wrong"
     else
       echo "License Service secret for accessing the API is: $licensing_token"
     fi
@@ -343,7 +341,6 @@ show_token(){
 show_url(){
   if ! route_url=$(kubectl get route ibm-licensing-service-instance -o jsonpath='{.status.ingress[0].host}' -n "$INSTALL_NAMESPACE") || [ "${route_url}" == "" ]; then
     verbose_output_command echo "Could not get Route for License Service in $INSTALL_NAMESPACE, Route CRD might not be available at your cluster, or ingress option was chosen"
-    exit
   else
     echo "License Service Route URL for accessing the API is: https://$route_url"
   fi
@@ -410,3 +407,4 @@ handle_subscription
 handle_instance
 show_token
 show_url
+echo "IBM License Service should be running, you can check post installation section in README to see possible configurations of IBM Licensing instance, and how to configure ingress/route if needed"
