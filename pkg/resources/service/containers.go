@@ -178,13 +178,26 @@ func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Co
 	}
 	container.VolumeMounts = getLicensingVolumeMounts(spec)
 	container.Env = getLicensingEnvironmentVariables(spec)
-	container.Ports = []corev1.ContainerPort{
+	container.Ports = getLicensingContainerPorts(spec)
+	return container
+}
+
+func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.ContainerPort {
+	ports := []corev1.ContainerPort{
 		{
 			ContainerPort: licensingServicePort.IntVal,
 			Protocol:      corev1.ProtocolTCP,
 		},
 	}
-	return container
+
+	if spec.RHMPEnabled != nil && *spec.RHMPEnabled {
+		ports = append(ports, corev1.ContainerPort{
+			ContainerPort: monitorServicePort.IntVal,
+			Protocol:      corev1.ProtocolTCP,
+		})
+	}
+
+	return ports
 }
 
 func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {

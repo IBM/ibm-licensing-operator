@@ -28,16 +28,19 @@ var (
 	licensingServicePort    = intstr.FromInt(8080)
 	licensingTargetPort     = intstr.FromInt(8080)
 	licensingTargetPortName = intstr.FromString("api-port")
+
+	monitorServicePort = intstr.FromInt(8081)
+	monitorTargetPort  = intstr.FromInt(8081)
 )
 
-func getServiceSpec(instance *operatorv1alpha1.IBMLicensing) corev1.ServiceSpec {
+func getServiceSpec(instance *operatorv1alpha1.IBMLicensing, port, target intstr.IntOrString) corev1.ServiceSpec {
 	return corev1.ServiceSpec{
 		Type: corev1.ServiceTypeClusterIP,
 		Ports: []corev1.ServicePort{
 			{
 				Name:       licensingTargetPortName.String(),
-				Port:       licensingServicePort.IntVal,
-				TargetPort: licensingTargetPort,
+				Port:       port.IntVal,
+				TargetPort: target,
 				Protocol:   corev1.ProtocolTCP,
 			},
 		},
@@ -49,15 +52,31 @@ func GetLicensingServiceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return GetResourceName(instance)
 }
 
-func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
+func GetLicensingServices(instance *operatorv1alpha1.IBMLicensing) []*corev1.Service {
 	metaLabels := LabelsForMeta(instance)
-	return &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        GetLicensingServiceName(instance),
-			Namespace:   instance.Spec.InstanceNamespace,
-			Labels:      metaLabels,
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceOCPCertName),
+	services := []*corev1.Service{
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        GetLicensingServiceName(instance),
+				Namespace:   instance.Spec.InstanceNamespace,
+				Labels:      metaLabels,
+				Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceOCPCertName),
+			},
+			Spec: getServiceSpec(instance, licensingServicePort, licensingTargetPort),
 		},
-		Spec: getServiceSpec(instance),
 	}
+
+	if *instance.Spec.RHMPEnabled {
+		services = append(services, &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        GetLicensingServiceName(instance) + "-8081",
+				Namespace:   instance.Spec.InstanceNamespace,
+				Labels:      metaLabels,
+				Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceOCPCertName),
+			},
+			Spec: getServiceSpec(instance, monitorServicePort, monitorTargetPort),
+		})
+	}
+
+	return services
 }

@@ -160,7 +160,7 @@ func (r *ReconcileIBMLicensing) Reconcile(req reconcile.Request) (reconcile.Resu
 		reqLogger.Error(err, "Can not update version in CR")
 	}
 
-	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI)
+	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -173,7 +173,7 @@ func (r *ReconcileIBMLicensing) Reconcile(req reconcile.Request) (reconcile.Resu
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
 		r.reconcileUploadConfigMap,
-		r.reconcileService,
+		r.reconcileServices,
 		r.reconcileDeployment,
 		r.reconcileIngress,
 		r.reconcileRoute,
@@ -273,15 +273,23 @@ func (r *ReconcileIBMLicensing) reconcileUploadConfigMap(instance *operatorv1alp
 	return res.UpdateResource(&reqLogger, r.Client, expectedCM, foundCM)
 }
 
-func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	reqLogger := r.Log.WithValues("reconcileService", "Entry", "instance.GetName()", instance.GetName())
-	expectedService := service.GetLicensingService(instance)
+func (r *ReconcileIBMLicensing) reconcileServices(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	var (
+		result reconcile.Result
+		err    error
+	)
+	reqLogger := r.Log.WithValues("reconcileServices", "Entry", "instance.GetName()", instance.GetName())
+	expectedServices := service.GetLicensingServices(instance)
 	foundService := &corev1.Service{}
-	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedService, foundService)
-	if err != nil || reconcileResult.Requeue {
-		return reconcileResult, err
+	for _, es := range expectedServices {
+		result, err = r.reconcileResourceNamespacedExistence(instance, es, foundService)
+		if err != nil || result.Requeue {
+			return result, err
+		}
+		result, err = res.UpdateServiceIfNeeded(&reqLogger, r.Client, es, foundService)
 	}
-	return res.UpdateServiceIfNeeded(&reqLogger, r.Client, expectedService, foundService)
+
+	return result, err
 }
 
 func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {

@@ -58,6 +58,8 @@ type IBMLicensingSpec struct {
 	SecurityContext *IBMLicensingSecurityContext `json:"securityContext,omitempty"`
 	// Should Route be created to expose IBM Licensing Service API? (only on OpenShift cluster)
 	RouteEnabled *bool `json:"routeEnabled,omitempty"`
+	// Is Red Had Marketplace enabled
+	RHMPEnabled *bool `json:"rhmpEnabled,omitempty"`
 	// Should Ingress be created to expose IBM Licensing Service API?
 	IngressEnabled *bool `json:"ingressEnabled,omitempty"`
 	// If ingress is enabled, you can set its parameters
