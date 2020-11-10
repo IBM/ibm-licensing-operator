@@ -6,8 +6,12 @@
 
 ## Prerequisites
 
-- A private Docker image registry where you can push the images using `Docker` and from where your cluster can pull images.
-- Machine with access to your cluster with `kubectl` command.
+- A private Docker image registry where you can push the images using `Docker` and from where your cluster can pull images. For more information, see [Docker registry in Docker product documentation](https://docs.docker.com/registry/).
+- Complete the offline installation on a host that meets the following criteria:
+  - Has Linux or macOS operating system.
+  - Has Docker and Kubernetes CLI installed.
+  - Has internet access.
+  - Has access to your offline cluster via Kubernetes config.
 
 ## Installation
 
@@ -16,8 +20,7 @@
 a.  Run the following command to prepare your Docker images.
 
 ```bash
-# on machine with access to internet
-export my_docker_registry=<YOUR REGISTRY IMAGE PREFIX HERE e.g.: "my.registry:5000" or "quay.io/opencloudio">
+export my_docker_registry=<YOUR PRIVATE REGISTRY IMAGE PREFIX HERE; for example: "my.registry:5000" or "my.private.registry.example.com">
 export operator_version=1.2.2
 export operand_version=1.2.1
 ```
@@ -50,7 +53,6 @@ docker push ${my_docker_registry}/ibm-licensing:${operand_version}
 a. Run the following command on machine where you have access to your cluster and can use `kubectl`.
 
 ```bash
-# on machine with access to cluster
 export my_docker_registry=<SAME REGISTRY AS BEFORE>
 ```
 
