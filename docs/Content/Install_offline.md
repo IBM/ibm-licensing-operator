@@ -8,10 +8,10 @@
 
 - A private Docker image registry where you can push the images using `Docker` and from where your cluster can pull images. For more information, see [Docker registry in Docker product documentation](https://docs.docker.com/registry/).
 - Complete the offline installation on a host that meets the following criteria:
-  - Has Linux or macOS operating system.
-  - Has Docker and Kubernetes CLI installed.
-  - Has internet access.
-  - Has access to your offline cluster via Kubernetes config.
+    - Has Linux or macOS operating system.
+    - Has Docker and Kubernetes CLI installed.
+    - Has internet access.
+    - Has access to your offline cluster via Kubernetes config.
 
 ## Installation
 
