@@ -8,7 +8,7 @@
 
 - A private Docker image registry where you can push the images using `Docker` and from where your cluster can pull images. For more information, see [Docker registry in Docker product documentation](https://docs.docker.com/registry/).
 - Complete the offline installation on a host that meets the following criteria:
-    - Has Linux or macOS operating system.
+    - Has Linux or macOS operating system (or Windows with Linux Bash Shell for example from WSL).
     - Has Docker and Kubernetes CLI installed.
     - Has internet access.
     - Has access to your offline cluster via Kubernetes config.
@@ -21,8 +21,8 @@ a.  Run the following command to prepare your Docker images.
 
 ```bash
 export my_docker_registry=<YOUR PRIVATE REGISTRY IMAGE PREFIX HERE; for example: "my.registry:5000" or "my.private.registry.example.com">
-export operator_version=1.2.2
-export operand_version=1.2.1
+export operator_version=1.2.3
+export operand_version=1.2.3
 ```
 
 b. Pull the required images with the following command.
@@ -77,7 +77,7 @@ kubectl config set-context --current --namespace=ibm-common-services
 e. Use `git clone`:
 
 ```bash
-export operator_release_version=v1.2.2-durham
+export operator_release_version=v1.2.3-durham
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
@@ -101,8 +101,8 @@ g. Modify the `operator.yaml` image so that your private registry is used:
 - For **LINUX** users:
 
 ```bash
-export operator_version=1.2.2
-export operand_version=1.2.1
+export operator_version=1.2.3
+export operand_version=1.2.3
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
 sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
@@ -113,8 +113,8 @@ kubectl apply -f deploy/operator.yaml
 - For **MAC** users:
 
 ```bash
-export operator_version=1.2.2
-export operand_version=1.2.1
+export operator_version=1.2.3
+export operand_version=1.2.3
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i "" 's/quay.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
 sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
