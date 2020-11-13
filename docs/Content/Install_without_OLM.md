@@ -10,7 +10,7 @@ Complete the following procedure to install License Service on a system that doe
 
 ## Prerequisites
 
-- If you are using Red Hat OpenShift Container Platform 3.11 you need to have version 3.11.200 or higher.
+- If you use Red Hat OpenShift Container Platform 3.11, make sure that you are on version 3.11.200 or higher.
 - Complete the installation on a host that meets the following criteria:
     - Has Linux or macOS operating system (or Windows with Linux Bash Shell for example from WSL).
     - Has Docker and Kubernetes CLI installed.
