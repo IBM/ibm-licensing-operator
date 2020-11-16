@@ -182,7 +182,7 @@ a. See if the IBM Licensing Operator is deployed by OLM from the `CatalogSource`
 ```console
 $ kubectl get clusterserviceversion -n ibm-common-services
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.2.2   IBM Licensing Operator   1.2.2     ibm-licensing-operator.v1.2.1   Succeeded
+ibm-licensing-operator.v1.2.3   IBM Licensing Operator   1.2.3     ibm-licensing-operator.v1.2.2   Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
