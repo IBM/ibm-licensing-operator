@@ -7,6 +7,8 @@ You can use the `ibm-licensing-operator` to install License Service on any Kuber
 
 **Note:** License Service is integrated into IBM Cloud Pak solutions. You do not have to deploy it to clusters where IBM Cloud Pak solutions are deployed. License Service should already be there and collect usage data for the IBM containerized products that are enabled for reporting.
 
+**Note:** Only one instance of License Service is deployed per cluster regardless of the number of IBM Cloud Paks and containerized products that you have installed on this cluster.
+
 Use the installation scenario that is outlined in this documentation to deploy License Service to a cluster where IBM Cloud Pak solutions are not deployed.
 
 ## About License Service
@@ -51,6 +53,7 @@ For more information, see the following resources:
     - [Manual installation without the Operator Lifecycle Manager (OLM)](Content/Install_without_OLM.md)
     - [Manually installing License Service on Kubernetes from scratch with `kubectl`](Content/Install_from_scratch.md)
     - [Offline installation](Content/Install_offline.md)
+- [Validating License Service deployment](Content/Validate_deployment.md)
 - [Configuration](Content/Configuration.md)
     - [Configuring ingress](Content/Configuration.md#configuring-ingress)
     - [Checking License Service components](Content/Configuration.md#checking-license-service-components)
