@@ -4,6 +4,7 @@
 You can use an automatic script to install License Service on the cluster, and automatically create the License Service instance.
 
 - [Supported configurations](#supported-configurations)
+- [Prerequisites](#prerequisites)
 - [Installation](#installation)
 
 ## Supported configurations
