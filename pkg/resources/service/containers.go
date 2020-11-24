@@ -196,7 +196,7 @@ func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 
 	if spec.RHMPEnabled != nil && *spec.RHMPEnabled {
 		ports = append(ports, corev1.ContainerPort{
-			ContainerPort: monitorServicePort.IntVal,
+			ContainerPort: prometheusServicePort.IntVal,
 			Protocol:      corev1.ProtocolTCP,
 		})
 	}

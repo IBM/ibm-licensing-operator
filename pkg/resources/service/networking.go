@@ -18,7 +18,6 @@ package service
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
-	"github.com/ibm/ibm-licensing-operator/pkg/resources"
 	corev1 "k8s.io/api/core/v1"
 	v1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,10 +32,9 @@ func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *v1beta1.NetworkP
 	protocol := corev1.ProtocolTCP
 	return &v1beta1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        GetNetworkPolicyName(instance),
-			Namespace:   instance.Spec.InstanceNamespace,
-			Labels:      metaLabels,
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceOCPCertName),
+			Name:      GetNetworkPolicyName(instance),
+			Namespace: instance.Spec.InstanceNamespace,
+			Labels:    metaLabels,
 		},
 		Spec: v1beta1.NetworkPolicySpec{
 			PolicyTypes: []v1beta1.PolicyType{v1beta1.PolicyTypeIngress},
@@ -44,11 +42,7 @@ func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *v1beta1.NetworkP
 				{
 					Ports: []v1beta1.NetworkPolicyPort{
 						{
-							Port:     &licensingServicePort,
-							Protocol: &protocol,
-						},
-						{
-							Port:     &monitorServicePort,
+							Port:     &prometheusServicePort,
 							Protocol: &protocol,
 						},
 					},
@@ -56,7 +50,7 @@ func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *v1beta1.NetworkP
 						{
 							NamespaceSelector: &metav1.LabelSelector{
 								MatchLabels: map[string]string{
-									"project": "redhat-marketplace",
+									"rhmp": "true",
 								},
 							},
 						},

@@ -284,7 +284,7 @@ func (r *ReconcileIBMLicensing) reconcileServices(instance *operatorv1alpha1.IBM
 		err    error
 	)
 	reqLogger := r.Log.WithValues("reconcileServices", "Entry", "instance.GetName()", instance.GetName())
-	expectedServices := service.GetLicensingServices(instance)
+	expectedServices := service.GetServices(instance)
 	foundService := &corev1.Service{}
 	for _, es := range expectedServices {
 		result, err = r.reconcileResourceNamespacedExistence(instance, es, foundService)
@@ -298,33 +298,27 @@ func (r *ReconcileIBMLicensing) reconcileServices(instance *operatorv1alpha1.IBM
 }
 
 func (r *ReconcileIBMLicensing) reconcileServiceMonitor(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	var (
-		result reconcile.Result
-		err    error
-	)
-	reqLogger := log.WithValues("reconcileServiceMonitor", "Entry", "instance.GetName()", instance.GetName())
+	reqLogger := r.Log.WithValues("reconcileServiceMonitor", "Entry", "instance.GetName()", instance.GetName())
 	expectedServiceMonitor := service.GetServiceMonitor(instance)
 	foundServiceMonitor := &monitoringv1.ServiceMonitor{}
-	result, err = r.reconcileResourceNamespacedExistence(instance, expectedServiceMonitor, foundServiceMonitor)
+	result, err := r.reconcileResourceNamespacedExistence(instance, expectedServiceMonitor, foundServiceMonitor)
 	if err != nil || result.Requeue {
 		return result, err
 	}
-	result, err = res.UpdateServiceMonitor(&reqLogger, r.client, expectedServiceMonitor, foundServiceMonitor)
+	result, err = res.UpdateServiceMonitor(&reqLogger, r.Client, expectedServiceMonitor, foundServiceMonitor)
 
 	return result, err
 }
 
 func (r *ReconcileIBMLicensing) reconcileNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	var (
-		result reconcile.Result
-		err    error
-	)
+	reqLogger := r.Log.WithValues("reconcileNetworkPolicy", "Entry", "instance.GetName()", instance.GetName())
 	expected := service.GetNetworkPolicy(instance)
 	found := &extensionsv1.NetworkPolicy{}
-	result, err = r.reconcileResourceNamespacedExistence(instance, expected, found)
+	result, err := r.reconcileResourceNamespacedExistence(instance, expected, found)
 	if err != nil || result.Requeue {
 		return result, err
 	}
+	result, err = res.UpdateResource(&reqLogger, r.Client, expected, found)
 
 	return result, err
 }

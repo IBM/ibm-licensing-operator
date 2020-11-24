@@ -30,42 +30,14 @@ var (
 	licensingTargetPort     = intstr.FromInt(8080)
 	licensingTargetPortName = intstr.FromString("api-port")
 
-	monitorServicePort = intstr.FromInt(8081)
-	monitorTargetPort  = intstr.FromInt(8081)
+	prometheusServicePort    = intstr.FromInt(8081)
+	prometheusTargetPort     = intstr.FromInt(8081)
+	prometheusTargetPortName = intstr.FromString("metrics")
 )
 
-func getServiceSpec(instance *operatorv1alpha1.IBMLicensing, port, target intstr.IntOrString) corev1.ServiceSpec {
-	return corev1.ServiceSpec{
-		Type: corev1.ServiceTypeClusterIP,
-		Ports: []corev1.ServicePort{
-			{
-				Name:       licensingTargetPortName.String(),
-				Port:       port.IntVal,
-				TargetPort: target,
-				Protocol:   corev1.ProtocolTCP,
-			},
-		},
-		Selector: LabelsForSelector(instance),
-	}
-}
-
-func GetLicensingServiceName(instance *operatorv1alpha1.IBMLicensing) string {
-	return GetResourceName(instance)
-}
-
-func GetLicensingServices(instance *operatorv1alpha1.IBMLicensing) []*corev1.Service {
-	metaLabels := LabelsForMeta(instance)
-	services := []*corev1.Service{
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:        GetLicensingServiceName(instance),
-				Namespace:   instance.Spec.InstanceNamespace,
-				Labels:      metaLabels,
-				Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceOCPCertName),
-			},
-			Spec: getServiceSpec(instance, licensingServicePort, licensingTargetPort),
-		},
-	}
+func GetServices(instance *operatorv1alpha1.IBMLicensing) []*corev1.Service {
+	var services []*corev1.Service
+	services = append(services, GetLicensingService(instance))
 
 	if s := GetPrometheusService(instance); s != nil {
 		services = append(services, s)
@@ -74,35 +46,79 @@ func GetLicensingServices(instance *operatorv1alpha1.IBMLicensing) []*corev1.Ser
 	return services
 }
 
+func GetLicensingServiceName(instance *operatorv1alpha1.IBMLicensing) string {
+	return GetResourceName(instance)
+}
+
+func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
+	metaLabels := LabelsForMeta(instance)
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        GetLicensingServiceName(instance),
+			Namespace:   instance.Spec.InstanceNamespace,
+			Labels:      metaLabels,
+			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceOCPCertName),
+		},
+		Spec: corev1.ServiceSpec{
+			Type: corev1.ServiceTypeClusterIP,
+			Ports: []corev1.ServicePort{
+				{
+					Name:       licensingTargetPortName.String(),
+					Port:       licensingServicePort.IntVal,
+					TargetPort: licensingTargetPort,
+					Protocol:   corev1.ProtocolTCP,
+				},
+			},
+			Selector: LabelsForSelector(instance),
+		},
+	}
+}
+
+func GetPrometheusServiceName() string {
+	return "license-service-prometheus"
+}
+
 func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
 	if !*instance.Spec.RHMPEnabled {
 		return nil
 	}
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        "ibm-licensing-service-promethus",
-			Namespace:   instance.Spec.InstanceNamespace,
-			Labels:      getPrometheusLabels(instance),
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceOCPCertName),
+			Name:      GetPrometheusServiceName(),
+			Namespace: instance.Spec.InstanceNamespace,
+			Labels:    getPrometheusLabels(),
 		},
-		Spec: getServiceSpec(instance, monitorServicePort, monitorTargetPort),
+		Spec: corev1.ServiceSpec{
+			Type: corev1.ServiceTypeClusterIP,
+			Ports: []corev1.ServicePort{
+				{
+					Name:       prometheusTargetPortName.String(),
+					Port:       prometheusServicePort.IntVal,
+					TargetPort: prometheusTargetPort,
+					Protocol:   corev1.ProtocolTCP,
+				},
+			},
+			Selector: LabelsForSelector(instance),
+		},
 	}
+}
+
+func GetServiceMonitorName() string {
+	return "license-service-service-monitor"
 }
 
 func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.ServiceMonitor {
 	return &monitoringv1.ServiceMonitor{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ibm-licensing-service-promethus",
+			Name:      GetServiceMonitorName(),
 			Namespace: instance.Spec.InstanceNamespace,
 			Labels: map[string]string{
-				"app":                             "ibm-licesnisng-promethus",
 				"marketplace.redhat.com/metering": "true",
-				"release":                         "prometheus",
 			},
 		},
 		Spec: monitoringv1.ServiceMonitorSpec{
 			Selector: metav1.LabelSelector{
-				MatchLabels: map[string]string{"unique.label": "unique"},
+				MatchLabels: getPrometheusLabels(),
 			},
 			Endpoints: []monitoringv1.Endpoint{
 				{
@@ -112,7 +128,7 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.Se
 					Interval:   "15s",
 					Path:       "/metrics",
 					Scheme:     "https",
-					TargetPort: &monitorTargetPort,
+					TargetPort: &prometheusTargetPort,
 					TLSConfig: &monitoringv1.TLSConfig{
 						InsecureSkipVerify: true,
 					},
@@ -122,8 +138,8 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.Se
 	}
 }
 
-func getPrometheusLabels(instance *operatorv1alpha1.IBMLicensing) map[string]string {
-	labels := LabelsForMeta(instance)
-	labels["unique.label"] = "unique"
+func getPrometheusLabels() map[string]string {
+	labels := make(map[string]string)
+	labels["release"] = "ibm-licensing-service-promethus"
 	return labels
 }
