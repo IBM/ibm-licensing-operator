@@ -25,6 +25,7 @@ import (
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	"github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	servicecav1 "github.com/openshift/api/operator/v1"
@@ -153,6 +154,15 @@ func UpdateServiceIfNeeded(reqLogger *logr.Logger, client c.Client, expectedServ
 	for _, annotation := range annotationsForServicesToCheck {
 		if foundService.Annotations[annotation] != expectedService.Annotations[annotation] {
 			return UpdateResource(reqLogger, client, expectedService, foundService)
+		}
+	}
+	return reconcile.Result{}, nil
+}
+
+func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, found *monitoringv1.ServiceMonitor) (reconcile.Result, error) {
+	for _, annotation := range annotationsForServicesToCheck {
+		if found.Annotations[annotation] != expected.Annotations[annotation] {
+			return UpdateResource(reqLogger, client, found, expected)
 		}
 	}
 	return reconcile.Result{}, nil

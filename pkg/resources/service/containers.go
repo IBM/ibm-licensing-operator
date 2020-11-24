@@ -40,6 +40,10 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Name:  "HTTPS_ENABLE",
 			Value: httpsEnableString,
 		},
+		{
+			Name:  "enable.prometheus",
+			Value: "true",
+		},
 	}
 	if spec.IsDebug() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{

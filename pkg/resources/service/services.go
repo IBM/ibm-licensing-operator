@@ -17,6 +17,7 @@
 package service
 
 import (
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	"github.com/ibm/ibm-licensing-operator/pkg/resources"
 	corev1 "k8s.io/api/core/v1"
@@ -66,17 +67,63 @@ func GetLicensingServices(instance *operatorv1alpha1.IBMLicensing) []*corev1.Ser
 		},
 	}
 
-	if *instance.Spec.RHMPEnabled {
-		services = append(services, &corev1.Service{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:        GetLicensingServiceName(instance) + "-8081",
-				Namespace:   instance.Spec.InstanceNamespace,
-				Labels:      metaLabels,
-				Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceOCPCertName),
-			},
-			Spec: getServiceSpec(instance, monitorServicePort, monitorTargetPort),
-		})
+	if s := GetPrometheusService(instance); s != nil {
+		services = append(services, s)
 	}
 
 	return services
+}
+
+func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
+	if !*instance.Spec.RHMPEnabled {
+		return nil
+	}
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        "ibm-licensing-service-promethus",
+			Namespace:   instance.Spec.InstanceNamespace,
+			Labels:      getPrometheusLabels(instance),
+			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceOCPCertName),
+		},
+		Spec: getServiceSpec(instance, monitorServicePort, monitorTargetPort),
+	}
+}
+
+func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.ServiceMonitor {
+	return &monitoringv1.ServiceMonitor{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ibm-licensing-service-promethus",
+			Namespace: instance.Spec.InstanceNamespace,
+			Labels: map[string]string{
+				"app":                             "ibm-licesnisng-promethus",
+				"marketplace.redhat.com/metering": "true",
+				"release":                         "prometheus",
+			},
+		},
+		Spec: monitoringv1.ServiceMonitorSpec{
+			Selector: metav1.LabelSelector{
+				MatchLabels: map[string]string{"unique.label": "unique"},
+			},
+			Endpoints: []monitoringv1.Endpoint{
+				{
+					BearerTokenSecret: corev1.SecretKeySelector{
+						Key: "",
+					},
+					Interval:   "15s",
+					Path:       "/metrics",
+					Scheme:     "https",
+					TargetPort: &monitorTargetPort,
+					TLSConfig: &monitoringv1.TLSConfig{
+						InsecureSkipVerify: true,
+					},
+				},
+			},
+		},
+	}
+}
+
+func getPrometheusLabels(instance *operatorv1alpha1.IBMLicensing) map[string]string {
+	labels := LabelsForMeta(instance)
+	labels["unique.label"] = "unique"
+	return labels
 }
