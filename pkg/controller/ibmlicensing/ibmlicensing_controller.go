@@ -87,8 +87,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	err = res.WatchForResources(reqLogger, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
 		&appsv1.Deployment{},
 		&corev1.Service{},
-		&monitoringv1.ServiceMonitor{},
-		&extensionsv1.NetworkPolicy{},
 	})
 	if err != nil {
 		return err
@@ -103,6 +101,17 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		// Watch for changes to openshift resources if on OC
 		err = res.WatchForResources(reqLogger, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
 			&routev1.Route{},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	if res.RHMPEnabled {
+		// Watch for changes in prometheus related objects if rhmp is enabled
+		err = res.WatchForResources(reqLogger, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
+			&monitoringv1.ServiceMonitor{},
+			&extensionsv1.NetworkPolicy{},
 		})
 		if err != nil {
 			return err
@@ -298,6 +307,9 @@ func (r *ReconcileIBMLicensing) reconcileServices(instance *operatorv1alpha1.IBM
 }
 
 func (r *ReconcileIBMLicensing) reconcileServiceMonitor(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	if !res.RHMPEnabled {
+		return reconcile.Result{}, nil
+	}
 	reqLogger := r.Log.WithValues("reconcileServiceMonitor", "Entry", "instance.GetName()", instance.GetName())
 	expectedServiceMonitor := service.GetServiceMonitor(instance)
 	foundServiceMonitor := &monitoringv1.ServiceMonitor{}
@@ -311,6 +323,9 @@ func (r *ReconcileIBMLicensing) reconcileServiceMonitor(instance *operatorv1alph
 }
 
 func (r *ReconcileIBMLicensing) reconcileNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	if !res.RHMPEnabled {
+		return reconcile.Result{}, nil
+	}
 	reqLogger := r.Log.WithValues("reconcileNetworkPolicy", "Entry", "instance.GetName()", instance.GetName())
 	expected := service.GetNetworkPolicy(instance)
 	found := &extensionsv1.NetworkPolicy{}
