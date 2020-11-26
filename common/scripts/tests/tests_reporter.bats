@@ -135,10 +135,10 @@ cat <<EOF | kubectl apply -f -
         imageTagPostfix: 12.0.3
       reporterUIContainer:
         imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
-        imageTagPostfix: 1.4.0
+        imageTagPostfix: 1.3.1
       receiverContainer:
         imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
-        imageTagPostfix: 1.4.0
+        imageTagPostfix: 1.3.1
 EOF
   [ "$?" -eq "0" ]
 
