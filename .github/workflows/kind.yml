@@ -55,8 +55,12 @@ jobs:
         kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.13.0/olm.yaml
    
     - name: Deploy Operators YAML
+      env:
+        JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
       run: |
+        echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
         kubectl create namespace ibm-common-services
+        kubectl create secret generic my-registry-token -n ibm-common-services --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson
         kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
         kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
         kubectl apply -f ./deploy/service_account.yaml -n ibm-common-services
