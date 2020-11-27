@@ -61,6 +61,10 @@ jobs:
         echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
         kubectl create namespace ibm-common-services
         kubectl create secret generic my-registry-token -n ibm-common-services --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson
+        echo "  imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom" >> deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
+        echo "  imagePullSecrets:" >> deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
+        echo "    - my-registry-token" >> deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
+
         kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
         kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
         kubectl apply -f ./deploy/service_account.yaml -n ibm-common-services
