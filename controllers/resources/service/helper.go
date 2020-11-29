@@ -18,8 +18,7 @@ package service
 
 import (
 	"context"
-
-	"github.com/ibm/ibm-licensing-operator/controllers/resources"
+	"github.com/ibm/ibm-licensing-operator/version"
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -64,8 +63,8 @@ func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]s
 }
 
 func UpdateVersion(client client.Client, instance *operatorv1alpha1.IBMLicensing) error {
-	if instance.Spec.Version != resources.Version {
-		instance.Spec.Version = resources.Version
+	if instance.Spec.Version != version.Version {
+		instance.Spec.Version = version.Version
 		return client.Update(context.TODO(), instance)
 	}
 	return nil

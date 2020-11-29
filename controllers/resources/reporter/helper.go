@@ -18,8 +18,7 @@ package reporter
 
 import (
 	"context"
-
-	"github.com/ibm/ibm-licensing-operator/controllers/resources"
+	"github.com/ibm/ibm-licensing-operator/version"
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -84,8 +83,8 @@ func getDatabaseEnvFromSourceVariables() []corev1.EnvFromSource {
 }
 
 func UpdateVersion(client client.Client, instance *operatorv1alpha1.IBMLicenseServiceReporter) error {
-	if instance.Spec.Version != resources.Version {
-		instance.Spec.Version = resources.Version
+	if instance.Spec.Version != version.Version {
+		instance.Spec.Version = version.Version
 		return client.Update(context.TODO(), instance)
 	}
 	return nil
