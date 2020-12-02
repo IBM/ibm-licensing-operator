@@ -31,20 +31,6 @@ import (
 	client_reader "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const defaultQuayRegistry = "quay.io/opencloudio"
-
-const defaultLicensingImageName = "ibm-licensing"
-const defaultLicensingImageTagPostfix = "sha256:d5252fa017157f5855c8d771bdd750dde0a8cd448e242e9072ca68f72db35c03"
-
-const defaultReporterImageName = "ibm-license-service-reporter"
-const defaultReporterImageTagPostfix = "sha256:e692d10444965db03889b87234f3518081703a7ab090d1bb7b39b2b313eecda8"
-
-const defaultReporterUIImageName = "ibm-license-service-reporter-ui"
-const defaultReporterUIImageTagPostfix = "sha256:fc6baa1383e8f253a0efbadfbfda42b7720bee9c9ae3358c9dc4aa14bcda3d63"
-
-const defaultDatabaseImageName = "ibm-postgresql"
-const defaultDatabaseImageTagPostfix = "sha256:9a5c50288d81bee6cd803953f6221f9331540c15eac527bac32f2dd10b57b731"
-
 const localReporterURL = "https://ibm-license-service-reporter:8080"
 const defaultLicensingTokenSecretName = "ibm-licensing-token"
 
@@ -145,25 +131,8 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteE
 	spec.Container.setResourceLimitCPUIfNotSet(*cpu500m)
 	spec.Container.setResourceRequestCPUIfNotSet(*cpu200m)
 
-	licensingFullImageFromEnv := os.Getenv("OPERAND_LICENSING_IMAGE")
-
-	// Check if operator image variable is set and CR has no overrides
-	if licensingFullImageFromEnv != "" && spec.isImageEmpty() {
-		err := spec.setImageParametersFromEnv(licensingFullImageFromEnv)
-		if err != nil {
-			return err
-		}
-	} else {
-		// If CR has at least one override, make sure all parts of the image are filled at least with default values
-		if spec.ImageRegistry == "" {
-			spec.ImageRegistry = defaultQuayRegistry
-		}
-		if spec.ImageName == "" {
-			spec.ImageName = defaultLicensingImageName
-		}
-		if spec.ImageTagPostfix == "" {
-			spec.ImageTagPostfix = defaultLicensingImageTagPostfix
-		}
+	if err := spec.setContainer("OPERAND_LICENSING_IMAGE"); err != nil {
+		return err
 	}
 	return nil
 }
@@ -177,63 +146,14 @@ func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 }
 
 func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logger, r client_reader.Reader) error {
-	databaseFullImageFromEnv := os.Getenv("OPERAND_REPORTER_DATABASE_IMAGE")
-	// Check if operator image variable is set and CR has no overrides
-	if databaseFullImageFromEnv != "" && spec.DatabaseContainer.isImageEmpty() {
-		err := spec.DatabaseContainer.setImageParametersFromEnv(databaseFullImageFromEnv)
-		if err != nil {
-			return err
-		}
-	} else {
-		// If CR has at least one override, make sure all parts of the image are filled at least with default values
-		if spec.DatabaseContainer.ImageName == "" {
-			spec.DatabaseContainer.ImageName = defaultDatabaseImageName
-		}
-		if spec.DatabaseContainer.ImageRegistry == "" {
-			spec.DatabaseContainer.ImageRegistry = defaultQuayRegistry
-		}
-		if spec.DatabaseContainer.ImageTagPostfix == "" {
-			spec.DatabaseContainer.ImageTagPostfix = defaultDatabaseImageTagPostfix
-		}
+	if err := spec.DatabaseContainer.setContainer("OPERAND_REPORTER_DATABASE_IMAGE"); err != nil {
+		return err
 	}
-
-	receiverFullImageFromEnv := os.Getenv("OPERAND_REPORTER_RECEIVER_IMAGE")
-	// Check if operator image variable is set and CR has no overrides
-	if receiverFullImageFromEnv != "" && spec.ReceiverContainer.isImageEmpty() {
-		err := spec.ReceiverContainer.setImageParametersFromEnv(receiverFullImageFromEnv)
-		if err != nil {
-			return err
-		}
-	} else {
-		// If CR has at least one override, make sure all parts of the image are filled at least with default values
-		if spec.ReceiverContainer.ImageName == "" {
-			spec.ReceiverContainer.ImageName = defaultReporterImageName
-		}
-		if spec.ReceiverContainer.ImageRegistry == "" {
-			spec.ReceiverContainer.ImageRegistry = defaultQuayRegistry
-		}
-		if spec.ReceiverContainer.ImageTagPostfix == "" {
-			spec.ReceiverContainer.ImageTagPostfix = defaultReporterImageTagPostfix
-		}
+	if err := spec.ReporterUIContainer.setContainer("OPERAND_REPORTER_UI_IMAGE"); err != nil {
+		return err
 	}
-
-	uiFullImageFromEnv := os.Getenv("OPERAND_REPORTER_UI_IMAGE")
-	// Check if operator image variable is set and CR has no overrides
-	if uiFullImageFromEnv != "" && spec.ReporterUIContainer.isImageEmpty() {
-		err := spec.ReporterUIContainer.setImageParametersFromEnv(uiFullImageFromEnv)
-		if err != nil {
-			return err
-		}
-	} else {
-		if spec.ReporterUIContainer.ImageName == "" {
-			spec.ReporterUIContainer.ImageName = defaultReporterUIImageName
-		}
-		if spec.ReporterUIContainer.ImageRegistry == "" {
-			spec.ReporterUIContainer.ImageRegistry = defaultQuayRegistry
-		}
-		if spec.ReporterUIContainer.ImageTagPostfix == "" {
-			spec.ReporterUIContainer.ImageTagPostfix = defaultReporterUIImageTagPostfix
-		}
+	if err := spec.ReceiverContainer.setContainer("OPERAND_REPORTER_RECEIVER_IMAGE"); err != nil {
+		return err
 	}
 
 	spec.DatabaseContainer.initResourcesIfNil()
@@ -351,17 +271,14 @@ func (container *Container) GetFullImage() string {
 	return container.ImageRegistry + "/" + container.ImageName + ":" + container.ImageTagPostfix
 }
 
-// isImageEmpty returns true when any part of image name is not defined
-func (container *Container) isImageEmpty() bool {
-	return container.ImageRegistry == "" && container.ImageName == "" && container.ImageTagPostfix == ""
-}
-
-// setImageParametersFromEnv set container image info from full image reference
-func (container *Container) setImageParametersFromEnv(fullImageName string) error {
+// getImageParametersFromEnv get image info from full image reference
+func (container *Container) getImageParametersFromEnv(envVariableName string) error {
+	fullImageName := os.Getenv(envVariableName)
 	// First get imageName, to do that we need to split FullImage like path
 	imagePathSplitted := strings.Split(fullImageName, "/")
 	if len(imagePathSplitted) < 2 {
-		return errors.New("your image ENV variable in operator deployment should have registry and image separated with \"/\" symbol")
+		text := fmt.Sprintf("ENV variable: %s should have registry and image separated with \"/\" symbol", envVariableName)
+		return errors.New(text)
 	}
 	imageWithTag := imagePathSplitted[len(imagePathSplitted)-1]
 	var imageWithTagSplitted []string
@@ -369,17 +286,55 @@ func (container *Container) setImageParametersFromEnv(fullImageName string) erro
 	if strings.Contains(imageWithTag, "@") {
 		imageWithTagSplitted = strings.Split(imageWithTag, "@")
 		if len(imageWithTagSplitted) != 2 {
-			return errors.New("your image ENV variable in operator deployment should have digest and image name separated by only one \"@\" symbol")
+			text := fmt.Sprintf("ENV variable: %s in operator deployment should have digest and image name separated by only one \"@\" symbol", envVariableName)
+			return errors.New(text)
 		}
 	} else {
 		imageWithTagSplitted = strings.Split(imageWithTag, ":")
 		if len(imageWithTagSplitted) != 2 {
-			return errors.New("your image ENV variable in operator deployment should have image tag and image name separated by only one \":\" symbol")
+			text := fmt.Sprintf("ENV variable: %s in operator deployment should have image tag and image name separated by only one \":\" symbol", envVariableName)
+			return errors.New(text)
 		}
 	}
 	container.ImageTagPostfix = imageWithTagSplitted[1]
 	container.ImageName = imageWithTagSplitted[0]
 	container.ImageRegistry = strings.Join(imagePathSplitted[:len(imagePathSplitted)-1], "/")
+	return nil
+}
+
+func (container *Container) setContainer(envVar string) error {
+	temp := Container{}
+	if err := temp.getImageParametersFromEnv(envVar); err != nil {
+		return err
+	}
+	// If CR has at least one override, make sure all parts of the image are filled at least with default values c ENV
+	if container.ImageName == "" {
+		container.ImageName = temp.ImageName
+	}
+	if container.ImageRegistry == "" {
+		container.ImageRegistry = temp.ImageRegistry
+	}
+	if container.ImageTagPostfix == "" {
+		container.ImageTagPostfix = temp.ImageTagPostfix
+	}
+	return nil
+}
+
+func CheckOperandEnvVar() error {
+	c := Container{}
+	if err := c.getImageParametersFromEnv("OPERAND_LICENSING_IMAGE"); err != nil {
+		return err
+	}
+	if err := c.getImageParametersFromEnv("OPERAND_REPORTER_DATABASE_IMAGE"); err != nil {
+		return err
+	}
+	if err := c.getImageParametersFromEnv("OPERAND_REPORTER_UI_IMAGE"); err != nil {
+		return err
+	}
+	if err := c.getImageParametersFromEnv("OPERAND_REPORTER_RECEIVER_IMAGE"); err != nil {
+		return err
+	}
+
 	return nil
 }
 
