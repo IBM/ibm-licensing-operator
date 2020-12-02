@@ -32,10 +32,12 @@ import (
 )
 
 const localReporterURL = "https://ibm-license-service-reporter:8080"
-const defaultLicensingTokenSecretName = "ibm-licensing-token"
-
-// #nosec
-const defaultReporterTokenSecretName = "ibm-licensing-reporter-token"
+const defaultLicensingTokenSecretName = "ibm-licensing-token"         //#nosec
+const defaultReporterTokenSecretName = "ibm-licensing-reporter-token" //#nosec
+const OperandLicensingImageEnvVar = "OPERAND_LICENSING_IMAGE"
+const OperandReporterDatabaseImageEnvVar = "OPERAND_REPORTER_DATABASE_IMAGE"
+const OperandReporterUIImageEnvVar = "OPERAND_REPORTER_UI_IMAGE"
+const OperandReporterReceiverImageEnvVar = "OPERAND_REPORTER_RECEIVER_IMAGE"
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
@@ -131,7 +133,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteE
 	spec.Container.setResourceLimitCPUIfNotSet(*cpu500m)
 	spec.Container.setResourceRequestCPUIfNotSet(*cpu200m)
 
-	if err := spec.setContainer("OPERAND_LICENSING_IMAGE"); err != nil {
+	if err := spec.setContainer(OperandLicensingImageEnvVar); err != nil {
 		return err
 	}
 	return nil
@@ -146,13 +148,13 @@ func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 }
 
 func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logger, r client_reader.Reader) error {
-	if err := spec.DatabaseContainer.setContainer("OPERAND_REPORTER_DATABASE_IMAGE"); err != nil {
+	if err := spec.DatabaseContainer.setContainer(OperandReporterDatabaseImageEnvVar); err != nil {
 		return err
 	}
-	if err := spec.ReporterUIContainer.setContainer("OPERAND_REPORTER_UI_IMAGE"); err != nil {
+	if err := spec.ReporterUIContainer.setContainer(OperandReporterUIImageEnvVar); err != nil {
 		return err
 	}
-	if err := spec.ReceiverContainer.setContainer("OPERAND_REPORTER_RECEIVER_IMAGE"); err != nil {
+	if err := spec.ReceiverContainer.setContainer(OperandReporterReceiverImageEnvVar); err != nil {
 		return err
 	}
 
@@ -322,16 +324,16 @@ func (container *Container) setContainer(envVar string) error {
 
 func CheckOperandEnvVar() error {
 	c := Container{}
-	if err := c.getImageParametersFromEnv("OPERAND_LICENSING_IMAGE"); err != nil {
+	if err := c.getImageParametersFromEnv(OperandLicensingImageEnvVar); err != nil {
 		return err
 	}
-	if err := c.getImageParametersFromEnv("OPERAND_REPORTER_DATABASE_IMAGE"); err != nil {
+	if err := c.getImageParametersFromEnv(OperandReporterDatabaseImageEnvVar); err != nil {
 		return err
 	}
-	if err := c.getImageParametersFromEnv("OPERAND_REPORTER_UI_IMAGE"); err != nil {
+	if err := c.getImageParametersFromEnv(OperandReporterUIImageEnvVar); err != nil {
 		return err
 	}
-	if err := c.getImageParametersFromEnv("OPERAND_REPORTER_RECEIVER_IMAGE"); err != nil {
+	if err := c.getImageParametersFromEnv(OperandReporterReceiverImageEnvVar); err != nil {
 		return err
 	}
 
