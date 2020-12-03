@@ -73,12 +73,11 @@ jobs:
       run: |
         cp ./common/scripts/tests/.osdk-scorecard.yaml ./.osdk-scorecard.yaml
         export VERSION=1.4.0
-        set -o pipefail
+#        set -o pipefail
         ./operator-sdk scorecard namespace ibm-common-services --config ./.osdk-scorecard.yaml -b ./deploy/olm-catalog/ibm-licensing-operator/$VERSION/  --verbose 2>&1 | tee ./scorecard_logs.txt
+        kubectl get event --namespace ibm-common-services
 
     - name: Archive scorecard logs
-      run: |
-        kubectl get event --namespace ibm-common-services
       uses: actions/upload-artifact@v2
       if: always()
       with:
