@@ -46,10 +46,10 @@ import (
 )
 
 var (
-	log = logf.Log.WithName("controller_ibmlicensing")
+	logLS = logf.Log.WithName("controller_ibmlicensing")
 )
 
-type reconcileFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
+type reconcileLSFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
 
 // Add creates a new IBMLicensing Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -59,14 +59,18 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileIBMLicensing{client: mgr.GetClient(), reader: mgr.GetAPIReader(), scheme: mgr.GetScheme()}
+	return &ReconcileIBMLicensing{
+		Client: mgr.GetClient(),
+		Reader: mgr.GetAPIReader(),
+		Scheme: mgr.GetScheme(),
+		Log:    logLS.WithValues("Controller", "ibmlicensing")}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
-	// Create a new controller
-	reqLogger := log.WithValues("add", "Entry")
+	reqLogger := logLS.WithValues("add", "Entry")
 
+	// Create a new controller
 	c, err := controller.New("ibmlicensing-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
@@ -79,7 +83,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to secondary resources
-	err = res.WatchForResources(log, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
+	err = res.WatchForResources(reqLogger, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
 		&appsv1.Deployment{},
 		&corev1.Service{},
 	})
@@ -87,11 +91,14 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	res.UpdateAvailableClusterExtensions(&reqLogger, mgr.GetAPIReader())
+	err = res.UpdateCacheClusterExtensions(mgr.GetAPIReader())
+	if err != nil {
+		reqLogger.Error(err, "Error during checking K8s API")
+	}
 
 	if res.IsRouteAPI {
 		// Watch for changes to openshift resources if on OC
-		err = res.WatchForResources(log, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
+		err = res.WatchForResources(reqLogger, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
 			&routev1.Route{},
 		})
 		if err != nil {
@@ -109,9 +116,10 @@ var _ reconcile.Reconciler = &ReconcileIBMLicensing{}
 type ReconcileIBMLicensing struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client client.Client
-	reader client.Reader
-	scheme *runtime.Scheme
+	client.Client
+	client.Reader
+	Log    logr.Logger
+	Scheme *runtime.Scheme
 }
 
 // Reconcile reads that state of the cluster for a IBMLicensing object and makes changes based on the state read
@@ -119,32 +127,38 @@ type ReconcileIBMLicensing struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Request", request)
+func (r *ReconcileIBMLicensing) Reconcile(req reconcile.Request) (reconcile.Result, error) {
+
+	reqLogger := r.Log.WithValues("ibmlicensing", req.NamespacedName)
 	reqLogger.Info("Reconciling IBMLicensing")
+
+	if err := res.UpdateCacheClusterExtensions(r.Reader); err != nil {
+		reqLogger.Error(err, "Error during checking K8s API")
+	}
+
+	r.controllerStatus()
 
 	// Fetch the IBMLicensing instance
 	foundInstance := &operatorv1alpha1.IBMLicensing{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, foundInstance)
+	err := r.Client.Get(context.TODO(), req.NamespacedName, foundInstance)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
+			// Request object not found, could have been deleted after reconcile req.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
 			// reqLogger.Info("IBMLicensing resource not found. Ignoring since object must be deleted")
 			return reconcile.Result{}, nil
 		}
-		// Error reading the object - requeue the request.
+		// Error reading the object - requeue the req.
 		// reqLogger.Error(err, "Failed to get IBMLicensing")
 		return reconcile.Result{}, err
 	}
 	instance := foundInstance.DeepCopy()
 
-	err = service.UpdateVersion(r.client, instance)
+	err = service.UpdateVersion(r.Client, instance)
 	if err != nil {
-		log.Error(err, "Can not update version in CR")
+		reqLogger.Error(err, "Can not update version in CR")
 	}
-	res.UpdateAvailableClusterExtensions(&reqLogger, r.reader)
 
 	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI)
 	if err != nil {
@@ -166,7 +180,7 @@ func (r *ReconcileIBMLicensing) Reconcile(request reconcile.Request) (reconcile.
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
-		recResult, err = reconcileFunction.(reconcileFunctionType)(instance)
+		recResult, err = reconcileFunction.(reconcileLSFunctionType)(instance)
 		if err != nil || recResult.Requeue {
 			return recResult, err
 		}
@@ -182,7 +196,7 @@ func (r *ReconcileIBMLicensing) updateStatus(instance *operatorv1alpha1.IBMLicen
 		client.InNamespace(instance.Spec.InstanceNamespace),
 		client.MatchingLabels(service.LabelsForLicensingPod(instance)),
 	}
-	if err := r.client.List(context.TODO(), podList, listOpts...); err != nil {
+	if err := r.Client.List(context.TODO(), podList, listOpts...); err != nil {
 		reqLogger.Error(err, "Failed to list pods")
 		return reconcile.Result{}, err
 	}
@@ -207,7 +221,7 @@ func (r *ReconcileIBMLicensing) updateStatus(instance *operatorv1alpha1.IBMLicen
 	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) {
 		reqLogger.Info("Updating IBMLicensing status")
 		instance.Status.LicensingPods = podStatuses
-		err := r.client.Status().Update(context.TODO(), instance)
+		err := r.Client.Status().Update(context.TODO(), instance)
 		if err != nil {
 			reqLogger.Info("Warning: Failed to update pod status, this does not affect License Service")
 		}
@@ -218,7 +232,7 @@ func (r *ReconcileIBMLicensing) updateStatus(instance *operatorv1alpha1.IBMLicen
 }
 
 func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	reqLogger := log.WithValues("reconcileAPISecretToken", "Entry", "instance.GetName()", instance.GetName())
+	reqLogger := r.Log.WithValues("reconcileAPISecretToken", "Entry", "instance.GetName()", instance.GetName())
 	expectedSecret, err := service.GetAPISecretToken(instance)
 	if err != nil {
 		reqLogger.Info("Failed to get expected secret")
@@ -232,7 +246,7 @@ func (r *ReconcileIBMLicensing) reconcileAPISecretToken(instance *operatorv1alph
 }
 
 func (r *ReconcileIBMLicensing) reconcileUploadToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	reqLogger := log.WithValues("reconcileUploadToken", "Entry", "instance.GetName()", instance.GetName())
+	reqLogger := r.Log.WithValues("reconcileUploadToken", "Entry", "instance.GetName()", instance.GetName())
 	expectedSecret, err := service.GetUploadToken(instance)
 	if err != nil {
 		reqLogger.Info("Failed to get expected secret")
@@ -246,7 +260,7 @@ func (r *ReconcileIBMLicensing) reconcileUploadToken(instance *operatorv1alpha1.
 }
 
 func (r *ReconcileIBMLicensing) reconcileUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	reqLogger := log.WithValues("reconcileUploadConfigMap", "Entry", "instance.GetName()", instance.GetName())
+	reqLogger := r.Log.WithValues("reconcileUploadConfigMap", "Entry", "instance.GetName()", instance.GetName())
 	expectedCM := service.GetUploadConfigMap(instance)
 	foundCM := &corev1.ConfigMap{}
 	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedCM, foundCM)
@@ -256,22 +270,22 @@ func (r *ReconcileIBMLicensing) reconcileUploadConfigMap(instance *operatorv1alp
 	if foundCM.Data[service.UploadConfigMapKey] == expectedCM.Data[service.UploadConfigMapKey] {
 		return reconcile.Result{}, nil
 	}
-	return res.UpdateResource(&reqLogger, r.client, expectedCM, foundCM)
+	return res.UpdateResource(&reqLogger, r.Client, expectedCM, foundCM)
 }
 
 func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	reqLogger := log.WithValues("reconcileService", "Entry", "instance.GetName()", instance.GetName())
+	reqLogger := r.Log.WithValues("reconcileService", "Entry", "instance.GetName()", instance.GetName())
 	expectedService := service.GetLicensingService(instance)
 	foundService := &corev1.Service{}
 	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedService, foundService)
 	if err != nil || reconcileResult.Requeue {
 		return reconcileResult, err
 	}
-	return res.UpdateServiceIfNeeded(&reqLogger, r.client, expectedService, foundService)
+	return res.UpdateServiceIfNeeded(&reqLogger, r.Client, expectedService, foundService)
 }
 
 func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	reqLogger := log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
+	reqLogger := r.Log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
 	expectedDeployment := service.GetLicensingDeployment(instance)
 
 	foundDeployment := &appsv1.Deployment{}
@@ -286,7 +300,7 @@ func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.I
 		&foundDeployment.Spec.Template,
 	)
 	if shouldUpdate {
-		return res.UpdateResource(&reqLogger, r.client, expectedDeployment, foundDeployment)
+		return res.UpdateResource(&reqLogger, r.Client, expectedDeployment, foundDeployment)
 	}
 
 	return reconcile.Result{}, nil
@@ -300,7 +314,7 @@ func (r *ReconcileIBMLicensing) reconcileRoute(instance *operatorv1alpha1.IBMLic
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
 		}
-		reqLogger := log.WithValues("reconcileRoute", "Entry", "instance.GetName()", instance.GetName())
+		reqLogger := r.Log.WithValues("reconcileRoute", "Entry", "instance.GetName()", instance.GetName())
 		possibleUpdateNeeded := true
 		if foundRoute.ObjectMeta.Name != expectedRoute.ObjectMeta.Name {
 			reqLogger.Info("Names not equal", "old", foundRoute.ObjectMeta.Name, "new", expectedRoute.ObjectMeta.Name)
@@ -326,7 +340,7 @@ func (r *ReconcileIBMLicensing) reconcileRoute(instance *operatorv1alpha1.IBMLic
 			possibleUpdateNeeded = false
 		}
 		if possibleUpdateNeeded {
-			return res.UpdateResource(&reqLogger, r.client, expectedRoute, foundRoute)
+			return res.UpdateResource(&reqLogger, r.Client, expectedRoute, foundRoute)
 		}
 	}
 	return reconcile.Result{}, nil
@@ -340,7 +354,7 @@ func (r *ReconcileIBMLicensing) reconcileIngress(instance *operatorv1alpha1.IBML
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
 		}
-		reqLogger := log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
+		reqLogger := r.Log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
 		possibleUpdateNeeded := true
 		if foundIngress.ObjectMeta.Name != expectedIngress.ObjectMeta.Name {
 			reqLogger.Info("Names not equal", "old", foundIngress.ObjectMeta.Name, "new", expectedIngress.ObjectMeta.Name)
@@ -360,7 +374,7 @@ func (r *ReconcileIBMLicensing) reconcileIngress(instance *operatorv1alpha1.IBML
 			possibleUpdateNeeded = false
 		}
 		if possibleUpdateNeeded {
-			return res.UpdateResource(&reqLogger, r.client, expectedIngress, foundIngress)
+			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
 		}
 	}
 	return reconcile.Result{}, nil
@@ -380,22 +394,22 @@ func (r *ReconcileIBMLicensing) reconcileResourceExistence(
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
 
 	resType := reflect.TypeOf(expectedRes)
-	reqLogger := log.WithValues(resType.String(), "Entry", "instance.GetName()", instance.GetName())
+	reqLogger := r.Log.WithValues(resType.String(), "Entry", "instance.GetName()", instance.GetName())
 
 	// expectedRes already set before and passed via parameter
-	err := controllerutil.SetControllerReference(instance, expectedRes, r.scheme)
+	err := controllerutil.SetControllerReference(instance, expectedRes, r.Scheme)
 	if err != nil {
 		reqLogger.Error(err, "Failed to define expected resource")
 		return reconcile.Result{}, err
 	}
 
 	// foundRes already initialized before and passed via parameter
-	err = r.client.Get(context.TODO(), namespacedName, foundRes)
+	err = r.Client.Get(context.TODO(), namespacedName, foundRes)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
 				"Namespace", expectedRes.GetNamespace())
-			err = r.client.Create(context.TODO(), expectedRes)
+			err = r.Client.Create(context.TODO(), expectedRes)
 			if err != nil {
 				if !errors.IsAlreadyExists(err) {
 					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
@@ -413,4 +427,17 @@ func (r *ReconcileIBMLicensing) reconcileResourceExistence(
 	}
 	reqLogger.Info(resType.String() + " is correct!")
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileIBMLicensing) controllerStatus() {
+	if res.IsRouteAPI {
+		r.Log.Info("Route feature is enabled")
+	} else {
+		r.Log.Info("Route feature is disabled")
+	}
+	if res.IsServiceCAAPI {
+		r.Log.Info("ServiceCA feature is enabled")
+	} else {
+		r.Log.Info("ServiceCA feature is disabled")
+	}
 }
