@@ -17,7 +17,6 @@
 package service
 
 import (
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	"github.com/ibm/ibm-licensing-operator/pkg/resources"
 	corev1 "k8s.io/api/core/v1"
@@ -79,14 +78,15 @@ func GetPrometheusServiceName() string {
 }
 
 func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
-	if !*instance.Spec.RHMPEnabled {
+	if !instance.Spec.IsRHMPEnabled() {
 		return nil
 	}
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetPrometheusServiceName(),
-			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    getPrometheusLabels(),
+			Name:        GetPrometheusServiceName(),
+			Namespace:   instance.Spec.InstanceNamespace,
+			Labels:      getPrometheusLabels(),
+			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, PrometheusServiceOCPCertName),
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
@@ -99,41 +99,6 @@ func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servi
 				},
 			},
 			Selector: LabelsForSelector(instance),
-		},
-	}
-}
-
-func GetServiceMonitorName() string {
-	return "license-service-service-monitor"
-}
-
-func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.ServiceMonitor {
-	return &monitoringv1.ServiceMonitor{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetServiceMonitorName(),
-			Namespace: instance.Spec.InstanceNamespace,
-			Labels: map[string]string{
-				"marketplace.redhat.com/metering": "true",
-			},
-		},
-		Spec: monitoringv1.ServiceMonitorSpec{
-			Selector: metav1.LabelSelector{
-				MatchLabels: getPrometheusLabels(),
-			},
-			Endpoints: []monitoringv1.Endpoint{
-				{
-					BearerTokenSecret: corev1.SecretKeySelector{
-						Key: "",
-					},
-					Interval:   "15s",
-					Path:       "/metrics",
-					Scheme:     "https",
-					TargetPort: &prometheusTargetPort,
-					TLSConfig: &monitoringv1.TLSConfig{
-						InsecureSkipVerify: true,
-					},
-				},
-			},
 		},
 	}
 }

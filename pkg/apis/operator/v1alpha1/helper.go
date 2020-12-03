@@ -150,6 +150,10 @@ func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 	return spec.IngressEnabled != nil && *spec.IngressEnabled
 }
 
+func (spec *IBMLicensingSpec) IsRHMPEnabled() bool {
+	return spec.RHMPEnabled != nil && *spec.RHMPEnabled
+}
+
 func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logger, r client_reader.Reader) error {
 	if err := spec.DatabaseContainer.setContainer(OperandReporterDatabaseImageEnvVar); err != nil {
 		return err

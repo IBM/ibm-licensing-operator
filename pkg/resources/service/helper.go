@@ -28,6 +28,7 @@ const LicensingResourceBase = "ibm-licensing-service"
 const LicensingComponentName = "ibm-licensing-service-svc"
 const LicensingReleaseName = "ibm-licensing-service"
 const LicenseServiceOCPCertName = "ibm-license-service-cert"
+const PrometheusServiceOCPCertName = "license-service-prometheus-cert"
 const LicensingServiceAccount = "ibm-license-service"
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {

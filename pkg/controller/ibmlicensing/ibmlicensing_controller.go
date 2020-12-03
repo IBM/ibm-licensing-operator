@@ -32,6 +32,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/api/extensions/v1beta1"
+	apiextensionv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -172,6 +173,12 @@ func (r *ReconcileIBMLicensing) Reconcile(req reconcile.Request) (reconcile.Resu
 		reqLogger.Error(err, "Can not update version in CR")
 	}
 
+	prometheusCRD := &apiextensionv1beta1.CustomResourceDefinition{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: "prometheuses.monitoring.coreos.com"}, prometheusCRD)
+	if err != nil {
+		log.Error(err, "Error fetching crds")
+	}
+
 	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled)
 	if err != nil {
 		return reconcile.Result{}, err
@@ -186,11 +193,13 @@ func (r *ReconcileIBMLicensing) Reconcile(req reconcile.Request) (reconcile.Resu
 		r.reconcileUploadToken,
 		r.reconcileUploadConfigMap,
 		r.reconcileServices,
-		r.reconcileServiceMonitor,
 		r.reconcileDeployment,
 		r.reconcileIngress,
 		r.reconcileRoute,
-		r.reconcileNetworkPolicy,
+	}
+
+	if instance.Spec.IsRHMPEnabled() && prometheusCRD != nil {
+		reconcileFunctions = append(reconcileFunctions, r.reconcileServiceMonitor, r.reconcileNetworkPolicy)
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
@@ -307,7 +316,7 @@ func (r *ReconcileIBMLicensing) reconcileServices(instance *operatorv1alpha1.IBM
 }
 
 func (r *ReconcileIBMLicensing) reconcileServiceMonitor(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	if !res.RHMPEnabled {
+	if !instance.Spec.IsRHMPEnabled() {
 		return reconcile.Result{}, nil
 	}
 	reqLogger := r.Log.WithValues("reconcileServiceMonitor", "Entry", "instance.GetName()", instance.GetName())
@@ -323,7 +332,7 @@ func (r *ReconcileIBMLicensing) reconcileServiceMonitor(instance *operatorv1alph
 }
 
 func (r *ReconcileIBMLicensing) reconcileNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	if !res.RHMPEnabled {
+	if !instance.Spec.IsRHMPEnabled() {
 		return reconcile.Result{}, nil
 	}
 	reqLogger := r.Log.WithValues("reconcileNetworkPolicy", "Entry", "instance.GetName()", instance.GetName())
