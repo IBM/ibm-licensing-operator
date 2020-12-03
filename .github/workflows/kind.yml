@@ -61,7 +61,6 @@ jobs:
         echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
         kubectl create namespace ibm-common-services
         kubectl create secret generic my-registry-token -n ibm-common-services --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson
-        echo "  imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom" >> deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
         echo "  imagePullSecrets:" >> deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
         echo "    - my-registry-token" >> deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
         cat deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
@@ -78,6 +77,8 @@ jobs:
         ./operator-sdk scorecard namespace ibm-common-services --config ./.osdk-scorecard.yaml -b ./deploy/olm-catalog/ibm-licensing-operator/$VERSION/  --verbose 2>&1 | tee ./scorecard_logs.txt
 
     - name: Archive scorecard logs
+      run: |
+        kubectl get event --namespace ibm-common-services
       uses: actions/upload-artifact@v2
       if: always()
       with:

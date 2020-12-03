@@ -12,3 +12,5 @@ spec:
   datasource: datacollector
   httpsEnable: true
   instanceNamespace: ibm-common-services
+  imagePullSecrets:
+    - my-registry-token
