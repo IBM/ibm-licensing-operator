@@ -26,7 +26,7 @@ const APISecretTokenVolumeName = "api-token"
 const APIUploadTokenVolumeName = "token-upload"
 const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
-const PrometheusHTTPSCertsVolumeName = "perometheus-https-certs"
+const PrometheusHTTPSCertsVolumeName = "prometheus-https-certs"
 
 func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.VolumeMount {
 	var volumeMounts = []corev1.VolumeMount{
@@ -56,7 +56,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 				volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 					{
 						Name:      PrometheusHTTPSCertsVolumeName,
-						MountPath: "/opt/licensing/certs/",
+						MountPath: "/opt/prometheus/certs/",
 						ReadOnly:  true,
 					},
 				}...)

@@ -40,6 +40,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Name:  "HTTPS_ENABLE",
 			Value: httpsEnableString,
 		},
+		//TODO usunąć przed commitem
 		{
 			Name:  "enable.prometheus",
 			Value: "true",

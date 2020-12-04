@@ -200,6 +200,8 @@ func (r *ReconcileIBMLicensing) Reconcile(req reconcile.Request) (reconcile.Resu
 
 	if instance.Spec.IsRHMPEnabled() && prometheusCRD != nil {
 		reconcileFunctions = append(reconcileFunctions, r.reconcileServiceMonitor, r.reconcileNetworkPolicy)
+	} else {
+		reqLogger.Info("RHMP disabled or prometheus crd not present on cluster")
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
