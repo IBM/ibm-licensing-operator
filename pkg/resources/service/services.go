@@ -83,10 +83,9 @@ func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servi
 	}
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        GetPrometheusServiceName(),
-			Namespace:   instance.Spec.InstanceNamespace,
-			Labels:      getPrometheusLabels(),
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, PrometheusServiceOCPCertName),
+			Name:      GetPrometheusServiceName(),
+			Namespace: instance.Spec.InstanceNamespace,
+			Labels:    getPrometheusLabels(),
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,

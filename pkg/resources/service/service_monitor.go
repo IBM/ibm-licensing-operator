@@ -57,23 +57,12 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.Se
 }
 
 func getTLSConfig(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConfig {
-	optional := true
 	if instance.Spec.HTTPSEnable {
 		return &monitoringv1.TLSConfig{
-			CA: monitoringv1.SecretOrConfigMap{
-				Secret: &corev1.SecretKeySelector{
-					// Key:                  "tls.crt",
-					Optional:             &optional,
-					LocalObjectReference: corev1.LocalObjectReference{Name: PrometheusServiceOCPCertName},
-				},
-			},
-			ServerName:         "license-service-prometheus.ibm-common-services.svc",
-			InsecureSkipVerify: false,
+			InsecureSkipVerify: true,
 		}
 	}
-	return &monitoringv1.TLSConfig{
-		InsecureSkipVerify: true,
-	}
+	return nil
 }
 
 func getScheme(instance *operatorv1alpha1.IBMLicensing) string {
