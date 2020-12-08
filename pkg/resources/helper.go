@@ -181,11 +181,10 @@ echo "$(date): All required secrets exist"
 	return script
 }
 
-func UpdateAvailableClusterExtensions(reqLogger *logr.Logger, client c.Reader) {
+func UpdateCacheClusterExtensions(client c.Reader) error {
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
-		(*reqLogger).Error(err, "Failed to get watch namespace in UpdateAvailableClusterExtensions")
-		return
+		return err
 	}
 
 	listOpts := []c.ListOption{
@@ -198,7 +197,6 @@ func UpdateAvailableClusterExtensions(reqLogger *logr.Logger, client c.Reader) {
 		IsRouteAPI = true
 	} else {
 		IsRouteAPI = false
-		(*reqLogger).Info("Route CR not found")
 	}
 
 	serviceCAInstance := &servicecav1.ServiceCA{}
@@ -207,6 +205,6 @@ func UpdateAvailableClusterExtensions(reqLogger *logr.Logger, client c.Reader) {
 		IsServiceCAAPI = true
 	} else {
 		IsServiceCAAPI = false
-		(*reqLogger).Info("ServiceCA not found")
 	}
+	return nil
 }

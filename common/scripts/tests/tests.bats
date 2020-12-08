@@ -76,6 +76,11 @@ teardown() {
 }
 
 @test "Run Operator in backgroud" {
+  export OPERAND_LICENSING_IMAGE="quay.io/opencloudio/ibm-licensing:0"
+  export OPERAND_REPORTER_RECEIVER_IMAGE="quay.io/opencloudio/ibm-license-service-reporter:0"
+  export OPERAND_REPORTER_UI_IMAGE="quay.io/opencloudio/ibm-license-service-reporter-ui:0"
+  export OPERAND_REPORTER_DATABASE_IMAGE="quay.io/opencloudio/ibm-postgresql:0"
+
   operator-sdk run --watch-namespace ibm-common-services$SUFIX --local > operator-sdk-ls_logs.txt 2>&1 &
 
   export OPERATOR_PID=$!
@@ -126,7 +131,7 @@ cat <<EOF | kubectl apply -f -
     datasource: datacollector
     httpsEnable: true
     imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
-    imageTagPostfix: 1.3.1
+    imageTagPostfix: 1.4.0
     imagePullSecrets:
       - my-registry-token
     instanceNamespace: ibm-common-services$SUFIX
