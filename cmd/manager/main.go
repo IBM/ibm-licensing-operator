@@ -142,18 +142,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Add Route resource for OpenShift clusters
-	if err := routev1.Install(mgr.GetScheme()); err != nil {
-		log.Error(err, "")
-		os.Exit(1)
-	}
-
-	// Add ServiceCA resource for OpenShift clusters
-	if err := servicecav1.Install(mgr.GetScheme()); err != nil {
-		log.Error(err, "")
-		os.Exit(1)
-	}
-
 	// Add prometheus resources
 	if err := monitoringv1.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
@@ -162,6 +150,18 @@ func main() {
 
 	// Add custom resources
 	if err := apiextensionv1beta1.AddToScheme(mgr.GetScheme()); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	// Add Route resource for OpenShift clusters
+	if err := routev1.Install(mgr.GetScheme()); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	// Add ServiceCA resource for OpenShift clusters
+	if err := servicecav1.Install(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
