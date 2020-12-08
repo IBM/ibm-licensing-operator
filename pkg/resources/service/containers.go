@@ -40,11 +40,6 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Name:  "HTTPS_ENABLE",
 			Value: httpsEnableString,
 		},
-		//TODO usunąć przed commitem
-		{
-			Name:  "enable.prometheus",
-			Value: "true",
-		},
 	}
 	if spec.IsDebug() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
@@ -62,6 +57,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "METERING_URL",
 			Value: "https://metering-server:4002/api/v1/metricData",
+		})
+	}
+	if res.IsRHMPEnabledAndInstalled(spec.IsRHMPEnabled()) {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "enabled.metrics",
+			Value: "true",
 		})
 	}
 	if spec.Sender != nil {
@@ -195,7 +196,7 @@ func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 		},
 	}
 
-	if spec.IsRHMPEnabled() {
+	if res.IsRHMPEnabledAndInstalled(spec.IsRHMPEnabled()) {
 		ports = append(ports, corev1.ContainerPort{
 			ContainerPort: prometheusServicePort.IntVal,
 			Protocol:      corev1.ProtocolTCP,

@@ -78,7 +78,7 @@ func GetPrometheusServiceName() string {
 }
 
 func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
-	if !instance.Spec.IsRHMPEnabled() {
+	if !resources.IsRHMPEnabledAndInstalled(instance.Spec.IsRHMPEnabled()) {
 		return nil
 	}
 	return &corev1.Service{

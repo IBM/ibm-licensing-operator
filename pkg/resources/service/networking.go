@@ -37,6 +37,7 @@ func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *v1beta1.NetworkP
 			Labels:    metaLabels,
 		},
 		Spec: v1beta1.NetworkPolicySpec{
+			PodSelector: getNetworkPolicyPodSelector(),
 			PolicyTypes: []v1beta1.PolicyType{v1beta1.PolicyTypeIngress},
 			Ingress: []v1beta1.NetworkPolicyIngressRule{
 				{
@@ -48,15 +49,27 @@ func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *v1beta1.NetworkP
 					},
 					From: []v1beta1.NetworkPolicyPeer{
 						{
-							NamespaceSelector: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									"rhmp": "true",
-								},
-							},
+							NamespaceSelector: getNetworkPolicyNamespaceSelector(),
 						},
 					},
 				},
 			},
+		},
+	}
+}
+
+func getNetworkPolicyPodSelector() metav1.LabelSelector {
+	return metav1.LabelSelector{
+		MatchLabels: map[string]string{
+			"app": "ibm-licensing-service-instance",
+		},
+	}
+}
+
+func getNetworkPolicyNamespaceSelector() *metav1.LabelSelector {
+	return &metav1.LabelSelector{
+		MatchLabels: map[string]string{
+			"project": "openshift-redhat-marketplace",
 		},
 	}
 }

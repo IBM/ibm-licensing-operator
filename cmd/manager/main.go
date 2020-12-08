@@ -154,11 +154,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Add prometheus resources
 	if err := monitoringv1.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
 
+	// Add custom resources
 	if err := apiextensionv1beta1.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 		os.Exit(1)

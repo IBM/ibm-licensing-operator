@@ -31,8 +31,10 @@ import (
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -51,6 +53,7 @@ var Seconds60 int64 = 60
 var IsRouteAPI = true
 var IsServiceCAAPI = true
 var RHMPEnabled = true
+var IsRHMP = false
 
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"
@@ -210,6 +213,16 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsRouteAPI = false
 	}
 
+	prometheusCRD := &apiextensionv1beta1.CustomResourceDefinition{}
+	err = client.Get(context.TODO(), types.NamespacedName{Name: "prometheuses.monitoring.coreos.com"}, prometheusCRD)
+	if err != nil {
+		(*reqLogger).Info("Prometheus CRD not found")
+	}
+
+	if prometheusCRD != nil {
+		IsRHMP = true
+	}
+
 	serviceCAInstance := &servicecav1.ServiceCA{}
 	err = client.List(context.TODO(), serviceCAInstance, listOpts...)
 	if err == nil {
@@ -218,4 +231,8 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsServiceCAAPI = false
 	}
 	return nil
+}
+
+func IsRHMPEnabledAndInstalled(rhmpEnabled bool) bool {
+	return rhmpEnabled && IsRHMP
 }
