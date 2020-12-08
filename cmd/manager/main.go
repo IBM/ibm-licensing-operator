@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/ibm/ibm-licensing-operator/pkg/apis"
+	v1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	"github.com/ibm/ibm-licensing-operator/pkg/controller"
 	"github.com/ibm/ibm-licensing-operator/version"
 	servicecav1 "github.com/openshift/api/operator/v1"
@@ -110,6 +111,11 @@ func main() {
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)
+	}
+
+	if err := v1alpha1.CheckOperandEnvVar(); err != nil {
+		log.Error(err, "Operand environment variables not set correctly.")
+		os.Exit(10)
 	}
 
 	// Reconcile duration, we does not watch lots of resources, instead we reconcile in each minutes

@@ -24,6 +24,7 @@ kubectl apply -f https://github.com/IBM/ibm-licensing-operator/releases/download
 export my_docker_registry=<your private registry>
 export operator_version=1.3.1
 export operand_version=1.3.1
+export operand_db_version=12.0.3
 ```
 
 ```yaml
@@ -85,6 +86,12 @@ spec:
               value: "ibm-licensing-operator"
             - name: OPERAND_LICENSING_IMAGE
               value: "${my_docker_registry}/ibm-licensing:${operand_version}"
+            - name: OPERAND_REPORTER_UI_IMAGE
+              value: "${my_docker_registry}/ibm-license-service-reporter-ui:${operand_version}"
+            - name: OPERAND_REPORTER_DATABASE_IMAGE
+              value: "${my_docker_registry}/ibm-postgresql:${operand_db_version}"
+            - name: OPERAND_REPORTER_RECEIVER_IMAGE
+              value: "${my_docker_registry}/ibm-license-service-reporter:${operand_version}"
             - name: SA_NAME
               valueFrom:
                 fieldRef:
