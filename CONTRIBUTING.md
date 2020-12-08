@@ -6,6 +6,7 @@
     - [Developer Certificate of Origin](#developer-certificate-of-origin)
     - [Contributing A Patch](#contributing-a-patch)
     - [Issue and Pull Request Management](#issue-and-pull-request-management)
+    - [Linting prerequisite](#linting-prerequisite)
     - [Pre-check before submitting a PR](#pre-check-before-submitting-a-pr)
     - [Build images](#build-images)
 
@@ -33,6 +34,39 @@ order to be assigned an issue or pull request, you must be a member of the
 
 Repo maintainers can assign you an issue or pull request by leaving a
 `/assign <your Github ID>` comment on the issue or pull request.
+
+## Linting prerequisite
+
+- git
+- go version v1.12+
+- some tools below requires python with pip (tested on python3), and ruby with gem and bundler to install
+- Linting Tools
+
+    | linting tool | version | instructions |
+    | ------------ | ------- | ------------ |
+    | [hadolint](https://github.com/hadolint/hadolint#install) | [v1.17.2](https://github.com/hadolint/hadolint/releases/tag/v1.17.2) | download binary from version link, make executable with `chmod +x` and add to bin directory |
+    | [shellcheck](https://github.com/koalaman/shellcheck#installing) | [v0.7.0](https://github.com/koalaman/shellcheck/releases/tag/v0.7.0) | download binary from version link, make executable with `chmod +x` and add to bin directory |
+    | [yamllint](https://github.com/adrienverge/yamllint#installation) | [v1.17.0](https://github.com/adrienverge/yamllint/releases/tag/v1.17.0) | download zip from version link, unzip and enter directory, then use python pip to install e.g. with this command `sudo pip3 install .` |
+    | [golangci-lint](https://github.com/golangci/golangci-lint#install) | [v1.18.0](https://github.com/golangci/golangci-lint/releases/tag/v1.18.0) | `go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.18.0` |
+    | [mdl](https://github.com/markdownlint/markdownlint#installation) | [v0.5.0](https://github.com/markdownlint/markdownlint/releases/tag/v0.5.0) | download using `git clone https://github.com/markdownlint/markdownlint.git -b v0.5.0` and install using `rake install` |
+    | [awesome_bot](https://github.com/dkhamsing/awesome_bot#installation) | [1.19.1](https://github.com/dkhamsing/awesome_bot/releases/tag/1.19.1) | download using `git clone https://github.com/dkhamsing/awesome_bot.git -b 1.19.1` and install using `rake install` |
+    | [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports) | `3792095` | `go get golang.org/x/tools/cmd/goimports@3792095` |
+
+- if you have an error during `make check`, for example:
+
+```shell
+goboringcrypto.h fatal error: openssl/ossl_typ.h: no such file or directory
+```
+
+Then try downloading newer golang version from [golang.org](https://golang.org) and:
+- make sure $GOROOT will be set to the newer one
+
+It was tested to work with these environment variables and setup:
+- go version go1.15.6 linux/amd64
+- Red Hat Enterprise Linux 8
+- GOROOT=/usr/local/go
+- GOPATH=$HOME/go
+- GO111MODULE=on
 
 ## Pre-check before submitting a PR
 

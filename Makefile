@@ -163,14 +163,14 @@ code-dev: ## Run the default dev commands which are the go tidy, fmt, vet then e
 	@echo Running the common required commands for code delivery
 	make check
 
-# All available format: format-go format-protos format-python
+# All available format: format-go format-protos
 # Default value will run all formats, override these make target with your requirements:
 #    eg: fmt: format-go format-protos
-fmt: format-go format-protos format-python
+fmt: format-go format-protos
 
 check: lint ## Check all files lint errors, this is also done before pushing the code to remote branch
 
-# All available linters: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-python lint-helm lint-markdown lint-sass lint-typescript lint-protos
+# All available linters: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown lint-typescript lint-protos
 # Default value will run all linters, override these make target with your requirements:
 #    eg: lint: lint-go lint-yaml
 lint: lint-all
