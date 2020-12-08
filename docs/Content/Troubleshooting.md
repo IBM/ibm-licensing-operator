@@ -14,7 +14,7 @@ You can verify if License Service is properly deployed and whether it collects t
 
 ```bash
 # apply the yaml from here:
-export operator_release_version=v1.2.3-durham
+export operator_release_version=v1.3.1
 kubectl apply -f https://github.com/IBM/ibm-licensing-operator/releases/download/${operator_release_version}/rbac_and_crd.yaml
 ```
 
