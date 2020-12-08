@@ -107,7 +107,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		}
 	}
 
-	if res.RHMPEnabled {
+	if res.IsRHMPEnabledAndInstalled(res.RHMPEnabled) {
 		// Watch for changes in prometheus related objects if rhmp is enabled
 		err = res.WatchForResources(reqLogger, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
 			&monitoringv1.ServiceMonitor{},
