@@ -3,11 +3,13 @@ module github.com/ibm/ibm-licensing-operator
 go 1.15
 
 require (
+	github.com/coreos/prometheus-operator v0.38.1-0.20200424145508-7e176fda06cc
 	github.com/go-logr/logr v0.1.0
 	github.com/openshift/api v0.0.0-20200205133042-34f0ec8dab87
 	github.com/operator-framework/operator-sdk v0.19.4
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.18.4
+	k8s.io/apiextensions-apiserver v0.18.2
 	k8s.io/apimachinery v0.18.4
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6
