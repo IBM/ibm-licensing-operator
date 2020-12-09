@@ -216,7 +216,7 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 	prometheusCRD := &apiextensionv1beta1.CustomResourceDefinition{}
 	err = client.Get(context.TODO(), types.NamespacedName{Name: "prometheuses.monitoring.coreos.com"}, prometheusCRD)
 	if err != nil {
-		(*reqLogger).Info("Prometheus CRD not found")
+		IsRHMP = false
 	} else {
 		IsRHMP = true
 	}
