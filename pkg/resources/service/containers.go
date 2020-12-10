@@ -61,7 +61,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 	}
 	if res.IsRHMPEnabledAndInstalled(spec.IsRHMPEnabled()) {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "enabled.metrics",
+			Name:  "enable.metrics",
 			Value: "true",
 		})
 	}

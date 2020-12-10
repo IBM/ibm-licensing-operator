@@ -28,13 +28,11 @@ func GetNetworkPolicyName(instance *operatorv1alpha1.IBMLicensing) string {
 }
 
 func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *v1beta1.NetworkPolicy {
-	metaLabels := LabelsForMeta(instance)
 	protocol := corev1.ProtocolTCP
 	return &v1beta1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetNetworkPolicyName(instance),
 			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    metaLabels,
 		},
 		Spec: v1beta1.NetworkPolicySpec{
 			PodSelector: getNetworkPolicyPodSelector(),
@@ -49,7 +47,22 @@ func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *v1beta1.NetworkP
 					},
 					From: []v1beta1.NetworkPolicyPeer{
 						{
-							NamespaceSelector: getNetworkPolicyNamespaceSelector(),
+							NamespaceSelector: getNetworkPolicyFromNamespaceSelector(),
+							PodSelector:       getNetworkPolicyFromPodSelector(),
+						},
+					},
+				},
+				{
+					Ports: []v1beta1.NetworkPolicyPort{
+						{
+							Port:     &licensingServicePort,
+							Protocol: &protocol,
+						},
+					},
+					From: []v1beta1.NetworkPolicyPeer{
+						{
+							NamespaceSelector: &metav1.LabelSelector{},
+							PodSelector:       &metav1.LabelSelector{},
 						},
 					},
 				},
@@ -66,10 +79,17 @@ func getNetworkPolicyPodSelector() metav1.LabelSelector {
 	}
 }
 
-func getNetworkPolicyNamespaceSelector() *metav1.LabelSelector {
+func getNetworkPolicyFromNamespaceSelector() *metav1.LabelSelector {
 	return &metav1.LabelSelector{
 		MatchLabels: map[string]string{
-			"project": "openshift-redhat-marketplace",
+			"openshift.io/cluster-monitoring": "true",
+		},
+	}
+}
+func getNetworkPolicyFromPodSelector() *metav1.LabelSelector {
+	return &metav1.LabelSelector{
+		MatchLabels: map[string]string{
+			"prometheus": "rhm-marketplaceconfig-meterbase",
 		},
 	}
 }
