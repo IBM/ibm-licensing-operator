@@ -45,7 +45,6 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.Se
 					BearerTokenSecret: corev1.SecretKeySelector{
 						Key: "",
 					},
-					Interval:   "15s",
 					Path:       "/metrics",
 					Scheme:     getScheme(instance),
 					TargetPort: &prometheusTargetPort,
