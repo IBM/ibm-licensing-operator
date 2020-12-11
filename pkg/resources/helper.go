@@ -23,6 +23,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/cloudflare/cfssl/log"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -213,13 +214,8 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsRouteAPI = false
 	}
 
-	prometheusCRD := &apiextensionv1beta1.CustomResourceDefinition{}
-	err = client.Get(context.TODO(), types.NamespacedName{Name: "prometheuses.monitoring.coreos.com"}, prometheusCRD)
-	if err != nil {
-		IsRHMP = false
-	} else {
-		IsRHMP = true
-	}
+	IsRHMP = checkRHMPPrereqs(client)
+	log.Info("prometheus and marketplace config present: ", IsRHMP)
 
 	serviceCAInstance := &servicecav1.ServiceCA{}
 	err = client.List(context.TODO(), serviceCAInstance, listOpts...)
@@ -233,4 +229,15 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 
 func IsRHMPEnabledAndInstalled(rhmpEnabled bool) bool {
 	return rhmpEnabled && IsRHMP
+}
+
+func checkRHMPPrereqs(client c.Reader) bool {
+	prometheus := &apiextensionv1beta1.CustomResourceDefinition{}
+	err := client.Get(context.TODO(), types.NamespacedName{Name: "prometheuses.monitoring.coreos.com"}, prometheus)
+	if err != nil {
+		return false
+	}
+	marketplaceConfig := &apiextensionv1beta1.CustomResourceDefinition{}
+	err = client.Get(context.TODO(), types.NamespacedName{Name: "marketplaceconfigs.marketplace.redhat.com"}, marketplaceConfig)
+	return err == nil
 }
