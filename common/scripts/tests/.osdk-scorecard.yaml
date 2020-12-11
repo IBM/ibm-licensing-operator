@@ -9,6 +9,6 @@ scorecard:
     - olm:
         cr-manifest:
           - "./deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml"
-        csv-path: "./deploy/olm-catalog/ibm-licensing-operator/1.3.1/ibm-licensing-operator.v1.3.1.clusterserviceversion.yaml"
+        csv-path: "./deploy/olm-catalog/ibm-licensing-operator/1.3.2/ibm-licensing-operator.v1.3.2.clusterserviceversion.yaml"
         namespace: ibm-common-services
         init-timeout: 600
