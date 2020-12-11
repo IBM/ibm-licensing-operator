@@ -46,13 +46,13 @@ spec:
           imagePullPolicy: Always
           env:
             - name: OPERAND_LICENSING_IMAGE
-              value: quay.io/opencloudio/ibm-licensing@sha256:d20c1a350e8221e547d43046cb9e2a9405a77b6865f01dc817e4e83d1ce971a9
+              value: quay.io/opencloudio/ibm-licensing@sha256:6fe05319aabe400ad3218727569144170b2384abba0c3d5dfc634fe590269bb9
             - name: OPERAND_REPORTER_UI_IMAGE
-              value: quay.io/opencloudio/ibm-license-service-reporter-ui@sha256:10bd517f6787bbd81c1f8680da058f8dfb0237ff551d084f252f2d83c81ddffe
+              value: quay.io/opencloudio/ibm-license-service-reporter-ui@sha256:5f9a44acd712e3a5e8db639615f154154c2a5869dc13e6acfc1ccdc3f63f7cba
             - name: OPERAND_REPORTER_DATABASE_IMAGE
               value: quay.io/opencloudio/ibm-postgresql@sha256:9a5c50288d81bee6cd803953f6221f9331540c15eac527bac32f2dd10b57b731
             - name: OPERAND_REPORTER_RECEIVER_IMAGE
-              value: quay.io/opencloudio/ibm-license-service-reporter@sha256:e692d10444965db03889b87234f3518081703a7ab090d1bb7b39b2b313eecda8
+              value: quay.io/opencloudio/ibm-license-service-reporter@sha256:2320249311402ebfbcf3ec99cfb3371598b9d4b22b8baa2f1952d0c4cb8d8903
             - name: WATCH_NAMESPACE
               value: ibm-common-services
             - name: POD_NAME
