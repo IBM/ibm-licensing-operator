@@ -3,6 +3,7 @@ module github.com/ibm/ibm-licensing-operator
 go 1.15
 
 require (
+	github.com/cloudflare/cfssl v1.5.0
 	github.com/coreos/prometheus-operator v0.38.1-0.20200424145508-7e176fda06cc
 	github.com/go-logr/logr v0.1.0
 	github.com/openshift/api v0.0.0-20200205133042-34f0ec8dab87
