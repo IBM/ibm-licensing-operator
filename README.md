@@ -90,9 +90,8 @@ For the overview and documentation, see [License Service deployment without an I
 
 This operator is distributed on Apache 2.0 license.
 
-However, the operands that are installed by this operator, in particular 
+**Note**: The operands that are installed by this operator, in particular 
 IBM License Service and IBM License Service Reporter, are not covered 
 by the Open Source license. These operands can be used exclusively 
 by IBM Cloud Pak solutions and IBM stand-alone containerized software only 
 for IBM software.
-
