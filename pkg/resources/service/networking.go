@@ -89,7 +89,7 @@ func getNetworkPolicyFromNamespaceSelector() *metav1.LabelSelector {
 func getNetworkPolicyFromPodSelector() *metav1.LabelSelector {
 	return &metav1.LabelSelector{
 		MatchLabels: map[string]string{
-			"prometheus": "rhm-marketplaceconfig-meterbase",
+			"prometheus": MeterbaseLabel,
 		},
 	}
 }

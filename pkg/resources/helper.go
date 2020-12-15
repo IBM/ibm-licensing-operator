@@ -212,7 +212,13 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsRouteAPI = false
 	}
 
-	IsRHMP = checkRHMPPrereqs(client)
+	mcList := &marketplacev1alpha1.MarketplaceConfigList{}
+	err = client.List(context.TODO(), mcList, []c.ListOption{}...)
+	if err == nil && len(mcList.Items) > 0 {
+		IsRHMP = true
+	} else {
+		IsRHMP = false
+	}
 
 	serviceCAInstance := &servicecav1.ServiceCA{}
 	err = client.List(context.TODO(), serviceCAInstance, listOpts...)
@@ -226,10 +232,4 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 
 func IsRHMPEnabledAndInstalled(rhmpEnabled bool) bool {
 	return rhmpEnabled && IsRHMP
-}
-
-func checkRHMPPrereqs(client c.Reader) bool {
-	mcList := &marketplacev1alpha1.MarketplaceConfigList{}
-	err := client.List(context.TODO(), mcList, []c.ListOption{}...)
-	return err == nil && len(mcList.Items) > 0
 }

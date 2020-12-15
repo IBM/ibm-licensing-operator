@@ -74,7 +74,7 @@ func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servic
 }
 
 func GetPrometheusServiceName() string {
-	return "license-service-prometheus"
+	return PrometheusServiceName
 }
 
 func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
@@ -104,6 +104,6 @@ func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servi
 
 func getPrometheusLabels() map[string]string {
 	labels := make(map[string]string)
-	labels["release"] = "ibm-licensing-service-promethus"
+	labels["release"] = ReleaseLabel
 	return labels
 }

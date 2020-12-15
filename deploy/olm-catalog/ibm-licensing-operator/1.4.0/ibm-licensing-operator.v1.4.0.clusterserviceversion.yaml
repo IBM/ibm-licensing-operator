@@ -446,6 +446,7 @@ spec:
                 - extensions
               resources:
                 - ingresses
+                - networkpolicies
               verbs:
                 - create
                 - delete
