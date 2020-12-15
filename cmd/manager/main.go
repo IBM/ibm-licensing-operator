@@ -30,6 +30,7 @@ import (
 	"github.com/ibm/ibm-licensing-operator/pkg/controller"
 	"github.com/ibm/ibm-licensing-operator/version"
 	servicecav1 "github.com/openshift/api/operator/v1"
+	marketplacev1alpha1 "github.com/redhat-marketplace/redhat-marketplace-operator/pkg/apis/marketplace/v1alpha1"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -150,6 +151,12 @@ func main() {
 
 	// Add custom resources
 	if err := apiextensionv1beta1.AddToScheme(mgr.GetScheme()); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	// Add marketplace resources
+	if err := marketplacev1alpha1.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}

@@ -485,4 +485,9 @@ func (r *ReconcileIBMLicensing) controllerStatus() {
 	} else {
 		r.Log.Info("ServiceCA feature is disabled")
 	}
+	if res.IsRHMPEnabledAndInstalled(res.RHMPEnabled) {
+		r.Log.Info("RHMP is enabled")
+	} else {
+		r.Log.Info("RHMP is disabled")
+	}
 }
