@@ -51,7 +51,7 @@ var Seconds60 int64 = 60
 
 var IsRouteAPI = true
 var IsServiceCAAPI = true
-var RHMPEnabled = true
+var RHMPEnabled = false
 var IsRHMP = false
 
 // Important product values needed for annotations
