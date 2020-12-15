@@ -74,7 +74,7 @@ func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *v1beta1.NetworkP
 func getNetworkPolicyPodSelector() metav1.LabelSelector {
 	return metav1.LabelSelector{
 		MatchLabels: map[string]string{
-			"app": "ibm-licensing-service-instance",
+			"app": LicensingServiceAppLabel,
 		},
 	}
 }
@@ -82,7 +82,7 @@ func getNetworkPolicyPodSelector() metav1.LabelSelector {
 func getNetworkPolicyFromNamespaceSelector() *metav1.LabelSelector {
 	return &metav1.LabelSelector{
 		MatchLabels: map[string]string{
-			"openshift.io/cluster-monitoring": "true",
+			MarketplaceMonitoringLabel: "true",
 		},
 	}
 }

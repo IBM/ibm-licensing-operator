@@ -30,6 +30,10 @@ const LicensingReleaseName = "ibm-licensing-service"
 const LicenseServiceOCPCertName = "ibm-license-service-cert"
 const PrometheusServiceOCPCertName = "license-service-prometheus-cert"
 const LicensingServiceAccount = "ibm-license-service"
+const PrometheusServiceMonitor = "license-service-service-monitor"
+
+const LicensingServiceAppLabel = "ibm-licensing-service-instance"
+const MarketplaceMonitoringLabel = "marketplace.redhat.com/metering"
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
@@ -52,6 +56,11 @@ func LabelsForSelector(instance *operatorv1alpha1.IBMLicensing) map[string]strin
 func LabelsForMeta(instance *operatorv1alpha1.IBMLicensing) map[string]string {
 	return map[string]string{"app.kubernetes.io/name": GetResourceName(instance), "app.kubernetes.io/component": LicensingComponentName,
 		"app.kubernetes.io/managed-by": "operator", "app.kubernetes.io/instance": LicensingReleaseName, "release": LicensingReleaseName}
+}
+
+func LabelsForServiceMonitor() map[string]string {
+	return map[string]string{
+		MarketplaceMonitoringLabel: "true"}
 }
 
 func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {

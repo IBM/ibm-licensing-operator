@@ -107,17 +107,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		}
 	}
 
-	if res.IsRHMPEnabledAndInstalled(res.RHMPEnabled) {
-		// Watch for changes in prometheus related objects if rhmp is enabled
-		err = res.WatchForResources(reqLogger, &operatorv1alpha1.IBMLicensing{}, c, []res.ResourceObject{
-			&monitoringv1.ServiceMonitor{},
-			&extensionsv1.NetworkPolicy{},
-		})
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -193,8 +182,6 @@ func (r *ReconcileIBMLicensing) Reconcile(req reconcile.Request) (reconcile.Resu
 
 	if res.IsRHMPEnabledAndInstalled(instance.Spec.IsRHMPEnabled()) {
 		reconcileFunctions = append(reconcileFunctions, r.reconcileServiceMonitor, r.reconcileNetworkPolicy)
-	} else {
-		reqLogger.Info("RHMP disabled or prometheus crd not present on cluster")
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {

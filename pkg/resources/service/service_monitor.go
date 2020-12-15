@@ -24,7 +24,7 @@ import (
 )
 
 func GetServiceMonitorName() string {
-	return "license-service-service-monitor"
+	return PrometheusServiceMonitor
 }
 
 func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.ServiceMonitor {
@@ -32,9 +32,7 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.Se
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetServiceMonitorName(),
 			Namespace: instance.Spec.InstanceNamespace,
-			Labels: map[string]string{
-				"marketplace.redhat.com/metering": "true",
-			},
+			Labels:    LabelsForServiceMonitor(),
 		},
 		Spec: monitoringv1.ServiceMonitorSpec{
 			Selector: metav1.LabelSelector{

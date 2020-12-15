@@ -23,7 +23,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/cloudflare/cfssl/log"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -31,11 +30,10 @@ import (
 	"github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	marketplacev1alpha1 "github.com/redhat-marketplace/redhat-marketplace-operator/pkg/apis/marketplace/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	apiextensionv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -215,7 +213,6 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 	}
 
 	IsRHMP = checkRHMPPrereqs(client)
-	log.Info("prometheus and marketplace config present: ", IsRHMP)
 
 	serviceCAInstance := &servicecav1.ServiceCA{}
 	err = client.List(context.TODO(), serviceCAInstance, listOpts...)
@@ -232,12 +229,7 @@ func IsRHMPEnabledAndInstalled(rhmpEnabled bool) bool {
 }
 
 func checkRHMPPrereqs(client c.Reader) bool {
-	prometheus := &apiextensionv1beta1.CustomResourceDefinition{}
-	err := client.Get(context.TODO(), types.NamespacedName{Name: "prometheuses.monitoring.coreos.com"}, prometheus)
-	if err != nil {
-		return false
-	}
-	marketplaceConfig := &apiextensionv1beta1.CustomResourceDefinition{}
-	err = client.Get(context.TODO(), types.NamespacedName{Name: "marketplaceconfigs.marketplace.redhat.com"}, marketplaceConfig)
-	return err == nil
+	mcList := &marketplacev1alpha1.MarketplaceConfigList{}
+	err := client.List(context.TODO(), mcList, []c.ListOption{}...)
+	return err == nil && len(mcList.Items) > 0
 }
