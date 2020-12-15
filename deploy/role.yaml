@@ -220,9 +220,3 @@ rules:
       - servicecas
     verbs:
       - list
-  - apiGroups:
-      - marketplace.redhat.com
-    resources:
-      - marketplaceconfigs
-    verbs:
-      - list
