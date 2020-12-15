@@ -496,13 +496,13 @@ spec:
                       - ibm-licensing-operator
                     env:
                       - name: OPERAND_LICENSING_IMAGE
-                        value: quay.io/opencloudio/ibm-licensing@sha256:e82f30a41ccca07255610bcabcaf9583df27c96a3d4a3d7215e15068a314405c
+                        value: quay.io/opencloudio/ibm-licensing@sha256:327d90a26e77f338ffe6e761614f6b3c81974c361474c0982cea9e3c1acd381c
                       - name: OPERAND_REPORTER_UI_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter-ui@sha256:c7fdb9672944f15c0579ed4a3a04ec3bc246604ed580562aca6b1e39e1463726
+                        value: quay.io/opencloudio/ibm-license-service-reporter-ui@sha256:2cc83d3722979310530a94b052f66dfc5f35064064b4890fc2b3cb29658f57b1
                       - name: OPERAND_REPORTER_DATABASE_IMAGE
                         value: quay.io/opencloudio/ibm-postgresql@sha256:9a5c50288d81bee6cd803953f6221f9331540c15eac527bac32f2dd10b57b731
                       - name: OPERAND_REPORTER_RECEIVER_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter@sha256:9483b3379e1a0342a83211f4c331d634bd2bae35ae39f982793730d4048fd08b
+                        value: quay.io/opencloudio/ibm-license-service-reporter@sha256:a57e3fc0e1b328fd6abda209c179d155057b9f4fbb4788c96b66d6a8eda9b0f7
                       - name: WATCH_NAMESPACE
                         valueFrom:
                           fieldRef:
