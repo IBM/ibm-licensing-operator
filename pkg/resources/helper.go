@@ -212,9 +212,9 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsRouteAPI = false
 	}
 
-	mcList := &marketplacev1alpha1.MarketplaceConfigList{}
-	err = client.List(context.TODO(), mcList, []c.ListOption{}...)
-	if err == nil && len(mcList.Items) > 0 {
+	mc := &marketplacev1alpha1.MarketplaceConfig{}
+	err = client.List(context.TODO(), mc, []c.ListOption{}...)
+	if err == nil {
 		IsRHMP = true
 	} else {
 		IsRHMP = false
