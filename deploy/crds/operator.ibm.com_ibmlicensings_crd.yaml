@@ -171,7 +171,8 @@ spec:
                   type: object
               type: object
             rhmpEnabled:
-                description: Is Red Had Marketplace enabled
+              description: Is Red Had Marketplace enabled
+              type: boolean
             routeEnabled:
               description: Should Route be created to expose IBM Licensing Service
                 API? (only on OpenShift cluster)
