@@ -23,6 +23,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/cloudflare/cfssl/log"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -213,7 +214,8 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 	}
 
 	mc := &marketplacev1alpha1.MarketplaceConfig{}
-	err = client.List(context.TODO(), mc, []c.ListOption{}...)
+	err = client.List(context.TODO(), mc, c.InNamespace(""))
+	log.Info(err)
 	if err == nil {
 		IsRHMP = true
 	} else {
