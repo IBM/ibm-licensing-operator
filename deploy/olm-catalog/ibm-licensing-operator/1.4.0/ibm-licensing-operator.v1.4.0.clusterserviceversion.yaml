@@ -294,6 +294,12 @@ spec:
               verbs:
                 - list
             - apiGroups:
+                - marketplace.redhat.com
+              resources:
+                - marketplaceconfigs
+              verbs:
+                - list
+            - apiGroups:
                 - operator.ibm.com
               resources:
                 - ibmlicensings
@@ -440,6 +446,7 @@ spec:
                 - extensions
               resources:
                 - ingresses
+                - networkpolicies
               verbs:
                 - create
                 - delete

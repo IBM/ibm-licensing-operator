@@ -59,6 +59,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "https://metering-server:4002/api/v1/metricData",
 		})
 	}
+	if res.IsRHMPEnabledAndInstalled(spec.IsRHMPEnabled()) {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "enable.metrics",
+			Value: "true",
+		})
+	}
 	if spec.Sender != nil {
 
 		if spec.Sender.ClusterID != "" {
@@ -178,13 +184,26 @@ func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Co
 	}
 	container.VolumeMounts = getLicensingVolumeMounts(spec)
 	container.Env = getLicensingEnvironmentVariables(spec)
-	container.Ports = []corev1.ContainerPort{
+	container.Ports = getLicensingContainerPorts(spec)
+	return container
+}
+
+func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.ContainerPort {
+	ports := []corev1.ContainerPort{
 		{
 			ContainerPort: licensingServicePort.IntVal,
 			Protocol:      corev1.ProtocolTCP,
 		},
 	}
-	return container
+
+	if res.IsRHMPEnabledAndInstalled(spec.IsRHMPEnabled()) {
+		ports = append(ports, corev1.ContainerPort{
+			ContainerPort: prometheusServicePort.IntVal,
+			Protocol:      corev1.ProtocolTCP,
+		})
+	}
+
+	return ports
 }
 
 func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {

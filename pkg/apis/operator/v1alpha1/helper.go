@@ -107,7 +107,7 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
 
-func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool) error {
+func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool) error {
 	spec.Container.setImagePullPolicyIfNotSet()
 	if spec.HTTPSCertsSource == "" {
 		if isOCP4CertManager {
@@ -122,6 +122,9 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteE
 	isNotOnOpenshiftCluster := !isRouteEnabled
 	if spec.IngressEnabled == nil {
 		spec.IngressEnabled = &isNotOnOpenshiftCluster
+	}
+	if spec.RHMPEnabled == nil {
+		spec.RHMPEnabled = &rhmpEnabled
 	}
 	if spec.APISecretToken == "" {
 		spec.APISecretToken = defaultLicensingTokenSecretName
@@ -145,6 +148,10 @@ func (spec *IBMLicensingSpec) IsRouteEnabled() bool {
 
 func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 	return spec.IngressEnabled != nil && *spec.IngressEnabled
+}
+
+func (spec *IBMLicensingSpec) IsRHMPEnabled() bool {
+	return spec.RHMPEnabled != nil && *spec.RHMPEnabled
 }
 
 func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logger, r client_reader.Reader) error {

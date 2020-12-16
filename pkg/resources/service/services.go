@@ -28,21 +28,21 @@ var (
 	licensingServicePort    = intstr.FromInt(8080)
 	licensingTargetPort     = intstr.FromInt(8080)
 	licensingTargetPortName = intstr.FromString("api-port")
+
+	prometheusServicePort    = intstr.FromInt(8081)
+	prometheusTargetPort     = intstr.FromInt(8081)
+	prometheusTargetPortName = intstr.FromString("metrics")
 )
 
-func getServiceSpec(instance *operatorv1alpha1.IBMLicensing) corev1.ServiceSpec {
-	return corev1.ServiceSpec{
-		Type: corev1.ServiceTypeClusterIP,
-		Ports: []corev1.ServicePort{
-			{
-				Name:       licensingTargetPortName.String(),
-				Port:       licensingServicePort.IntVal,
-				TargetPort: licensingTargetPort,
-				Protocol:   corev1.ProtocolTCP,
-			},
-		},
-		Selector: LabelsForSelector(instance),
+func GetServices(instance *operatorv1alpha1.IBMLicensing) []*corev1.Service {
+	var services []*corev1.Service
+	services = append(services, GetLicensingService(instance))
+
+	if s := GetPrometheusService(instance); s != nil {
+		services = append(services, s)
 	}
+
+	return services
 }
 
 func GetLicensingServiceName(instance *operatorv1alpha1.IBMLicensing) string {
@@ -58,6 +58,52 @@ func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servic
 			Labels:      metaLabels,
 			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceOCPCertName),
 		},
-		Spec: getServiceSpec(instance),
+		Spec: corev1.ServiceSpec{
+			Type: corev1.ServiceTypeClusterIP,
+			Ports: []corev1.ServicePort{
+				{
+					Name:       licensingTargetPortName.String(),
+					Port:       licensingServicePort.IntVal,
+					TargetPort: licensingTargetPort,
+					Protocol:   corev1.ProtocolTCP,
+				},
+			},
+			Selector: LabelsForSelector(instance),
+		},
 	}
+}
+
+func GetPrometheusServiceName() string {
+	return PrometheusServiceName
+}
+
+func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
+	if !resources.IsRHMPEnabledAndInstalled(instance.Spec.IsRHMPEnabled()) {
+		return nil
+	}
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      GetPrometheusServiceName(),
+			Namespace: instance.Spec.InstanceNamespace,
+			Labels:    getPrometheusLabels(),
+		},
+		Spec: corev1.ServiceSpec{
+			Type: corev1.ServiceTypeClusterIP,
+			Ports: []corev1.ServicePort{
+				{
+					Name:       prometheusTargetPortName.String(),
+					Port:       prometheusServicePort.IntVal,
+					TargetPort: prometheusTargetPort,
+					Protocol:   corev1.ProtocolTCP,
+				},
+			},
+			Selector: LabelsForSelector(instance),
+		},
+	}
+}
+
+func getPrometheusLabels() map[string]string {
+	labels := make(map[string]string)
+	labels["release"] = ReleaseLabel
+	return labels
 }

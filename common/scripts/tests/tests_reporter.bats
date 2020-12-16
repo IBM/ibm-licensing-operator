@@ -185,6 +185,7 @@ EOF
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   kubectl get pods -n ibm-common-services$SUFIX  &>> k8s_reporter.txt || true
   kubectl describe pods -n ibm-common-services$SUFIX &>> k8s_reporter.txt || true
+  sleep 60
   [[ $number_of_line == "1" ]]
 }
 

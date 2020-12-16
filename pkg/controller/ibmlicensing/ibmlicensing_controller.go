@@ -24,6 +24,7 @@ import (
 
 	"github.com/go-logr/logr"
 
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	res "github.com/ibm/ibm-licensing-operator/pkg/resources"
 	"github.com/ibm/ibm-licensing-operator/pkg/resources/service"
@@ -160,7 +161,7 @@ func (r *ReconcileIBMLicensing) Reconcile(req reconcile.Request) (reconcile.Resu
 		reqLogger.Error(err, "Can not update version in CR")
 	}
 
-	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI)
+	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -173,10 +174,14 @@ func (r *ReconcileIBMLicensing) Reconcile(req reconcile.Request) (reconcile.Resu
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
 		r.reconcileUploadConfigMap,
-		r.reconcileService,
+		r.reconcileServices,
 		r.reconcileDeployment,
 		r.reconcileIngress,
 		r.reconcileRoute,
+	}
+
+	if res.IsRHMPEnabledAndInstalled(instance.Spec.IsRHMPEnabled()) {
+		reconcileFunctions = append(reconcileFunctions, r.reconcileServiceMonitor, r.reconcileNetworkPolicy)
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
@@ -273,15 +278,55 @@ func (r *ReconcileIBMLicensing) reconcileUploadConfigMap(instance *operatorv1alp
 	return res.UpdateResource(&reqLogger, r.Client, expectedCM, foundCM)
 }
 
-func (r *ReconcileIBMLicensing) reconcileService(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	reqLogger := r.Log.WithValues("reconcileService", "Entry", "instance.GetName()", instance.GetName())
-	expectedService := service.GetLicensingService(instance)
+func (r *ReconcileIBMLicensing) reconcileServices(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	var (
+		result reconcile.Result
+		err    error
+	)
+	reqLogger := r.Log.WithValues("reconcileServices", "Entry", "instance.GetName()", instance.GetName())
+	expectedServices := service.GetServices(instance)
 	foundService := &corev1.Service{}
-	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedService, foundService)
-	if err != nil || reconcileResult.Requeue {
-		return reconcileResult, err
+	for _, es := range expectedServices {
+		result, err = r.reconcileResourceNamespacedExistence(instance, es, foundService)
+		if err != nil || result.Requeue {
+			return result, err
+		}
+		result, err = res.UpdateServiceIfNeeded(&reqLogger, r.Client, es, foundService)
 	}
-	return res.UpdateServiceIfNeeded(&reqLogger, r.Client, expectedService, foundService)
+
+	return result, err
+}
+
+func (r *ReconcileIBMLicensing) reconcileServiceMonitor(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	if !res.IsRHMPEnabledAndInstalled(instance.Spec.IsRHMPEnabled()) {
+		return reconcile.Result{}, nil
+	}
+	reqLogger := r.Log.WithValues("reconcileServiceMonitor", "Entry", "instance.GetName()", instance.GetName())
+	expectedServiceMonitor := service.GetServiceMonitor(instance)
+	foundServiceMonitor := &monitoringv1.ServiceMonitor{}
+	result, err := r.reconcileResourceNamespacedExistence(instance, expectedServiceMonitor, foundServiceMonitor)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	result, err = res.UpdateServiceMonitor(&reqLogger, r.Client, expectedServiceMonitor, foundServiceMonitor)
+
+	return result, err
+}
+
+func (r *ReconcileIBMLicensing) reconcileNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	if !res.IsRHMPEnabledAndInstalled(instance.Spec.IsRHMPEnabled()) {
+		return reconcile.Result{}, nil
+	}
+	reqLogger := r.Log.WithValues("reconcileNetworkPolicy", "Entry", "instance.GetName()", instance.GetName())
+	expected := service.GetNetworkPolicy(instance)
+	found := &extensionsv1.NetworkPolicy{}
+	result, err := r.reconcileResourceNamespacedExistence(instance, expected, found)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	result, err = res.UpdateResource(&reqLogger, r.Client, expected, found)
+
+	return result, err
 }
 
 func (r *ReconcileIBMLicensing) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -439,5 +484,10 @@ func (r *ReconcileIBMLicensing) controllerStatus() {
 		r.Log.Info("ServiceCA feature is enabled")
 	} else {
 		r.Log.Info("ServiceCA feature is disabled")
+	}
+	if res.IsRHMPEnabledAndInstalled(res.RHMPEnabled) {
+		r.Log.Info("RHMP is enabled")
+	} else {
+		r.Log.Info("RHMP is disabled")
 	}
 }

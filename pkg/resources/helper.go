@@ -25,13 +25,16 @@ import (
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	"github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	marketplacev1alpha1 "github.com/redhat-marketplace/redhat-marketplace-operator/pkg/apis/marketplace/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -49,6 +52,8 @@ var Seconds60 int64 = 60
 
 var IsRouteAPI = true
 var IsServiceCAAPI = true
+var RHMPEnabled = false
+var IsRHMP = false
 
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"
@@ -157,6 +162,15 @@ func UpdateServiceIfNeeded(reqLogger *logr.Logger, client c.Client, expectedServ
 	return reconcile.Result{}, nil
 }
 
+func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, found *monitoringv1.ServiceMonitor) (reconcile.Result, error) {
+	for _, annotation := range annotationsForServicesToCheck {
+		if found.Annotations[annotation] != expected.Annotations[annotation] {
+			return UpdateResource(reqLogger, client, found, expected)
+		}
+	}
+	return reconcile.Result{}, nil
+}
+
 func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource ResourceObject) (reconcile.Result, error) {
 	resTypeString := reflect.TypeOf(foundResource).String()
 	err := client.Delete(context.TODO(), foundResource)
@@ -199,6 +213,14 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsRouteAPI = false
 	}
 
+	mc := &marketplacev1alpha1.MarketplaceConfig{}
+	err = client.Get(context.TODO(), types.NamespacedName{Name: "marketplaceconfig", Namespace: "openshift-redhat-marketplace"}, mc)
+	if err == nil {
+		IsRHMP = true
+	} else {
+		IsRHMP = false
+	}
+
 	serviceCAInstance := &servicecav1.ServiceCA{}
 	err = client.List(context.TODO(), serviceCAInstance, listOpts...)
 	if err == nil {
@@ -207,4 +229,8 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsServiceCAAPI = false
 	}
 	return nil
+}
+
+func IsRHMPEnabledAndInstalled(rhmpEnabled bool) bool {
+	return rhmpEnabled && IsRHMP
 }
