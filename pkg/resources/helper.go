@@ -23,7 +23,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/cloudflare/cfssl/log"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -31,7 +30,6 @@ import (
 	"github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
-	marketplacev1alpha1 "github.com/redhat-marketplace/redhat-marketplace-operator/pkg/apis/marketplace/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -213,14 +211,7 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsRouteAPI = false
 	}
 
-	mc := &marketplacev1alpha1.MarketplaceConfig{}
-	err = client.List(context.TODO(), mc, c.InNamespace("openshift-redhat-marketplace"))
-	log.Info(err)
-	if err == nil {
-		IsRHMP = true
-	} else {
-		IsRHMP = false
-	}
+	IsRHMP = false
 
 	serviceCAInstance := &servicecav1.ServiceCA{}
 	err = client.List(context.TODO(), serviceCAInstance, listOpts...)
