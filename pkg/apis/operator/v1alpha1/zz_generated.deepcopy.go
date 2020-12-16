@@ -365,6 +365,11 @@ func (in *IBMLicensingSpec) DeepCopyInto(out *IBMLicensingSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.RHMPEnabled != nil {
+		in, out := &in.RHMPEnabled, &out.RHMPEnabled
+		*out = new(bool)
+		**out = **in
+	}
 	if in.IngressEnabled != nil {
 		in, out := &in.IngressEnabled, &out.IngressEnabled
 		*out = new(bool)
