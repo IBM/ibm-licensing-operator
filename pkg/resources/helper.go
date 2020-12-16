@@ -30,9 +30,11 @@ import (
 	"github.com/ibm/ibm-licensing-operator/pkg/apis/operator/v1alpha1"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	marketplacev1alpha1 "github.com/redhat-marketplace/redhat-marketplace-operator/pkg/apis/marketplace/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -211,7 +213,13 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsRouteAPI = false
 	}
 
-	IsRHMP = false
+	mc := &marketplacev1alpha1.MarketplaceConfig{}
+	err = client.Get(context.TODO(), types.NamespacedName{Name: "marketplaceconfig", Namespace: "openshift-redhat-marketplace"}, mc)
+	if err == nil {
+		IsRHMP = true
+	} else {
+		IsRHMP = false
+	}
 
 	serviceCAInstance := &servicecav1.ServiceCA{}
 	err = client.List(context.TODO(), serviceCAInstance, listOpts...)
