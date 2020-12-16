@@ -214,7 +214,7 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 	}
 
 	mc := &marketplacev1alpha1.MarketplaceConfig{}
-	err = client.List(context.TODO(), mc, c.InNamespace(""))
+	err = client.List(context.TODO(), mc, c.InNamespace("openshift-redhat-marketplace"))
 	log.Info(err)
 	if err == nil {
 		IsRHMP = true
