@@ -1,0 +1,14 @@
+# Adds namespace to all resources.
+namespace: ibm-common-services
+
+commonLabels:
+  app.kubernetes.io/instance: "ibm-licensing-operator"
+  app.kubernetes.io/managed-by: "ibm-licensing-operator"
+  app.kubernetes.io/name: "ibm-licensing"
+
+resources:
+- role.yaml
+- role_binding.yaml
+- role_operands.yaml
+- service_account.yaml
+
