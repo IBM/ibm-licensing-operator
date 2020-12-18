@@ -16,6 +16,7 @@
 
 # Current Operator version
 VERSION ?= 1.4.0
+OLD-VERSION ?= 1.3.1
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -338,6 +339,8 @@ endif
 # Generate bundle manifests and metadata, then validate generated files.
 bundle: manifests
 	operator-sdk generate kustomize manifests -q
+	sed -i "s/olm.skipRange.*/olm.skipRange: '>=1.0.0 <$(VERSION)'/g" ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
+	sed -i "s/replaces.*/replaces: ibm-licensing-operator.v$(OLD-VERSION)/g" ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
 
