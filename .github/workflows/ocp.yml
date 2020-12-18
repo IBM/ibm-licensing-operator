@@ -59,8 +59,8 @@ jobs:
         echo $RANDOM > ./random.txt
         export SUFIX=`cat ./random.txt`
         echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
-        wget https://github.com/operator-framework/operator-sdk/releases/download/v0.17.0/operator-sdk-v0.17.0-x86_64-linux-gnu
-        mv ./operator-sdk-v0.17.0-x86_64-linux-gnu ./operator-sdk
+        wget https://github.com/operator-framework/operator-sdk/releases/download/v1.2.0/operator-sdk-v1.2.0-x86_64-linux-gnu
+        mv ./operator-sdk-v1.2.0-x86_64-linux-gnu ./operator-sdk
         chmod +x ./operator-sdk
         export MUTEX_ON=true
         export MUTEX_OFF=false

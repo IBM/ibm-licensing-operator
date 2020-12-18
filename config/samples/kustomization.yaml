@@ -1,0 +1,4 @@
+## This file is auto-generated, do not modify ##
+resources:
+- operator.ibm.com_v1alpha1_ibmlicensing.yaml
+- operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml
