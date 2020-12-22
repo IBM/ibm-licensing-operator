@@ -1,0 +1,14 @@
+domain: ibm.com
+projectName: ibm-licensing-operator
+layout: go.kubebuilder.io/v2
+repo: github.com/IBM/ibm-licensing-operator
+resources:
+- group: operator
+  kind: IBMLicensing
+  version: v1alpha1
+- group: operator
+  kind: IBMLicenseServiceReporter
+  version: v1alpha1
+version: 3-alpha
+plugins:
+  go.operator-sdk.io/v2-alpha: {}

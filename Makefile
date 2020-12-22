@@ -14,6 +14,10 @@
 # limitations under the License.
 #
 
+# Current Operator version
+VERSION ?= 1.4.0
+OLD-VERSION ?= 1.3.1
+
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
 BUILD_LOCALLY ?= 1
@@ -22,13 +26,28 @@ BUILD_LOCALLY ?= 1
 # Use your own docker registry and image name for dev/test by overriding the IMG, REGISTRY and CSV_VERSION environment variable.
 IMG ?= ibm-licensing-operator
 REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
-CSV_VERSION ?= 1.4.0
+CSV_VERSION ?= $(VERSION)
 
 SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom"
 
+# Default bundle image tag
+BUNDLE_IMG ?= ibm-licensing-operator-bundle:$(VERSION)
+
+# Options for 'bundle-build'
+ifneq ($(origin CHANNELS), undefined)
+BUNDLE_CHANNELS := --channels=$(CHANNELS)
+endif
+ifneq ($(origin DEFAULT_CHANNEL), undefined)
+BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
+endif
+BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
+
+# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
+CRD_OPTIONS ?=  "crd:trivialVersions=true"
+
 # Set the registry and tag for the operand images
 OPERAND_REGISTRY ?= $(REGISTRY)
-OPERAND_TAG ?= 1.4.0
+OPERAND_TAG ?= $(VERSION)
 
 # When pushing CSV locally you need to have these credentials set as environment variables.
 QUAY_USERNAME ?=
@@ -112,37 +131,6 @@ endif
 
 include common/Makefile.common.mk
 
-
-##@ Application
-
-install: ## Install all resources (CR/CRD's, RBAC and operator)
-	@echo ....... Set environment variables ......
-	- export WATCH_NAMESPACE=
-	@echo ....... Creating namespace .......
-	- kubectl create namespace ${NAMESPACE}
-	@echo ....... Applying CRDs .......
-	- kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
-	@echo ....... Applying RBAC .......
-	- kubectl apply -f deploy/service_account.yaml -n ${NAMESPACE}
-	- kubectl apply -f deploy/role.yaml
-	- kubectl apply -f deploy/role_binding.yaml
-	@echo ....... Applying Operator .......
-	- kubectl apply -f deploy/operator.yaml -n ${NAMESPACE}
-	@echo ....... Creating the Instances .......
-	- kubectl apply -f deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml
-uninstall: ## Uninstall all that all performed in the $ make install, without namespace as there might be other things there
-	@echo ....... Uninstalling .......
-	@echo ....... Deleting the Instances .......
-	- kubectl delete -f deploy/crds/operator.ibm.com_v1alpha1_ibmlicensing_cr.yaml --ignore-not-found
-	@echo ....... Deleting Operator .......
-	- kubectl delete -f deploy/operator.yaml -n ${NAMESPACE}
-	@echo ....... Deleting CRDs .......
-	- kubectl delete -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml --ignore-not-found
-	@echo ....... Deleting RBAC .......
-	- kubectl delete -f deploy/role_binding.yaml --ignore-not-found
-	- kubectl delete -f deploy/service_account.yaml -n ${NAMESPACE} --ignore-not-found
-	- kubectl delete -f deploy/role.yaml --ignore-not-found
-
 ############################################################
 # work section
 ############################################################
@@ -166,7 +154,11 @@ code-dev: ## Run the default dev commands which are the go tidy, fmt, vet then e
 # All available format: format-go format-protos
 # Default value will run all formats, override these make target with your requirements:
 #    eg: fmt: format-go format-protos
-fmt: format-go format-protos
+fmt: format-go
+
+# Run go vet against code
+vet:
+	@go vet ./...
 
 check: lint ## Check all files lint errors, this is also done before pushing the code to remote branch
 
@@ -175,15 +167,8 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 #    eg: lint: lint-go lint-yaml
 lint: lint-all
 
-test: ## Run all tests if available
-	@go test ${TESTARGS} ./...
-
 coverage: ## Run coverage if possible
 	@common/scripts/codecov.sh ${BUILD_LOCALLY}
-
-run: ## Run against the configured Kubernetes cluster in ~/.kube/config
-	@echo ....... Start Operator locally with go run ......
-	WATCH_NAMESPACE= go run ./cmd/manager/main.go
 
 ############################################################
 # install operator sdk section
@@ -206,14 +191,14 @@ endif
 
 build:
 	@echo "Building the $(IMAGE_NAME) binary for $(LOCAL_ARCH)..."
-	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh build/_output/bin/$(IMAGE_NAME) ./cmd/manager
-	@strip $(STRIP_FLAGS) build/_output/bin/$(IMAGE_NAME)
+	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh bin/$(IMAGE_NAME) ./main.go
+	@strip $(STRIP_FLAGS) bin/$(IMAGE_NAME)
 
 build-push-image: build-image push-image
 
 build-image: build
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker build -t $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f build/Dockerfile .
+	@docker build -t $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
 push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
@@ -223,7 +208,7 @@ build-push-image-development: build-image-development push-image-development
 
 build-image-development: build
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f build/Dockerfile .
+	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
 push-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH) build-image-development
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
@@ -252,15 +237,6 @@ csv: ## Push CSV package to the catalog
 
 ##@ Red Hat Certificate Section
 
-.PHONY: bundle
-bundle: ## bundle zip file for certification
-	@echo --- Updating the bundle directory with latest yamls from olm-catalog ---
-	-mkdir bundle
-	rm -rf bundle/*
-	cp -r deploy/olm-catalog/ibm-licensing-operator/${CSV_VERSION}/* bundle/
-	cp deploy/olm-catalog/ibm-licensing-operator/ibm-licensing-operator.package.yaml bundle/
-	cd bundle && zip ibm-licensing-metadata ./*.yaml && cd ..
-
 .PHONY: install-operator-courier
 install-operator-courier: ## installs courier for certification check
 	@echo --- Installing Operator Courier ---
@@ -276,7 +252,7 @@ redhat-certify-ready: bundle verify-bundle ## makes bundle and verify it using o
 
 ##@ Cleanup
 clean: ## Clean build binary
-	rm -f build/_output/bin/$(IMG)
+	rm -f bin/$(IMG)
 
 ##@ Help
 help: ## Display this help
@@ -285,4 +261,91 @@ help: ## Display this help
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-.PHONY: all build run install uninstall code-dev check lint test coverage build multiarch-image csv clean help
+## FROM NEW OPERATOR
+
+# Run tests
+test: generate fmt vet manifests
+	go test ${TESTARGS} ./...
+
+# Build manager binary
+manager: generate
+	go build -o bin/$(IMAGE_NAME) main.go
+
+# Run against the configured Kubernetes cluster in ~/.kube/config
+run: generate fmt vet manifests
+	WATCH_NAMESPACE= go run ./main.go
+
+# Install CRDs into a cluster
+install: manifests kustomize
+	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+
+# Uninstall CRDs from a cluster
+uninstall: manifests kustomize
+	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+deploy: manifests kustomize
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/default | kubectl apply -f -
+
+# Generate manifests e.g. CRD, RBAC etc.
+manifests: controller-gen
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+
+# Generate code
+generate: controller-gen
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+
+# Build the docker image
+docker-build: test
+	docker build . -t ${IMG}
+
+# Push the docker image
+docker-push:
+	docker push ${IMG}
+
+# find or download controller-gen
+# download controller-gen if necessary
+controller-gen:
+ifeq (, $(shell which controller-gen))
+	@{ \
+	set -e ;\
+	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$CONTROLLER_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
+	}
+CONTROLLER_GEN=$(GOBIN)/controller-gen
+else
+CONTROLLER_GEN=$(shell which controller-gen)
+endif
+
+kustomize:
+ifeq (, $(shell which kustomize))
+	@{ \
+	set -e ;\
+	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
+	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
+	}
+KUSTOMIZE=$(GOBIN)/kustomize
+else
+KUSTOMIZE=$(shell which kustomize)
+endif
+
+# Generate bundle manifests and metadata, then validate generated files.
+bundle: manifests
+	operator-sdk generate kustomize manifests -q
+	sed -i "s/olm.skipRange.*/olm.skipRange: '>=1.0.0 <$(VERSION)'/g" ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
+	sed -i "s/replaces.*/replaces: ibm-licensing-operator.v$(OLD-VERSION)/g" ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
+	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	operator-sdk bundle validate ./bundle
+
+# Build the bundle image.
+bundle-build:
+	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+.PHONY: all build bundle-build bundle kustomize controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage build multiarch-image csv clean help
