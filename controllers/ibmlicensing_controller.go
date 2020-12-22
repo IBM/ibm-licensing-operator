@@ -453,9 +453,4 @@ func (r *IBMLicensingReconciler) controllerStatus() {
 	} else {
 		r.Log.Info("ServiceCA feature is disabled")
 	}
-	if res.RHMPEnabled {
-		r.Log.Info("RHMP is enabled")
-	} else {
-		r.Log.Info("RHMP is disabled")
-	}
 }
