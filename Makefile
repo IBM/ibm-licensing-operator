@@ -167,7 +167,7 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 #    eg: lint: lint-go lint-yaml
 lint: lint-all
 
-coverage: ## Run coverage if possible
+coverage: unit-test ## Run coverage if possible
 	@common/scripts/codecov.sh ${BUILD_LOCALLY}
 
 ############################################################
@@ -264,8 +264,18 @@ help: ## Display this help
 ## FROM NEW OPERATOR
 
 # Run tests
-test: generate fmt vet manifests
-	go test ${TESTARGS} ./...
+#ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
+test:
+	@echo "Running tests for the controllers."
+	#@mkdir -p ${ENVTEST_ASSETS_DIR}
+	#@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
+	#@source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
+
+unit-test:
+	@echo "Running unit tests for the controllers."
+	export USE_EXISTING_CLUSTER=true; \
+	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+	go test -v ./controllers/... -coverprofile cover.out
 
 # Build manager binary
 manager: generate

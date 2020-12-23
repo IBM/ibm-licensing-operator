@@ -150,7 +150,4 @@ fi
 # end generating report
 ######################################################
 
-# Upload to codecov.io in post submit only for visualization
-if [ "${BUILD_LOCALLY}" == 0 ]; then
-  bash <(curl -s https://codecov.io/bash) -t "${CODECOV_TOKEN}" -f "${REPORT_PATH}/coverage.cov"
-fi
+bash <(curl -s https://codecov.io/bash) -t "${CODECOV_TOKEN}" -f "${REPORT_PATH}/coverage.cov"
