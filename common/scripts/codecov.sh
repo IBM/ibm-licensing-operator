@@ -30,7 +30,6 @@ ROOTDIR="$(cd "$(dirname "$0")"/../.. ; pwd -P)"
 REPORT_PATH=${REPORT_PATH:-"${GOPATH}/out/codecov"}
 #CODECOV_SKIP=${GOPATH}/out/codecov/codecov.skip
 MAXPROCS="${MAXPROCS:-}"
-BUILD_LOCALLY=${1:?0}
 shift
 
 mkdir -p "${GOPATH}"/out/codecov
