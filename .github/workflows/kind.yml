@@ -133,7 +133,7 @@ jobs:
       run: |
         export PATH=`pwd`:$PATH
         export USE_EXISTING_CLUSTER=true
-        make coverage > ./test_coverage.txt 2>&1
+        make coverage-kind > ./test_coverage.txt 2>&1
 
     - name: Archive logs
       uses: actions/upload-artifact@v2

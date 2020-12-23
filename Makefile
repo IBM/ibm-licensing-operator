@@ -121,7 +121,7 @@ IMAGE_RELEASE=$(VCS_REF)
 GIT_REMOTE_URL = $(shell git config --get remote.origin.url)
 $(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "VCS_URL=$(GIT_REMOTE_URL)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
 
-all: fmt check test coverage build images
+all: fmt check test coverage-kind build images
 
 ifeq ($(BUILD_LOCALLY),0)
     ifneq ("$(realpath $(DEST))", "$(realpath $(PWD))")
@@ -167,8 +167,11 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 #    eg: lint: lint-go lint-yaml
 lint: lint-all
 
-coverage: unit-test ## Run coverage if possible
+coverage-kind: unit-test ## Run coverage if possible
 	@common/scripts/codecov.sh ${BUILD_LOCALLY}
+
+coverage: ## Run coverage if possible
+	@echo "coverage on kind in github action"
 
 ############################################################
 # install operator sdk section
@@ -358,4 +361,4 @@ bundle: manifests
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
-.PHONY: all build bundle-build bundle kustomize controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage build multiarch-image csv clean help
+.PHONY: all build bundle-build bundle kustomize controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
