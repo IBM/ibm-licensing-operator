@@ -294,6 +294,12 @@ spec:
               verbs:
                 - list
             - apiGroups:
+                - marketplace.redhat.com
+              resources:
+                - marketplaceconfigs
+              verbs:
+                - list
+            - apiGroups:
                 - operator.ibm.com
               resources:
                 - ibmlicensings
@@ -356,8 +362,6 @@ spec:
               verbs:
                 - get
                 - create
-                - list
-                - watch
             - apiGroups:
                 - apps
               resourceNames:
