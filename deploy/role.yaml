@@ -52,8 +52,6 @@ rules:
     verbs:
       - get
       - create
-      - list
-      - watch
   - apiGroups:
       - apps
     resourceNames:
@@ -220,5 +218,11 @@ rules:
       - operator.openshift.io
     resources:
       - servicecas
+    verbs:
+      - list
+  - apiGroups:
+      - marketplace.redhat.com
+    resources:
+      - marketplaceconfigs
     verbs:
       - list
