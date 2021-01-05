@@ -64,3 +64,17 @@ echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${MA
 ${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}"
 echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:latest..."
 ${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":latest
+
+for arch in ${ALL_PLATFORMS}
+do
+    for i in $(seq 1 "${MAX_PULLING_RETRY}")
+    do
+        echo "Again Checking image  '${IMAGE_REPO}'/'${IMAGE_NAME}'-'${arch}':'${VERSION}'..."
+        ${CONTAINER_CLI} manifest inspect  "${IMAGE_REPO}"/"${IMAGE_NAME}"-"${arch}":"${VERSION}" && break
+        sleep "${RETRY_INTERVAL}"
+        if [ "${i}" -eq "${MAX_PULLING_RETRY}" ]; then
+            echo "Failed to found image '${IMAGE_REPO}'/'${IMAGE_NAME}'-'${arch}':'${VERSION}'!!!"
+            exit 1
+        fi
+    done
+done
