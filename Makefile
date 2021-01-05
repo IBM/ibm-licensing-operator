@@ -15,8 +15,8 @@
 #
 
 # Current Operator version
-VERSION ?= 1.4.0
-OLD-VERSION ?= 1.3.1
+CSV_VERSION ?= 1.4.0
+OLD_CSV_VERSION ?= 1.3.1
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -26,12 +26,11 @@ BUILD_LOCALLY ?= 1
 # Use your own docker registry and image name for dev/test by overriding the IMG, REGISTRY and CSV_VERSION environment variable.
 IMG ?= ibm-licensing-operator
 REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
-CSV_VERSION ?= $(VERSION)
 
 SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom"
 
 # Default bundle image tag
-BUNDLE_IMG ?= ibm-licensing-operator-bundle:$(VERSION)
+BUNDLE_IMG ?= ibm-licensing-operator-bundle:$(CSV_VERSION)
 
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
@@ -47,7 +46,7 @@ CRD_OPTIONS ?=  "crd:trivialVersions=true"
 
 # Set the registry and tag for the operand images
 OPERAND_REGISTRY ?= $(REGISTRY)
-OPERAND_TAG ?= $(VERSION)
+OPERAND_TAG ?= $(CSV_VERSION)
 
 # When pushing CSV locally you need to have these credentials set as environment variables.
 QUAY_USERNAME ?=
@@ -352,9 +351,9 @@ endif
 # Generate bundle manifests and metadata, then validate generated files.
 bundle: manifests
 	operator-sdk generate kustomize manifests -q
-	sed -i "s/olm.skipRange.*/olm.skipRange: '>=1.0.0 <$(VERSION)'/g" ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
-	sed -i "s/replaces.*/replaces: ibm-licensing-operator.v$(OLD-VERSION)/g" ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	sed -i "s/olm.skipRange.*/olm.skipRange: '>=1.0.0 <$(CSV_VERSION)'/g" ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
+	sed -i "s/replaces.*/replaces: ibm-licensing-operator.v$(OLD_CSV_VERSION)/g" ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
+	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
 
 # Build the bundle image.
