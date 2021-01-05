@@ -28,6 +28,8 @@ MANIFEST_VERSION=${4}
 
 MAX_PULLING_RETRY=${MAX_PULLING_RETRY-10}
 RETRY_INTERVAL=${RETRY_INTERVAL-10}
+# support other container tools, e.g. podman
+CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
 # Loop until the image for each single platform is ready in the docker registry.
 # TODO: remove this if prow job support dependency.
@@ -35,18 +37,15 @@ for arch in ${ALL_PLATFORMS}
 do
     for i in $(seq 1 "${MAX_PULLING_RETRY}")
     do
-        echo "Trying to pull image '${IMAGE_REPO}'/'${IMAGE_NAME}'-'${arch}':'${VERSION}'..."
-        docker pull "${IMAGE_REPO}"/"${IMAGE_NAME}"-"${arch}":"${VERSION}" && break
+        echo "Checking image  '${IMAGE_REPO}'/'${IMAGE_NAME}'-'${arch}':'${VERSION}'..."
+        ${CONTAINER_CLI} manifest inspect  "${IMAGE_REPO}"/"${IMAGE_NAME}"-"${arch}":"${VERSION}" && break
         sleep "${RETRY_INTERVAL}"
         if [ "${i}" -eq "${MAX_PULLING_RETRY}" ]; then
-            echo "Failed to pull image '${IMAGE_REPO}'/'${IMAGE_NAME}'-'${arch}':'${VERSION}'!!!"
+            echo "Failed to found image '${IMAGE_REPO}'/'${IMAGE_NAME}'-'${arch}':'${VERSION}'!!!"
             exit 1
         fi
     done
 done
-
-# support other container tools, e.g. podman
-CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
 # create multi-arch manifest
 echo "Creating the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${MANIFEST_VERSION}..."
