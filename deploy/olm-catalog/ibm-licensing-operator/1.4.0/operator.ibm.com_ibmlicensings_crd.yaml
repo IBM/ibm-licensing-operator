@@ -170,6 +170,9 @@ spec:
                     value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                   type: object
               type: object
+            rhmpEnabled:
+              description: Is Red Had Marketplace enabled
+              type: boolean
             routeEnabled:
               description: Should Route be created to expose IBM Licensing Service
                 API? (only on OpenShift cluster)
