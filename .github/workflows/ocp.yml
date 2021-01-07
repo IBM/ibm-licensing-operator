@@ -82,8 +82,6 @@ jobs:
       run: |
         export KUBECONFIG=`pwd`/kubeconfig
         export PATH=`pwd`:$PATH
-        export USE_EXISTING_CLUSTER=true
-        export OPERAND_LICENSING_IMAGE=quay.io/opencloudio/ibm-licensing:1.3.1
         make unit-test > ./unittest_logs.txt 2>&1
 
     - name: Clear
