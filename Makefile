@@ -286,6 +286,7 @@ prepare-unit-test:
 unit-test: prepare-unit-test
 	export USE_EXISTING_CLUSTER=true; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
+	export NAMESPACE=${NAMESPACE}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	export OPERAND_LICENSING_IMAGE=quay.io/opencloudio/ibm-licensing:1.3.1
 	go test -v ./controllers/... -coverprofile cover.out
