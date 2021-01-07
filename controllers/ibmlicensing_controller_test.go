@@ -37,13 +37,12 @@ var _ = Describe("IBMLicensing controller", func() {
 	)
 
 	var (
-		ctx      context.Context
-		instance *operatorv1alpha1.IBMLicensing
+		ctx               context.Context
+		instance          *operatorv1alpha1.IBMLicensing
 		instanceForRemove = &operatorv1alpha1.IBMLicensing{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
-			},}
-
+			}}
 	)
 
 	BeforeEach(func() {
