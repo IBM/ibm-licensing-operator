@@ -78,6 +78,12 @@ jobs:
         export SUFIX=`cat ./random.txt`
         bats ./common/scripts/tests/tests_reporter.bats > ./test_reporter_logs.txt 2>&1
 
+    - name: Test Unit Operator - License Service
+      run: |
+        export PATH=`pwd`:$PATH
+        export USE_EXISTING_CLUSTER=true
+        make unit-test > ./unittest_logs.txt 2>&1
+
     - name: Clear
       if: always()
       run: |
