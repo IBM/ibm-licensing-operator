@@ -43,7 +43,6 @@ var (
 	cfg       *rest.Config
 	k8sClient client.Client
 	testEnv   *envtest.Environment
-	// scheme    = runtime.NewScheme()
 
 	timeout  = time.Second * 300
 	interval = time.Second * 5
@@ -87,14 +86,6 @@ var _ = BeforeSuite(func(done Done) {
 	})
 	Expect(err).ToNot(HaveOccurred())
 
-	err = (&IBMLicensingReconciler{
-		Client: mgr.GetClient(),
-		Reader: mgr.GetAPIReader(),
-		Log:    ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr)
-	Expect(err).ToNot(HaveOccurred())
-
 	err = (&IBMLicenseServiceReporterReconciler{
 		Client: mgr.GetClient(),
 		Reader: mgr.GetAPIReader(),
@@ -103,8 +94,25 @@ var _ = BeforeSuite(func(done Done) {
 	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
 
+	err = (&IBMLicensingReconciler{
+		Client: mgr.GetClient(),
+		Reader: mgr.GetAPIReader(),
+		Log:    ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr)
+	Expect(err).ToNot(HaveOccurred())
+
+	k8sClient = mgr.GetClient()
+	Expect(k8sClient).ToNot(BeNil())
+
+	go func() {
+		defer GinkgoRecover()
+		err = mgr.Start(ctrl.SetupSignalHandler())
+		Expect(err).ToNot(HaveOccurred())
+	}()
+
 	close(done)
-}, 60)
+}, 600)
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
