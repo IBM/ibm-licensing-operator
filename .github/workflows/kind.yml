@@ -117,6 +117,7 @@ jobs:
     - name: Test Unit Operator - License Service
       run: |
         export PATH=`pwd`:$PATH
+        export USE_EXISTING_CLUSTER=true
         make unit-test > ./unittest_logs.txt 2>&1
 
     - name: Test Operator - License Service
