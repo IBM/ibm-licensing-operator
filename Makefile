@@ -275,7 +275,9 @@ test:
 
 unit-test:
 	@echo "Running unit tests for the controllers."
+	kubectl create namespace ${NAMESPACE} || echo "create "
 	export USE_EXISTING_CLUSTER=true; \
+	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	go test -v ./controllers/... -coverprofile cover.out
 

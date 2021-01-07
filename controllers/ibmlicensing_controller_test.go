@@ -19,11 +19,11 @@ package controllers
 import (
 	"context"
 	"testing"
+	"time"
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -35,8 +35,8 @@ func TestCheckReconcileLicensing(t *testing.T) {
 
 var _ = Describe("IBMLicensing controller", func() {
 	const (
-		name      = "instance-unitest"
-		namespace = "ibm-common-services-unitest"
+		name      = "instance-test"
+		namespace = "ibm-common-services"
 	)
 
 	var (
@@ -48,20 +48,16 @@ var _ = Describe("IBMLicensing controller", func() {
 
 	BeforeEach(func() {
 		ctx = context.Background()
-
-		By("Creating the Namespace")
-		Expect(k8sClient.Create(ctx, NamespaceObj(namespace))).Should(Succeed())
-
+		instance = IBMLicensingObj(name, namespace, "datacollector")
 	})
 
 	AfterEach(func() {
-		By("Deleting the Namespace")
-		Expect(k8sClient.Delete(ctx, NamespaceObj(namespace))).Should(Succeed())
-
+		By("Cleaning up resources")
+		k8sClient.Delete(ctx, instance)
 	})
 
 	Context("Initializing IBMLicensing Status", func() {
-		It("Should the status of IBMLicensing be Running", func() {
+		It("Should not create IBMLicensing instance", func() {
 			By("Creating broken IBMLicensing")
 			instance = IBMLicensingObj(name, namespace, "")
 			Expect(k8sClient.Create(ctx, instance)).Should(MatchError(ContainSubstring("spec.datasource")))
@@ -69,26 +65,26 @@ var _ = Describe("IBMLicensing controller", func() {
 			By("Creating broken IBMLicensing")
 			instance = IBMLicensingObj(name, namespace, "datacollector1")
 			Expect(k8sClient.Create(ctx, instance)).Should(MatchError(ContainSubstring("spec.datasource")))
+		})
 
+		It("Should create IBMLicensing instance", func() {
 			By("Creating the IBMLicensing")
-			instance = IBMLicensingObj(name, namespace, "datacollector")
 			Expect(k8sClient.Create(ctx, instance)).Should(Succeed())
+
+			time.Sleep(time.Second * 5)
 
 			By("Checking status of the IBMLicensing")
 			Eventually(func() operatorv1alpha1.IBMLicensingStatus {
 				newInstance := &operatorv1alpha1.IBMLicensing{}
 
 				configKey = types.NamespacedName{
-					Name:      name,
-					Namespace: namespace,
+					Name: name,
 				}
 				Expect(k8sClient.Get(ctx, configKey, newInstance)).Should(Succeed())
 
 				return newInstance.Status
 			}, timeout, interval).Should(Equal(operatorv1alpha1.IBMLicensingStatus{}))
 
-			By("Cleaning up resources")
-			Expect(k8sClient.Delete(ctx, instance)).Should(Succeed())
 		})
 	})
 })
@@ -115,16 +111,4 @@ func IBMLicensingObj(name, namespace string, datasource string) *operatorv1alpha
 		},
 	}
 
-}
-
-func NamespaceObj(name string) *corev1.Namespace {
-	return &corev1.Namespace{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Namespace",
-			APIVersion: "v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-	}
 }
