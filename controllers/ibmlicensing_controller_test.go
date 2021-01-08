@@ -99,7 +99,7 @@ var _ = Describe("IBMLicensing controller", func() {
 			Eventually(func() int {
 				k8sClient.Get(ctx, types.NamespacedName{Name: name}, newInstance)
 				return len(newInstance.Status.LicensingPods)
-			}, timeout, interval).Should(Equal(1))
+			}, timeout, interval).Should(BeNumerically(">", 0))
 
 			By("Checking status of the IBMLicensing")
 			Eventually(func() v1.PodPhase {
@@ -129,7 +129,7 @@ var _ = Describe("IBMLicensing controller", func() {
 			Eventually(func() int {
 				k8sClient.Get(ctx, types.NamespacedName{Name: name}, newInstance)
 				return len(newInstance.Status.LicensingPods)
-			}, timeout, interval).Should(Equal(1))
+			}, timeout, interval).Should(BeNumerically(">", 0))
 
 			By("Checking status of the IBMLicensing")
 			Eventually(func() v1.PodPhase {
