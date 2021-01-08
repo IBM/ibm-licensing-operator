@@ -91,6 +91,9 @@ var _ = Describe("IBMLicensing controller", func() {
 				Spec: operatorv1alpha1.IBMLicensingSpec{
 					InstanceNamespace: namespace,
 					Datasource:        "datacollector",
+					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec {
+						ImagePullSecrets: []string{"artifactory-token"},
+					},
 				},
 			}
 
@@ -121,6 +124,9 @@ var _ = Describe("IBMLicensing controller", func() {
 					InstanceNamespace: namespace,
 					Datasource:        "datacollector",
 					HTTPSEnable:       true,
+					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec {
+						ImagePullSecrets: []string{"artifactory-token"},
+					},
 				},
 			}
 
