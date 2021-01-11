@@ -462,6 +462,15 @@ spec:
                 - get
                 - list
                 - update
+            - apiGroups:
+                - "marketplace.redhat.com"
+              resources:
+                - meterdefinitions
+              verbs:
+                - create
+                - get
+                - list
+                - update
           serviceAccountName: ibm-license-service
       deployments:
         - name: ibm-licensing-operator
