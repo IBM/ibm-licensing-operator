@@ -32,6 +32,8 @@ SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devo
 # Default bundle image tag
 BUNDLE_IMG ?= ibm-licensing-operator-bundle:$(CSV_VERSION)
 
+IBM_LICENSING_IMAGE ?= ibm-licensing
+
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
@@ -273,12 +275,23 @@ test:
 	#@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
 	#@source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
 
-unit-test:
-	@echo "Running unit tests for the controllers."
-	kubectl create namespace ${NAMESPACE} || echo "create "
+prepare-unit-test:
+	kubectl create namespace ${NAMESPACE} || echo ""
+	kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo ""
+	kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml || echo ""
+	kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml || echo ""
+	kubectl apply -f ./deploy/service_account.yaml -n ${NAMESPACE} || echo ""
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./deploy/role.yaml > ./deploy/role_ns.yaml
+	kubectl apply -f ./deploy/role_ns.yaml || echo ""
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./deploy/role_binding.yaml > ./deploy/role_binding_ns.yaml
+	kubectl apply -f ./deploy/role_binding_ns.yaml || echo ""
+
+unit-test: prepare-unit-test
 	export USE_EXISTING_CLUSTER=true; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
+	export NAMESPACE=${NAMESPACE}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+	export OPERAND_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
 	go test -v ./controllers/... -coverprofile cover.out
 
 # Build manager binary

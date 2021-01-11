@@ -17,6 +17,7 @@
 package controllers
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -43,9 +44,9 @@ var (
 	cfg       *rest.Config
 	k8sClient client.Client
 	testEnv   *envtest.Environment
-
-	timeout  = time.Second * 300
-	interval = time.Second * 5
+	namespace string
+	timeout   = time.Second * 300
+	interval  = time.Second * 5
 )
 
 func TestAPIs(t *testing.T) {
@@ -104,6 +105,9 @@ var _ = BeforeSuite(func(done Done) {
 
 	k8sClient = mgr.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
+
+	namespace, _ = os.LookupEnv("NAMESPACE")
+	Expect(namespace).ToNot(BeNil())
 
 	go func() {
 		defer GinkgoRecover()
