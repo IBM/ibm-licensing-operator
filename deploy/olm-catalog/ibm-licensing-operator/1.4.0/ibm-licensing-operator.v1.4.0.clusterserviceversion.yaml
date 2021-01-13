@@ -510,7 +510,7 @@ spec:
                       - name: OPERAND_LICENSING_IMAGE
                         value: quay.io/opencloudio/ibm-licensing@sha256:634f404a48ffc1b8bd46fc223b38ee8adf82654efa4822bcf41b7994d6f282ef
                       - name: OPERAND_REPORTER_UI_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter-ui@sha256:2367ce3a8bfa3944fb08f0ff8065985987f727fdd8a2b6102b173433c98e4ef7
+                        value: quay.io/opencloudio/ibm-license-service-reporter-ui@sha256:593a527494db2398bbeaf6a01c5d545cf84577a4d4f74809f5c01cb58750dc8a
                       - name: OPERAND_REPORTER_DATABASE_IMAGE
                         value: quay.io/opencloudio/ibm-postgresql@sha256:35c9ea9a35131d2cef252668506e57ca821841d520e14d0622ba1a5651c7b263
                       - name: OPERAND_REPORTER_RECEIVER_IMAGE
