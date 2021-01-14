@@ -31,6 +31,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/api/extensions/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -287,7 +288,7 @@ func (r *IBMLicensingReconciler) reconcileNetworkPolicy(instance *operatorv1alph
 	}
 	reqLogger := r.Log.WithValues("reconcileNetworkPolicy", "Entry", "instance.GetName()", instance.GetName())
 	expected := service.GetNetworkPolicy(instance)
-	found := &extensionsv1.NetworkPolicy{}
+	found := &networkingv1.NetworkPolicy{}
 	result, err := r.reconcileResourceNamespacedExistence(instance, expected, found)
 	if err != nil || result.Requeue {
 		return result, err
