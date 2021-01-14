@@ -34,10 +34,10 @@ import (
 const localReporterURL = "https://ibm-license-service-reporter:8080"
 const defaultLicensingTokenSecretName = "ibm-licensing-token"         //#nosec
 const defaultReporterTokenSecretName = "ibm-licensing-reporter-token" //#nosec
-const OperandLicensingImageEnvVar = "OPERAND_LICENSING_IMAGE"
-const OperandReporterDatabaseImageEnvVar = "OPERAND_REPORTER_DATABASE_IMAGE"
-const OperandReporterUIImageEnvVar = "OPERAND_REPORTER_UI_IMAGE"
-const OperandReporterReceiverImageEnvVar = "OPERAND_REPORTER_RECEIVER_IMAGE"
+const OperandLicensingImageEnvVar = "IBM_LICENSING_IMAGE"
+const OperandReporterDatabaseImageEnvVar = "IBM_POSTGRESQL_IMAGE"
+const OperandReporterUIImageEnvVar = "IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE"
+const OperandReporterReceiverImageEnvVar = "IBM_LICENSE_SERVICE_REPORTER_IMAGE"
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
@@ -49,11 +49,11 @@ var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)
 var size1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
 
 type Container struct {
-	// IBM Licensing Service docker Image Registry, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
+	// IBM Licensing Service docker Image Registry, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
 	ImageRegistry string `json:"imageRegistry,omitempty"`
-	// IBM Licensing Service docker Image Name, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
+	// IBM Licensing Service docker Image Name, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
 	ImageName string `json:"imageName,omitempty"`
-	// IBM Licensing Service docker Image Tag or Digest, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
+	// IBM Licensing Service docker Image Tag or Digest, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
 	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
 
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`

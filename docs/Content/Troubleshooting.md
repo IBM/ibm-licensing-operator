@@ -84,13 +84,13 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "ibm-licensing-operator"
-            - name: OPERAND_LICENSING_IMAGE
+            - name: IBM_LICENSING_IMAGE
               value: "${my_docker_registry}/ibm-licensing:${operand_version}"
-            - name: OPERAND_REPORTER_UI_IMAGE
+            - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
               value: "${my_docker_registry}/ibm-license-service-reporter-ui:${operand_version}"
-            - name: OPERAND_REPORTER_DATABASE_IMAGE
+            - name: IBM_POSTGRESQL_IMAGE
               value: "${my_docker_registry}/ibm-postgresql:${operand_db_version}"
-            - name: OPERAND_REPORTER_RECEIVER_IMAGE
+            - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
               value: "${my_docker_registry}/ibm-license-service-reporter:${operand_version}"
             - name: SA_NAME
               valueFrom:
