@@ -19,7 +19,7 @@ package service
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,25 +27,25 @@ func GetNetworkPolicyName(instance *operatorv1alpha1.IBMLicensing) string {
 	return GetResourceName(instance)
 }
 
-func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *v1beta1.NetworkPolicy {
+func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *networkingv1.NetworkPolicy {
 	protocol := corev1.ProtocolTCP
-	return &v1beta1.NetworkPolicy{
+	return &networkingv1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetNetworkPolicyName(instance),
 			Namespace: instance.Spec.InstanceNamespace,
 		},
-		Spec: v1beta1.NetworkPolicySpec{
+		Spec: networkingv1.NetworkPolicySpec{
 			PodSelector: getNetworkPolicyPodSelector(),
-			PolicyTypes: []v1beta1.PolicyType{v1beta1.PolicyTypeIngress},
-			Ingress: []v1beta1.NetworkPolicyIngressRule{
+			PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeIngress},
+			Ingress: []networkingv1.NetworkPolicyIngressRule{
 				{
-					Ports: []v1beta1.NetworkPolicyPort{
+					Ports: []networkingv1.NetworkPolicyPort{
 						{
 							Port:     &prometheusServicePort,
 							Protocol: &protocol,
 						},
 					},
-					From: []v1beta1.NetworkPolicyPeer{
+					From: []networkingv1.NetworkPolicyPeer{
 						{
 							NamespaceSelector: getNetworkPolicyFromNamespaceSelector(),
 							PodSelector:       getNetworkPolicyFromPodSelector(),
@@ -53,13 +53,13 @@ func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *v1beta1.NetworkP
 					},
 				},
 				{
-					Ports: []v1beta1.NetworkPolicyPort{
+					Ports: []networkingv1.NetworkPolicyPort{
 						{
 							Port:     &licensingServicePort,
 							Protocol: &protocol,
 						},
 					},
-					From: []v1beta1.NetworkPolicyPeer{
+					From: []networkingv1.NetworkPolicyPeer{
 						{
 							NamespaceSelector: &metav1.LabelSelector{},
 							PodSelector:       &metav1.LabelSelector{},
