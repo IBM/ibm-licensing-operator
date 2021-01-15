@@ -23,7 +23,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func GetNetworkPolicyName(instance *operatorv1alpha1.IBMLicensing) string {
+func getNetworkPolicyName(instance *operatorv1alpha1.IBMLicensing) string {
 	return GetResourceName(instance)
 }
 
@@ -31,7 +31,7 @@ func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *v1beta1.NetworkP
 	protocol := corev1.ProtocolTCP
 	return &v1beta1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetNetworkPolicyName(instance),
+			Name:      getNetworkPolicyName(instance),
 			Namespace: instance.Spec.InstanceNamespace,
 		},
 		Spec: v1beta1.NetworkPolicySpec{
