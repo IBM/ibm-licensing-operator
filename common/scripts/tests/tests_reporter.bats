@@ -76,10 +76,10 @@ teardown() {
 }
 
 @test "Run Operator in backgroud" {
-  export OPERAND_LICENSING_IMAGE="quay.io/opencloudio/ibm-licensing:0"
-  export OPERAND_REPORTER_RECEIVER_IMAGE="quay.io/opencloudio/ibm-license-service-reporter:0"
-  export OPERAND_REPORTER_UI_IMAGE="quay.io/opencloudio/ibm-license-service-reporter-ui:0"
-  export OPERAND_REPORTER_DATABASE_IMAGE="quay.io/opencloudio/ibm-postgresql:0"
+  export IBM_LICENSING_IMAGE="quay.io/opencloudio/ibm-licensing:0"
+  export IBM_LICENSE_SERVICE_REPORTER_IMAGE="quay.io/opencloudio/ibm-license-service-reporter:0"
+  export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE="quay.io/opencloudio/ibm-license-service-reporter-ui:0"
+  export IBM_POSTGRESQL_IMAGE="quay.io/opencloudio/ibm-postgresql:0"
   export WATCH_NAMESPACE=ibm-common-services$SUFIX
   ./bin/ibm-licensing-operator > operator-sdk-ls_logs.txt 2>&1 &
 

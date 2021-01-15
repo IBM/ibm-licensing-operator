@@ -54,7 +54,7 @@ spec:
               properties:
                 imageName:
                   description: IBM Licensing Service docker Image Name, will override
-                    default value and disable OPERAND_LICENSING_IMAGE env value in
+                    default value and disable IBM_LICENSING_IMAGE env value in
                     operator deployment
                   type: string
                 imagePullPolicy:
@@ -67,12 +67,12 @@ spec:
                   type: string
                 imageRegistry:
                   description: IBM Licensing Service docker Image Registry, will override
-                    default value and disable OPERAND_LICENSING_IMAGE env value in
+                    default value and disable IBM_LICENSING_IMAGE env value in
                     operator deployment
                   type: string
                 imageTagPostfix:
                   description: IBM Licensing Service docker Image Tag or Digest, will
-                    override default value and disable OPERAND_LICENSING_IMAGE env
+                    override default value and disable IBM_LICENSING_IMAGE env
                     value in operator deployment
                   type: string
                 resources:
@@ -128,7 +128,7 @@ spec:
               properties:
                 imageName:
                   description: IBM Licensing Service docker Image Name, will override
-                    default value and disable OPERAND_LICENSING_IMAGE env value in
+                    default value and disable IBM_LICENSING_IMAGE env value in
                     operator deployment
                   type: string
                 imagePullPolicy:
@@ -141,12 +141,12 @@ spec:
                   type: string
                 imageRegistry:
                   description: IBM Licensing Service docker Image Registry, will override
-                    default value and disable OPERAND_LICENSING_IMAGE env value in
+                    default value and disable IBM_LICENSING_IMAGE env value in
                     operator deployment
                   type: string
                 imageTagPostfix:
                   description: IBM Licensing Service docker Image Tag or Digest, will
-                    override default value and disable OPERAND_LICENSING_IMAGE env
+                    override default value and disable IBM_LICENSING_IMAGE env
                     value in operator deployment
                   type: string
                 resources:
@@ -182,7 +182,7 @@ spec:
               properties:
                 imageName:
                   description: IBM Licensing Service docker Image Name, will override
-                    default value and disable OPERAND_LICENSING_IMAGE env value in
+                    default value and disable IBM_LICENSING_IMAGE env value in
                     operator deployment
                   type: string
                 imagePullPolicy:
@@ -195,12 +195,12 @@ spec:
                   type: string
                 imageRegistry:
                   description: IBM Licensing Service docker Image Registry, will override
-                    default value and disable OPERAND_LICENSING_IMAGE env value in
+                    default value and disable IBM_LICENSING_IMAGE env value in
                     operator deployment
                   type: string
                 imageTagPostfix:
                   description: IBM Licensing Service docker Image Tag or Digest, will
-                    override default value and disable OPERAND_LICENSING_IMAGE env
+                    override default value and disable IBM_LICENSING_IMAGE env
                     value in operator deployment
                   type: string
                 resources:
