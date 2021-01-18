@@ -83,7 +83,7 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "ibm-licensing-operator"
-            - name: OPERAND_LICENSING_IMAGE
+            - name: IBM_LICENSING_IMAGE
               value: "${my_docker_registry}/ibm-licensing:${operand_version}"
             - name: SA_NAME
               valueFrom:
