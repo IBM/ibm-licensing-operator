@@ -26,6 +26,7 @@ const APISecretTokenVolumeName = "api-token"
 const APIUploadTokenVolumeName = "token-upload"
 const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
+const PrometheusHTTPSCertsVolumeName = "prometheus-https-certs"
 
 func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.VolumeMount {
 	var volumeMounts = []corev1.VolumeMount{
@@ -51,6 +52,15 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 					ReadOnly:  true,
 				},
 			}...)
+			if spec.IsRHMPEnabled() {
+				volumeMounts = append(volumeMounts, []corev1.VolumeMount{
+					{
+						Name:      PrometheusHTTPSCertsVolumeName,
+						MountPath: "/opt/prometheus/certs",
+						ReadOnly:  true,
+					},
+				}...)
+			}
 		}
 
 	}
@@ -113,6 +123,9 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 			volumes = append(volumes, resources.GetVolume(LicensingHTTPSCertsVolumeName, "ibm-licensing-certs"))
 		} else if resources.IsServiceCAAPI && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 			volumes = append(volumes, resources.GetVolume(LicensingHTTPSCertsVolumeName, LicenseServiceOCPCertName))
+			if spec.IsRHMPEnabled() {
+				volumes = append(volumes, resources.GetVolume(PrometheusHTTPSCertsVolumeName, PrometheusServiceOCPCertName))
+			}
 		}
 	}
 
