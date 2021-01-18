@@ -61,11 +61,11 @@ var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)
 var size1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
 
 type Container struct {
-	// IBM Licensing Service docker Image Registry, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
+	// IBM Licensing Service docker Image Registry, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
 	ImageRegistry string `json:"imageRegistry,omitempty"`
-	// IBM Licensing Service docker Image Name, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
+	// IBM Licensing Service docker Image Name, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
 	ImageName string `json:"imageName,omitempty"`
-	// IBM Licensing Service docker Image Tag or Digest, will override default value and disable OPERAND_LICENSING_IMAGE env value in operator deployment
+	// IBM Licensing Service docker Image Tag or Digest, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
 	ImageTagPostfix string `json:"imageTagPostfix,omitempty"`
 
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
@@ -145,7 +145,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteE
 	spec.Container.setResourceLimitCPUIfNotSet(*cpu500m)
 	spec.Container.setResourceRequestCPUIfNotSet(*cpu200m)
 
-	licensingFullImageFromEnv := os.Getenv("OPERAND_LICENSING_IMAGE")
+	licensingFullImageFromEnv := os.Getenv("IBM_LICENSING_IMAGE")
 
 	// Check if operator image variable is set and CR has no overrides
 	if licensingFullImageFromEnv != "" && spec.isImageEmpty() {
@@ -177,7 +177,7 @@ func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 }
 
 func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logger, r client_reader.Reader) error {
-	databaseFullImageFromEnv := os.Getenv("OPERAND_REPORTER_DATABASE_IMAGE")
+	databaseFullImageFromEnv := os.Getenv("IBM_POSTGRESQL_IMAGE")
 	// Check if operator image variable is set and CR has no overrides
 	if databaseFullImageFromEnv != "" && spec.DatabaseContainer.isImageEmpty() {
 		err := spec.DatabaseContainer.setImageParametersFromEnv(databaseFullImageFromEnv)
@@ -197,7 +197,7 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 		}
 	}
 
-	receiverFullImageFromEnv := os.Getenv("OPERAND_REPORTER_RECEIVER_IMAGE")
+	receiverFullImageFromEnv := os.Getenv("IBM_LICENSE_SERVICE_REPORTER_IMAGE")
 	// Check if operator image variable is set and CR has no overrides
 	if receiverFullImageFromEnv != "" && spec.ReceiverContainer.isImageEmpty() {
 		err := spec.ReceiverContainer.setImageParametersFromEnv(receiverFullImageFromEnv)
@@ -217,7 +217,7 @@ func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logg
 		}
 	}
 
-	uiFullImageFromEnv := os.Getenv("OPERAND_REPORTER_UI_IMAGE")
+	uiFullImageFromEnv := os.Getenv("IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE")
 	// Check if operator image variable is set and CR has no overrides
 	if uiFullImageFromEnv != "" && spec.ReporterUIContainer.isImageEmpty() {
 		err := spec.ReporterUIContainer.setImageParametersFromEnv(uiFullImageFromEnv)
