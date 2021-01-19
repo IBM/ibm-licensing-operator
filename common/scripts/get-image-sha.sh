@@ -56,13 +56,13 @@ OPER_FILE=deploy/operator.yaml
 
 # delete the "name" and "value" lines for the old SHA
 # for example:
-#     - name: OPERAND_LICENSING_IMAGE
+#     - name: IBM_LICENSING_IMAGE
 #       value: quay.io/opencloudio/ibm-licensing@sha256:10a844ffaf7733176e927e6c4faa04c2bc4410cf4d4ef61b9ae5240aa62d1456
 
-sed -i "/name: OPERAND_LICENSING_IMAGE/{N;d;}" $OPER_FILE
+sed -i "/name: IBM_LICENSING_IMAGE/{N;d;}" $OPER_FILE
 
 # insert the new SHA lines
-LINE1="\            - name: OPERAND_LICENSING_IMAGE"
+LINE1="\            - name: IBM_LICENSING_IMAGE"
 LINE2="\              value: $NAME@$SHA"
 sed -i "/env:/a $LINE1\n$LINE2" $OPER_FILE
 
@@ -73,12 +73,12 @@ CSV_FILE=deploy/olm-catalog/ibm-licensing-operator/"${VERSION}"/ibm-licensing-op
 
 # delete the "name" and "value" lines for the old SHA
 # for example:
-#     - name: OPERAND_LICENSING_IMAGE
+#     - name: IBM_LICENSING_IMAGE
 #       value: quay.io/opencloudio/ibm-licensing@sha256:10a844ffaf7733176e927e6c4faa04c2bc4410cf4d4ef61b9ae5240aa62d1456
 
-sed -i "/name: OPERAND_LICENSING_IMAGE/{N;d;}" "${CSV_FILE}"
+sed -i "/name: IBM_LICENSING_IMAGE/{N;d;}" "${CSV_FILE}"
 
 # insert the new SHA lines. need 4 more leading spaces compared to operator.yaml
-LINE1="\                - name: OPERAND_LICENSING_IMAGE"
+LINE1="\                - name: IBM_LICENSING_IMAGE"
 LINE2="\                  value: $NAME@$SHA"
 sed -i "/env:/a $LINE1\n$LINE2" "${CSV_FILE}"

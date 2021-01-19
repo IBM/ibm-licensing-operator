@@ -291,7 +291,7 @@ unit-test: prepare-unit-test
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
-	export OPERAND_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
+	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
 	go test -v ./controllers/... -coverprofile cover.out
 
 # Build manager binary

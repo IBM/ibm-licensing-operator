@@ -35,7 +35,7 @@ import (
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	operatoribmcomv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	"github.com/ibm/ibm-licensing-operator/controllers"
-	apiextensionv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -61,7 +61,7 @@ func init() {
 
 	utilruntime.Must(monitoringv1.AddToScheme(scheme))
 
-	utilruntime.Must(apiextensionv1beta1.AddToScheme(scheme))
+	utilruntime.Must(networkingv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
