@@ -573,5 +573,4 @@ spec:
   maturity: alpha
   provider:
     name: IBM
-  replaces: ibm-licensing-operator.v1.3.1
   version: 1.4.0
