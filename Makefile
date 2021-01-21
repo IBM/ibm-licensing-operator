@@ -367,7 +367,6 @@ endif
 bundle: manifests
 	operator-sdk generate kustomize manifests -q
 	sed -i "s/olm.skipRange.*/olm.skipRange: '>=1.0.0 <$(CSV_VERSION)'/g" ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
-	sed -i "s/replaces.*/replaces: ibm-licensing-operator.v$(OLD_CSV_VERSION)/g" ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
 

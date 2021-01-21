@@ -32,10 +32,12 @@ const PrometheusServiceOCPCertName = "ibm-licensing-service-prometheus-cert"
 const LicensingServiceAccount = "ibm-license-service"
 const PrometheusServiceName = "ibm-licensing-service-prometheus"
 const PrometheusServiceMonitor = "ibm-licensing-service-service-monitor"
+const PrometheusCAPath = "/etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt"
 
 const LicensingServiceAppLabel = "ibm-licensing-service-instance"
 const MarketplaceMonitoringLabel = "openshift.io/cluster-monitoring"
-const ReleaseLabel = "ibm-licensing-service-promethus"
+const ServiceMonitorSelectorLabel = "marketplace.redhat.com/metering"
+const ReleaseLabel = "ibm-licensing-service-prometheus"
 const MeterbaseLabel = "rhm-marketplaceconfig-meterbase"
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
@@ -63,7 +65,7 @@ func LabelsForMeta(instance *operatorv1alpha1.IBMLicensing) map[string]string {
 
 func LabelsForServiceMonitor() map[string]string {
 	return map[string]string{
-		MarketplaceMonitoringLabel: "true"}
+		ServiceMonitorSelectorLabel: "true"}
 }
 
 func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {
