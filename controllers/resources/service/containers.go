@@ -173,6 +173,20 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 			resources.GetOCPSecretCheckScript(),
 		}
 		containers = append(containers, ocpSecretCheckContainer)
+
+		if spec.IsRHMPEnabled() {
+			baseContainer := getLicensingContainerBase(spec)
+			ocpPrometheusSecretCheckContainer := corev1.Container{}
+
+			baseContainer.DeepCopyInto(&ocpPrometheusSecretCheckContainer)
+			ocpPrometheusSecretCheckContainer.Name = resources.OcpPrometheusCheckString
+			ocpPrometheusSecretCheckContainer.Command = []string{
+				"sh",
+				"-c",
+				resources.GetOCPPrometheusSecretCheckScript(),
+			}
+			containers = append(containers, ocpPrometheusSecretCheckContainer)
+		}
 	}
 	return containers
 }

@@ -60,6 +60,7 @@ const LicensingProductMetric = "FREE"
 const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
 const OcpCheckString = "ocp-check-secret"
+const OcpPrometheusCheckString = "ocp-prometheus-check-secret"
 
 var randStringCharsetLength = big.NewInt(int64(len(randStringCharset)))
 
@@ -185,6 +186,18 @@ func GetOCPSecretCheckScript() string {
   echo "$(date): Checking for ocp secret"
   ls /opt/licensing/certs/* && break
   echo "$(date): Required ocp secret not found ... try again in 30s"
+  sleep 30
+done
+echo "$(date): All required secrets exist"
+`
+	return script
+}
+
+func GetOCPPrometheusSecretCheckScript() string {
+	script := `while true; do
+  echo "$(date): Checking for ocp prometheus secret"
+  ls /opt/prometheus/certs/* && break
+  echo "$(date): Required ocp prometheus secret not found ... try again in 30s"
   sleep 30
 done
 echo "$(date): All required secrets exist"

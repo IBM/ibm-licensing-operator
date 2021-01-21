@@ -106,8 +106,6 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		reqLogger.Error(err, "Error during checking K8s API")
 	}
 
-	r.controllerStatus()
-
 	// Fetch the IBMLicensing instance
 	foundInstance := &operatorv1alpha1.IBMLicensing{}
 	err := r.Client.Get(context.TODO(), req.NamespacedName, foundInstance)
@@ -134,6 +132,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	if err != nil {
 		return reconcile.Result{}, err
 	}
+	r.controllerStatus()
 
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
 
