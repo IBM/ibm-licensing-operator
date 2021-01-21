@@ -101,8 +101,6 @@ func (r *IBMLicenseServiceReporterReconciler) Reconcile(req reconcile.Request) (
 		reqLogger.Error(err, "Error during checking K8s API")
 	}
 
-	r.controllerStatus()
-
 	reconcileFunctions := []interface{}{
 		r.reconcileServiceAccount,
 		r.reconcileRole,
@@ -145,6 +143,8 @@ func (r *IBMLicenseServiceReporterReconciler) Reconcile(req reconcile.Request) (
 	if err != nil {
 		return reconcile.Result{}, err
 	}
+
+	r.controllerStatus()
 
 	reqLogger.Info("got IBM License Service Reporter application, version=" + instance.Spec.Version)
 

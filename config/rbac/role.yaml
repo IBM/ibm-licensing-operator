@@ -138,6 +138,8 @@ rules:
   verbs:
   - create
   - get
+  - list
+  - watch
 - apiGroups:
   - operator.ibm.com
   resources:
