@@ -173,6 +173,9 @@ coverage-kind: ## Run coverage if possible
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+	export REGISTRY=${REGISTRY}; \
+	export IBM_LICENSING_IMAGE=${IBM_LICENSING_IMAGE}; \
+	export CSV_VERSION=${CSV_VERSION}; \
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
 	./common/scripts/codecov.sh ${BUILD_LOCALLY}
 
