@@ -168,8 +168,13 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 #    eg: lint: lint-go lint-yaml
 lint: lint-all
 
-coverage-kind: unit-test ## Run coverage if possible
-	@common/scripts/codecov.sh ${BUILD_LOCALLY}
+coverage-kind: ## Run coverage if possible
+	export USE_EXISTING_CLUSTER=true; \
+	export WATCH_NAMESPACE=${NAMESPACE}; \
+	export NAMESPACE=${NAMESPACE}; \
+	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
+	./common/scripts/codecov.sh ${BUILD_LOCALLY}
 
 coverage: ## Run coverage if possible
 	@echo "coverage on kind in github action"
