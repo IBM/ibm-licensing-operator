@@ -18,6 +18,7 @@ package reporter
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-logr/logr"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
@@ -110,10 +111,10 @@ func AddSenderConfiguration(client client.Client, log logr.Logger) error {
 		if licensing.Spec.SetDefaultSenderParameters() {
 			err := client.Update(context.TODO(), &licensing)
 			if err != nil {
-				reqLogger.Error(err, "Failed to configure sender for: ", licensing.Name)
+				reqLogger.Error(err, fmt.Sprintf("Failed to configure sender for: %s", licensing.Name))
 				return err
 			}
-			reqLogger.Info("Successfully configured sender for ", licensing.Name)
+			reqLogger.Info(fmt.Sprintf("Successfully configured sender for %s", licensing.Name))
 		}
 	}
 	return nil
@@ -138,10 +139,11 @@ func ClearDefaultSenderConfiguration(client client.Client, log logr.Logger) {
 		if licensing.Spec.RemoveDefaultSenderParameters() {
 			err := client.Update(context.TODO(), &licensing)
 			if err != nil {
-				reqLogger.Error(err, "Failed to removed sender for: ", licensing.Name)
+				reqLogger.Error(err, fmt.Sprintf("Failed to removed sender for: %s", licensing.Name))
 				return
 			}
-			reqLogger.Info("Successfully removed sender for ", licensing.Name)
+			reqLogger.Info(fmt.Sprintf("Successfully removed sender for %s", licensing.Name))
+
 		}
 	}
 }
