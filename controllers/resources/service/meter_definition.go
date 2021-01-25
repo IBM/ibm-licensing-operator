@@ -50,10 +50,11 @@ func GetMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.MeterDefi
 			},
 			Meters: []rhmp.MeterWorkload{
 				{
+					Name:               "${ .cloudpak_id}.licensing.ibm.com",
 					Aggregation:        "max",
 					Period:             &metav1.Duration{24 * time.Hour},
 					WorkloadType:       rhmp.WorkloadTypeService,
-					Metric:             "${product_metric}-${cloudpak_id}",
+					Metric:             "${ .cloudpak_metric}-${ .cloudpak_id}",
 					Query:              "product_license_usage{}",
 					GroupBy:            []string{"product_metric", "cloudpak_id"},
 					ValueLabelOverride: "${ .value}",
