@@ -34,10 +34,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // cannot set to const due to k8s struct needing pointers to primitive types
@@ -96,20 +93,6 @@ func Contains(s []corev1.LocalObjectReference, e corev1.LocalObjectReference) bo
 func AnnotationsForPod() map[string]string {
 	return map[string]string{"productName": LicensingProductName,
 		"productID": LicensingProductID, "productMetric": LicensingProductMetric}
-}
-
-func WatchForResources(log logr.Logger, o runtime.Object, c controller.Controller, watchTypes []ResourceObject) error {
-	for _, restype := range watchTypes {
-		log.Info("Watching", "restype", reflect.TypeOf(restype).String())
-		err := c.Watch(&source.Kind{Type: restype}, &handler.EnqueueRequestForOwner{
-			IsController: true,
-			OwnerType:    o,
-		})
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func GetSecretToken(name string, namespace string, secretKey string, metaLabels map[string]string) (*corev1.Secret, error) {
