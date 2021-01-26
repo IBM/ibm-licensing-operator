@@ -8,7 +8,7 @@ require (
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.3
 	github.com/openshift/api v0.0.0-20200930075302-db52bc4ef99f
-	github.com/redhat-marketplace/redhat-marketplace-operator/v2 v2.0.0-20210112224721-e7f22f662b9a
+	github.com/redhat-marketplace/redhat-marketplace-operator/v2 v2.0.0-20210125205956-4eda6b4abf4e
 	gonum.org/v1/netlib v0.0.0-20190331212654-76723241ea4e // indirect
 	k8s.io/api v0.19.4
 	k8s.io/apimachinery v0.19.4
@@ -16,6 +16,4 @@ require (
 	sigs.k8s.io/controller-runtime v0.6.4
 )
 
-replace (
-	k8s.io/client-go => k8s.io/client-go v0.19.4
-)
+replace k8s.io/client-go => k8s.io/client-go v0.19.4

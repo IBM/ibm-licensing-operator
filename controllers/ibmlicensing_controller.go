@@ -407,10 +407,6 @@ func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1al
 		reqLogger.Info("Issue related wit new schama for MeterDefinition. Now we can skip this message.")
 		return result, nil
 	}
-	result, err = res.UpdateResource(&reqLogger, r.Client, expected, found)
-	if err != nil {
-		reqLogger.Info("Issue related wit new schama for MeterDefinition. Now we can skip this message.")
-	}
 	return reconcile.Result{}, nil
 }
 
