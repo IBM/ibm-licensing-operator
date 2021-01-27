@@ -166,7 +166,7 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 # All available linters: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown lint-typescript lint-protos
 # Default value will run all linters, override these make target with your requirements:
 #    eg: lint: lint-go lint-yaml
-lint: lint-all
+lint: lint-all vet
 
 coverage-kind: unit-test ## Run coverage if possible
 	@common/scripts/codecov.sh ${BUILD_LOCALLY}
