@@ -9,7 +9,6 @@ require (
 	github.com/onsi/gomega v1.10.3
 	github.com/openshift/api v0.0.0-20200930075302-db52bc4ef99f
 	github.com/redhat-marketplace/redhat-marketplace-operator/v2 v2.0.0-20210125205956-4eda6b4abf4e
-	gonum.org/v1/netlib v0.0.0-20190331212654-76723241ea4e // indirect
 	k8s.io/api v0.19.4
 	k8s.io/apimachinery v0.19.4
 	k8s.io/client-go v12.0.0+incompatible
