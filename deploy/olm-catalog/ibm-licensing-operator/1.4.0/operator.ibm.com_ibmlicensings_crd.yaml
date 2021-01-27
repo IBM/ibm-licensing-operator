@@ -22,7 +22,7 @@ spec:
     status: {}
   validation:
     openAPIV3Schema:
-      description: IBM License Service is the Schema for the ibmlicensings API
+      description: IBMLicensing is the Schema for the ibmlicensings API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
