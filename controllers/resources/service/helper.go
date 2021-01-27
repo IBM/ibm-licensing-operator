@@ -36,7 +36,7 @@ const PrometheusServiceMonitor = "ibm-licensing-service-service-monitor"
 const PrometheusCAPath = "/etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt"
 
 const LicensingServiceAppLabel = "ibm-licensing-service-instance"
-const MarketplaceMonitoringLabel = "openshift.io/cluster-monitoring"
+const MarketplaceMonitoringLabel = "marketplace.redhat.com/operator"
 const ServiceMonitorSelectorLabel = "marketplace.redhat.com/metering"
 const ReleaseLabel = "ibm-licensing-service-prometheus"
 const MeterbaseLabel = "rhm-marketplaceconfig-meterbase"

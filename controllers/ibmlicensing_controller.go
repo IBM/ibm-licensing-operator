@@ -28,6 +28,7 @@ import (
 	res "github.com/ibm/ibm-licensing-operator/controllers/resources"
 	"github.com/ibm/ibm-licensing-operator/controllers/resources/service"
 	routev1 "github.com/openshift/api/route/v1"
+	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/api/extensions/v1beta1"
@@ -146,6 +147,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		r.reconcileDeployment,
 		r.reconcileIngress,
 		r.reconcileRoute,
+		r.reconcileMeterDefinition,
 	}
 
 	if instance.Spec.IsRHMPEnabled() {
@@ -393,6 +395,21 @@ func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBM
 	return reconcile.Result{}, nil
 }
 
+func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	if !instance.Spec.IsRHMPEnabled() {
+		return reconcile.Result{}, nil
+	}
+	reqLogger := r.Log.WithValues("reconcileMeterDefinition", "Entry", "instance.GetName()", instance.GetName())
+	expected := service.GetMeterDefinition(instance)
+	found := &rhmp.MeterDefinition{}
+	result, err := r.reconcileResourceNamespacedExistence(instance, expected, found)
+	if err != nil || result.Requeue {
+		reqLogger.Info("Issue related wit new schama for MeterDefinition. Now we can skip this message.")
+		return result, nil
+	}
+	return reconcile.Result{}, nil
+}
+
 func (r *IBMLicensingReconciler) reconcileResourceNamespacedExistence(
 	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
 
@@ -453,7 +470,7 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 	} else {
 		r.Log.Info("ServiceCA feature is disabled")
 	}
-	if res.RHMPEnabled {
+	if instance.Spec.IsRHMPEnabled() {
 		r.Log.Info("RHMP is enabled")
 	} else {
 		r.Log.Info("RHMP is disabled")
