@@ -264,7 +264,6 @@ spec:
           required:
           - datasource
           - httpsEnable
-          - instanceNamespace
           type: object
         status:
           description: IBMLicensingStatus defines the observed state of IBMLicensing

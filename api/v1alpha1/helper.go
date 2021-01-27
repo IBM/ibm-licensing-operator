@@ -107,7 +107,11 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
 
-func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool) error {
+func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool,
+	operatorNamespace string) error {
+	if spec.InstanceNamespace == "" {
+		spec.InstanceNamespace = operatorNamespace
+	}
 	spec.Container.setImagePullPolicyIfNotSet()
 	if spec.HTTPSCertsSource == "" {
 		if isOCP4CertManager {
