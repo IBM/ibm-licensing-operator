@@ -36,7 +36,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	v1 "github.com/openshift/api/route/v1"
+	"github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -372,6 +372,7 @@ func (in *IBMLicensingSpec) DeepCopyInto(out *IBMLicensingSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	in.UsageContainer.DeepCopyInto(&out.UsageContainer)
 	if in.IngressEnabled != nil {
 		in, out := &in.IngressEnabled, &out.IngressEnabled
 		*out = new(bool)

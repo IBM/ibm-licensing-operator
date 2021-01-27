@@ -55,11 +55,9 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 					Annotations: resources.AnnotationsForPod(),
 				},
 				Spec: corev1.PodSpec{
-					Volumes:        getLicensingVolumes(instance.Spec),
-					InitContainers: GetLicensingInitContainers(instance.Spec),
-					Containers: []corev1.Container{
-						GetLicensingContainer(instance.Spec),
-					},
+					Volumes:                       getLicensingVolumes(instance.Spec),
+					InitContainers:                GetLicensingInitContainers(instance.Spec),
+					Containers:                    GetLicensingContainer(instance.Spec),
 					TerminationGracePeriodSeconds: &resources.Seconds60,
 					ServiceAccountName:            LicensingServiceAccount,
 					ImagePullSecrets:              imagePullSecrets,

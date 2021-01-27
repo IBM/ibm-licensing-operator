@@ -132,7 +132,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	r.controllerStatus()
+	r.controllerStatus(instance)
 
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
 
@@ -442,7 +442,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	return reconcile.Result{}, nil
 }
 
-func (r *IBMLicensingReconciler) controllerStatus() {
+func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBMLicensing) {
 	if res.IsRouteAPI {
 		r.Log.Info("Route feature is enabled")
 	} else {
@@ -458,4 +458,10 @@ func (r *IBMLicensingReconciler) controllerStatus() {
 	} else {
 		r.Log.Info("RHMP is disabled")
 	}
+	if instance.Spec.UsageEnabled {
+		r.Log.Info("Usage container is enabled")
+	} else {
+		r.Log.Info("Usage container is disabled")
+	}
+
 }
