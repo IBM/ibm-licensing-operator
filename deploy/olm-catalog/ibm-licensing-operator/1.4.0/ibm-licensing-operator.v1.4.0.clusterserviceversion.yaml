@@ -19,8 +19,7 @@ metadata:
             "version": "1.4.0",
             "apiSecretToken": "ibm-licensing-token",
             "datasource": "datacollector",
-            "httpsEnable": true,
-            "instanceNamespace": "ibm-common-services"
+            "httpsEnable": true
           }
         },
         {

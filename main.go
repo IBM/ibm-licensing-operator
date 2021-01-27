@@ -115,10 +115,11 @@ func main() {
 	}
 
 	if err = (&controllers.IBMLicensingReconciler{
-		Client: mgr.GetClient(),
-		Reader: mgr.GetAPIReader(),
-		Log:    ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
-		Scheme: mgr.GetScheme(),
+		Client:            mgr.GetClient(),
+		Reader:            mgr.GetAPIReader(),
+		Log:               ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
+		Scheme:            mgr.GetScheme(),
+		OperatorNamespace: watchNamespace,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicensing")
 		os.Exit(1)
