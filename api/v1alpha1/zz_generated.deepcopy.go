@@ -36,7 +36,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/openshift/api/route/v1"
+	v1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
