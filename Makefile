@@ -33,6 +33,7 @@ SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devo
 BUNDLE_IMG ?= ibm-licensing-operator-bundle:$(CSV_VERSION)
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
+IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
@@ -292,6 +293,7 @@ unit-test: prepare-unit-test
 	export NAMESPACE=${NAMESPACE}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
+	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
 	go test -v ./controllers/... -coverprofile cover.out
 
 # Build manager binary
