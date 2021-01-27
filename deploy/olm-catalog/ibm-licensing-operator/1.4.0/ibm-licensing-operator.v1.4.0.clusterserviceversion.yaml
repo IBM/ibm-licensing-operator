@@ -149,6 +149,16 @@ spec:
         name: ''
         version: v1alpha1          
       specDescriptors:
+        - description: Consider updating to enable chargeback feature
+          displayName: Chargeback Enabled
+          path: chargebackEnabled
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:text
+        - description: Chargeback data retention period in days. Default value is 62 days.
+          displayName: Chargeback Retention Period in days
+          path: chargebackRetentionPeriod
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:number
         - description: Should aplication have https enabled
           displayName: HTTPS Enable
           path: httpsEnable

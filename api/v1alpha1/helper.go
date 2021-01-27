@@ -154,6 +154,10 @@ func (spec *IBMLicensingSpec) IsRHMPEnabled() bool {
 	return spec.RHMPEnabled != nil && *spec.RHMPEnabled
 }
 
+func (spec *IBMLicensingSpec) IsChargebackEnabled() bool {
+	return spec.ChargebackEnabled != nil && *spec.ChargebackEnabled
+}
+
 func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logger, r client_reader.Reader) error {
 	if err := spec.DatabaseContainer.setContainer(OperandReporterDatabaseImageEnvVar); err != nil {
 		return err
