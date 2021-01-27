@@ -149,6 +149,16 @@ spec:
         name: ''
         version: v1alpha1          
       specDescriptors:
+        - description: Is chargeback enabled
+          displayName: Chargeback Enabled
+          path: chargebackEnabled
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:text
+        - description: For how many days chargeback grouped data will be stored in config maps, this parameter can be adjusted to ensure config map will not overflow, by default 62 days
+          displayName: Chargeback Retention Period in days
+          path: chargebackRetentionPeriod
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:number
         - description: Should aplication have https enabled
           displayName: HTTPS Enable
           path: httpsEnable

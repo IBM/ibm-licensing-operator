@@ -22,7 +22,7 @@ spec:
     status: {}
   validation:
     openAPIV3Schema:
-      description: IBMLicensing is the Schema for the ibmlicensings API
+      description: IBM License Service is the Schema for the ibmlicensings API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -43,6 +43,14 @@ spec:
               description: Secret name used to store application token, either one
                 that exists, or one that will be created
               type: string
+            chargebackEnabled:
+              description: Is chargeback enabled
+              type: boolean
+            chargebackRetentionPeriod:
+              description: For how many days chargeback grouped data will be stored
+                in config maps, this parameter can be adjusted to ensure config map
+                will not overflow, by default 62 days
+              type: integer
             datasource:
               description: 'Where should data be collected, options: metering, datacollector'
               enum:
@@ -263,7 +271,7 @@ spec:
           description: IBMLicensingStatus defines the observed state of IBMLicensing
           properties:
             licensingPods:
-              description: LicensingPods are the names of the licensing pods
+              description: The status of IBM License Service Pods.
               items:
                 description: PodStatus represents information about the status of
                   a pod. Status may trail the actual state of a system, especially
