@@ -231,7 +231,7 @@ func getUsageContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Contai
 		container.SecurityContext.RunAsUser = &spec.SecurityContext.RunAsUser
 	}
 	container.Env = getUsageEnvironmentVariables(spec)
-	container.Ports = getUsageContainerPorts(spec)
+	container.Ports = getUsageContainerPorts()
 	return container
 }
 
@@ -253,7 +253,7 @@ func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 	return ports
 }
 
-func getUsageContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.ContainerPort {
+func getUsageContainerPorts() []corev1.ContainerPort {
 	ports := []corev1.ContainerPort{
 		{
 			ContainerPort: usageServicePort.IntVal,
