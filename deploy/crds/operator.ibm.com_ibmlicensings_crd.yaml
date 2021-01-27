@@ -44,12 +44,11 @@ spec:
                 that exists, or one that will be created
               type: string
             chargebackEnabled:
-              description: Is chargeback enabled
+              description: Consider updating to enable chargeback feature
               type: boolean
             chargebackRetentionPeriod:
-              description: For how many days chargeback grouped data will be stored
-                in config maps, this parameter can be adjusted to ensure config map
-                will not overflow, by default 62 days
+              description: Chargeback data retention period in days. Default value
+                is 62 days.
               type: integer
             datasource:
               description: 'Where should data be collected, options: metering, datacollector'

@@ -98,12 +98,12 @@ type IBMLicensingSpec struct {
 	// +optional
 	RHMPEnabled *bool `json:"rhmpEnabled,omitempty"`
 
-	// Is chargeback enabled
+	// Consider updating to enable chargeback feature
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	ChargebackEnabled *bool `json:"chargebackEnabled,omitempty"`
 
-	// For how many days chargeback grouped data will be stored in config maps, this parameter can be adjusted to ensure config map will not overflow, by default 62 days
+	// Chargeback data retention period in days. Default value is 62 days.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Retention Period in days",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
 	// +optional
 	ChargebackRetentionPeriod *int `json:"chargebackRetentionPeriod,omitempty"`
