@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
@@ -65,6 +66,7 @@ var _ = Describe("IBMLicensing controller", func() {
 					InstanceNamespace: namespace,
 				},
 			}
+			fmt.Println("SIEMA")
 			Expect(k8sClient.Create(ctx, instance)).Should(MatchError(ContainSubstring("spec.datasource")))
 
 			By("Creating broken IBMLicensing with wrong datasource")
@@ -124,6 +126,40 @@ var _ = Describe("IBMLicensing controller", func() {
 					InstanceNamespace: namespace,
 					Datasource:        "datacollector",
 					HTTPSEnable:       true,
+					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
+						ImagePullSecrets: []string{"artifactory-token"},
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, instance)).Should(Succeed())
+
+			Eventually(func() int {
+				k8sClient.Get(ctx, types.NamespacedName{Name: name}, newInstance)
+				return len(newInstance.Status.LicensingPods)
+			}, timeout, interval).Should(BeNumerically(">", 0))
+
+			By("Checking status of the IBMLicensing")
+			Eventually(func() v1.PodPhase {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name}, newInstance)).Should(Succeed())
+				return newInstance.Status.LicensingPods[0].Phase
+			}, timeout, interval).Should(Equal(v1.PodRunning))
+
+		})
+
+		It("Should create IBMLicensing instance with usage container", func() {
+			By("Creating the IBMLicensing")
+			newInstance := &operatorv1alpha1.IBMLicensing{}
+
+			instance = &operatorv1alpha1.IBMLicensing{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: name,
+				},
+				Spec: operatorv1alpha1.IBMLicensingSpec{
+					InstanceNamespace: namespace,
+					Datasource:        "datacollector",
+					HTTPSEnable:       true,
+					UsageEnabled:      true,
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
 					},
