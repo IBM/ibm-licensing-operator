@@ -65,6 +65,18 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "true",
 		})
 	}
+	if spec.IsChargebackEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "ENABLE_CHARGEBACK",
+			Value: "true",
+		})
+	}
+	if spec.ChargebackRetentionPeriod != nil {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "CONTRIBUTIONS_DATA_RETENTION",
+			Value: strconv.Itoa(*spec.ChargebackRetentionPeriod),
+		})
+	}
 	if spec.Sender != nil {
 
 		if spec.Sender.ClusterID != "" {

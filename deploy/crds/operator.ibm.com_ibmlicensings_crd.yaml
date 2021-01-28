@@ -43,6 +43,13 @@ spec:
               description: Secret name used to store application token, either one
                 that exists, or one that will be created
               type: string
+            chargebackEnabled:
+              description: Consider updating to enable chargeback feature
+              type: boolean
+            chargebackRetentionPeriod:
+              description: Chargeback data retention period in days. Default value
+                is 62 days.
+              type: integer
             datasource:
               description: 'Where should data be collected, options: metering, datacollector'
               enum:
@@ -314,13 +321,12 @@ spec:
           required:
           - datasource
           - httpsEnable
-          - instanceNamespace
           type: object
         status:
           description: IBMLicensingStatus defines the observed state of IBMLicensing
           properties:
             licensingPods:
-              description: LicensingPods are the names of the licensing pods
+              description: The status of IBM License Service Pods.
               items:
                 description: PodStatus represents information about the status of
                   a pod. Status may trail the actual state of a system, especially

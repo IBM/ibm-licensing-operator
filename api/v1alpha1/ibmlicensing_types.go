@@ -81,7 +81,7 @@ type IBMLicensingSpec struct {
 	// Existing or to be created namespace where application will start. In case metering data collection is used,
 	// should be the same namespace as metering components
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Instance Namespace",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
-	InstanceNamespace string `json:"instanceNamespace"`
+	InstanceNamespace string `json:"instanceNamespace,omitempty"`
 
 	// If default SCC user ID fails, you can set runAsUser option to fix that
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Security Context",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
@@ -107,6 +107,16 @@ type IBMLicensingSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Usage Container Settings",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	UsageContainer Container `json:"usageContainer,omitempty"`
+
+	// Consider updating to enable chargeback feature
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	ChargebackEnabled *bool `json:"chargebackEnabled,omitempty"`
+
+	// Chargeback data retention period in days. Default value is 62 days.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Retention Period in days",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
+	// +optional
+	ChargebackRetentionPeriod *int `json:"chargebackRetentionPeriod,omitempty"`
 
 	// Should Ingress be created to expose IBM Licensing Service API?
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Ingress Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"

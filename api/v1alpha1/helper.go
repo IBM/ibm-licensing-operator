@@ -113,7 +113,11 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
 
-func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool) error {
+func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool,
+	operatorNamespace string) error {
+	if spec.InstanceNamespace == "" {
+		spec.InstanceNamespace = operatorNamespace
+	}
 	spec.Container.setImagePullPolicyIfNotSet()
 	if spec.HTTPSCertsSource == "" {
 		if isOCP4CertManager {
@@ -171,6 +175,10 @@ func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 
 func (spec *IBMLicensingSpec) IsRHMPEnabled() bool {
 	return spec.RHMPEnabled != nil && *spec.RHMPEnabled
+}
+
+func (spec *IBMLicensingSpec) IsChargebackEnabled() bool {
+	return spec.ChargebackEnabled != nil && *spec.ChargebackEnabled
 }
 
 func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logger, r client_reader.Reader) error {
