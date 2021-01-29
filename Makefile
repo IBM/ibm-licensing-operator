@@ -33,6 +33,7 @@ SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devo
 BUNDLE_IMG ?= ibm-licensing-operator-bundle:$(CSV_VERSION)
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
+IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
@@ -166,7 +167,7 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 # All available linters: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown lint-typescript lint-protos
 # Default value will run all linters, override these make target with your requirements:
 #    eg: lint: lint-go lint-yaml
-lint: lint-all
+lint: lint-all vet
 
 coverage-kind: unit-test ## Run coverage if possible
 	@common/scripts/codecov.sh ${BUILD_LOCALLY}
@@ -292,6 +293,7 @@ unit-test: prepare-unit-test
 	export NAMESPACE=${NAMESPACE}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
+	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
 	go test -v ./controllers/... -coverprofile cover.out
 
 # Build manager binary

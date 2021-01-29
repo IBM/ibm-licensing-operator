@@ -71,8 +71,9 @@ type IBMLicensingReconciler struct {
 	// that reads objects from the cache and writes to the apiserver
 	client.Client
 	client.Reader
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log               logr.Logger
+	Scheme            *runtime.Scheme
+	OperatorNamespace string
 }
 
 // //kubebuilder:rbac:namespace=ibm-common-services,groups=,resources=pod,verbs=get;list;watch;create;update;patch;delete
@@ -129,7 +130,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		reqLogger.Error(err, "Can not update version in CR")
 	}
 
-	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled)
+	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled, r.OperatorNamespace)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -528,4 +529,10 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 	} else {
 		r.Log.Info("RHMP is disabled")
 	}
+	if instance.Spec.UsageEnabled {
+		r.Log.Info("Usage container is enabled")
+	} else {
+		r.Log.Info("Usage container is disabled")
+	}
+
 }
