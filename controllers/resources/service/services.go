@@ -34,15 +34,18 @@ var (
 	prometheusTargetPortName = intstr.FromString("metrics")
 )
 
-func GetServices(instance *operatorv1alpha1.IBMLicensing) []*corev1.Service {
-	var services []*corev1.Service
-	services = append(services, GetLicensingService(instance))
+func GetServices(instance *operatorv1alpha1.IBMLicensing) (expected []*corev1.Service, notExpected []*corev1.Service) {
+	expected = append(expected, GetLicensingService(instance))
 
-	if s := GetPrometheusService(instance); s != nil {
-		services = append(services, s)
+	prometheusService := GetPrometheusService(instance)
+
+	if instance.Spec.IsRHMPEnabled() {
+		expected = append(expected, prometheusService)
+		return
 	}
 
-	return services
+	notExpected = append(notExpected, prometheusService)
+	return
 }
 
 func GetLicensingServiceName(instance *operatorv1alpha1.IBMLicensing) string {
@@ -78,9 +81,6 @@ func GetPrometheusServiceName() string {
 }
 
 func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
-	if !instance.Spec.IsRHMPEnabled() {
-		return nil
-	}
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        GetPrometheusServiceName(),

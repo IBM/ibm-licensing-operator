@@ -368,6 +368,7 @@ spec:
                 - create
                 - list
                 - watch
+                - delete
             - apiGroups:
                 - apps
               resourceNames:
