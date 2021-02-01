@@ -86,7 +86,7 @@ type IBMLicensingReconciler struct {
 
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="apps",resources=deployments/finalizers,verbs=update
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;watch;list
+// +kubebuilder:rbac:namespace=ibm-common-services,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;watch;list;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods,verbs=get
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods,verbs=get
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=apps,resources=replicasets;deployments,verbs=get
@@ -255,14 +255,21 @@ func (r *IBMLicensingReconciler) reconcileServices(instance *operatorv1alpha1.IB
 		err    error
 	)
 	reqLogger := r.Log.WithValues("reconcileServices", "Entry", "instance.GetName()", instance.GetName())
-	expectedServices := service.GetServices(instance)
-	foundService := &corev1.Service{}
-	for _, es := range expectedServices {
-		result, err = r.reconcileResourceNamespacedExistence(instance, es, foundService)
+	expected, notExpected := service.GetServices(instance)
+	found := &corev1.Service{}
+	for _, es := range expected {
+		result, err = r.reconcileResourceNamespacedExistence(instance, es, found)
 		if err != nil || result.Requeue {
 			return result, err
 		}
-		result, err = res.UpdateServiceIfNeeded(&reqLogger, r.Client, es, foundService)
+		result, err = res.UpdateServiceIfNeeded(&reqLogger, r.Client, es, found)
+	}
+
+	for _, ne := range notExpected {
+		result, err = r.reconcileNamespacedResourceWhichShouldNotExist(instance, ne, found)
+		if err != nil || result.Requeue {
+			return result, err
+		}
 	}
 
 	return result, err
@@ -274,8 +281,13 @@ func (r *IBMLicensingReconciler) reconcileServiceMonitor(instance *operatorv1alp
 	}
 	reqLogger := r.Log.WithValues("reconcileServiceMonitor", "Entry", "instance.GetName()", instance.GetName())
 	expectedServiceMonitor := service.GetServiceMonitor(instance)
+	owner := service.GetPrometheusService(instance)
+	result, err := res.UpdateOwner(&reqLogger, r.Client, owner)
+	if err != nil || result.Requeue {
+		return result, err
+	}
 	foundServiceMonitor := &monitoringv1.ServiceMonitor{}
-	result, err := r.reconcileResourceNamespacedExistence(instance, expectedServiceMonitor, foundServiceMonitor)
+	result, err = r.reconcileResourceNamespacedExistenceWithCustomController(instance, owner, expectedServiceMonitor, foundServiceMonitor)
 	if err != nil || result.Requeue {
 		return result, err
 	}
@@ -290,8 +302,13 @@ func (r *IBMLicensingReconciler) reconcileNetworkPolicy(instance *operatorv1alph
 	}
 	reqLogger := r.Log.WithValues("reconcileNetworkPolicy", "Entry", "instance.GetName()", instance.GetName())
 	expected := service.GetNetworkPolicy(instance)
+	owner := service.GetPrometheusService(instance)
+	result, err := res.UpdateOwner(&reqLogger, r.Client, owner)
+	if err != nil || result.Requeue {
+		return result, err
+	}
 	found := &networkingv1.NetworkPolicy{}
-	result, err := r.reconcileResourceNamespacedExistence(instance, expected, found)
+	result, err = r.reconcileResourceNamespacedExistenceWithCustomController(instance, owner, expected, found)
 	if err != nil || result.Requeue {
 		return result, err
 	}
@@ -415,11 +432,19 @@ func (r *IBMLicensingReconciler) reconcileResourceNamespacedExistence(
 	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
-	return r.reconcileResourceExistence(instance, expectedRes, foundRes, namespacedName)
+	return r.reconcileResourceExistence(instance, instance, expectedRes, foundRes, namespacedName)
+}
+
+func (r *IBMLicensingReconciler) reconcileResourceNamespacedExistenceWithCustomController(
+	instance *operatorv1alpha1.IBMLicensing, controller, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+
+	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
+	return r.reconcileResourceExistence(instance, controller, expectedRes, foundRes, namespacedName)
 }
 
 func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	instance *operatorv1alpha1.IBMLicensing,
+	controller metav1.Object,
 	expectedRes res.ResourceObject,
 	foundRes runtime.Object,
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
@@ -428,7 +453,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	reqLogger := r.Log.WithValues(resType.String(), "Entry", "instance.GetName()", instance.GetName())
 
 	// expectedRes already set before and passed via parameter
-	err := controllerutil.SetControllerReference(instance, expectedRes, r.Scheme)
+	err := controllerutil.SetControllerReference(controller, expectedRes, r.Scheme)
 	if err != nil {
 		reqLogger.Error(err, "Failed to define expected resource")
 		return reconcile.Result{}, err
@@ -458,6 +483,34 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	}
 	reqLogger.Info(resType.String() + " is correct!")
 	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicensingReconciler) reconcileNamespacedResourceWhichShouldNotExist(
+	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+
+	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
+	return r.reconcileResourceWhichShouldNotExist(instance, expectedRes, foundRes, namespacedName)
+}
+
+func (r *IBMLicensingReconciler) reconcileResourceWhichShouldNotExist(
+	instance *operatorv1alpha1.IBMLicensing,
+	expectedRes res.ResourceObject,
+	foundRes runtime.Object,
+	namespacedName types.NamespacedName) (reconcile.Result, error) {
+
+	resType := reflect.TypeOf(expectedRes)
+	reqLogger := r.Log.WithValues(resType.String(), "Entry", "instance.GetName()", instance.GetName())
+
+	err := r.Client.Get(context.TODO(), namespacedName, foundRes)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return reconcile.Result{}, nil
+		}
+		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
+			"Namespace", expectedRes.GetNamespace())
+		return reconcile.Result{}, err
+	}
+	return res.DeleteResource(&reqLogger, r.Client, expectedRes)
 }
 
 func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBMLicensing) {
