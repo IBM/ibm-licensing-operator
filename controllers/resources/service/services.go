@@ -38,19 +38,23 @@ var (
 	usageTargetPortName = intstr.FromString("usage-port")
 )
 
-func GetServices(instance *operatorv1alpha1.IBMLicensing) []*corev1.Service {
-	var services []*corev1.Service
-	services = append(services, GetLicensingService(instance))
+func GetServices(instance *operatorv1alpha1.IBMLicensing) (expected []*corev1.Service, notExpected []*corev1.Service) {
+	expected = append(expected, GetLicensingService(instance))
 
-	if s := GetPrometheusService(instance); s != nil {
-		services = append(services, s)
+	prometheusService := GetPrometheusService(instance)
+	if instance.Spec.IsRHMPEnabled() {
+		expected = append(expected, prometheusService)
+	} else {
+		notExpected = append(notExpected, prometheusService)
 	}
 
-	if s := GetUsageService(instance); s != nil {
-		services = append(services, s)
+	usageService := GetUsageService(instance)
+	if instance.Spec.UsageEnabled {
+		expected = append(expected, usageService)
+		return
 	}
-
-	return services
+	notExpected = append(notExpected, usageService)
+	return
 }
 
 func GetLicensingServiceName(instance *operatorv1alpha1.IBMLicensing) string {
@@ -90,9 +94,6 @@ func GetPrometheusServiceName() string {
 }
 
 func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
-	if !instance.Spec.IsRHMPEnabled() {
-		return nil
-	}
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        GetPrometheusServiceName(),
@@ -116,9 +117,6 @@ func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servi
 }
 
 func GetUsageService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
-	if !instance.Spec.UsageEnabled {
-		return nil
-	}
 	metaLabels := LabelsForMeta(instance)
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
