@@ -62,7 +62,6 @@ func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *networkingv1.Net
 					From: []networkingv1.NetworkPolicyPeer{
 						{
 							NamespaceSelector: &metav1.LabelSelector{},
-							PodSelector:       &metav1.LabelSelector{},
 						},
 					},
 				},
