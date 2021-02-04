@@ -54,6 +54,16 @@ function code_coverage() {
   local filename
   local count=${2:-0}
   filename="$(echo "${1}" | tr '/' '-')"
+  export USE_EXISTING_CLUSTER=true; \
+  export WATCH_NAMESPACE=${NAMESPACE}; \
+  export NAMESPACE=${NAMESPACE}; \
+  export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+  export REGISTRY=${REGISTRY}; \
+  export CSV_VERSION=${CSV_VERSION}; \
+  export IBM_LICENSING_IMAGE=${IBM_LICENSING_IMAGE}; \
+  export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${IBM_LICENSE_SERVICE_REPORTER_IMAGE}; \
+  export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}; \
+  export IBM_POSTGRESQL_IMAGE=${IBM_POSTGRESQL_IMAGE}; \
   go test \
     -coverprofile="${COVERAGEDIR}/${filename}.cov" \
     -covermode=atomic "${1}" \
