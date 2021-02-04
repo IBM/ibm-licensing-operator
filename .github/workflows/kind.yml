@@ -132,6 +132,9 @@ jobs:
       run: |
         export PATH=`pwd`:$PATH
         export USE_EXISTING_CLUSTER=true
+        export SUFIX=$RANDOM
+        export NAMESPACE=ibm-common-services$SUFIX
+        export WATCH_NAMESPACE=ibm-common-services$SUFIX
         make coverage-kind > ./test_coverage.txt 2>&1
 
     - name: Archive logs
