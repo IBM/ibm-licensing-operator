@@ -64,6 +64,7 @@ function code_coverage() {
   export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${IBM_LICENSE_SERVICE_REPORTER_IMAGE}; \
   export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}; \
   export IBM_POSTGRESQL_IMAGE=${IBM_POSTGRESQL_IMAGE}; \
+  export IBM_LICENSING_USAGE_IMAGE=${IBM_LICENSING_USAGE_IMAGE}; \
   go test \
     -coverprofile="${COVERAGEDIR}/${filename}.cov" \
     -covermode=atomic "${1}" \
