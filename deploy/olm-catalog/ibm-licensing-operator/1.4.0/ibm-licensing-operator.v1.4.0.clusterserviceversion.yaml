@@ -468,6 +468,15 @@ spec:
                 - patch
                 - update
                 - watch
+            - apiGroups:
+              - "marketplace.redhat.com"
+              resources:
+                - meterdefinitions
+              verbs:
+                - create
+                - get
+                - list
+                - update
           serviceAccountName: ibm-licensing-operator
         - rules:
             - apiGroups:
