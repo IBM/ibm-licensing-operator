@@ -3,19 +3,16 @@ module github.com/ibm/ibm-licensing-operator
 go 1.15
 
 require (
-	github.com/go-logr/logr v0.1.0
-	github.com/openshift/api v0.0.0-20200205133042-34f0ec8dab87
-	github.com/operator-framework/operator-sdk v0.19.4
-	github.com/spf13/pflag v1.0.5
-	k8s.io/api v0.18.4
-	k8s.io/apimachinery v0.18.4
+	github.com/coreos/prometheus-operator v0.41.0
+	github.com/go-logr/logr v0.3.0
+	github.com/onsi/ginkgo v1.14.2
+	github.com/onsi/gomega v1.10.3
+	github.com/openshift/api v0.0.0-20200930075302-db52bc4ef99f
+	github.com/redhat-marketplace/redhat-marketplace-operator/v2 v2.0.0-20210125205956-4eda6b4abf4e
+	k8s.io/api v0.19.4
+	k8s.io/apimachinery v0.19.4
 	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6
-	sigs.k8s.io/controller-runtime v0.6.0
+	sigs.k8s.io/controller-runtime v0.6.4
 )
 
-// Pinned to kubernetes-1.16.2
-replace (
-	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // Required by OLM
-	k8s.io/client-go => k8s.io/client-go v0.18.4 // Required by prometheus-operator
-)
+replace k8s.io/client-go => k8s.io/client-go v0.19.4

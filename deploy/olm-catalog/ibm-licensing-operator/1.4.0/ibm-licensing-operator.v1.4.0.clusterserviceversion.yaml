@@ -19,8 +19,7 @@ metadata:
             "version": "1.4.0",
             "apiSecretToken": "ibm-licensing-token",
             "datasource": "datacollector",
-            "httpsEnable": true,
-            "instanceNamespace": "ibm-common-services"
+            "httpsEnable": true
           }
         },
         {
@@ -149,6 +148,16 @@ spec:
         name: ''
         version: v1alpha1          
       specDescriptors:
+        - description: Consider updating to enable chargeback feature
+          displayName: Chargeback Enabled
+          path: chargebackEnabled
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:text
+        - description: Chargeback data retention period in days. Default value is 62 days.
+          displayName: Chargeback Retention Period in days
+          path: chargebackRetentionPeriod
+          x-descriptors:
+            - urn:alm:descriptor:com.tectonic.ui:number
         - description: Should aplication have https enabled
           displayName: HTTPS Enable
           path: httpsEnable
@@ -285,6 +294,13 @@ spec:
               verbs:
                 - get
                 - list
+            - apiGroups:
+                - "metrics.k8s.io"
+              resources:
+                - pods
+              verbs:
+                - get
+                - list
           serviceAccountName: ibm-license-service
         - rules:
             - apiGroups:
@@ -356,6 +372,9 @@ spec:
               verbs:
                 - get
                 - create
+                - list
+                - watch
+                - delete
             - apiGroups:
                 - apps
               resourceNames:
@@ -440,6 +459,7 @@ spec:
                 - extensions
               resources:
                 - ingresses
+                - networkpolicies
               verbs:
                 - create
                 - delete
@@ -448,12 +468,30 @@ spec:
                 - patch
                 - update
                 - watch
+            - apiGroups:
+              - "marketplace.redhat.com"
+              resources:
+                - meterdefinitions
+              verbs:
+                - create
+                - get
+                - list
+                - update
           serviceAccountName: ibm-licensing-operator
         - rules:
             - apiGroups:
                 - ""
               resources:
                 - configmaps
+              verbs:
+                - create
+                - get
+                - list
+                - update
+            - apiGroups:
+                - "marketplace.redhat.com"
+              resources:
+                - meterdefinitions
               verbs:
                 - create
                 - get
@@ -485,7 +523,7 @@ spec:
                     requiredDuringSchedulingIgnoredDuringExecution:
                       nodeSelectorTerms:
                         - matchExpressions:
-                            - key: beta.kubernetes.io/arch
+                            - key: kubernetes.io/arch
                               operator: In
                               values:
                                 - amd64
@@ -495,14 +533,16 @@ spec:
                   - command:
                       - ibm-licensing-operator
                     env:
-                      - name: OPERAND_LICENSING_IMAGE
-                        value: quay.io/opencloudio/ibm-licensing@sha256:6fe05319aabe400ad3218727569144170b2384abba0c3d5dfc634fe590269bb9
-                      - name: OPERAND_REPORTER_UI_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter-ui@sha256:5f9a44acd712e3a5e8db639615f154154c2a5869dc13e6acfc1ccdc3f63f7cba
-                      - name: OPERAND_REPORTER_DATABASE_IMAGE
-                        value: quay.io/opencloudio/ibm-postgresql@sha256:9a5c50288d81bee6cd803953f6221f9331540c15eac527bac32f2dd10b57b731
-                      - name: OPERAND_REPORTER_RECEIVER_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter@sha256:2320249311402ebfbcf3ec99cfb3371598b9d4b22b8baa2f1952d0c4cb8d8903
+                      - name: IBM_LICENSING_IMAGE
+                        value: quay.io/opencloudio/ibm-licensing:1.4.0
+                      - name: IBM_LICENSING_USAGE_IMAGE
+                        value: quay.io/opencloudio/ibm-licensing-usage:1.4.0
+                      - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
+                        value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.4.0
+                      - name: IBM_POSTGRESQL_IMAGE
+                        value: quay.io/opencloudio/ibm-postgresql:12.0.4
+                      - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
+                        value: quay.io/opencloudio/ibm-license-service-reporter:1.4.0
                       - name: WATCH_NAMESPACE
                         valueFrom:
                           fieldRef:
@@ -561,5 +601,4 @@ spec:
   maturity: alpha
   provider:
     name: IBM
-  replaces: ibm-licensing-operator.v1.3.1
   version: 1.4.0

@@ -52,6 +52,9 @@ rules:
     verbs:
       - get
       - create
+      - list
+      - watch
+      - delete
   - apiGroups:
       - apps
     resourceNames:
@@ -136,6 +139,7 @@ rules:
       - extensions
     resources:
       - ingresses
+      - networkpolicies
     verbs:
       - create
       - delete
@@ -144,6 +148,15 @@ rules:
       - patch
       - update
       - watch
+  - apiGroups:
+    - "marketplace.redhat.com"
+    resources:
+      - meterdefinitions
+    verbs:
+      - create
+      - get
+      - list
+      - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -164,6 +177,13 @@ rules:
     verbs:
       - get
       - list
+  - apiGroups:
+      - "metrics.k8s.io"
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -180,6 +200,15 @@ rules:
       - ""
     resources:
       - configmaps
+    verbs:
+      - create
+      - get
+      - list
+      - update
+  - apiGroups:
+    - "marketplace.redhat.com"
+    resources:
+      - meterdefinitions
     verbs:
       - create
       - get

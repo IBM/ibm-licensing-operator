@@ -29,28 +29,26 @@ linters:
   enable:
     - deadcode
     - errcheck
-    - goconst
-    - gocritic
     - gocyclo
     - gofmt
     - goimports
     - golint
-    - gosec
+    # - gosec
     - gosimple
     - govet
-    - ineffassign
+    # - ineffassign
     - interfacer
     - lll
-    - misspell
+    # - misspell
     - staticcheck
     - structcheck
-    - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
     - varcheck
   # don't enable:
+  # - gocritic
   # - bodyclose
   # - depguard
   # - dogsled
@@ -65,6 +63,7 @@ linters:
   # - prealloc
   # - scopelint
   # - whitespace
+  # - stylecheck
 
 linters-settings:
   errcheck:
@@ -97,11 +96,11 @@ linters-settings:
     # Setting locale to US will correct the British spelling of 'colour' to 'color'.
     locale: US
     ignore-words:
-    - cancelled
+      - cancelled
   lll:
     # max line length, lines longer will be reported. Default is 120.
     # '\t' is counted as 1 character by default, and can be changed with the tab-width option
-    line-length: 160
+    line-length: 240
     # tab width in spaces. Default to 1.
     tab-width: 1
   unused:

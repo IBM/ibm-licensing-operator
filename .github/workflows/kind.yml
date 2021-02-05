@@ -105,11 +105,8 @@ jobs:
       env:
         JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
       run: |
-        wget https://github.com/operator-framework/operator-sdk/releases/download/v0.17.0/operator-sdk-v0.17.0-x86_64-linux-gnu
         wget https://github.com/kubernetes-sigs/kind/releases/download/v0.8.0/kind-linux-amd64
         mv ./kind-linux-amd64 ./kind
-        mv ./operator-sdk-v0.17.0-x86_64-linux-gnu ./operator-sdk
-        chmod +x ./operator-sdk
         chmod +x ./kind
         cp ./common/scripts/tests/kind_config.yaml ./
         echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
@@ -117,12 +114,29 @@ jobs:
         kubectl config set-context kind-tests        
         kubectl get nodes
 
+    - name: Test Unit Operator - License Service
+      run: |
+        export PATH=`pwd`:$PATH
+        export USE_EXISTING_CLUSTER=true
+        make unit-test > ./unittest_logs.txt 2>&1
+
     - name: Test Operator - License Service
       run: |
         export PATH=`pwd`:$PATH
         export SUFIX=$RANDOM
         bats ./common/scripts/tests/tests.bats > ./test_logs.txt 2>&1
-       
+
+    - name: CodeCoverage
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      run: |
+        export PATH=`pwd`:$PATH
+        export USE_EXISTING_CLUSTER=true
+        export SUFIX=$RANDOM
+        export NAMESPACE=ibm-common-services$SUFIX
+        export WATCH_NAMESPACE=ibm-common-services$SUFIX
+        make coverage-kind > ./test_coverage.txt 2>&1
+
     - name: Archive logs
       uses: actions/upload-artifact@v2
       if: always()

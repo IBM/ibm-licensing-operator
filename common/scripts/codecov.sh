@@ -30,7 +30,6 @@ ROOTDIR="$(cd "$(dirname "$0")"/../.. ; pwd -P)"
 REPORT_PATH=${REPORT_PATH:-"${GOPATH}/out/codecov"}
 #CODECOV_SKIP=${GOPATH}/out/codecov/codecov.skip
 MAXPROCS="${MAXPROCS:-}"
-BUILD_LOCALLY=${1:?0}
 shift
 
 mkdir -p "${GOPATH}"/out/codecov
@@ -55,6 +54,15 @@ function code_coverage() {
   local filename
   local count=${2:-0}
   filename="$(echo "${1}" | tr '/' '-')"
+  export USE_EXISTING_CLUSTER=true; \
+  export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+  export NAMESPACE=${NAMESPACE}; \
+  export WATCH_NAMESPACE=${NAMESPACE}; \
+  export IBM_LICENSING_IMAGE=${IBM_LICENSING_IMAGE}; \
+  export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${IBM_LICENSE_SERVICE_REPORTER_IMAGE}; \
+  export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}; \
+  export IBM_POSTGRESQL_IMAGE=${IBM_POSTGRESQL_IMAGE}; \
+  export IBM_LICENSING_USAGE_IMAGE=${IBM_LICENSING_USAGE_IMAGE}; \
   go test \
     -coverprofile="${COVERAGEDIR}/${filename}.cov" \
     -covermode=atomic "${1}" \
@@ -150,7 +158,4 @@ fi
 # end generating report
 ######################################################
 
-# Upload to codecov.io in post submit only for visualization
-if [ "${BUILD_LOCALLY}" == 0 ]; then
-  bash <(curl -s https://codecov.io/bash) -t "${CODECOV_TOKEN}" -f "${REPORT_PATH}/coverage.cov"
-fi
+bash <(curl -s https://codecov.io/bash) -t "${CODECOV_TOKEN}" -f "${REPORT_PATH}/coverage.cov"

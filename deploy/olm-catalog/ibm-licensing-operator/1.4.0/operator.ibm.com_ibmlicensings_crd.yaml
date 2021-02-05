@@ -43,6 +43,13 @@ spec:
               description: Secret name used to store application token, either one
                 that exists, or one that will be created
               type: string
+            chargebackEnabled:
+              description: Consider updating to enable chargeback feature
+              type: boolean
+            chargebackRetentionPeriod:
+              description: Chargeback data retention period in days. Default value
+                is 62 days.
+              type: integer
             datasource:
               description: 'Where should data be collected, options: metering, datacollector'
               enum:
@@ -62,7 +69,7 @@ spec:
               type: boolean
             imageName:
               description: IBM Licensing Service docker Image Name, will override
-                default value and disable OPERAND_LICENSING_IMAGE env value in operator
+                default value and disable IBM_LICENSING_IMAGE env value in operator
                 deployment
               type: string
             imagePullPolicy:
@@ -81,12 +88,12 @@ spec:
               type: array
             imageRegistry:
               description: IBM Licensing Service docker Image Registry, will override
-                default value and disable OPERAND_LICENSING_IMAGE env value in operator
+                default value and disable IBM_LICENSING_IMAGE env value in operator
                 deployment
               type: string
             imageTagPostfix:
               description: IBM Licensing Service docker Image Tag or Digest, will
-                override default value and disable OPERAND_LICENSING_IMAGE env value
+                override default value and disable IBM_LICENSING_IMAGE env value
                 in operator deployment
               type: string
             ingressEnabled:
@@ -170,6 +177,9 @@ spec:
                     value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                   type: object
               type: object
+            rhmpEnabled:
+              description: Is Red Had Marketplace enabled
+              type: boolean
             routeEnabled:
               description: Should Route be created to expose IBM Licensing Service
                 API? (only on OpenShift cluster)
@@ -248,19 +258,73 @@ spec:
                     and aggregate multi cluster licensing data.
                   type: string
               type: object
+            usageContainer:
+              description: Usage Container Settings
+              properties:
+                imageName:
+                  description: IBM Licensing Service docker Image Name, will override
+                    default value and disable IBM_LICENSING_IMAGE env value in operator
+                    deployment
+                  type: string
+                imagePullPolicy:
+                  description: PullPolicy describes a policy for if/when to pull a
+                    container image
+                  enum:
+                    - Always
+                    - IfNotPresent
+                    - Never
+                  type: string
+                imageRegistry:
+                  description: IBM Licensing Service docker Image Registry, will override
+                    default value and disable IBM_LICENSING_IMAGE env value in operator
+                    deployment
+                  type: string
+                imageTagPostfix:
+                  description: IBM Licensing Service docker Image Tag or Digest, will
+                    override default value and disable IBM_LICENSING_IMAGE env value
+                    in operator deployment
+                  type: string
+                resources:
+                  description: ResourceRequirements describes the compute resource
+                    requirements.
+                  properties:
+                    limits:
+                      additionalProperties:
+                        anyOf:
+                        - type: integer
+                        - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      description: 'Limits describes the maximum amount of compute
+                                    resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                      type: object
+                    requests:
+                      additionalProperties:
+                        anyOf:
+                        - type: integer
+                        - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      description: 'Requests describes the minimum amount of compute
+                                    resources required. If Requests is omitted for a container,
+                                    it defaults to Limits if that is explicitly specified, otherwise
+                                    to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                      type: object
+                  type: object
+              type: object
+            usageEnabled:
+              description: Should collect usage based metrics?
+              type: boolean
             version:
               description: Version
               type: string
           required:
           - datasource
           - httpsEnable
-          - instanceNamespace
           type: object
         status:
           description: IBMLicensingStatus defines the observed state of IBMLicensing
           properties:
             licensingPods:
-              description: LicensingPods are the names of the licensing pods
+              description: The status of IBM License Service Pods.
               items:
                 description: PodStatus represents information about the status of
                   a pod. Status may trail the actual state of a system, especially
