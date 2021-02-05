@@ -169,7 +169,7 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 #    eg: lint: lint-go lint-yaml
 lint: lint-all vet
 
-coverage-kind: ## Run coverage if possible
+coverage-kind: prepare-unit-test ## Run coverage if possible
 	export USE_EXISTING_CLUSTER=true; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
