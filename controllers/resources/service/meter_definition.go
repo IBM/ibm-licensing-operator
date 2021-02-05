@@ -54,7 +54,7 @@ func GetMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.MeterDefi
 					Aggregation:        "max",
 					Period:             &metav1.Duration{Duration: 24 * time.Hour},
 					WorkloadType:       rhmp.WorkloadTypeService,
-					Metric:             "{{ .Label.metricId}}-{{ .Label.productId}}",
+					Metric:             "{{ .Label.metricId}}",
 					Query:              "product_license_usage{}",
 					GroupBy:            []string{"metricId", "productId"},
 					ValueLabelOverride: "{{ .Label.value}}",
