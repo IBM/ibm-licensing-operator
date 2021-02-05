@@ -127,6 +127,7 @@ jobs:
         bats ./common/scripts/tests/tests.bats > ./test_logs.txt 2>&1
 
     - name: CodeCoverage
+      if: github.ref == 'refs/heads/master'
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: |
