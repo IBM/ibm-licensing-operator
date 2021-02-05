@@ -48,7 +48,7 @@ teardown() {
 }
 
 @test "Build Operator" {
-  make build
+   make build
   [ "$?" -eq 0 ]
 }
 
@@ -76,13 +76,19 @@ teardown() {
 }
 
 @test "Run Operator in backgroud" {
-  operator-sdk run --watch-namespace ibm-common-services$SUFIX --local > operator-sdk-lsr_logs.txt 2>&1 &
+  export IBM_LICENSING_IMAGE="quay.io/opencloudio/ibm-licensing:0"
+  export IBM_LICENSE_SERVICE_REPORTER_IMAGE="quay.io/opencloudio/ibm-license-service-reporter:0"
+  export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE="quay.io/opencloudio/ibm-license-service-reporter-ui:0"
+  export IBM_POSTGRESQL_IMAGE="quay.io/opencloudio/ibm-postgresql:0"
+  export WATCH_NAMESPACE=ibm-common-services$SUFIX
+  ./bin/ibm-licensing-operator > operator-sdk-ls_logs.txt 2>&1 &
 
   export OPERATOR_PID=$!
   [ "$OPERATOR_PID" -gt 0 ]
 
   echo $OPERATOR_PID > ./operator.pid
   [ "$?" -eq 0 ]
+
 }
 
 @test "List all POD in cluster" {
@@ -127,7 +133,7 @@ cat <<EOF | kubectl apply -f -
         app.kubernetes.io/managed-by: ibm-licensing-operator
         app.kubernetes.io/name: ibm-licensing
     spec:
-      version: 1.3.1
+      version: 1.4.0
       imagePullSecrets:
         - my-registry-token
       databaseContainer:
@@ -180,6 +186,7 @@ EOF
   echo "Waited $((retries_start*retries_wait-retries*retries_wait)) seconds" >&3
   kubectl get pods -n ibm-common-services$SUFIX  &>> k8s_reporter.txt || true
   kubectl describe pods -n ibm-common-services$SUFIX &>> k8s_reporter.txt || true
+  sleep 60
   [[ $number_of_line == "1" ]]
 }
 

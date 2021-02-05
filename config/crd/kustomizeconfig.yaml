@@ -1,0 +1,5 @@
+# This file is for teaching kustomize how to substitute name and namespace reference in CRD
+
+
+varReference:
+- path: metadata/annotations

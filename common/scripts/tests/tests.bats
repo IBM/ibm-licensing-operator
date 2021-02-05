@@ -48,7 +48,7 @@ teardown() {
 }
 
 @test "Build Operator" {
-  make build
+   make build
   [ "$?" -eq 0 ]
 }
 
@@ -76,13 +76,19 @@ teardown() {
 }
 
 @test "Run Operator in backgroud" {
-  operator-sdk run --watch-namespace ibm-common-services$SUFIX --local > operator-sdk-ls_logs.txt 2>&1 &
+  export IBM_LICENSING_IMAGE="quay.io/opencloudio/ibm-licensing:0"
+  export IBM_LICENSE_SERVICE_REPORTER_IMAGE="quay.io/opencloudio/ibm-license-service-reporter:0"
+  export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE="quay.io/opencloudio/ibm-license-service-reporter-ui:0"
+  export IBM_POSTGRESQL_IMAGE="quay.io/opencloudio/ibm-postgresql:0"
+  export WATCH_NAMESPACE=ibm-common-services$SUFIX
+  ./bin/ibm-licensing-operator > operator-sdk-ls_logs.txt 2>&1 &
 
   export OPERATOR_PID=$!
   [ "$OPERATOR_PID" -gt 0 ]
 
   echo $OPERATOR_PID > ./operator.pid
   [ "$?" -eq 0 ]
+
 }
 
 @test "List all POD in cluster" {
@@ -126,7 +132,7 @@ cat <<EOF | kubectl apply -f -
     datasource: datacollector
     httpsEnable: true
     imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
-    imageTagPostfix: 1.3.1
+    imageTagPostfix: 1.4.0
     imagePullSecrets:
       - my-registry-token
     instanceNamespace: ibm-common-services$SUFIX
