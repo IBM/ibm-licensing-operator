@@ -54,6 +54,7 @@ rules:
       - create
       - list
       - watch
+      - delete
   - apiGroups:
       - apps
     resourceNames:
@@ -164,6 +165,13 @@ rules:
       - pods
       - namespaces
       - nodes
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - "metrics.k8s.io"
+    resources:
+      - pods
     verbs:
       - get
       - list

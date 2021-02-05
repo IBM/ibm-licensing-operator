@@ -35,9 +35,15 @@ const localReporterURL = "https://ibm-license-service-reporter:8080"
 const defaultLicensingTokenSecretName = "ibm-licensing-token"         //#nosec
 const defaultReporterTokenSecretName = "ibm-licensing-reporter-token" //#nosec
 const OperandLicensingImageEnvVar = "IBM_LICENSING_IMAGE"
+const OperandUsageImageEnvVar = "IBM_LICENSING_USAGE_IMAGE"
 const OperandReporterDatabaseImageEnvVar = "IBM_POSTGRESQL_IMAGE"
 const OperandReporterUIImageEnvVar = "IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE"
 const OperandReporterReceiverImageEnvVar = "IBM_LICENSE_SERVICE_REPORTER_IMAGE"
+
+var cpu50m = resource.NewMilliQuantity(50, resource.DecimalSI)
+var cpu100m = resource.NewMilliQuantity(100, resource.DecimalSI)
+var memory64Mi = resource.NewQuantity(64*1024*1024, resource.BinarySI)
+var memory128Mi = resource.NewQuantity(128*1024*1024, resource.BinarySI)
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
@@ -107,7 +113,11 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
 
-func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool) error {
+func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool,
+	operatorNamespace string) error {
+	if spec.InstanceNamespace == "" {
+		spec.InstanceNamespace = operatorNamespace
+	}
 	spec.Container.setImagePullPolicyIfNotSet()
 	if spec.HTTPSCertsSource == "" {
 		if isOCP4CertManager {
@@ -139,6 +149,19 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteE
 	if err := spec.setContainer(OperandLicensingImageEnvVar); err != nil {
 		return err
 	}
+
+	if spec.UsageEnabled {
+		spec.UsageContainer.setImagePullPolicyIfNotSet()
+		spec.UsageContainer.initResourcesIfNil()
+		spec.UsageContainer.setResourceLimitMemoryIfNotSet(*memory128Mi)
+		spec.UsageContainer.setResourceRequestMemoryIfNotSet(*memory64Mi)
+		spec.UsageContainer.setResourceLimitCPUIfNotSet(*cpu100m)
+		spec.UsageContainer.setResourceRequestCPUIfNotSet(*cpu50m)
+		if err := spec.UsageContainer.setContainer(OperandUsageImageEnvVar); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -152,6 +175,10 @@ func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 
 func (spec *IBMLicensingSpec) IsRHMPEnabled() bool {
 	return spec.RHMPEnabled != nil && *spec.RHMPEnabled
+}
+
+func (spec *IBMLicensingSpec) IsChargebackEnabled() bool {
+	return spec.ChargebackEnabled != nil && *spec.ChargebackEnabled
 }
 
 func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logger, r client_reader.Reader) error {

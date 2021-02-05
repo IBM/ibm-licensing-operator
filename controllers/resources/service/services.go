@@ -32,17 +32,29 @@ var (
 	prometheusServicePort    = intstr.FromInt(8081)
 	prometheusTargetPort     = intstr.FromInt(8081)
 	prometheusTargetPortName = intstr.FromString("metrics")
+
+	usageServicePort    = intstr.FromInt(2112)
+	usageTargetPort     = intstr.FromInt(2112)
+	usageTargetPortName = intstr.FromString("usage-port")
 )
 
-func GetServices(instance *operatorv1alpha1.IBMLicensing) []*corev1.Service {
-	var services []*corev1.Service
-	services = append(services, GetLicensingService(instance))
+func GetServices(instance *operatorv1alpha1.IBMLicensing) (expected []*corev1.Service, notExpected []*corev1.Service) {
+	expected = append(expected, GetLicensingService(instance))
 
-	if s := GetPrometheusService(instance); s != nil {
-		services = append(services, s)
+	prometheusService := GetPrometheusService(instance)
+	if instance.Spec.IsRHMPEnabled() {
+		expected = append(expected, prometheusService)
+	} else {
+		notExpected = append(notExpected, prometheusService)
 	}
 
-	return services
+	usageService := GetUsageService(instance)
+	if instance.Spec.UsageEnabled {
+		expected = append(expected, usageService)
+		return
+	}
+	notExpected = append(notExpected, usageService)
+	return
 }
 
 func GetLicensingServiceName(instance *operatorv1alpha1.IBMLicensing) string {
@@ -73,14 +85,15 @@ func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servic
 	}
 }
 
+func GetUsageServiceName() string {
+	return UsageServiceName
+}
+
 func GetPrometheusServiceName() string {
 	return PrometheusServiceName
 }
 
 func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
-	if !instance.Spec.IsRHMPEnabled() {
-		return nil
-	}
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        GetPrometheusServiceName(),
@@ -95,6 +108,29 @@ func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servi
 					Name:       prometheusTargetPortName.String(),
 					Port:       prometheusServicePort.IntVal,
 					TargetPort: prometheusTargetPort,
+					Protocol:   corev1.ProtocolTCP,
+				},
+			},
+			Selector: LabelsForSelector(instance),
+		},
+	}
+}
+
+func GetUsageService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
+	metaLabels := LabelsForMeta(instance)
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      GetUsageServiceName(),
+			Namespace: instance.Spec.InstanceNamespace,
+			Labels:    metaLabels,
+		},
+		Spec: corev1.ServiceSpec{
+			Type: corev1.ServiceTypeClusterIP,
+			Ports: []corev1.ServicePort{
+				{
+					Name:       usageTargetPortName.String(),
+					Port:       usageServicePort.IntVal,
+					TargetPort: usageTargetPort,
 					Protocol:   corev1.ProtocolTCP,
 				},
 			},

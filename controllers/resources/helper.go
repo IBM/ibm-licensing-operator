@@ -33,6 +33,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -144,6 +145,9 @@ func UpdateServiceIfNeeded(reqLogger *logr.Logger, client c.Client, expectedServ
 }
 
 func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, found *monitoringv1.ServiceMonitor) (reconcile.Result, error) {
+	if expected != nil && found != nil && expected.Spec.Endpoints[0].Scheme != found.Spec.Endpoints[0].Scheme {
+		return DeleteResource(reqLogger, client, found)
+	}
 	for _, annotation := range annotationsForServicesToCheck {
 		if found.Annotations[annotation] != expected.Annotations[annotation] {
 			return UpdateResource(reqLogger, client, found, expected)
@@ -162,6 +166,16 @@ func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource Resou
 	// Resource deleted successfully - return and requeue to create new one
 	(*reqLogger).Info("Deleted "+resTypeString+" successfully", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
 	return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 30}, nil
+}
+
+func UpdateOwner(reqLogger *logr.Logger, client c.Client, owner ResourceObject) (reconcile.Result, error) {
+	resTypeString := reflect.TypeOf(owner).String()
+	err := client.Get(context.TODO(), types.NamespacedName{Name: owner.GetName(), Namespace: owner.GetNamespace()}, owner)
+	if err != nil {
+		(*reqLogger).Error(err, "Failed to update owner data "+resTypeString+"", "Namespace", owner.GetNamespace(), "Name", owner.GetName())
+		return reconcile.Result{}, err
+	}
+	return reconcile.Result{}, nil
 }
 
 func GetOCPSecretCheckScript() string {
