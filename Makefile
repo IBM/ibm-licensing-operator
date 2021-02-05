@@ -170,10 +170,10 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 lint: lint-all vet
 
 coverage-kind: prepare-unit-test ## Run coverage if possible
-    export NAMESPACE=${NAMESPACE}; \
-    export WATCH_NAMESPACE=${NAMESPACE}; \
-    export USE_EXISTING_CLUSTER=true; \
-    export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+	export USE_EXISTING_CLUSTER=true; \
+	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+	export NAMESPACE=${NAMESPACE}; \
+	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
 	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}; \
 	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}; \

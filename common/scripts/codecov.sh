@@ -54,10 +54,10 @@ function code_coverage() {
   local filename
   local count=${2:-0}
   filename="$(echo "${1}" | tr '/' '-')"
-  export NAMESPACE=${NAMESPACE}; \
-  export WATCH_NAMESPACE=${NAMESPACE}; \
   export USE_EXISTING_CLUSTER=true; \
   export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+  export NAMESPACE=${NAMESPACE}; \
+  export WATCH_NAMESPACE=${NAMESPACE}; \
   export IBM_LICENSING_IMAGE=${IBM_LICENSING_IMAGE}; \
   export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${IBM_LICENSE_SERVICE_REPORTER_IMAGE}; \
   export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}; \
