@@ -91,6 +91,7 @@ jobs:
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: |
+        export KUBECONFIG=`pwd`/kubeconfig
         export PATH=`pwd`:$PATH
         export USE_EXISTING_CLUSTER=true
         export SUFIX=`cat ./random.txt`
