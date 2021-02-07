@@ -126,17 +126,6 @@ jobs:
         export SUFIX=$RANDOM
         bats ./common/scripts/tests/tests.bats > ./test_logs.txt 2>&1
 
-    - name: CodeCoverage
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      run: |
-        export PATH=`pwd`:$PATH
-        export USE_EXISTING_CLUSTER=true
-        export SUFIX=$RANDOM
-        export NAMESPACE=ibm-common-services$SUFIX
-        export WATCH_NAMESPACE=ibm-common-services$SUFIX
-        make coverage-kind > ./test_coverage.txt 2>&1
-
     - name: Archive logs
       uses: actions/upload-artifact@v2
       if: always()
