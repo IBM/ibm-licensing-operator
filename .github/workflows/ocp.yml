@@ -87,6 +87,17 @@ jobs:
         export NAMESPACE=ibm-common-services$SUFIX
         make unit-test > ./unittest_logs.txt 2>&1
 
+    - name: CodeCoverage
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      run: |
+        export PATH=`pwd`:$PATH
+        export USE_EXISTING_CLUSTER=true
+        export SUFIX=`cat ./random.txt`
+        export NAMESPACE=ibm-common-services$SUFIX
+        export WATCH_NAMESPACE=ibm-common-services$SUFIX
+        make coverage-kind > ./test_coverage.txt 2>&1
+
     - name: Clear
       if: always()
       run: |
