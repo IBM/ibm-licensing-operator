@@ -78,16 +78,7 @@ jobs:
         export SUFIX=`cat ./random.txt`
         bats ./common/scripts/tests/tests_reporter.bats > ./test_reporter_logs.txt 2>&1
 
-    - name: Test Unit Operator - License Service
-      run: |
-        export KUBECONFIG=`pwd`/kubeconfig
-        export PATH=`pwd`:$PATH
-        export USE_EXISTING_CLUSTER=true
-        export SUFIX=`cat ./random.txt`
-        export NAMESPACE=ibm-common-services$SUFIX
-        make unit-test > ./unittest_logs.txt 2>&1
-
-    - name: CodeCoverage
+    - name: Test Unit Operator with CodeCoverage
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: |
