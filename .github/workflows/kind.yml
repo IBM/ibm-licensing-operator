@@ -114,17 +114,19 @@ jobs:
         kubectl config set-context kind-tests        
         kubectl get nodes
 
-    - name: Test Unit Operator - License Service
-      run: |
-        export PATH=`pwd`:$PATH
-        export USE_EXISTING_CLUSTER=true
-        make unit-test > ./unittest_logs.txt 2>&1
-
     - name: Test Operator - License Service
       run: |
         export PATH=`pwd`:$PATH
         export SUFIX=$RANDOM
-        bats ./common/scripts/tests/tests.bats > ./test_logs.txt 2>&1
+        export USE_EXISTING_CLUSTER=true
+        make unit-test > ./unittest_logs.txt 2>&1
+
+    - name: Check all pods
+      if: always()
+      run: |
+        export PATH=`pwd`:$PATH
+        kubectl config set-context kind-tests
+        kubectl describe pods --all-namespaces  > ./pods.txt 2>&1
 
     - name: Archive logs
       uses: actions/upload-artifact@v2
