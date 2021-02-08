@@ -86,14 +86,14 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 
 			Eventually(func() int {
 				k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, newInstance)
-				return len(newInstance.Status.LicensingPods)
+				return len(newInstance.Status.LicensingReporterPods)
 			}, timeout, interval).Should(BeNumerically(">", 0))
 
-			//			By("Checking status of the IBMLicensing")
-			//			Eventually(func() v1.PodPhase {
-			//				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name}, newInstance)).Should(Succeed())
-			//				return newInstance.Status.LicensingPods[0].Phase
-			//			}, timeout, interval).Should(Equal(v1.PodRunning))
+			By("Checking status of the IBMLicensing")
+			Eventually(func() v1.PodPhase {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name}, newInstance)).Should(Succeed())
+				return newInstance.Status.LicensingReporterPods[0].Phase
+			}, timeout, interval).Should(Equal(v1.PodRunning))
 
 		})
 	})
