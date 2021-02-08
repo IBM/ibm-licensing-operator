@@ -93,7 +93,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=rbac.authorization.k8s.io,resources=clusterroles;clusterrolebindings;roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods;nodes;namespaces,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=route.openshift.io,resources=routes,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=marketplace.redhat.com,resources=meterdefinitions,verbs=get;list;create;update
+// +kubebuilder:rbac:namespace=ibm-common-services,groups=marketplace.redhat.com,resources=meterdefinitions,verbs=get;list;create;update;watch
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=networking.k8s.io;extensions,resources=ingresses;networkpolicies,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=apps,resources=deployments;daemonsets;replicasets;statefulsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods;services;services/finalizers;endpoints;persistentvolumeclaims;events;configmaps;secrets;namespaces;serviceaccounts,verbs=get;list;watch;create;update;patch;delete

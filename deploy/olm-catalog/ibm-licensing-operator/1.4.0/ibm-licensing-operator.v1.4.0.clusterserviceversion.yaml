@@ -469,7 +469,7 @@ spec:
                 - update
                 - watch
             - apiGroups:
-              - "marketplace.redhat.com"
+                - "marketplace.redhat.com"
               resources:
                 - meterdefinitions
               verbs:
@@ -477,6 +477,7 @@ spec:
                 - get
                 - list
                 - update
+                - watch
           serviceAccountName: ibm-licensing-operator
         - rules:
             - apiGroups:
