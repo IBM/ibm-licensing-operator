@@ -59,7 +59,7 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 	Context("Initializing IBMLicenseServiceReporter Status", func() {
 		It("Should create IBMLicenseServiceReporter", func() {
 			By("Creating the IBMLicenseServiceReporter")
-			newInstance := &operatorv1alpha1.IBMLicensing{}
+			newInstance := &operatorv1alpha1.IBMLicenseServiceReporter{}
 
 			instance = &operatorv1alpha1.IBMLicenseServiceReporter{
 				ObjectMeta: metav1.ObjectMeta{
