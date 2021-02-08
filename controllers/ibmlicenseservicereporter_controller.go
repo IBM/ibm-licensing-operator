@@ -332,10 +332,13 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileDeployment(instance *oper
 }
 
 func (r *IBMLicenseServiceReporterReconciler) reconcileReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
-	expectedRoute := reporter.GetReporterRoute(instance)
-	foundRoute := &routev1.Route{}
-	namespacedName := types.NamespacedName{Name: expectedRoute.GetName(), Namespace: expectedRoute.GetNamespace()}
-	return r.reconcileResourceExistence(instance, expectedRoute, foundRoute, namespacedName)
+	if res.IsRouteAPI {
+		expectedRoute := reporter.GetReporterRoute(instance)
+		foundRoute := &routev1.Route{}
+		namespacedName := types.NamespacedName{Name: expectedRoute.GetName(), Namespace: expectedRoute.GetNamespace()}
+		return r.reconcileResourceExistence(instance, expectedRoute, foundRoute, namespacedName)
+	}
+	return reconcile.Result{}, nil
 }
 
 func (r *IBMLicenseServiceReporterReconciler) reconcileUIIngress(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
