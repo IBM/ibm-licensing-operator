@@ -85,7 +85,7 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 			Expect(k8sClient.Create(ctx, instance)).Should(Succeed())
 
 			Eventually(func() int {
-				k8sClient.Get(ctx, types.NamespacedName{Name: name}, newInstance)
+				k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, newInstance)
 				return len(newInstance.Status.LicensingPods)
 			}, timeout, interval).Should(BeNumerically(">", 0))
 
