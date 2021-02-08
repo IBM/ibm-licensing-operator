@@ -17,8 +17,84 @@
 package controllers
 
 import (
+	"context"
 	"testing"
+
+	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"k8s.io/apimachinery/pkg/types"
 )
 
 func TestCheckReconcileLicenseReporter(t *testing.T) {
 }
+
+var _ = Describe("IBMLicensing controller", func() {
+	const (
+		name = "instanceLS-test"
+	)
+
+	var (
+		ctx               context.Context
+		instance          *operatorv1alpha1.IBMLicenseServiceReporter
+		instanceForRemove = &operatorv1alpha1.IBMLicenseServiceReporter{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			}}
+	)
+
+	BeforeEach(func() {
+		ctx = context.Background()
+		k8sClient.Delete(ctx, instanceForRemove)
+	})
+
+	AfterEach(func() {
+		k8sClient.Delete(ctx, instanceForRemove)
+	})
+
+	Context("Initializing IBMLicenseServiceReporter Status", func() {
+		It("Should create IBMLicenseServiceReporter", func() {
+			By("Creating the IBMLicenseServiceReporter")
+			newInstance := &operatorv1alpha1.IBMLicensing{}
+
+			instance = &operatorv1alpha1.IBMLicenseServiceReporter{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace,
+				},
+				Spec: operatorv1alpha1.IBMLicenseServiceReporterSpec{
+					ReceiverContainer: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
+					ReporterUIContainer: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
+					DatabaseContainer: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
+					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
+						ImagePullSecrets: []string{"artifactory-token"},
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, instance)).Should(Succeed())
+
+			Eventually(func() int {
+				k8sClient.Get(ctx, types.NamespacedName{Name: name}, newInstance)
+				return len(newInstance.Status.LicensingPods)
+			}, timeout, interval).Should(BeNumerically(">", 0))
+
+			//			By("Checking status of the IBMLicensing")
+			//			Eventually(func() v1.PodPhase {
+			//				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name}, newInstance)).Should(Succeed())
+			//				return newInstance.Status.LicensingPods[0].Phase
+			//			}, timeout, interval).Should(Equal(v1.PodRunning))
+
+		})
+	})
+})
