@@ -32,9 +32,9 @@ import (
 func TestCheckReconcileLicenseReporter(t *testing.T) {
 }
 
-var _ = Describe("IBMLicensing controller", func() {
+var _ = Describe("IBMLicenseServiceReporter controller", func() {
 	const (
-		name = "instanceLS-test"
+		name = "instance-rep-test"
 	)
 
 	var (
