@@ -95,7 +95,7 @@ jobs:
       if: always()
       run: |
         export PATH=`pwd`:$PATH
-        kubectl config set-context kind-tests
+        export KUBECONFIG=`pwd`/kubeconfig
         kubectl describe pods --all-namespaces  > ./pods.txt 2>&1
 
     - name: Clear
