@@ -89,11 +89,11 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 				return len(newInstance.Status.LicensingReporterPods)
 			}, timeout, interval).Should(BeNumerically(">", 0))
 
-			By("Checking status of the IBMLicensing")
+			By("Checking status of the IBMLicensing is Pending because of UI")
 			Eventually(func() v1.PodPhase {
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, newInstance)).Should(Succeed())
 				return newInstance.Status.LicensingReporterPods[0].Phase
-			}, timeout, interval).Should(Equal(v1.PodRunning))
+			}, timeout, interval).Should(Equal(v1.PodPending))
 
 		})
 	})
