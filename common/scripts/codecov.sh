@@ -51,9 +51,6 @@ if [[ -z ${MAXPROCS:-} ]]; then
 fi
 
 function code_coverage() {
-  echo "OCP"
-  echo ${OCP}
-  echo "END"
   local filename
   local count=${2:-0}
   filename="$(echo "${1}" | tr '/' '-')"
