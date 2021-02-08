@@ -153,6 +153,10 @@ var _ = Describe("IBMLicensing controller", func() {
 		})
 
 		It("Should create IBMLicensing instance with usage container", func() {
+			if !ocp {
+				Skip("for OCP ONLY")
+			}
+
 			By("Creating the IBMLicensing")
 			newInstance := &operatorv1alpha1.IBMLicensing{}
 
