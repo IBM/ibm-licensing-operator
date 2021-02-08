@@ -51,6 +51,9 @@ if [[ -z ${MAXPROCS:-} ]]; then
 fi
 
 function code_coverage() {
+  echo "OCP"
+  echo ${OCP}
+  echo "END"
   local filename
   local count=${2:-0}
   filename="$(echo "${1}" | tr '/' '-')"
@@ -58,6 +61,7 @@ function code_coverage() {
   export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
   export NAMESPACE=${NAMESPACE}; \
   export WATCH_NAMESPACE=${NAMESPACE}; \
+  export OCP=${OCP}; \
   export IBM_LICENSING_IMAGE=${IBM_LICENSING_IMAGE}; \
   export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${IBM_LICENSE_SERVICE_REPORTER_IMAGE}; \
   export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}; \

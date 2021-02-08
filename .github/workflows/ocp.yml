@@ -88,6 +88,7 @@ jobs:
         export SUFIX=`cat ./random.txt`
         export NAMESPACE=ibm-common-services$SUFIX
         export WATCH_NAMESPACE=ibm-common-services$SUFIX
+        export OCP=true
         make coverage-kind > ./test_coverage.txt 2>&1
 
     - name: Clear

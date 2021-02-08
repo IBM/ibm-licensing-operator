@@ -49,6 +49,7 @@ var (
 	k8sClient client.Client
 	testEnv   *envtest.Environment
 	namespace string
+	ocp       bool
 	timeout   = time.Second * 300
 	interval  = time.Second * 5
 )
@@ -127,6 +128,13 @@ var _ = BeforeSuite(func(done Done) {
 
 	namespace, _ = os.LookupEnv("NAMESPACE")
 	Expect(namespace).ToNot(BeNil())
+
+	ocpEnvVar, _ := os.LookupEnv("OCP")
+	if ocpEnvVar == "" {
+		ocp = false
+	} else {
+		ocp = true
+	}
 
 	go func() {
 		defer GinkgoRecover()
