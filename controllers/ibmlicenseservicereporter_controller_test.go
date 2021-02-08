@@ -57,11 +57,10 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 	})
 
 	Context("Initializing IBMLicenseServiceReporter Status", func() {
-		if !ocp {
-			Skip("for OCP ONLY")
-		}
-
 		It("Should create IBMLicenseServiceReporter", func() {
+			if !ocp {
+				Skip("for OCP ONLY")
+			}
 			By("Creating the IBMLicenseServiceReporter")
 			newInstance := &operatorv1alpha1.IBMLicenseServiceReporter{}
 
