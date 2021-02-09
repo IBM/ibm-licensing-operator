@@ -78,14 +78,25 @@ jobs:
         export SUFIX=`cat ./random.txt`
         bats ./common/scripts/tests/tests_reporter.bats > ./test_reporter_logs.txt 2>&1
 
-    - name: Test Unit Operator - License Service
+    - name: Test Unit Operator with CodeCoverage
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: |
         export KUBECONFIG=`pwd`/kubeconfig
         export PATH=`pwd`:$PATH
         export USE_EXISTING_CLUSTER=true
         export SUFIX=`cat ./random.txt`
         export NAMESPACE=ibm-common-services$SUFIX
-        make unit-test > ./unittest_logs.txt 2>&1
+        export WATCH_NAMESPACE=ibm-common-services$SUFIX
+        export OCP=true
+        make coverage-kind > ./test_coverage.txt 2>&1
+
+    - name: Check all pods
+      if: always()
+      run: |
+        export PATH=`pwd`:$PATH
+        export KUBECONFIG=`pwd`/kubeconfig
+        kubectl describe pods --all-namespaces  > ./pods.txt 2>&1
 
     - name: Clear
       if: always()

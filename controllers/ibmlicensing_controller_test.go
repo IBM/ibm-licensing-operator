@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
@@ -66,7 +65,7 @@ var _ = Describe("IBMLicensing controller", func() {
 					InstanceNamespace: namespace,
 				},
 			}
-			fmt.Println("SIEMA")
+
 			Expect(k8sClient.Create(ctx, instance)).Should(MatchError(ContainSubstring("spec.datasource")))
 
 			By("Creating broken IBMLicensing with wrong datasource")
@@ -93,6 +92,9 @@ var _ = Describe("IBMLicensing controller", func() {
 				Spec: operatorv1alpha1.IBMLicensingSpec{
 					InstanceNamespace: namespace,
 					Datasource:        "datacollector",
+					Container: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
 					},
@@ -126,6 +128,9 @@ var _ = Describe("IBMLicensing controller", func() {
 					InstanceNamespace: namespace,
 					Datasource:        "datacollector",
 					HTTPSEnable:       true,
+					Container: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
 					},
@@ -148,6 +153,10 @@ var _ = Describe("IBMLicensing controller", func() {
 		})
 
 		It("Should create IBMLicensing instance with usage container", func() {
+			if !ocp {
+				Skip("for OCP ONLY")
+			}
+
 			By("Creating the IBMLicensing")
 			newInstance := &operatorv1alpha1.IBMLicensing{}
 
@@ -160,6 +169,12 @@ var _ = Describe("IBMLicensing controller", func() {
 					Datasource:        "datacollector",
 					HTTPSEnable:       true,
 					UsageEnabled:      true,
+					Container: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
+					UsageContainer: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
 					},
