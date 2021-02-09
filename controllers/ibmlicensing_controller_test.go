@@ -195,5 +195,40 @@ var _ = Describe("IBMLicensing controller", func() {
 			}, timeout, interval).Should(Equal(v1.PodRunning))
 
 		})
+
+		It("Should create IBMLicensing with RHMP enabled", func() {
+			By("Creating the IBMLicensing")
+			newInstance := &operatorv1alpha1.IBMLicensing{}
+			rhmpEnabled := true
+
+			instance = &operatorv1alpha1.IBMLicensing{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: name,
+				},
+				Spec: operatorv1alpha1.IBMLicensingSpec{
+					InstanceNamespace: namespace,
+					Datasource:        "datacollector",
+					HTTPSEnable:       false,
+					RHMPEnabled:       &rhmpEnabled,
+					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
+						ImagePullSecrets: []string{"artifactory-token"},
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, instance)).Should(Succeed())
+
+			Eventually(func() int {
+				k8sClient.Get(ctx, types.NamespacedName{Name: name}, newInstance)
+				return len(newInstance.Status.LicensingPods)
+			}, timeout, interval).Should(BeNumerically(">", 0))
+
+			By("Checking status of the IBMLicensing")
+			Eventually(func() v1.PodPhase {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name}, newInstance)).Should(Succeed())
+				return newInstance.Status.LicensingPods[0].Phase
+			}, timeout, interval).Should(Equal(v1.PodRunning))
+
+		})
 	})
 })

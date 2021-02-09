@@ -297,6 +297,10 @@ prepare-unit-test:
 	kubectl apply -f ./deploy/role_ns.yaml || echo ""
 	sed "s/ibm-common-services/${NAMESPACE}/g" < ./deploy/role_binding.yaml > ./deploy/role_binding_ns.yaml
 	kubectl apply -f ./deploy/role_binding_ns.yaml || echo ""
+	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/develop/v2/bundle/manifests/marketplace.redhat.com_meterdefinitions.yaml
+	kubectl apply -f marketplace.redhat.com_meterdefinitions.yaml
+	curl -O https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
 
 unit-test: prepare-unit-test
 	export USE_EXISTING_CLUSTER=true; \
