@@ -39,6 +39,7 @@ const LicensingServiceAppLabel = "ibm-licensing-service-instance"
 const MarketplaceMonitoringLabel = "marketplace.redhat.com/operator"
 const ServiceMonitorSelectorLabel = "marketplace.redhat.com/metering"
 const ReleaseLabel = "ibm-licensing-service-prometheus"
+const ReleaseUsageLabel = "ibm-licensing-service-usage"
 const MeterbaseLabel = "rhm-marketplaceconfig-meterbase"
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
