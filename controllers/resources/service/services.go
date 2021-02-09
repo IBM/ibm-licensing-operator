@@ -117,12 +117,11 @@ func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servi
 }
 
 func GetUsageService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
-	metaLabels := LabelsForMeta(instance)
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetUsageServiceName(),
 			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    metaLabels,
+			Labels:    getUsageServiceLabels(),
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
@@ -142,5 +141,11 @@ func GetUsageService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
 func getPrometheusLabels() map[string]string {
 	labels := make(map[string]string)
 	labels["release"] = ReleaseLabel
+	return labels
+}
+
+func getUsageServiceLabels() map[string]string {
+	labels := make(map[string]string)
+	labels["release"] = ReleaseUsageLabel
 	return labels
 }
