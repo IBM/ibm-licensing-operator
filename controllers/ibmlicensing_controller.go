@@ -418,13 +418,14 @@ func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1al
 	if !instance.Spec.IsRHMPEnabled() {
 		return reconcile.Result{}, nil
 	}
-	reqLogger := r.Log.WithValues("reconcileMeterDefinition", "Entry", "instance.GetName()", instance.GetName())
+	r.Log.WithValues("reconcileMeterDefinition", "Entry", "instance.GetName()", instance.GetName())
 	expected := service.GetMeterDefinition(instance)
 	found := &rhmp.MeterDefinition{}
-	result, err := r.reconcileResourceNamespacedExistence(instance, expected, found)
-	if err != nil || result.Requeue {
-		reqLogger.Info("Issue related wit new schama for MeterDefinition. Now we can skip this message.")
-		return result, nil
+	for _, es := range expected {
+		result, err := r.reconcileResourceNamespacedExistence(instance, es, found)
+		if err != nil || result.Requeue {
+			return result, err
+		}
 	}
 	return reconcile.Result{}, nil
 }
