@@ -20,10 +20,14 @@ import (
 	"context"
 	"testing"
 
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
+	"github.com/ibm/ibm-licensing-operator/controllers/resources/service"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 	v1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -229,6 +233,33 @@ var _ = Describe("IBMLicensing controller", func() {
 				return newInstance.Status.LicensingPods[0].Phase
 			}, timeout, interval).Should(Equal(v1.PodRunning))
 
+			By("Checking if prometheus service exists")
+			Eventually(func() bool {
+				prometheusService := &v1.Service{}
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetPrometheusServiceName(), Namespace: namespace}, prometheusService)).Should(Succeed())
+				return prometheusService != nil
+			}, timeout, interval).Should(BeTrue())
+
+			By("Checking if service monitor exists")
+			Eventually(func() bool {
+				serviceMonitor := &monitoringv1.ServiceMonitor{}
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetServiceMonitorName(), Namespace: namespace}, serviceMonitor)).Should(Succeed())
+				return serviceMonitor != nil
+			}, timeout, interval).Should(BeTrue())
+
+			By("Checking if network policy exists")
+			Eventually(func() bool {
+				networkPolicy := &networkingv1.NetworkPolicy{}
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetNetworkPolicyName(newInstance), Namespace: namespace}, networkPolicy)).Should(Succeed())
+				return networkPolicy != nil
+			}, timeout, interval).Should(BeTrue())
+
+			By("Checking if meter definition exists")
+			Eventually(func() bool {
+				meterDefinition := &rhmp.MeterDefinition{}
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetMeterDefinitionName(newInstance), Namespace: namespace}, meterDefinition)).Should(Succeed())
+				return meterDefinition != nil
+			}, timeout, interval).Should(BeTrue())
 		})
 	})
 })
