@@ -28,7 +28,7 @@ import (
 func GetMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.MeterDefinition {
 	return &rhmp.MeterDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      getMeterDefinitionName(instance),
+			Name:      GetMeterDefinitionName(instance),
 			Namespace: instance.Spec.InstanceNamespace,
 		},
 		Spec: rhmp.MeterDefinitionSpec{
@@ -65,6 +65,6 @@ func GetMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.MeterDefi
 	}
 }
 
-func getMeterDefinitionName(instance *operatorv1alpha1.IBMLicensing) string {
+func GetMeterDefinitionName(instance *operatorv1alpha1.IBMLicensing) string {
 	return GetResourceName(instance)
 }
