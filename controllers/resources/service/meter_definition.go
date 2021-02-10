@@ -111,7 +111,7 @@ func getProductMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.Me
 
 func GetMeterDefinitionName(instance *operatorv1alpha1.IBMLicensing, isCloudpak bool) string {
 	if isCloudpak {
-		return LicensingResourceBase + "-cloudpak-" + instance.GetName()
+		return LicensingResourceBase + "-product-" + instance.GetName()
 	}
 	return LicensingResourceBase + "-bundleproduct-" + instance.GetName()
 
