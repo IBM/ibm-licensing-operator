@@ -32,7 +32,7 @@ func GetMeterDefinition(instance *operatorv1alpha1.IBMLicensing) []*rhmp.MeterDe
 func getCloudPakMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.MeterDefinition {
 	return &rhmp.MeterDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      getMeterDefinitionName(instance, true),
+			Name:      GetMeterDefinitionName(instance, true),
 			Namespace: instance.Spec.InstanceNamespace,
 		},
 		Spec: rhmp.MeterDefinitionSpec{
@@ -109,7 +109,7 @@ func getProductMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.Me
 	}
 }
 
-func getMeterDefinitionName(instance *operatorv1alpha1.IBMLicensing, isCloudpak bool) string {
+func GetMeterDefinitionName(instance *operatorv1alpha1.IBMLicensing, isCloudpak bool) string {
 	if isCloudpak {
 		return LicensingResourceBase + "-cloudpak-" + instance.GetName()
 	}
