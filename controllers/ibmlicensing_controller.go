@@ -421,8 +421,9 @@ func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1al
 	r.Log.WithValues("reconcileMeterDefinition", "Entry", "instance.GetName()", instance.GetName())
 	expected := service.GetMeterDefinition(instance)
 	found := &rhmp.MeterDefinition{}
+	owner := service.GetPrometheusService(instance)
 	for _, es := range expected {
-		result, err := r.reconcileResourceNamespacedExistence(instance, es, found)
+		result, err := r.reconcileResourceNamespacedExistenceWithCustomController(instance, owner, es, found)
 		if err != nil || result.Requeue {
 			return result, err
 		}
