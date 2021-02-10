@@ -72,7 +72,7 @@ func getCloudPakMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.M
 func getProductMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.MeterDefinition {
 	return &rhmp.MeterDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      getMeterDefinitionName(instance, false),
+			Name:      GetMeterDefinitionName(instance, false),
 			Namespace: instance.Spec.InstanceNamespace,
 		},
 		Spec: rhmp.MeterDefinitionSpec{
