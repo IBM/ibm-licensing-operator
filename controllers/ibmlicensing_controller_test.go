@@ -260,7 +260,6 @@ var _ = Describe("IBMLicensing controller", func() {
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetMeterDefinitionName(newInstance), Namespace: namespace}, meterDefinition)).Should(Succeed())
 				return meterDefinition != nil
 			}, timeout, interval).Should(BeTrue())
-
 		})
 	})
 })
