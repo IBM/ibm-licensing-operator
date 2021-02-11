@@ -36,7 +36,7 @@ func getCloudPakMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.M
 			Namespace: instance.Spec.InstanceNamespace,
 		},
 		Spec: rhmp.MeterDefinitionSpec{
-			Group: "operator.ibm.com",
+			Group: "{{ .Label.productId}}.licensing.ibm.com",
 			Kind:  "IBMLicensing",
 			ResourceFilters: []rhmp.ResourceFilter{
 				{
@@ -76,7 +76,7 @@ func getProductMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.Me
 			Namespace: instance.Spec.InstanceNamespace,
 		},
 		Spec: rhmp.MeterDefinitionSpec{
-			Group: "operator.ibm.com",
+			Group: "{{ .Label.productId}}.licensing.ibm.com",
 			Kind:  "IBMLicensing",
 			ResourceFilters: []rhmp.ResourceFilter{
 				{
