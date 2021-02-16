@@ -49,6 +49,7 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.Se
 					Scheme:         getScheme(instance),
 					TargetPort:     &prometheusTargetPort,
 					TLSConfig:      getTLSConfig(instance),
+					Interval:       "3h",
 					RelabelConfigs: getRelabelConfigs(instance),
 				},
 			},
