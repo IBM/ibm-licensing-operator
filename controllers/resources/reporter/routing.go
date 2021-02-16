@@ -39,7 +39,7 @@ func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *rou
 				TargetPort: receiverTargetPortName,
 			},
 			TLS: &routev1.TLSConfig{
-				Termination: routev1.TLSTerminationPassthrough,
+				Termination: routev1.TLSTerminationReencrypt,
 			},
 		},
 	}

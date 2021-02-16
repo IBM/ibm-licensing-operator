@@ -26,7 +26,7 @@ import (
 func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing) *routev1.Route {
 	var tls *routev1.TLSConfig
 	defaultRouteTLS := &routev1.TLSConfig{
-		Termination:                   routev1.TLSTerminationPassthrough,
+		Termination:                   routev1.TLSTerminationReencrypt,
 		InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
 	}
 	if instance.Spec.RouteOptions != nil {
