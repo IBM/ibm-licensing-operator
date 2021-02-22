@@ -23,7 +23,6 @@ import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	routev1 "github.com/openshift/api/route/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -98,21 +97,6 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, newInstance)).Should(Succeed())
 				return newInstance.Status.LicensingReporterPods[0].Phase
 			}, timeout, interval).Should(Equal(v1.PodPending))
-
-			By("Checking if route exists")
-			Eventually(func() bool {
-				route := &routev1.Route{}
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name, Namespace: namespace}, route)).Should(Succeed())
-				return route != nil
-			}, timeout, interval).Should(BeTrue())
-
-			By("Checking if service exists")
-			Eventually(func() bool {
-				licensingService := &v1.Service{}
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name, Namespace: namespace}, licensingService)).Should(Succeed())
-				return licensingService != nil
-			}, timeout, interval).Should(BeTrue())
-
 		})
 	})
 })
