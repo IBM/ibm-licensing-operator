@@ -63,14 +63,6 @@ jobs:
         export MUTEX_OFF=false
         ./common/scripts/tests/clear_ocp.sh
 
-
-    - name: Test Operator - License Service
-      run: |
-        export KUBECONFIG=`pwd`/kubeconfig
-        export PATH=`pwd`:$PATH
-        export SUFIX=`cat ./random.txt`
-        bats ./common/scripts/tests/tests.bats > ./test_logs.txt 2>&1
-
     - name: Test Operator - License Reporter
       run: |
         export KUBECONFIG=`pwd`/kubeconfig

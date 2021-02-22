@@ -114,12 +114,6 @@ jobs:
         kubectl config set-context kind-tests        
         kubectl get nodes
 
-    - name: Test Operator - License Service
-      run: |
-        export PATH=`pwd`:$PATH
-        export SUFIX=$RANDOM
-        bats ./common/scripts/tests/tests.bats > ./test_logs.txt 2>&1
-
 
     - name: Test Unit Operator - License Service
       run: |
