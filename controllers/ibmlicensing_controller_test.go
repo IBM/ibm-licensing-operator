@@ -25,7 +25,6 @@ import (
 	"github.com/ibm/ibm-licensing-operator/controllers/resources/service"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	routev1 "github.com/openshift/api/route/v1"
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 	v1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -132,39 +131,6 @@ var _ = Describe("IBMLicensing controller", func() {
 			}
 
 			checkBasicRequirements(ctx, instance, newInstance)
-
-		})
-
-		It("Should create IBMLicensing instance with route", func() {
-			By("Creating the IBMLicensing")
-			newInstance := &operatorv1alpha1.IBMLicensing{}
-			routeEnabled := true
-
-			instance = &operatorv1alpha1.IBMLicensing{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: name,
-				},
-				Spec: operatorv1alpha1.IBMLicensingSpec{
-					InstanceNamespace: namespace,
-					RouteEnabled:      &routeEnabled,
-					Datasource:        "datacollector",
-					Container: operatorv1alpha1.Container{
-						ImagePullPolicy: v1.PullAlways,
-					},
-					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
-						ImagePullSecrets: []string{"artifactory-token"},
-					},
-				},
-			}
-
-			checkBasicRequirements(ctx, instance, newInstance)
-
-			By("Checking if route exists")
-			Eventually(func() bool {
-				route := &routev1.Route{}
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetResourceName(instance), Namespace: namespace}, route)).Should(Succeed())
-				return route != nil
-			}, timeout, interval).Should(BeTrue())
 
 		})
 
