@@ -133,7 +133,7 @@ cat <<EOF | kubectl apply -f -
         app.kubernetes.io/managed-by: ibm-licensing-operator
         app.kubernetes.io/name: ibm-licensing
     spec:
-      version: 1.4.0
+      version: 1.4.1
       imagePullSecrets:
         - my-registry-token
       databaseContainer:
