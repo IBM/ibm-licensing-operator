@@ -39,11 +39,6 @@ jobs:
         go-version: ^1.14
       id: go
 
-    - name: Setup BATS
-      uses: mig4/setup-bats@v1
-      with:
-        bats-version: 1.1.0
-
     - name: Authenticate with AWS
       run: |
 
@@ -62,21 +57,6 @@ jobs:
         export MUTEX_ON=true
         export MUTEX_OFF=false
         ./common/scripts/tests/clear_ocp.sh
-
-
-    - name: Test Operator - License Service
-      run: |
-        export KUBECONFIG=`pwd`/kubeconfig
-        export PATH=`pwd`:$PATH
-        export SUFIX=`cat ./random.txt`
-        bats ./common/scripts/tests/tests.bats > ./test_logs.txt 2>&1
-
-    - name: Test Operator - License Reporter
-      run: |
-        export KUBECONFIG=`pwd`/kubeconfig
-        export PATH=`pwd`:$PATH
-        export SUFIX=`cat ./random.txt`
-        bats ./common/scripts/tests/tests_reporter.bats > ./test_reporter_logs.txt 2>&1
 
     - name: Test Unit Operator with CodeCoverage
       env:
