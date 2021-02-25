@@ -97,7 +97,6 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, newInstance)).Should(Succeed())
 				return newInstance.Status.LicensingReporterPods[0].Phase
 			}, timeout, interval).Should(Equal(v1.PodPending))
-
 		})
 	})
 })
