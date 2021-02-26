@@ -31,7 +31,7 @@ jobs:
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.14
+        go-version: ^1.15
       id: go
 
     - name: Checkout
@@ -85,12 +85,15 @@ jobs:
   setup-build-publish-deploy:
     name: Operator tests on KinD
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        k8s: [v1.17.2, v1.18.2, v1.19.2, v1.20.2]
     steps:
 
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.14
+        go-version: ^1.15
       id: go
 
     - name: Checkout
@@ -100,12 +103,12 @@ jobs:
       env:
         JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
       run: |
-        wget https://github.com/kubernetes-sigs/kind/releases/download/v0.8.0/kind-linux-amd64
+        wget https://github.com/kubernetes-sigs/kind/releases/download/v0.10.0/kind-linux-amd64
         mv ./kind-linux-amd64 ./kind
         chmod +x ./kind
         cp ./common/scripts/tests/kind_config.yaml ./
         echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
-        ./kind create cluster --image kindest/node:v1.17.2 --config ./kind_config.yaml --name tests
+        ./kind create cluster --image kindest/node:${{ matrix.k8s }} --config ./kind_config.yaml --name tests
         kubectl config set-context kind-tests        
         kubectl get nodes
 
