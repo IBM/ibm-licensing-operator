@@ -30,7 +30,7 @@ env:
 jobs:
   setup-build-publish-deploy:
     name: Operator tests on OCP
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
 
     - name: Set up Go 1.x
