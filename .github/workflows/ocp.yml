@@ -30,13 +30,13 @@ env:
 jobs:
   setup-build-publish-deploy:
     name: Operator tests on OCP
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
 
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.14
+        go-version: ^1.15
       id: go
 
     - name: Authenticate with AWS

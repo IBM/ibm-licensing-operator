@@ -100,6 +100,9 @@ var _ = Describe("IBMLicensing controller", func() {
 					Container: operatorv1alpha1.Container{
 						ImagePullPolicy: v1.PullAlways,
 					},
+					UsageContainer: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
 					},
@@ -123,6 +126,9 @@ var _ = Describe("IBMLicensing controller", func() {
 					Datasource:        "datacollector",
 					HTTPSEnable:       true,
 					Container: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
+					UsageContainer: operatorv1alpha1.Container{
 						ImagePullPolicy: v1.PullAlways,
 					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
@@ -186,6 +192,12 @@ var _ = Describe("IBMLicensing controller", func() {
 					Datasource:        "datacollector",
 					HTTPSEnable:       false,
 					RouteEnabled:      &routeEnabled,
+					Container: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
+					UsageContainer: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
 					},
@@ -217,6 +229,12 @@ var _ = Describe("IBMLicensing controller", func() {
 					Datasource:        "datacollector",
 					HTTPSEnable:       false,
 					RHMPEnabled:       &rhmpEnabled,
+					Container: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
+					UsageContainer: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
 					},
