@@ -54,6 +54,11 @@ var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
 var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)
 var size1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
 
+// SwitcherItemSpec defines the desired state of SwitcherItem
+type License struct {
+	Accept bool `json:"accept"`
+}
+
 type Container struct {
 	// IBM Licensing Service docker Image Registry, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
 	ImageRegistry string `json:"imageRegistry,omitempty"`

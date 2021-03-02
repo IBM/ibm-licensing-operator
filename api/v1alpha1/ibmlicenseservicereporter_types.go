@@ -36,6 +36,8 @@ type IBMLicenseServiceReporterSpec struct {
 	StorageClass string `json:"storageClass,omitempty"`
 	// Persistent Volume Claim Capacity
 	Capacity resource.Quantity `json:"capacity,omitempty" protobuf:"bytes,2,opt,name=capacity"`
+	// Opt-in license acceptance is required to create resources
+	License License `json:"license"`
 }
 
 // IBMLicenseServiceReporterStatus defines the observed state of IBMLicenseServiceReporter

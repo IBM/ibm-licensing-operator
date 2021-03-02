@@ -132,6 +132,10 @@ type IBMLicensingSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Sender",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	Sender *IBMLicensingSenderSpec `json:"sender,omitempty"`
+
+	// Opt-in license acceptance is required to create resources
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="License",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	License License `json:"license"`
 }
 
 type IBMLicensingSenderSpec struct {
