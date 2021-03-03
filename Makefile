@@ -304,8 +304,8 @@ prepare-unit-test:
 	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
 
 unit-test: prepare-unit-test
-	export CSV_VERSION=development
-	export REGISTRY=${SCRATCH_REGISTRY}
+	export CSV_VERSION=development \
+	export REGISTRY=${SCRATCH_REGISTRY} \
 	export USE_EXISTING_CLUSTER=true; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
