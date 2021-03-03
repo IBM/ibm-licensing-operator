@@ -27,14 +27,8 @@ BUILD_LOCALLY ?= 1
 # Use your own docker registry and image name for dev/test by overriding the IMG, REGISTRY and CSV_VERSION environment variable.
 IMG ?= ibm-licensing-operator
 REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
+
 SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom"
-
-BRANCH=$(shell git branch)
-
-ifeq (${BRANCH}, development)
-	REGISTRY := ${SCRATCH_REGISTRY}
-	CSV_VERSION : = development
-endif
 
 # Default bundle image tag
 BUNDLE_IMG ?= ibm-licensing-operator-bundle:$(CSV_VERSION)
@@ -310,24 +304,12 @@ prepare-unit-test:
 	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
 
 unit-test: prepare-unit-test
-	echo "111111111111"
-	echo ${VERSION}
-	BRANCH=$(shell git branch)
-
-	ifeq (${BRANCH}, development)
-		REGISTRY := ${SCRATCH_REGISTRY}
-		CSV_VERSION : = development
-	endif
-
-	echo $(BRANCH)
-	echo $(REGISTRY)
-	echo $(CSV_VERSION)
-
+	CSV_VERSION=development
+	REGISTRY=SCRATCH_REGISTRY
 	export USE_EXISTING_CLUSTER=true; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
 	export OCP=${OCP}; \
-	export AAAA=${BRANCH}
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
 	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}; \
