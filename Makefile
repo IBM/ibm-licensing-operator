@@ -309,6 +309,18 @@ prepare-unit-test:
 	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
 
 unit-test: prepare-unit-test
+	echo "111111111111"
+	BRANCH := $(shell git branch)
+
+	ifeq ($(BRANCH), development)
+		REGISTRY := $(SCRATCH_REGISTRY)
+		CSV_VERSION : = development
+	endif
+
+	echo $(BRANCH)
+	echo $(REGISTRY)
+	echo $(CSV_VERSION)
+
 	export USE_EXISTING_CLUSTER=true; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
