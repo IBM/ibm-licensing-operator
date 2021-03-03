@@ -29,7 +29,7 @@ IMG ?= ibm-licensing-operator
 REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
 SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom"
 
-BRANCH := $(shell git branch)
+BRANCH=$(shell git branch)
 
 ifeq (${BRANCH}, development)
 	REGISTRY := ${SCRATCH_REGISTRY}
@@ -312,7 +312,7 @@ prepare-unit-test:
 unit-test: prepare-unit-test
 	echo "111111111111"
 	echo ${VERSION}
-	BRANCH := $(shell git branch)
+	BRANCH=$(shell git branch)
 
 	ifeq (${BRANCH}, development)
 		REGISTRY := ${SCRATCH_REGISTRY}
