@@ -15,7 +15,7 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.4.1
+CSV_VERSION ?= 1.5.0
 POSTGRESS_VERSION ?= 12.0.4
 OLD_CSV_VERSION ?= 1.3.1
 
