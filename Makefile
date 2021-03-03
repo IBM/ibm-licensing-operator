@@ -177,6 +177,7 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 lint: lint-all vet
 
 coverage-kind: prepare-unit-test ## Run coverage if possible
+	echo "0000000000000000"
 	export USE_EXISTING_CLUSTER=true; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	export NAMESPACE=${NAMESPACE}; \
@@ -313,7 +314,7 @@ unit-test: prepare-unit-test
 	BRANCH := $(shell git branch)
 
 	ifeq ($(BRANCH), development)
-		REGISTRY := $(SCRATCH_REGISTRY)
+		REGISTRY := ${SCRATCH_REGISTRY}
 		CSV_VERSION : = development
 	endif
 
@@ -325,6 +326,7 @@ unit-test: prepare-unit-test
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
 	export OCP=${OCP}; \
+	export AAAA=${BRANCH}
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
 	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}; \
