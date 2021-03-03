@@ -358,7 +358,7 @@ controller-gen:
 ifeq (, $(shell which controller-gen))
 	@{ \
 	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
+	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\f
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
 	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
@@ -388,6 +388,11 @@ endif
 bundle: manifests kustomize
 	operator-sdk generate kustomize manifests -q
 	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations."olm.skipRange"' '>=1.0.0 <1.4.2'
+	yq r ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" > yq_tmp_reporter.yaml
+	yq r ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_licensing.yaml
+	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
+	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
+	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
 
