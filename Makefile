@@ -29,10 +29,10 @@ IMG ?= ibm-licensing-operator
 REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
 SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom"
 
-BRANCH := $(git branch)
+BRANCH := $(shell git branch)
 
 ifeq ($(BRANCH), development)
-	REGISTRY := SCRATCH_REGISTRY
+	REGISTRY := $(SCRATCH_REGISTRY)
 	CSV_VERSION : = development
 endif
 
