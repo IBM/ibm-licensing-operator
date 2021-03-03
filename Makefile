@@ -31,8 +31,8 @@ SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devo
 
 BRANCH := $(shell git branch)
 
-ifeq ($(BRANCH), development)
-	REGISTRY := $(SCRATCH_REGISTRY)
+ifeq (${BRANCH}, development)
+	REGISTRY := ${SCRATCH_REGISTRY}
 	CSV_VERSION : = development
 endif
 
@@ -311,9 +311,10 @@ prepare-unit-test:
 
 unit-test: prepare-unit-test
 	echo "111111111111"
+	echo ${VERSION}
 	BRANCH := $(shell git branch)
 
-	ifeq ($(BRANCH), development)
+	ifeq (${BRANCH}, development)
 		REGISTRY := ${SCRATCH_REGISTRY}
 		CSV_VERSION : = development
 	endif
