@@ -69,7 +69,7 @@ jobs:
         export NAMESPACE=ibm-common-services$SUFIX
         export WATCH_NAMESPACE=ibm-common-services$SUFIX
         export OCP=true
-        if [ $GITHUB_BASE_REF == 'development' ]
+        if [[ $GITHUB_BASE_REF == 'development' || $GITHUB_REF == 'refs/heads/development' ]]
         then
           make coverage-kind-development > ./test_coverage.txt 2>&1
         else
