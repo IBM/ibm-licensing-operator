@@ -113,7 +113,6 @@ jobs:
         kubectl get nodes
 
     - name: Test Unit Operator - License Service
-      if: ${{github.base.ref != 'development'}}
       run: |
         echo ${{github.base.ref}}
         echo $GITHUB_BASE_REF
@@ -121,18 +120,12 @@ jobs:
         export PATH=`pwd`:$PATH
         export SUFIX=$RANDOM
         export USE_EXISTING_CLUSTER=true
-        make unit-test > ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
-
-    - name: Test Unit Operator Development branch - License Service
-      if: ${{github.base.ref == 'development'}}
-      run: |
-        echo github.base.ref
-        echo $GITHUB_BASE_REF
-        echo 22222
-        export PATH=`pwd`:$PATH
-        export SUFIX=$RANDOM
-        export USE_EXISTING_CLUSTER=true
-        make unit-test-development > ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
+        if [ $GITHUB_BASE_REF == 'development' ]
+        then
+          make unit-test-development > ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
+        else
+          make unit-test > ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
+        fi
 
     - name: Check all pods
       if: always()
