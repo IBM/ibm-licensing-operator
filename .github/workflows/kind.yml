@@ -114,6 +114,9 @@ jobs:
 
     - name: Test Unit Operator - License Service
       run: |
+        echo "111111"
+        echo $GITHUB_BASE_REF
+        echo $GITHUB_REF
         export PATH=`pwd`:$PATH
         export SUFIX=$RANDOM
         export USE_EXISTING_CLUSTER=true
