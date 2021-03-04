@@ -309,6 +309,29 @@ unit-test: prepare-unit-test
 	export NAMESPACE=${NAMESPACE}; \
 	export OCP=${OCP}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
+	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}; \
+	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}; \
+	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${POSTGRESS_VERSION}; \
+	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
+	go test -v ./controllers/... -coverprofile cover.out
+
+
+
+# Run tests development
+#ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
+test-development:
+	@echo "Running tests for the controllers."
+	#@mkdir -p ${ENVTEST_ASSETS_DIR}
+	#@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
+	#@source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
+
+unit-test-development: prepare-unit-test
+	export USE_EXISTING_CLUSTER=true; \
+	export WATCH_NAMESPACE=${NAMESPACE}; \
+	export NAMESPACE=${NAMESPACE}; \
+	export OCP=${OCP}; \
+	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	export IBM_LICENSING_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
 	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
 	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
