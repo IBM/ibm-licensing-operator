@@ -114,6 +114,7 @@ jobs:
 
     - name: Test Unit Operator - License Service
       run: |
+
         echo "111111"
         echo $GITHUB_BASE_REF
         echo $GITHUB_REF
