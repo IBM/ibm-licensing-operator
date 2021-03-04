@@ -317,7 +317,6 @@ prepare-unit-test:
 	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
 
 unit-test: prepare-unit-test
-	@echo "Running tests unit-test."
 	export USE_EXISTING_CLUSTER=true; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
@@ -331,7 +330,6 @@ unit-test: prepare-unit-test
 	go test -v ./controllers/... -coverprofile cover.out
 
 unit-test-development: prepare-unit-test
-	@echo "Running tests nit-test."
 	export USE_EXISTING_CLUSTER=true; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
