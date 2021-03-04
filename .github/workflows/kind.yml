@@ -121,7 +121,7 @@ jobs:
         make unit-test > ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
 
     - name: Test Unit Operator Development branch - License Service
-      if: GITHUB_BASE_REF == development
+      if: github.base.ref == development
       run: |
         export PATH=`pwd`:$PATH
         export SUFIX=$RANDOM
