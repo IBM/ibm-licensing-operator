@@ -115,7 +115,7 @@ jobs:
     - name: Test Unit Operator - License Service
       if: ${{github.base.ref != 'development'}}
       run: |
-        echo github.base.ref
+        echo ${{github.base.ref}}
         echo $GITHUB_BASE_REF
         echo 111111
         export PATH=`pwd`:$PATH
