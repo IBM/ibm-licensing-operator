@@ -304,6 +304,7 @@ prepare-unit-test:
 	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
 
 unit-test: prepare-unit-test
+	@echo "Running tests unit-test."
 	export USE_EXISTING_CLUSTER=true; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
@@ -327,6 +328,7 @@ test-development:
 	#@source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
 
 unit-test-development: prepare-unit-test
+	@echo "Running tests nit-test."
 	export USE_EXISTING_CLUSTER=true; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
