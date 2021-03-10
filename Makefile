@@ -337,13 +337,8 @@ deploy: manifests kustomize
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: controller-gen alm-example
+manifests: controller-gen
 	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations."olm.skipRange"' '>=1.0.0 <$(CSV_VERSION)'
-	yq r ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" > yq_tmp_reporter.yaml
-	yq r ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_licensing.yaml
-	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
-	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
-	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Generate code
@@ -411,11 +406,17 @@ alm-example:
 	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" -f combined.json ;\
 	rm -rf combined.json ; \
 	
+	
 
 # Generate bundle manifests and metadata, then validate generated files.
-bundle: manifests
+bundle: manifests alm-example
 	operator-sdk generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
+	yq r ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" > yq_tmp_reporter.yaml
+	yq r ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_licensing.yaml
+	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
+	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
+	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml
 	operator-sdk bundle validate ./bundle
 
 # Build the bundle image.
