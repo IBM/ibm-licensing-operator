@@ -18,7 +18,6 @@
 CSV_VERSION ?= 1.4.1
 POSTGRESS_VERSION ?= 12.0.4
 OLD_CSV_VERSION ?= 1.3.1
-OLM_SKIP_VERSION ?= 1.4.2
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -338,7 +337,13 @@ deploy: manifests kustomize
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: controller-gen
+manifests: controller-gen alm-example
+	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations."olm.skipRange"' '>=1.0.0 <$(CSV_VERSION)'
+	yq r ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" > yq_tmp_reporter.yaml
+	yq r ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_licensing.yaml
+	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
+	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
+	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Generate code
@@ -359,7 +364,7 @@ controller-gen:
 ifeq (, $(shell which controller-gen))
 	@{ \
 	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\f
+	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
 	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
@@ -386,27 +391,30 @@ KUSTOMIZE=$(shell which kustomize)
 endif
 
 alm-example:
-	@printf '[\n' >> sample.json  \ 
-	for file in ./config/samples/operator* ; do \
-    yq r -j -P $$file >> sample.json ; \
-	printf ',\n' >> sample.json ; \
+	@for file in ./config/samples/operator* ; do \
+    yq r -j -P $$file >> combined.json ; \
 	done; \
-	head -n -1 sample.json > temp.json ; \
-	mv temp.json sample.json ; \
-	rm -rf temp.json ; \
-	printf ']\n' >> sample.json 
+	cp combined.json tmp.json ; \
+	sed 's/^}/},/g' tmp.json > combined.json ; \
+	cp combined.json tmp.json ; \
+	sed '$$ d' tmp.json > combined.json; \
+	printf ' }\n' >> combined.json ; \
+	cp combined.json tmp.json ; \
+	sed 's/^/  /g' tmp.json > combined.json; \
+	rm -rf tmp.json ; \
+	touch tmp.json ; \
+	printf '|-\n [\n' >> tmp.json ; \
+	cat combined.json >> tmp.json ; \
+	printf ' ]\n' >> tmp.json ; \
+	cat tmp.json > combined.json ; \
+	rm -rf tmp.json ; \
+	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" -f combined.json ;\
+	rm -rf combined.json ; \
+	
 
 # Generate bundle manifests and metadata, then validate generated files.
-bundle: manifests kustomize alm-example
+bundle: manifests
 	operator-sdk generate kustomize manifests -q
-	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations."olm.skipRange"' '>=1.0.0 <$(OLM_SKIP_VERSION)'
-	yq r ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" > yq_tmp_reporter.yaml
-	yq r ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_licensing.yaml
-	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
-	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
-	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml
-	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" -f sample.json
-	rm -rf sample.json
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
 
