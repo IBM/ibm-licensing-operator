@@ -94,11 +94,7 @@ Create an IBM Licensing instance.
 
 ![OCP click Create IBM Licensing](/images/ocp_create_instance.png)
 
-2\. Click **Create IBMLicensing** to edit the parameters. Change datasource to `datacollector`.
-
-For more information about the parameters, see [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.csv).
-
-![OCP instance datacollector](/images/ocp_instance_datacollector.png)
+2\. Optional: Click **Create IBMLicensing** to edit the parameters. For more information about the parameters, see [IBMLicensingOperatorParameters](/images/IBMLicensingOperatorParameters.csv).
 
 3\. Click **Create**.
 
