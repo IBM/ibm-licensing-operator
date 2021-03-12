@@ -15,7 +15,7 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.4.1
+CSV_VERSION ?= 1.4.2
 POSTGRESS_VERSION ?= 12.0.4
 
 # This repo is build locally for dev/test by default;
