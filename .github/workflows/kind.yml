@@ -74,7 +74,7 @@ jobs:
         cp ./common/scripts/tests/.osdk-scorecard.yaml ./.osdk-scorecard.yaml
         export VERSION=1.4.1
         set -o pipefail
-        ./operator-sdk scorecard namespace ibm-common-services --config ./.osdk-scorecard.yaml -b ./deploy-old/olm-catalog/ibm-licensing-operator/$VERSION/  --verbose 2>&1 | tee ./scorecard_logs.txt
+        ./operator-sdk scorecard namespace ibm-common-services --config ./.osdk-scorecard.yaml -b ./bundle/manifests/  --verbose 2>&1 | tee ./scorecard_logs.txt
 
     - name: Archive scorecard logs
       uses: actions/upload-artifact@v2
