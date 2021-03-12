@@ -290,13 +290,14 @@ test:
 prepare-unit-test:
 	kubectl create namespace ${NAMESPACE} || echo ""
 	kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo ""
-	kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml || echo ""
-	kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml || echo ""
-	kubectl apply -f ./deploy/service_account.yaml -n ${NAMESPACE} || echo ""
-	sed "s/ibm-common-services/${NAMESPACE}/g" < ./deploy/role.yaml > ./deploy/role_ns.yaml
-	kubectl apply -f ./deploy/role_ns.yaml || echo ""
-	sed "s/ibm-common-services/${NAMESPACE}/g" < ./deploy/role_binding.yaml > ./deploy/role_binding_ns.yaml
-	kubectl apply -f ./deploy/role_binding_ns.yaml || echo ""
+	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml || echo ""
+	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicensings.yaml || echo ""
+	kubectl apply -f ./bundle/manifests/ibm-license-service_v1_serviceaccount.yaml -n ${NAMESPACE} || echo ""
+	kubectl apply -f ./bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml -n ${NAMESPACE} || echo ""
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
+	kubectl apply -f ./config/rbac/role_ns.yaml || echo ""
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role_binding.yaml > ./config/rbac/role_binding_ns.yaml
+	kubectl apply -f ./config/rbac/role_binding_ns.yaml || echo ""
 	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/develop/v2/bundle/manifests/marketplace.redhat.com_meterdefinitions.yaml
 	kubectl apply -f marketplace.redhat.com_meterdefinitions.yaml
 	curl -O https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
