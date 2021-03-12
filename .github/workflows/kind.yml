@@ -64,7 +64,7 @@ jobs:
         kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
         kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicensings.yaml
         kubectl apply -f ./bundle/manifests/ibm-license-service_v1_serviceaccount.yaml  -n ibm-common-services
-        kubectl apply -f ./bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yam  -n ibm-common-services
+        kubectl apply -f ./bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml  -n ibm-common-services
         kubectl apply -f ./config/rbac/role_binding.yaml -n ibm-common-services
         kubectl -n ibm-common-services patch serviceaccount ibm-licensing-operator -p '{"imagePullSecrets": [{"name": "my-registry-token"}]}'
         kubectl apply -f ./config/rbac/role.yaml
