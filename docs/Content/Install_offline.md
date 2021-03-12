@@ -104,10 +104,10 @@ g. Modify the `operator.yaml` image so that your private registry is used:
 export operator_version=1.3.1
 export operand_version=1.3.1
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
-sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
-sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
-sed -i 's/@sha256.*/:'"${operand_version}"'/g' deploy/operator.yaml
-kubectl apply -f deploy/operator.yaml
+sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
+sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
+sed -i 's/@sha256.*/:'"${operand_version}"'/g' config/manager/manager.yaml
+kubectl apply -f config/manager/manager.yaml
 ```
 
 - For **MAC** users:
@@ -116,10 +116,10 @@ kubectl apply -f deploy/operator.yaml
 export operator_version=1.3.1
 export operand_version=1.3.1
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
-sed -i "" 's/quay.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
-sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
-sed -i "" 's/@sha256.*/:'"${operand_version}"'/g' deploy/operator.yaml
-kubectl apply -f deploy/operator.yaml
+sed -i "" 's/quay.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
+sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
+sed -i "" 's/@sha256.*/:'"${operand_version}"'/g' config/manager/manager.yaml
+kubectl apply -f config/manager/manager.yaml
 ```
 
 **Results:**
