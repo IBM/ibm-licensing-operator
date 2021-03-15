@@ -26,7 +26,6 @@ metadata:
   name: instance
 spec:
   apiSecretToken: ibm-licensing-token
-  datasource: datacollector
   httpsEnable: false
   instanceNamespace: ibm-common-services
   ingressEnabled: true
@@ -51,7 +50,6 @@ metadata:
   name: instance
 spec:
   apiSecretToken: ibm-licensing-token
-  datasource: datacollector
   httpsEnable: false
   instanceNamespace: ibm-common-services
   ingressEnabled: true
@@ -72,7 +70,6 @@ metadata:
   name: instance
 spec:
   apiSecretToken: ibm-licensing-token
-  datasource: datacollector
   httpsEnable: false
   instanceNamespace: ibm-common-services
   ingressEnabled: true

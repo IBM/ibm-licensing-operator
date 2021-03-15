@@ -100,7 +100,6 @@ metadata:
   name: instance
 spec:
   apiSecretToken: ibm-licensing-token
-  datasource: datacollector
   httpsCertsSource: self-signed
   httpsEnable: true
   instanceNamespace: ibm-common-services
