@@ -10,7 +10,7 @@ License Service collects and measures information about license usage of your IB
 You can use a set of dedicated APIs to retrieve the following information:
 
 - Retrieving an audit snapshot for the cluster
-- Retrieving license usage of products on a cluster level
+- Retrieving license usage of products on a cluster level and retrieving license usage of product deployed in user-defined groups (chargeback)
 - Retrieving license usage of bundled products on the cluster level
 - Retrieving information about License Service version
 - Retrieving information about License Service health

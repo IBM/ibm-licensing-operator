@@ -24,9 +24,15 @@ License Service
 
 ## Using License Service for container licensing
 
+Currently, supported core-based metrics for container licensing are Processor Value Unit (PVU) and Virtual Processor Core (VPC). For core license metrics, you are obliged to use License Service and periodically generate an audit snapshots to fulfill container licensing requirements.
+
+For more information about core and non-core metrics that are collected by License Service, see [Reported metrics](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/reported_metrics.html).
+
 License Service collects data that is required for compliance and audit purposes. With License Service, you can retrieve an audit snapshot per cluster without any configuration.
 
-It is required to generate an audit snapshot at least once a quarter for the last 90 days, and to store it for 2 years in a location from which it could be retrieved and delivered to auditors.
+At this point, it is required to generate an audit snapshot at least once a quarter for the last 90 days, and to store it for 2 years in a location from which it could be retrieved and delivered to auditors.
+
+Note, that the requirements might change over time. You should always make sure to follow the latest requirements that are posted on Passport Advantage.
 
 For more information, see the following resources:
 
