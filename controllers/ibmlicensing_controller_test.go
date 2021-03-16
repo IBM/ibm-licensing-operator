@@ -213,6 +213,12 @@ var _ = Describe("IBMLicensing controller", func() {
 				return route != nil
 			}, timeout, interval).Should(BeTrue())
 
+			By("Checking if chargeback is disabled")
+			Eventually(func() bool {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
+				return newInstance.Spec.IsChargebackEnabled()
+			}, timeout, interval).Should(Equal(false))
+
 		})
 
 		It("Should create IBMLicensing with RHMP enabled", func() {
@@ -278,6 +284,11 @@ var _ = Describe("IBMLicensing controller", func() {
 				return meterDefinition != nil
 			}, timeout, interval).Should(BeTrue())
 
+			By("Checking if chargeback is enabled")
+			Eventually(func() bool {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
+				return newInstance.Spec.IsChargebackEnabled()
+			}, timeout, interval).Should(Equal(true))
 		})
 	})
 })
