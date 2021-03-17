@@ -12,7 +12,9 @@
 
 ## Installation
 
-   **Note:** To install License Service on Windows, adjust the commands to fit the Windows standard.
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
+
+  **Note:** To install License Service on Windows, adjust the commands to fit the Windows standard.
 
 1\. **Install the Operator Lifecycle Manager (OLM)**
 
