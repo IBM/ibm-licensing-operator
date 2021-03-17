@@ -72,7 +72,7 @@ a. Go to **OperatorHub>Operator Subscription**
 
 b. As an Installation Mode select **A specific namespace on the cluster**, and set it to **ibm-common-services** namespace that you created in the previous step.
 
-c. Choose the **stable-v1** channel.
+c. Choose the **v3** channel.
 
 d. Click **Subscribe**.
 
