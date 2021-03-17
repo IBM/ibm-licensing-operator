@@ -124,6 +124,7 @@ func UpdateResource(reqLogger *logr.Logger, client c.Client,
 	expectedResource ResourceObject, foundResource ResourceObject) (reconcile.Result, error) {
 	resTypeString := reflect.TypeOf(expectedResource).String()
 	(*reqLogger).Info("Updating " + resTypeString)
+	expectedResource.SetResourceVersion(foundResource.GetResourceVersion())
 	err := client.Update(context.TODO(), expectedResource)
 	if err != nil {
 		// only need to delete resource as new will be recreated on next reconciliation
