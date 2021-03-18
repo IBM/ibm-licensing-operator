@@ -273,14 +273,21 @@ var _ = Describe("IBMLicensing controller", func() {
 			By("Checking if meter definition exists for cloudpak")
 			Eventually(func() bool {
 				meterDefinition := &rhmp.MeterDefinition{}
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetMeterDefinitionName(newInstance, true), Namespace: namespace}, meterDefinition)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetMeterDefinitionName(newInstance, "product"), Namespace: namespace}, meterDefinition)).Should(Succeed())
 				return meterDefinition != nil
 			}, timeout, interval).Should(BeTrue())
 
 			By("Checking if meter definition exists for bundle product")
 			Eventually(func() bool {
 				meterDefinition := &rhmp.MeterDefinition{}
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetMeterDefinitionName(newInstance, false), Namespace: namespace}, meterDefinition)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetMeterDefinitionName(newInstance, "bundleproduct"), Namespace: namespace}, meterDefinition)).Should(Succeed())
+				return meterDefinition != nil
+			}, timeout, interval).Should(BeTrue())
+
+			By("Checking if meter definition exists for chargeback")
+			Eventually(func() bool {
+				meterDefinition := &rhmp.MeterDefinition{}
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetMeterDefinitionName(newInstance, "chargeback"), Namespace: namespace}, meterDefinition)).Should(Succeed())
 				return meterDefinition != nil
 			}, timeout, interval).Should(BeTrue())
 
