@@ -122,10 +122,11 @@ Complete the following steps to fix the problem:
 
 1\. To check whether the `ibm-licensing-operator` is deployed to `kube-system` namespace, run the following command:
 
-  - **Linux:** `kubectl get pod -n kube-system | grep ibm-licensing-operator`
-  - **Windows:** `kubectl get pod -n kube-system | findstr ibm-licensing-operator`
+- **Linux:** `kubectl get pod -n kube-system | grep ibm-licensing-operator`
+- **Windows:** `kubectl get pod -n kube-system | findstr ibm-licensing-operator`
 
 2\. If the response contains information about the running pod, uninstall License Service from `kube-system` namespace.
 
 <b>Related links</b>
+
 - [Go back to home page](../License_Service_main.md#documentation)
