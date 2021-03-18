@@ -168,7 +168,7 @@ metadata:
   name: ibm-licensing-operator-app
   namespace: ibm-common-services
 spec:
-  channel: stable-v1
+  channel: stable-v3
   name: ibm-licensing-operator-app
   source: opencloud-operators
   sourceNamespace: $GLOBAL_CATALOG_NAMESPACE

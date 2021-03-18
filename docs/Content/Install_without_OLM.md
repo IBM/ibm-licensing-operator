@@ -66,8 +66,8 @@ e. Modify the `operator.yaml` image based on tags.
 - For **LINUX** users:
 
 ```bash
-LATEST_VERSION=$(git tag | tail -n1)
-export operand_version=1.3.1
+LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
+export operand_version=$(git tag | tail -n1 | tr -d v)
 sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
 sed -i 's/@sha256.*/:'"${operand_version}"'/g' config/manager/manager.yaml
 kubectl apply -f config/manager/manager.yaml
@@ -76,8 +76,8 @@ kubectl apply -f config/manager/manager.yaml
 - For **MAC** users:
 
 ```bash
-LATEST_VERSION=$(git tag | tail -n1)
-export operand_version=1.3.1
+LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
+export operand_version=$(git tag | tail -n1 | tr -d v)
 sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
 sed -i "" 's/@sha256.*/:'"${operand_version}"'/g' config/manager/manager.yaml
 kubectl apply -f config/manager/manager.yaml
