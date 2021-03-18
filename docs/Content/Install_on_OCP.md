@@ -76,8 +76,6 @@ c. Choose the **v3** channel.
 
 d. Click **Subscribe**.
 
-![Subscribe to IBM Licensing OLM](/images/subscribe-licensing.png)
-
 5\. **Verify that the installation is successful**
 
 To check whether the installation is successful, wait for about 1 minute, and go to **Installed operators**. You should see IBM Licensing Operator with the **Succeeded** status.
