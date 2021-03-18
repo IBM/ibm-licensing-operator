@@ -52,12 +52,13 @@ d. Apply RBAC roles and CRD:
 
 ```bash
 # add CRD:
-kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
-kubectl apply -f deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 # add RBAC:
-kubectl apply -f deploy/role.yaml
-kubectl apply -f deploy/service_account.yaml
-kubectl apply -f deploy/role_binding.yaml
+kubectl apply -f config/rbac/role.yaml
+kubectl apply -f bundle/manifests/ibm-license-service_v1_serviceaccount.yaml
+kubectl apply -f bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml
+kubectl apply -f config/rbac/role_binding.yaml
 ```
 
 e. Modify the `operator.yaml` image based on tags.

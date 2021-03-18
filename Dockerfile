@@ -55,7 +55,7 @@ ENV OPERATOR=/usr/local/bin/ibm-licensing-operator \
 
 # install operator binary
 COPY bin/ibm-licensing-operator ${OPERATOR}
-COPY deploy/crds ${DEPLOY_DIR}
+COPY bundle ${DEPLOY_DIR}
 
 COPY build/bin /usr/local/bin
 RUN  /usr/local/bin/user_setup
