@@ -96,7 +96,7 @@ Create an IBM Licensing instance.
 
 ![OCP click Create IBM Licensing](/images/ocp_create_instance.png)
 
-2\. Optional: Click **Create IBMLicensing** to edit the parameters. For more information about the parameters, see [IBMLicensingOperatorParameters](/images/IBMLicensingOperatorParameters.csv).
+2\. Optional: Click **Create IBMLicensing** to edit the available parameters. For more information about the parameters, see the [Custom Resource Definition](/deploy/olm-catalog/ibm-licensing-operator/1.4.1/operator.ibm.com_ibmlicensings_crd.yaml).
 
 3\. Click **Create**.
 
