@@ -309,7 +309,7 @@ EOF
   fi
   echo "Checking IBMLicensing instance status"
   retries=36
-  until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" ]]; do
+  until [[ $retries == 0 || $new_ibmlicensing_phase == Running* ]]; do
     new_ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicensing pod to appear")
     if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
       ibmlicensing_phase=$new_ibmlicensing_phase
