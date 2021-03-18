@@ -69,7 +69,12 @@ jobs:
         export NAMESPACE=ibm-common-services$SUFIX
         export WATCH_NAMESPACE=ibm-common-services$SUFIX
         export OCP=true
-        make coverage-kind > ./test_coverage.txt 2>&1
+        if [[ $GITHUB_BASE_REF == 'development' || $GITHUB_REF == 'refs/heads/development' ]]
+        then
+          make coverage-kind-development > ./test_coverage.txt 2>&1
+        else
+          make coverage-kind > ./test_coverage.txt 2>&1
+        fi
 
     - name: Check all pods
       if: always()

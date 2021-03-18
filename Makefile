@@ -15,7 +15,8 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.4.1
+CSV_VERSION ?= 1.5.0
+CSV_VERSION_DEVELOPMENT ?= development
 POSTGRESS_VERSION ?= 12.0.4
 OLD_CSV_VERSION ?= 1.3.1
 
@@ -183,6 +184,19 @@ coverage-kind: prepare-unit-test ## Run coverage if possible
 	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
 	./common/scripts/codecov.sh ${BUILD_LOCALLY}
 
+coverage-kind-development: prepare-unit-test ## Run coverage if possible
+	export USE_EXISTING_CLUSTER=true; \
+	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+	export NAMESPACE=${NAMESPACE}; \
+	export WATCH_NAMESPACE=${NAMESPACE}; \
+	export OCP=${OCP}; \
+	export IBM_LICENSING_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${POSTGRESS_VERSION}; \
+	export IBM_LICENSING_USAGE_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	./common/scripts/codecov.sh ${BUILD_LOCALLY}
+
 coverage: ## Run coverage if possible
 	@echo "coverage on kind in github action"
 
@@ -224,11 +238,11 @@ build-push-image-development: build-image-development push-image-development
 
 build-image-development: build
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
+	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(CSV_VERSION_DEVELOPMENT) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
 push-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH) build-image-development
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker push $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
+	@docker push $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(CSV_VERSION_DEVELOPMENT)
 
 
 ##@ SHA Digest section
@@ -245,8 +259,8 @@ multiarch-image: $(CONFIG_DOCKER_TARGET)
 	common/scripts/catalog_build.sh $(REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
 
 multiarch-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH)
-	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${MANIFEST_VERSION}
-	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(CSV_VERSION_DEVELOPMENT) ${CSV_VERSION_DEVELOPMENT}
+	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${CSV_VERSION_DEVELOPMENT}
 
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
@@ -314,6 +328,19 @@ unit-test: prepare-unit-test
 	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}; \
 	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${POSTGRESS_VERSION}; \
 	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
+	go test -v ./controllers/... -coverprofile cover.out
+
+unit-test-development: prepare-unit-test
+	export USE_EXISTING_CLUSTER=true; \
+	export WATCH_NAMESPACE=${NAMESPACE}; \
+	export NAMESPACE=${NAMESPACE}; \
+	export OCP=${OCP}; \
+	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+	export IBM_LICENSING_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${POSTGRESS_VERSION}; \
+	export IBM_LICENSING_USAGE_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
 	go test -v ./controllers/... -coverprofile cover.out
 
 # Build manager binary
