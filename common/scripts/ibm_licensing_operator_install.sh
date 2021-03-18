@@ -32,8 +32,8 @@ usage()
   echo "usage: $0 [--verbose | -v] [--help | -h] [(--olm_version | -o) <version_number>] [--skip_olm_installation | -s] [(--olm_global_catalog_namespace | -c) <OLM global catalog namespace> ] [(--channel | -l) <subscription channel>] [--no-secret-output | -n]"
   echo "options:"
   echo "[--verbose | -v] - verbose logs from installation"
-  echo "[--channel | -l] - do not change unless instructed to. What channel should License Service Opeator subscription choose,"
-  echo "by default channel=stable-v1"
+  echo "[--channel | -l] - do not change unless instructed to. What channel should License Service Operator subscription choose,"
+  echo "by default channel=v3"
   echo "[--no-secret-output | -n] - use this option to not show secret at the end of the script"
   echo "[--olm_version | -o] <version_number> - what version of OLM should be installed if it doesn't exist,"
   echo "by default olm_version=0.13.0"
@@ -127,7 +127,7 @@ install_olm(){
     fi
     verbose_output_command echo "Trying to get OLM's global catalog namespace so that catalog needed by IBM Licensing can be accessed in any watched namespace."
     if ! olm_global_catalog_namespace=$(kubectl get deployment --namespace="${olm_namespace}" packageserver -o yaml | grep -A 1 -i global-namespace | tail -1 | cut -d "-" -f 2- | sed -e 's/^[ \t]*//') || [ "${olm_global_catalog_namespace}" == "" ]; then
-      echo "Error: Failed to find OLM's global catalog namespace where catalog for IBM Licensign needs to be installed"
+      echo "Error: Failed to find OLM's global catalog namespace where catalog for IBM Licensing needs to be installed"
       echo "If you can find it yourself try setting parameter --olm_global_catalog_namespace parameter of this script"
       echo "On OpenShift Container Platform this probably is 'openshift-marketplace', but for older versions and for custom OLM installation it might be 'olm', but you might verify it by looking for OLM's packageserver deployment configuration"
       exit 7
@@ -308,7 +308,7 @@ EOF
     verbose_output_command echo "IBMLicensing instance already exists"
   fi
   echo "Checking IBMLicensing instance status"
-  retries=50
+  retries=36
   until [[ $retries == 0 || $new_ibmlicensing_phase == "Running" ]]; do
     new_ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicensing pod to appear")
     if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
@@ -319,7 +319,7 @@ EOF
         exit 20
       fi
     fi
-    sleep 3
+    sleep 10
     retries=$((retries - 1))
   done
   if [ $retries == 0 ]; then
@@ -360,7 +360,7 @@ verbose=
 olm_version=0.13.0
 skip_olm_installation=
 olm_global_catalog_namespace=
-channel=stable-v1
+channel=v3
 no_secret_output=
 
 while [ "$1" != "" ]; do
