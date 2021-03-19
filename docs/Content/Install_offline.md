@@ -22,6 +22,7 @@ a.  Run the following command to prepare your Docker images.
 ```bash
 export my_docker_registry=<YOUR PRIVATE REGISTRY IMAGE PREFIX HERE; for example: "my.registry:5000" or "my.private.registry.example.com">
 LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
+export operator_version=$(git tag | tail -n1 | tr -d v)
 export operand_version=$(git tag | tail -n1 | tr -d v)
 ```
 
@@ -103,6 +104,7 @@ g. Modify the `operator.yaml` image so that your private registry is used:
 
 ```bash
 LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
+export operator_version=$(git tag | tail -n1 | tr -d v)
 export operand_version=$(git tag | tail -n1 | tr -d v)
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
@@ -115,6 +117,7 @@ kubectl apply -f config/manager/manager.yaml
 
 ```bash
 LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
+export operator_version=$(git tag | tail -n1 | tr -d v)
 export operand_version=$(git tag | tail -n1 | tr -d v)
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i "" 's/quay.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
