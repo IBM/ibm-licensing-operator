@@ -21,8 +21,9 @@ a.  Run the following command to prepare your Docker images.
 
 ```bash
 export my_docker_registry=<YOUR PRIVATE REGISTRY IMAGE PREFIX HERE; for example: "my.registry:5000" or "my.private.registry.example.com">
-export operator_version=1.3.1
-export operand_version=1.3.1
+LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
+export operator_version=$(git tag | tail -n1 | tr -d v)
+export operand_version=$(git tag | tail -n1 | tr -d v)
 ```
 
 b. Pull the required images with the following command.
@@ -88,12 +89,13 @@ f. Apply RBAC roles and CRD:
 
 ```bash
 # add CRD:
-kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
-kubectl apply -f deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 # add RBAC:
-kubectl apply -f deploy/role.yaml
-kubectl apply -f deploy/service_account.yaml
-kubectl apply -f deploy/role_binding.yaml
+kubectl apply -f config/rbac/role.yaml
+kubectl apply -f bundle/manifests/ibm-license-service_v1_serviceaccount.yaml
+kubectl apply -f bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml
+kubectl apply -f config/rbac/role_binding.yaml
 ```
 
 g. Modify the `operator.yaml` image so that your private registry is used:
@@ -101,25 +103,27 @@ g. Modify the `operator.yaml` image so that your private registry is used:
 - For **LINUX** users:
 
 ```bash
-export operator_version=1.3.1
-export operand_version=1.3.1
+LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
+export operator_version=$(git tag | tail -n1 | tr -d v)
+export operand_version=$(git tag | tail -n1 | tr -d v)
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
-sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
-sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
-sed -i 's/@sha256.*/:'"${operand_version}"'/g' deploy/operator.yaml
-kubectl apply -f deploy/operator.yaml
+sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
+sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
+sed -i 's/@sha256.*/:'"${operand_version}"'/g' config/manager/manager.yaml
+kubectl apply -f config/manager/manager.yaml
 ```
 
 - For **MAC** users:
 
 ```bash
-export operator_version=1.3.1
-export operand_version=1.3.1
+LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
+export operator_version=$(git tag | tail -n1 | tr -d v)
+export operand_version=$(git tag | tail -n1 | tr -d v)
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
-sed -i "" 's/quay.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
-sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
-sed -i "" 's/@sha256.*/:'"${operand_version}"'/g' deploy/operator.yaml
-kubectl apply -f deploy/operator.yaml
+sed -i "" 's/quay.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
+sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
+sed -i "" 's/@sha256.*/:'"${operand_version}"'/g' config/manager/manager.yaml
+kubectl apply -f config/manager/manager.yaml
 ```
 
 **Results:**

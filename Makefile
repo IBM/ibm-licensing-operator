@@ -304,13 +304,14 @@ test:
 prepare-unit-test:
 	kubectl create namespace ${NAMESPACE} || echo ""
 	kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo ""
-	kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml || echo ""
-	kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml || echo ""
-	kubectl apply -f ./deploy/service_account.yaml -n ${NAMESPACE} || echo ""
-	sed "s/ibm-common-services/${NAMESPACE}/g" < ./deploy/role.yaml > ./deploy/role_ns.yaml
-	kubectl apply -f ./deploy/role_ns.yaml || echo ""
-	sed "s/ibm-common-services/${NAMESPACE}/g" < ./deploy/role_binding.yaml > ./deploy/role_binding_ns.yaml
-	kubectl apply -f ./deploy/role_binding_ns.yaml || echo ""
+	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml || echo ""
+	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicensings.yaml || echo ""
+	kubectl apply -f ./bundle/manifests/ibm-license-service_v1_serviceaccount.yaml -n ${NAMESPACE} || echo ""
+	kubectl apply -f ./bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml -n ${NAMESPACE} || echo ""
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
+	kubectl apply -f ./config/rbac/role_ns.yaml || echo ""
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role_binding.yaml > ./config/rbac/role_binding_ns.yaml
+	kubectl apply -f ./config/rbac/role_binding_ns.yaml || echo ""
 	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/develop/v2/bundle/manifests/marketplace.redhat.com_meterdefinitions.yaml
 	kubectl apply -f marketplace.redhat.com_meterdefinitions.yaml
 	curl -O https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
@@ -365,6 +366,7 @@ deploy: manifests kustomize
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
+	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations."olm.skipRange"' '>=1.0.0 <$(CSV_VERSION)'
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Generate code
@@ -414,9 +416,32 @@ endif
 # Generate bundle manifests and metadata, then validate generated files.
 bundle: manifests
 	operator-sdk generate kustomize manifests -q
-	sed -i "s/olm.skipRange.*/olm.skipRange: '>=1.0.0 <$(CSV_VERSION)'/g" ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
+	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" > yq_tmp_reporter.yaml
+	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_licensing.yaml
+	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
+	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
+	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml
 	operator-sdk bundle validate ./bundle
+	@for file in ./config/samples/operator* ; do \
+    yq r -j -P $$file >> combined.json ; \
+	done; \
+	cp combined.json tmp.json ; \
+	sed 's/^}/},/g' tmp.json > combined.json ; \
+	cp combined.json tmp.json ; \
+	sed '$$ d' tmp.json > combined.json; \
+	printf ' }\n' >> combined.json ; \
+	cp combined.json tmp.json ; \
+	sed 's/^/  /g' tmp.json > combined.json; \
+	rm -rf tmp.json ; \
+	touch tmp.json ; \
+	printf '|-\n [\n' >> tmp.json ; \
+	cat combined.json >> tmp.json ; \
+	printf ' ]\n' >> tmp.json ; \
+	cat tmp.json > combined.json ; \
+	rm -rf tmp.json ; \
+	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" -f combined.json ;\
+	rm -rf combined.json ; \
 
 # Build the bundle image.
 bundle-build:

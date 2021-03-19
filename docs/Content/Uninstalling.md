@@ -164,8 +164,9 @@ kubectl delete ClusterRole ibm-licensing-operator
 ```bash
 # on machine with access to internet
 export my_docker_registry=<YOUR REGISTRY IMAGE PREFIX HERE e.g.: "my.registry:5000" or "quay.io/opencloudio">
-export operator_version=1.3.1
-export operand_version=1.3.1
+LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
+export operator_version=$(git tag | tail -n1 | tr -d v)
+export operand_version=$(git tag | tail -n1 | tr -d v)
 # remove images
 docker rmi quay.io/opencloudio/ibm-licensing-operator:${operator_version}
 docker rmi ${my_docker_registry}/ibm-licensing-operator:${operator_version}

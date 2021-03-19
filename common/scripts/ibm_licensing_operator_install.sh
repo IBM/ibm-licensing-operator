@@ -33,7 +33,7 @@ usage()
   echo "options:"
   echo "[--verbose | -v] - verbose logs from installation"
   echo "[--channel | -l] - do not change unless instructed to. What channel should License Service Opeator subscription choose,"
-  echo "by default channel=stable-v1"
+  echo "by default channel=v3"
   echo "[--no-secret-output | -n] - use this option to not show secret at the end of the script"
   echo "[--olm_version | -o] <version_number> - what version of OLM should be installed if it doesn't exist,"
   echo "by default olm_version=0.13.0"
@@ -360,7 +360,7 @@ verbose=
 olm_version=0.13.0
 skip_olm_installation=
 olm_global_catalog_namespace=
-channel=stable-v1
+channel=v3
 no_secret_output=
 
 while [ "$1" != "" ]; do

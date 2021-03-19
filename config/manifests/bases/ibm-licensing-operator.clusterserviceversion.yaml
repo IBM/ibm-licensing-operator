@@ -77,6 +77,16 @@ spec:
         name: ""
         version: v1alpha1
       specDescriptors:
+      - description: Consider updating to enable chargeback feature
+        displayName: Chargeback Enabled
+        path: chargebackEnabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Chargeback data retention period in days. Default value is 62 days.
+        displayName: Chargeback Retention Period in days
+        path: chargebackRetentionPeriod
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:number
       - description: 'Where should data be collected, options: metering, datacollector'
         displayName: Datasource
         path: datasource
@@ -206,5 +216,4 @@ spec:
   maturity: alpha
   provider:
     name: IBM
-  replaces: ibm-licensing-operator.v1.3.1
   version: 0.0.0
