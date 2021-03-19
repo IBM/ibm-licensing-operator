@@ -19,6 +19,8 @@ Complete the following procedure to install License Service on a system that doe
 
 ## Installation
 
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
+
 1\. Create the required resources.
 
 a. Run the following command to create the `ibm-common-services` namespace where you will later install the operator.
@@ -43,7 +45,7 @@ oc project ibm-common-services
 c. Use `git clone`.
 
 ```bash
-export operator_release_version=v1.3.1
+export operator_release_version=v1.4.1
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
@@ -65,8 +67,8 @@ e. Modify the `operator.yaml` image based on tags.
 - For **LINUX** users:
 
 ```bash
-export operator_version=1.3.1
-export operand_version=1.3.1
+export operator_version=1.4.1
+export operand_version=1.4.1
 sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
 sed -i 's/@sha256.*/:'"${operand_version}"'/g' deploy/operator.yaml
 kubectl apply -f deploy/operator.yaml
@@ -75,8 +77,8 @@ kubectl apply -f deploy/operator.yaml
 - For **MAC** users:
 
 ```bash
-export operator_version=1.3.1
-export operand_version=1.3.1
+export operator_version=1.4.1
+export operand_version=1.4.1
 sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
 sed -i "" 's/@sha256.*/:'"${operand_version}"'/g' deploy/operator.yaml
 kubectl apply -f deploy/operator.yaml
@@ -100,7 +102,6 @@ metadata:
   name: instance
 spec:
   apiSecretToken: ibm-licensing-token
-  datasource: datacollector
   httpsCertsSource: self-signed
   httpsEnable: true
   instanceNamespace: ibm-common-services

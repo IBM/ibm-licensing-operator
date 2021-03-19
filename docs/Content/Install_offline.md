@@ -15,14 +15,16 @@
 
 ## Installation
 
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
+
 1\. Prepare Docker images.
 
 a.  Run the following command to prepare your Docker images.
 
 ```bash
 export my_docker_registry=<YOUR PRIVATE REGISTRY IMAGE PREFIX HERE; for example: "my.registry:5000" or "my.private.registry.example.com">
-export operator_version=1.3.1
-export operand_version=1.3.1
+export operator_version=1.4.1
+export operand_version=1.4.1
 ```
 
 b. Pull the required images with the following command.
@@ -77,7 +79,7 @@ kubectl config set-context --current --namespace=ibm-common-services
 e. Use `git clone`:
 
 ```bash
-export operator_release_version=v1.3.1
+export operator_release_version=v1.4.1
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
@@ -101,8 +103,8 @@ g. Modify the `operator.yaml` image so that your private registry is used:
 - For **LINUX** users:
 
 ```bash
-export operator_version=1.3.1
-export operand_version=1.3.1
+export operator_version=1.4.1
+export operand_version=1.4.1
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
 sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
@@ -113,8 +115,8 @@ kubectl apply -f deploy/operator.yaml
 - For **MAC** users:
 
 ```bash
-export operator_version=1.3.1
-export operand_version=1.3.1
+export operator_version=1.4.1
+export operand_version=1.4.1
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i "" 's/quay.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
 sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
@@ -140,7 +142,6 @@ metadata:
   name: instance
 spec:
   apiSecretToken: ibm-licensing-token
-  datasource: datacollector
   httpsEnable: true
   instanceNamespace: ibm-common-services
 EOF
@@ -169,7 +170,6 @@ metadata:
   name: instance
 spec:
   apiSecretToken: ibm-licensing-token
-  datasource: datacollector
   httpsEnable: false
   instanceNamespace: ibm-common-services
   imagePullSecrets:

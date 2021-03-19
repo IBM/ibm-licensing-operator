@@ -2,9 +2,9 @@
 
 Install License Service and create the operator instance.
 
-Choose the installation path that fits your environment best.
+**Note:** The following procedures guide you through the installation of License Service. They do not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
 
-Installing License Service
+Choose the installation path that fits your environment best.
 
 - [Automatic installation using Operator Lifecycle Manager (OLM)](Automatic_installation.md)
 - [Manual installation on OpenShift Container Platform (OCP) version 4.2 or higher](Install_on_OCP.md)
