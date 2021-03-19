@@ -142,6 +142,7 @@ metadata:
   name: instance
 spec:
   apiSecretToken: ibm-licensing-token
+  datasource: datacollector
   httpsEnable: true
   instanceNamespace: ibm-common-services
 EOF
