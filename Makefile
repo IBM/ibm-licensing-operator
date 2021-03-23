@@ -118,12 +118,14 @@ IMAGE_DESCRIPTION=Operator used to install a service to measure VPC license use 
 IMAGE_SUMMARY=$(IMAGE_DESCRIPTION)
 IMAGE_OPENSHIFT_TAGS=licensing
 $(eval WORKING_CHANGES := $(shell git status --porcelain))
-$(eval BUILD_DATE := $(shell date +%m/%d@%H:%M:%S))
+$(eval BUILD_DATE := $(shell date +%Y/%m/%d@%H:%M:%S))
 $(eval GIT_COMMIT := $(shell git rev-parse --short HEAD))
 $(eval VCS_REF := $(GIT_COMMIT))
 IMAGE_RELEASE=$(VCS_REF)
+IMAGE_BUILDDATE=$(BUILD_DATE)
 GIT_REMOTE_URL = $(shell git config --get remote.origin.url)
-$(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "VCS_URL=$(GIT_REMOTE_URL)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
+
+$(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "VCS_URL=$(GIT_REMOTE_URL)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
 
 all: fmt check test coverage-kind build images
 
@@ -227,6 +229,7 @@ build:
 build-push-image: build-image push-image
 
 build-image: build
+	@echo $(DOCKER_BUILD_OPTS)
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
@@ -237,6 +240,7 @@ push-image: $(CONFIG_DOCKER_TARGET) build-image
 build-push-image-development: build-image-development push-image-development
 
 build-image-development: build
+	@echo $(DOCKER_BUILD_OPTS)
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(CSV_VERSION_DEVELOPMENT) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
