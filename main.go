@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	r "runtime"
 
@@ -47,8 +48,20 @@ var (
 
 func printVersion() {
 	setupLog.Info(fmt.Sprintf("Operator Version: %s", version.Version))
+	setupLog.Info(fmt.Sprintf("Operator BuildDate: %s", readFile("/IMAGE_BUILDDATE")))
+	setupLog.Info(fmt.Sprintf("Operator Commit: %s", readFile("/IMAGE_RELEASE")))
 	setupLog.Info(fmt.Sprintf("Go Version: %s", r.Version()))
 	setupLog.Info(fmt.Sprintf("Go OS/Arch: %s/%s", r.GOOS, r.GOARCH))
+}
+
+func readFile(filename string) string {
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		setupLog.Info(fmt.Sprintf("Can not read: %s", filename))
+		return ""
+	}
+
+	return string(content)[:len(string(content))-1]
 }
 
 func init() {
