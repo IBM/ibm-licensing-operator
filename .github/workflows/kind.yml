@@ -70,7 +70,8 @@ jobs:
           kubectl apply -f ./config/rbac/role.yaml
           kubectl apply -f ./config/rbac/role_binding.yaml
           kubectl apply -f ./config/rbac/role_operands.yaml
-          sleep 10
+          sleep 60
+          kubectl get sa
 
       - name: Run Scorecard tests
         run: |
