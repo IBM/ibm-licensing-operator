@@ -33,6 +33,7 @@ SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devo
 
 # Default bundle image tag
 BUNDLE_IMG ?= ibm-licensing-operator-bundle:$(CSV_VERSION)
+CATALOG_IMG ?= ibm-licensing-operator-catalog:$(CSV_VERSION)
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
 IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
@@ -442,11 +443,29 @@ bundle: pre-bundle alm-example
 
 # Build the bundle image.
 bundle-build:
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
 
+# Build the bundle image.
+bundle-build-development:
+	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 
 scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
-.PHONY: all build bundle-build bundle pre-bundle kustomize controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
+catalogsource: bundle-build
+	curl -Lo ./opm "https://github.com/operator-framework/operator-registry/releases/download/v1.16.1/linux-amd64-opm"
+	chmod +x ./opm
+	docker push ${REGISTRY}/${BUNDLE_IMG}
+	./opm index add --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	docker push  ${REGISTRY}/${CATALOG_IMG}
+
+catalogsource-development: bundle-build-development
+	curl -Lo ./opm "https://github.com/operator-framework/operator-registry/releases/download/v1.16.1/linux-amd64-opm"
+	chmod +x ./opm
+	yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
+	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
+	./opm index add --permissive  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	docker push  ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+
+.PHONY: all build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
 
