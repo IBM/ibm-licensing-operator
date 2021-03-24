@@ -70,8 +70,8 @@ jobs:
           kubectl apply -f ./config/rbac/role.yaml
           kubectl apply -f ./config/rbac/role_binding.yaml
           kubectl apply -f ./config/rbac/role_operands.yaml
-          sleep 60
-          kubectl get sa
+          n=0; until ((n >= 60)); do kubectl -n ibm-common-services get serviceaccount default -o name && break; n=$((n + 1)); sleep 1; done; ((n < 60))
+          kubectl get sa -n ibm-common-services 
 
       - name: Run Scorecard tests
         run: |
