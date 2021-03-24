@@ -123,6 +123,7 @@ rules:
   - networking.k8s.io
   resources:
   - ingresses
+  - networkpolicies
   verbs:
   - create
   - delete
@@ -132,11 +133,22 @@ rules:
   - update
   - watch
 - apiGroups:
+  - marketplace.redhat.com
+  resources:
+  - meterdefinitions
+  verbs:
+  - create
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
   - monitoring.coreos.com
   resources:
   - servicemonitors
   verbs:
   - create
+  - delete
   - get
   - list
   - watch
