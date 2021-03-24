@@ -446,7 +446,7 @@ bundle-build:
 
 
 scorecard:
-	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120
+	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
 .PHONY: all build bundle-build bundle pre-bundle kustomize controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
 
