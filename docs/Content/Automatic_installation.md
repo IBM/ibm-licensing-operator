@@ -17,6 +17,8 @@ The script is supported on the following platforms:
 
 The script installs License Service, creates an instance and validates the installation steps.
 
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
+
 1\. Download the script from the following location in the repository:
 [common/scripts/ibm_licensing_operator_install.sh](/common/scripts/ibm_licensing_operator_install.sh).
 

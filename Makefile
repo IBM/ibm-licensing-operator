@@ -18,7 +18,7 @@
 CSV_VERSION ?= 1.5.0
 CSV_VERSION_DEVELOPMENT ?= development
 POSTGRESS_VERSION ?= 12.0.4
-OLD_CSV_VERSION ?= 1.3.1
+OLD_CSV_VERSION ?= 1.4.1
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -371,6 +371,7 @@ deploy: manifests kustomize
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations."olm.skipRange"' '>=1.0.0 <$(CSV_VERSION)'
+	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations.containerImage' 'quay.io/opencloudio/${IMG}:$(CSV_VERSION)'
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Generate code
@@ -417,8 +418,17 @@ else
 KUSTOMIZE=$(shell which kustomize)
 endif
 
+alm-example:
+	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" \
+	"[\
+	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml`,\
+	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml`,\
+	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingbindinfo.yaml`,\
+	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingrequest.yaml`\
+	]"
+
 # Generate bundle manifests and metadata, then validate generated files.
-bundle: manifests
+pre-bundle: manifests
 	operator-sdk generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
 	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" > yq_tmp_reporter.yaml
@@ -427,31 +437,16 @@ bundle: manifests
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
 	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml
 	operator-sdk bundle validate ./bundle
-	@for file in ./config/samples/operator* ; do \
-    yq r -j -P $$file >> combined.json ; \
-	done; \
-	cp combined.json tmp.json ; \
-	sed 's/^}/},/g' tmp.json > combined.json ; \
-	cp combined.json tmp.json ; \
-	sed '$$ d' tmp.json > combined.json; \
-	printf ' }\n' >> combined.json ; \
-	cp combined.json tmp.json ; \
-	sed 's/^/  /g' tmp.json > combined.json; \
-	rm -rf tmp.json ; \
-	touch tmp.json ; \
-	printf '|-\n [\n' >> tmp.json ; \
-	cat combined.json >> tmp.json ; \
-	printf ' ]\n' >> tmp.json ; \
-	cat tmp.json > combined.json ; \
-	rm -rf tmp.json ; \
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" -f combined.json ;\
-	rm -rf combined.json ; \
+
+bundle: pre-bundle alm-example
 
 # Build the bundle image.
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
+
 scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE}
 
-.PHONY: all build bundle-build bundle kustomize controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
+.PHONY: all build bundle-build bundle pre-bundle kustomize controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
+

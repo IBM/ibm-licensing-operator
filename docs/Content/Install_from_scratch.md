@@ -12,7 +12,9 @@
 
 ## Installation
 
-   **Note:** To install License Service on Windows, adjust the commands to fit the Windows standard.
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
+
+  **Note:** To install License Service on Windows, adjust the commands to fit the Windows standard.
 
 1\. **Install the Operator Lifecycle Manager (OLM)**
 
@@ -182,7 +184,7 @@ a. See if the IBM Licensing Operator is deployed by OLM from the `CatalogSource`
 ```console
 $ kubectl get clusterserviceversion -n ibm-common-services
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.3.1   IBM Licensing Operator   1.3.1     ibm-licensing-operator.v1.3.0   Succeeded
+ibm-licensing-operator.v1.4.1   IBM Licensing Operator   1.4.1     ibm-licensing-operator.v1.4.1   Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
@@ -214,7 +216,6 @@ metadata:
   name: instance
 spec:
   apiSecretToken: ibm-licensing-token
-  datasource: datacollector
   httpsEnable: true
   instanceNamespace: ibm-common-services
 EOF
