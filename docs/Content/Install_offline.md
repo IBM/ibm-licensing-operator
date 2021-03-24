@@ -15,6 +15,8 @@
 
 ## Installation
 
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
+
 1\. Prepare Docker images.
 
 a.  Run the following command to prepare your Docker images.
@@ -78,7 +80,7 @@ kubectl config set-context --current --namespace=ibm-common-services
 e. Use `git clone`:
 
 ```bash
-export operator_release_version=v1.3.1
+export operator_release_version=v1.4.1
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
@@ -173,7 +175,6 @@ metadata:
   name: instance
 spec:
   apiSecretToken: ibm-licensing-token
-  datasource: datacollector
   httpsEnable: false
   instanceNamespace: ibm-common-services
   imagePullSecrets:
