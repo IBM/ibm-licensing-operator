@@ -62,6 +62,7 @@ jobs:
         run: |
           echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
           kubectl create namespace ibm-common-services
+          n=0; until ((n >= 60)); do kubectl -n ibm-common-services get serviceaccount default -o name && break; n=$((n + 1)); sleep 10; done; ((n < 60))
           kubectl create secret generic my-registry-token -n ibm-common-services --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson
           kubectl apply -f ./bundle/manifests/operator.ibm.com_ibmlicenseservicereporters.yaml
           kubectl apply -f ./bundle/manifests/operator.ibm.com_ibmlicensings.yaml
@@ -70,7 +71,6 @@ jobs:
           kubectl apply -f ./config/rbac/role.yaml
           kubectl apply -f ./config/rbac/role_binding.yaml
           kubectl apply -f ./config/rbac/role_operands.yaml
-          n=0; until ((n >= 60)); do kubectl -n ibm-common-services get serviceaccount default -o name && break; n=$((n + 1)); sleep 10; done; ((n < 60))
           kubectl get sa -n ibm-common-services 
 
       - name: Run Scorecard tests
