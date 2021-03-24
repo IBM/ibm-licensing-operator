@@ -16,7 +16,7 @@ metadata:
            "name": "instance"
          },
          "spec": {
-           "version": "1.4.1"
+           "version": "1.5.0"
          }
        },
        {
@@ -31,7 +31,7 @@ metadata:
            "name": "instance"
          },
          "spec": {
-           "version": "1.4.1",
+           "version": "1.5.0",
            "apiSecretToken": "ibm-licensing-token",
            "datasource": "datacollector",
            "httpsEnable": true,
@@ -71,7 +71,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    olm.skipRange: '>=1.0.0 <1.4.1'
+    olm.skipRange: '>=1.0.0 <1.5.0'
     operators.operatorframework.io/builder: operator-sdk-v1.2.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
   labels:
@@ -79,7 +79,7 @@ metadata:
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: ibm-licensing-operator.v1.4.1
+  name: ibm-licensing-operator.v1.5.0
   namespace: ibm-common-services
 spec:
   apiservicedefinitions: {}
@@ -330,13 +330,13 @@ spec:
                       - ibm-licensing-operator
                     env:
                       - name: IBM_LICENSING_IMAGE
-                        value: quay.io/opencloudio/ibm-licensing:1.4.1
+                        value: quay.io/opencloudio/ibm-licensing:1.5.0
                       - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.4.1
+                        value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.5.0
                       - name: IBM_POSTGRESQL_IMAGE
                         value: quay.io/opencloudio/ibm-postgresql:12.0.4
                       - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter:1.4.1
+                        value: quay.io/opencloudio/ibm-license-service-reporter:1.5.0
                       - name: WATCH_NAMESPACE
                         valueFrom:
                           fieldRef:
@@ -351,7 +351,7 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: spec.serviceAccountName
-                    image: quay.io/opencloudio/ibm-licensing-operator:1.4.1
+                    image: quay.io/opencloudio/ibm-licensing-operator:1.5.0
                     imagePullPolicy: Always
                     name: ibm-licensing-operator
                     resources:
@@ -556,4 +556,5 @@ spec:
   maturity: alpha
   provider:
     name: IBM
-  version: 1.4.1
+  replaces: ibm-licensing-operator.v1.4.1
+  version: 1.5.0
