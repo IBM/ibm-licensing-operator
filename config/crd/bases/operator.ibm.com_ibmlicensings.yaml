@@ -44,6 +44,13 @@ spec:
               description: Secret name used to store application token, either one
                 that exists, or one that will be created
               type: string
+            chargebackEnabled:
+              description: Consider updating to enable chargeback feature
+              type: boolean
+            chargebackRetentionPeriod:
+              description: Chargeback data retention period in days. Default value
+                is 62 days.
+              type: integer
             datasource:
               description: 'Where should data be collected, options: metering, datacollector'
               enum:
@@ -87,8 +94,8 @@ spec:
               type: string
             imageTagPostfix:
               description: IBM Licensing Service docker Image Tag or Digest, will
-                override default value and disable IBM_LICENSING_IMAGE env value
-                in operator deployment
+                override default value and disable IBM_LICENSING_IMAGE env value in
+                operator deployment
               type: string
             ingressEnabled:
               description: Should Ingress be created to expose IBM Licensing Service
@@ -317,7 +324,6 @@ spec:
           required:
           - datasource
           - httpsEnable
-          - instanceNamespace
           type: object
         status:
           description: IBMLicensingStatus defines the observed state of IBMLicensing
