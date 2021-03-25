@@ -420,6 +420,27 @@ else
 KUSTOMIZE=$(shell which kustomize)
 endif
 
+opm:
+ifeq (, $(shell which opm))
+	@{ \
+	set -e ;\
+	OPM_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$OPM_GEN_TMP_DIR ;\
+	git clone  --branch v1.16.1  https://github.com/operator-framework/operator-registry.git ;\
+	cd ./operator-registry ; \
+	git checkout v1.16.1;\
+	make ;\
+	ls -l ;\
+	cp ./bin/opm ~/ ; \
+	rm -rf $$OPM_GEN_TMP_DIR ;\
+	}
+OPM=~/opm
+else
+OPM=$(shell which opm)
+endif
+
+
+
 alm-example:
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" \
 	"[\
@@ -453,24 +474,20 @@ bundle-build-development:
 scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
-catalogsource: bundle-build
-	curl -Lo ./opm "https://github.com/operator-framework/operator-registry/releases/download/v1.16.1/linux-amd64-opm"
+catalogsource: opm bundle-build
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
-	chmod +x ./opm
 	chmod +x ./yq
 	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
 	docker push ${REGISTRY}/${BUNDLE_IMG}
-	./opm index add --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	$(OPM) index add --permissive -c docker --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
 	docker push  ${REGISTRY}/${CATALOG_IMG}
 
-catalogsource-development: bundle-build-development
-	curl -Lo ./opm "https://github.com/operator-framework/operator-registry/releases/download/v1.16.1/linux-amd64-opm"
+catalogsource-development: opm bundle-build-development
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
-	chmod +x ./opm
 	chmod +x ./yq
 	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
-	./opm index add --permissive  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	$(OPM) index add --permissive  -c docker  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push  ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 
 .PHONY: all build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
