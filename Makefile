@@ -423,10 +423,23 @@ endif
 
 opm:
 ifeq (, $(shell which opm))
-OPM=/build/bin/opm
+	@{ \
+	set -e ;\
+	OPM_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$OPM_GEN_TMP_DIR ;\
+	git clone  --branch v1.16.1  https://github.com/operator-framework/operator-registry.git ;\
+	cd ./operator-registry ; \
+	git checkout v1.16.1;\
+	make ;\
+	ls -l ;\
+	cp ./bin/opm ~/ ; \
+	rm -rf $$OPM_GEN_TMP_DIR ;\
+	}
+OPM=~/opm
 else
 OPM=$(shell which opm)
 endif
+
 
 
 alm-example:
