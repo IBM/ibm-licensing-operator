@@ -23,7 +23,70 @@ on:
       branches:
         - master
         - development
-jobs:  
+jobs:
+
+  scorecard:
+    name: Scorecrd tests
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+        id: go
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          make build
+          curl -Lo ./operator-sdk "https://github.com/operator-framework/operator-sdk/releases/download/v1.2.0/operator-sdk-v1.2.0-x86_64-linux-gnu"
+          curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.10.0/kind-$(uname)-amd64"
+          chmod +x ./operator-sdk
+          chmod +x ./kind
+          ./kind create cluster --image kindest/node:v1.17.2
+          ./kind get clusters
+          kubectl config get-contexts
+          kubectl config set-context kind-kind
+          export PATH=`pwd`:$PATH
+
+      - name: Install OLM
+        run: |
+          kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.13.0/crds.yaml
+          kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.13.0/olm.yaml
+
+      - name: Deploy Operators YAML
+        env:
+          JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
+        run: |
+          echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
+          kubectl create namespace ibm-common-services
+          n=0; until ((n >= 60)); do kubectl -n ibm-common-services get serviceaccount default -o name && break; n=$((n + 1)); sleep 60; done; ((n < 60))
+          kubectl create secret generic my-registry-token -n ibm-common-services --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson
+          kubectl apply -f ./bundle/manifests/operator.ibm.com_ibmlicenseservicereporters.yaml
+          kubectl apply -f ./bundle/manifests/operator.ibm.com_ibmlicensings.yaml
+          kubectl apply -f ./config/rbac/service_account.yaml -n ibm-common-services
+          kubectl -n ibm-common-services patch serviceaccount ibm-licensing-operator -p '{"imagePullSecrets": [{"name": "my-registry-token"}]}'
+          kubectl apply -f ./config/rbac/role.yaml
+          kubectl apply -f ./config/rbac/role_binding.yaml
+          kubectl apply -f ./config/rbac/role_operands.yaml
+          kubectl get sa -n ibm-common-services 
+
+      - name: Run Scorecard tests
+        run: |
+          export PATH=`pwd`:$PATH
+          set -o pipefail
+          make scorecard 2>&1 | tee ./scorecard_logs.txt
+
+      - name: Archive scorecard logs
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: scorecard results
+          path: ./*.txt
+
+
   setup-build-publish-deploy:
     name: Operator tests on KinD
     runs-on: ubuntu-18.04
