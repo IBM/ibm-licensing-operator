@@ -168,6 +168,7 @@ vet:
 	@go vet ./...
 
 check: lint ## Check all files lint errors, this is also done before pushing the code to remote branch
+	catalogsource-development
 
 # All available linters: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown lint-typescript lint-protos
 # Default value will run all linters, override these make target with your requirements:
@@ -420,6 +421,14 @@ else
 KUSTOMIZE=$(shell which kustomize)
 endif
 
+opm:
+ifeq (, $(shell which opm))
+OPM=/build/bin/opm
+else
+OPM=$(shell which opm)
+endif
+
+
 alm-example:
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" \
 	"[\
@@ -453,24 +462,20 @@ bundle-build-development:
 scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
-catalogsource: bundle-build
-	curl -Lo ./opm "https://github.com/operator-framework/operator-registry/releases/download/v1.16.1/linux-amd64-opm"
+catalogsource: opm bundle-build
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
-	chmod +x ./opm
 	chmod +x ./yq
 	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
 	docker push ${REGISTRY}/${BUNDLE_IMG}
-	./opm index add --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	$(OPM) index add --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push  ${REGISTRY}/${CATALOG_IMG}
 
-catalogsource-development: bundle-build-development
-	curl -Lo ./opm "https://github.com/operator-framework/operator-registry/releases/download/v1.16.1/linux-amd64-opm"
+catalogsource-development: opm bundle-build-development
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
-	chmod +x ./opm
 	chmod +x ./yq
 	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
-	./opm index add --permissive  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	$(OPM) index add --permissive  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push  ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 
 .PHONY: all build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
