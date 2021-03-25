@@ -1,8 +1,5 @@
 # Upgrading to License service 1.4.x from an earlier version
 
-* [Backup](#backup)
-* [Upgrades](#upgrades)
-
 Learn how to upgrade to License Service version 1.4.x from an earlier version.
 
 To upgrade to License Service 1.4.x, you must manually update the subscription channel. Complete the following actions to complete the upgrade.
