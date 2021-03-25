@@ -15,8 +15,7 @@ To upgrade to License Service 1.4.x, you must manually update the subscription c
     ```
 
    **Note:** If you installed License Service in a custom namespace, change the value of `licensingNamespace` from the default `ibm-common-services` to your custom namespace.
-
-3. Wait until the `ClusterServiceVersion` status changes to **Succeeded**. To check the status of `ClusterServiceVersion`, run the following command. 
+3. Wait until the `ClusterServiceVersion` status changes to **Succeeded**. To check the status of `ClusterServiceVersion`, run the following command.
 
     ```bash
     csv_name=$(kubectl get subscription -n "${licensingNamespace}" ibm-licensing-operator-app -o jsonpath='{.status.currentCSV}')
