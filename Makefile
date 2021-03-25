@@ -243,11 +243,11 @@ build-push-image-development: build-image-development push-image-development
 build-image-development: build
 	@echo $(DOCKER_BUILD_OPTS)
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(CSV_VERSION_DEVELOPMENT) $(DOCKER_BUILD_OPTS) -f Dockerfile .
+	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
 push-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH) build-image-development
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker push $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(CSV_VERSION_DEVELOPMENT)
+	@docker push $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
 
 
 ##@ SHA Digest section
@@ -262,11 +262,12 @@ get-image-sha: ## replaces operand tag for digest in operator.yaml and csv
 multiarch-image: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION) ${MANIFEST_VERSION}
 	common/scripts/catalog_build.sh $(REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
+	make catalogsource
 
 multiarch-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${CSV_VERSION_DEVELOPMENT}
 	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${CSV_VERSION_DEVELOPMENT}
-
+	make catalogsource-development
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
 
