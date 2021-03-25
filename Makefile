@@ -168,7 +168,7 @@ vet:
 	@go vet ./...
 
 check: lint ## Check all files lint errors, this is also done before pushing the code to remote branch
-	catalogsource-development
+	make catalogsource-development
 
 # All available linters: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown lint-typescript lint-protos
 # Default value will run all linters, override these make target with your requirements:
