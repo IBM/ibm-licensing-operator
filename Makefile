@@ -303,7 +303,6 @@ help: ## Display this help
 #ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 test:
 	@echo "Running tests for the controllers."
-	make catalogsource-development
 	#@mkdir -p ${ENVTEST_ASSETS_DIR}
 	#@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
 	#@source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
@@ -480,14 +479,13 @@ catalogsource: opm bundle-build
 	chmod +x ./yq
 	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
 	docker push ${REGISTRY}/${BUNDLE_IMG}
-	$(OPM) index add -c docker --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	$(OPM) index add --permissive -c docker --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
 	docker push  ${REGISTRY}/${CATALOG_IMG}
 
 catalogsource-development: opm bundle-build-development
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
 	chmod +x ./yq
 	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
-	$(OPM) index add --permissive  -c docker  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive  -c docker  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push  ${SCRATCH_REGISTRY}/${CATALOG_IMG}
