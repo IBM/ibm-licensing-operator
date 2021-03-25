@@ -455,15 +455,20 @@ scorecard:
 
 catalogsource: bundle-build
 	curl -Lo ./opm "https://github.com/operator-framework/operator-registry/releases/download/v1.16.1/linux-amd64-opm"
+	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
 	chmod +x ./opm
+	chmod +x ./yq
+	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
 	docker push ${REGISTRY}/${BUNDLE_IMG}
 	./opm index add --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push  ${REGISTRY}/${CATALOG_IMG}
 
 catalogsource-development: bundle-build-development
 	curl -Lo ./opm "https://github.com/operator-framework/operator-registry/releases/download/v1.16.1/linux-amd64-opm"
+	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
 	chmod +x ./opm
-	yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
+	chmod +x ./yq
+	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
 	./opm index add --permissive  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push  ${SCRATCH_REGISTRY}/${CATALOG_IMG}
