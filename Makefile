@@ -168,7 +168,6 @@ vet:
 	@go vet ./...
 
 check: lint ## Check all files lint errors, this is also done before pushing the code to remote branch
-	make catalogsource-development
 
 # All available linters: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown lint-typescript lint-protos
 # Default value will run all linters, override these make target with your requirements:
@@ -304,6 +303,7 @@ help: ## Display this help
 #ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 test:
 	@echo "Running tests for the controllers."
+	make catalogsource-development
 	#@mkdir -p ${ENVTEST_ASSETS_DIR}
 	#@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
 	#@source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
