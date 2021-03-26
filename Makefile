@@ -15,9 +15,10 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.4.1
+CSV_VERSION ?= 1.5.0
+CSV_VERSION_DEVELOPMENT ?= development
 POSTGRESS_VERSION ?= 12.0.4
-OLD_CSV_VERSION ?= 1.3.1
+OLD_CSV_VERSION ?= 1.4.1
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -32,6 +33,7 @@ SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devo
 
 # Default bundle image tag
 BUNDLE_IMG ?= ibm-licensing-operator-bundle:$(CSV_VERSION)
+CATALOG_IMG ?= ibm-licensing-operator-catalog:$(CSV_VERSION)
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
 IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
@@ -117,12 +119,14 @@ IMAGE_DESCRIPTION=Operator used to install a service to measure VPC license use 
 IMAGE_SUMMARY=$(IMAGE_DESCRIPTION)
 IMAGE_OPENSHIFT_TAGS=licensing
 $(eval WORKING_CHANGES := $(shell git status --porcelain))
-$(eval BUILD_DATE := $(shell date +%m/%d@%H:%M:%S))
+$(eval BUILD_DATE := $(shell date +%Y/%m/%d@%H:%M:%S))
 $(eval GIT_COMMIT := $(shell git rev-parse --short HEAD))
 $(eval VCS_REF := $(GIT_COMMIT))
 IMAGE_RELEASE=$(VCS_REF)
+IMAGE_BUILDDATE=$(BUILD_DATE)
 GIT_REMOTE_URL = $(shell git config --get remote.origin.url)
-$(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "VCS_URL=$(GIT_REMOTE_URL)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
+
+$(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "VCS_URL=$(GIT_REMOTE_URL)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
 
 all: fmt check test coverage-kind build images
 
@@ -183,6 +187,19 @@ coverage-kind: prepare-unit-test ## Run coverage if possible
 	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
 	./common/scripts/codecov.sh ${BUILD_LOCALLY}
 
+coverage-kind-development: prepare-unit-test ## Run coverage if possible
+	export USE_EXISTING_CLUSTER=true; \
+	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+	export NAMESPACE=${NAMESPACE}; \
+	export WATCH_NAMESPACE=${NAMESPACE}; \
+	export OCP=${OCP}; \
+	export IBM_LICENSING_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${POSTGRESS_VERSION}; \
+	export IBM_LICENSING_USAGE_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	./common/scripts/codecov.sh ${BUILD_LOCALLY}
+
 coverage: ## Run coverage if possible
 	@echo "coverage on kind in github action"
 
@@ -213,6 +230,7 @@ build:
 build-push-image: build-image push-image
 
 build-image: build
+	@echo $(DOCKER_BUILD_OPTS)
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
@@ -223,6 +241,7 @@ push-image: $(CONFIG_DOCKER_TARGET) build-image
 build-push-image-development: build-image-development push-image-development
 
 build-image-development: build
+	@echo $(DOCKER_BUILD_OPTS)
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
@@ -243,11 +262,12 @@ get-image-sha: ## replaces operand tag for digest in operator.yaml and csv
 multiarch-image: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION) ${MANIFEST_VERSION}
 	common/scripts/catalog_build.sh $(REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
+	make catalogsource
 
 multiarch-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH)
-	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${MANIFEST_VERSION}
-	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
-
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${CSV_VERSION_DEVELOPMENT}
+	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${CSV_VERSION_DEVELOPMENT}
+	make catalogsource-development
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
 
@@ -290,13 +310,14 @@ test:
 prepare-unit-test:
 	kubectl create namespace ${NAMESPACE} || echo ""
 	kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo ""
-	kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml || echo ""
-	kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml || echo ""
-	kubectl apply -f ./deploy/service_account.yaml -n ${NAMESPACE} || echo ""
-	sed "s/ibm-common-services/${NAMESPACE}/g" < ./deploy/role.yaml > ./deploy/role_ns.yaml
-	kubectl apply -f ./deploy/role_ns.yaml || echo ""
-	sed "s/ibm-common-services/${NAMESPACE}/g" < ./deploy/role_binding.yaml > ./deploy/role_binding_ns.yaml
-	kubectl apply -f ./deploy/role_binding_ns.yaml || echo ""
+	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml || echo ""
+	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicensings.yaml || echo ""
+	kubectl apply -f ./bundle/manifests/ibm-license-service_v1_serviceaccount.yaml -n ${NAMESPACE} || echo ""
+	kubectl apply -f ./bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml -n ${NAMESPACE} || echo ""
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
+	kubectl apply -f ./config/rbac/role_ns.yaml || echo ""
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role_binding.yaml > ./config/rbac/role_binding_ns.yaml
+	kubectl apply -f ./config/rbac/role_binding_ns.yaml || echo ""
 	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/develop/v2/bundle/manifests/marketplace.redhat.com_meterdefinitions.yaml
 	kubectl apply -f marketplace.redhat.com_meterdefinitions.yaml
 	curl -O https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
@@ -313,6 +334,19 @@ unit-test: prepare-unit-test
 	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}; \
 	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${POSTGRESS_VERSION}; \
 	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
+	go test -v ./controllers/... -coverprofile cover.out
+
+unit-test-development: prepare-unit-test
+	export USE_EXISTING_CLUSTER=true; \
+	export WATCH_NAMESPACE=${NAMESPACE}; \
+	export NAMESPACE=${NAMESPACE}; \
+	export OCP=${OCP}; \
+	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
+	export IBM_LICENSING_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
+	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${POSTGRESS_VERSION}; \
+	export IBM_LICENSING_USAGE_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
 	go test -v ./controllers/... -coverprofile cover.out
 
 # Build manager binary
@@ -338,6 +372,8 @@ deploy: manifests kustomize
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
+	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations."olm.skipRange"' '>=1.0.0 <$(CSV_VERSION)'
+	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations.containerImage' 'quay.io/opencloudio/${IMG}:$(CSV_VERSION)'
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Generate code
@@ -384,15 +420,77 @@ else
 KUSTOMIZE=$(shell which kustomize)
 endif
 
+opm:
+ifeq (, $(shell which opm))
+	@{ \
+	set -e ;\
+	OPM_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$OPM_GEN_TMP_DIR ;\
+	git clone  --branch v1.16.1  https://github.com/operator-framework/operator-registry.git ;\
+	cd ./operator-registry ; \
+	git checkout v1.16.1;\
+	make ;\
+	ls -l ;\
+	cp ./bin/opm ~/ ; \
+	rm -rf $$OPM_GEN_TMP_DIR ;\
+	}
+OPM=~/opm
+else
+OPM=$(shell which opm)
+endif
+
+
+
+alm-example:
+	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" \
+	"[\
+	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml`,\
+	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml`,\
+	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingbindinfo.yaml`,\
+	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingrequest.yaml`\
+	]"
+
 # Generate bundle manifests and metadata, then validate generated files.
-bundle: manifests
+pre-bundle: manifests
 	operator-sdk generate kustomize manifests -q
-	sed -i "s/olm.skipRange.*/olm.skipRange: '>=1.0.0 <$(CSV_VERSION)'/g" ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
+	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" > yq_tmp_reporter.yaml
+	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_licensing.yaml
+	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
+	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
+	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml
 	operator-sdk bundle validate ./bundle
+
+bundle: pre-bundle alm-example
 
 # Build the bundle image.
 bundle-build:
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
 
-.PHONY: all build bundle-build bundle kustomize controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
+# Build the bundle image.
+bundle-build-development:
+	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
+
+scorecard:
+	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
+
+catalogsource: opm
+	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
+	chmod +x ./yq
+	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
+	make bundle-build
+	docker push ${REGISTRY}/${BUNDLE_IMG}
+	$(OPM) index add --permissive -c docker --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
+	docker push  ${REGISTRY}/${CATALOG_IMG}
+
+catalogsource-development: opm
+	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
+	chmod +x ./yq
+	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
+	make bundle-build-development
+	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
+	$(OPM) index add --permissive  -c docker  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	docker push  ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+
+.PHONY: all build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
+

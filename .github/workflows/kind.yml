@@ -24,64 +24,69 @@ on:
         - master
         - development
 jobs:
+
   scorecard:
     name: Scorecrd tests
     runs-on: ubuntu-18.04
     steps:
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
-      with:
-        go-version: ^1.15
-      id: go
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+        id: go
 
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Build
-      run: |
-        make build
-        curl -Lo ./operator-sdk "https://github.com/operator-framework/operator-sdk/releases/download/v0.17.0/operator-sdk-v0.17.0-x86_64-linux-gnu"
-        curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.9.0/kind-$(uname)-amd64"
-        chmod +x ./operator-sdk
-        chmod +x ./kind
-        ./kind create cluster --image kindest/node:v1.17.2
-        ./kind get clusters
-        kubectl config get-contexts
-        kubectl config set-context kind-kind
+      - name: Build
+        run: |
+          make build
+          curl -Lo ./operator-sdk "https://github.com/operator-framework/operator-sdk/releases/download/v1.2.0/operator-sdk-v1.2.0-x86_64-linux-gnu"
+          curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.10.0/kind-$(uname)-amd64"
+          chmod +x ./operator-sdk
+          chmod +x ./kind
+          ./kind create cluster --image kindest/node:v1.17.2
+          ./kind get clusters
+          kubectl config get-contexts
+          kubectl config set-context kind-kind
+          export PATH=`pwd`:$PATH
 
-    - name: Install OLM
-      run: |
-        kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.13.0/crds.yaml
-        kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.13.0/olm.yaml
-   
-    - name: Deploy Operators YAML
-      env:
-        JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
-      run: |
-        echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
-        kubectl create namespace ibm-common-services
-        kubectl create secret generic my-registry-token -n ibm-common-services --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson
-        kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
-        kubectl apply -f ./deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
-        kubectl apply -f ./deploy/service_account.yaml -n ibm-common-services
-        kubectl -n ibm-common-services patch serviceaccount ibm-licensing-operator -p '{"imagePullSecrets": [{"name": "my-registry-token"}]}'
-        kubectl apply -f ./deploy/role.yaml
-        kubectl apply -f ./deploy/role_binding.yaml 
-    - name: Run Scorecard tests
-      run: |
-        cp ./common/scripts/tests/.osdk-scorecard.yaml ./.osdk-scorecard.yaml
-        export VERSION=1.4.1
-        set -o pipefail
-        ./operator-sdk scorecard namespace ibm-common-services --config ./.osdk-scorecard.yaml -b ./deploy/olm-catalog/ibm-licensing-operator/$VERSION/  --verbose 2>&1 | tee ./scorecard_logs.txt
+      - name: Install OLM
+        run: |
+          kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.13.0/crds.yaml
+          kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.13.0/olm.yaml
 
-    - name: Archive scorecard logs
-      uses: actions/upload-artifact@v2
-      if: always()
-      with:
-        name: scorecard results
-        path: ./*.txt
-    
-     
+      - name: Deploy Operators YAML
+        env:
+          JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
+        run: |
+          echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
+          kubectl create namespace ibm-common-services
+          n=0; until ((n >= 60)); do kubectl -n ibm-common-services get serviceaccount default -o name && break; n=$((n + 1)); sleep 60; done; ((n < 60))
+          kubectl create secret generic my-registry-token -n ibm-common-services --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson
+          kubectl apply -f ./bundle/manifests/operator.ibm.com_ibmlicenseservicereporters.yaml
+          kubectl apply -f ./bundle/manifests/operator.ibm.com_ibmlicensings.yaml
+          kubectl apply -f ./config/rbac/service_account.yaml -n ibm-common-services
+          kubectl -n ibm-common-services patch serviceaccount ibm-licensing-operator -p '{"imagePullSecrets": [{"name": "my-registry-token"}]}'
+          kubectl apply -f ./config/rbac/role.yaml
+          kubectl apply -f ./config/rbac/role_binding.yaml
+          kubectl apply -f ./config/rbac/role_operands.yaml
+          kubectl get sa -n ibm-common-services 
+
+      - name: Run Scorecard tests
+        run: |
+          export PATH=`pwd`:$PATH
+          set -o pipefail
+          make scorecard 2>&1 | tee ./scorecard_logs.txt
+
+      - name: Archive scorecard logs
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: scorecard results
+          path: ./*.txt
+
+
   setup-build-publish-deploy:
     name: Operator tests on KinD
     runs-on: ubuntu-18.04
@@ -112,13 +117,17 @@ jobs:
         kubectl config set-context kind-tests        
         kubectl get nodes
 
-
     - name: Test Unit Operator - License Service
       run: |
         export PATH=`pwd`:$PATH
         export SUFIX=$RANDOM
         export USE_EXISTING_CLUSTER=true
-        make unit-test > ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
+        if [[ $GITHUB_BASE_REF == 'development' || $GITHUB_REF == 'refs/heads/development' ]]
+        then
+          make unit-test-development > ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
+        else
+          make unit-test > ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
+        fi
 
     - name: Check all pods
       if: always()

@@ -52,7 +52,7 @@ echo "SHA=$SHA"
 #---------------------------------------------------------
 # update operator.yaml
 #---------------------------------------------------------
-OPER_FILE=deploy/operator.yaml
+OPER_FILE=config/manager/manager.yaml
 
 # delete the "name" and "value" lines for the old SHA
 # for example:

@@ -1,0 +1,9 @@
+channels:
+- currentCSV: ibm-licensing-operator.v1.3.1
+  name: beta
+- currentCSV: ibm-licensing-operator.v1.5.0
+  name: dev
+- currentCSV: ibm-licensing-operator.v1.5.0
+  name: v3
+defaultChannel: v3
+packageName: ibm-licensing-operator-app
