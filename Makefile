@@ -478,6 +478,11 @@ catalogsource: opm
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
 	chmod +x ./yq
 	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
+	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${REGISTRY}/${IMG}:${CSV_VERSION}"
+	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value'  "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"
+	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value'  "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"
+	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value'  "${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${POSTGRESS_VERSION}"
+	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value'  "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"
 	make bundle-build
 	docker push ${REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive -c docker --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
@@ -487,6 +492,11 @@ catalogsource-development: opm
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
 	chmod +x ./yq
 	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
+	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${SCRATCH_REGISTRY}/${IMG}:${CSV_VERSION}"
+	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"
+	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"
+	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value'  "${SCRATCH_REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${POSTGRESS_VERSION}"
+	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"
 	make bundle-build-development
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive  -c docker  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
