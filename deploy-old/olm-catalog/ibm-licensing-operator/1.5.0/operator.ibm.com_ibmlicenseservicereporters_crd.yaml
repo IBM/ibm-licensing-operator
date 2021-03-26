@@ -1,12 +1,11 @@
-
----
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
-  creationTimestamp: null
   name: ibmlicenseservicereporters.operator.ibm.com
+  labels:
+    app.kubernetes.io/instance: "ibm-licensing-operator"
+    app.kubernetes.io/managed-by: "ibm-licensing-operator"
+    app.kubernetes.io/name: "ibm-licensing"
 spec:
   group: operator.ibm.com
   names:
@@ -48,14 +47,13 @@ spec:
               - type: string
               description: Persistent Volume Claim Capacity
               pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-              x-kubernetes-int-or-string: true
             databaseContainer:
               description: Database Settings
               properties:
                 imageName:
                   description: IBM Licensing Service docker Image Name, will override
-                    default value and disable IBM_LICENSING_IMAGE env value in operator
-                    deployment
+                    default value and disable IBM_LICENSING_IMAGE env value in
+                    operator deployment
                   type: string
                 imagePullPolicy:
                   description: PullPolicy describes a policy for if/when to pull a
@@ -67,13 +65,13 @@ spec:
                   type: string
                 imageRegistry:
                   description: IBM Licensing Service docker Image Registry, will override
-                    default value and disable IBM_LICENSING_IMAGE env value in operator
-                    deployment
+                    default value and disable IBM_LICENSING_IMAGE env value in
+                    operator deployment
                   type: string
                 imageTagPostfix:
                   description: IBM Licensing Service docker Image Tag or Digest, will
-                    override default value and disable IBM_LICENSING_IMAGE env value
-                    in operator deployment
+                    override default value and disable IBM_LICENSING_IMAGE env
+                    value in operator deployment
                   type: string
                 resources:
                   description: ResourceRequirements describes the compute resource
@@ -85,7 +83,6 @@ spec:
                         - type: integer
                         - type: string
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        x-kubernetes-int-or-string: true
                       description: 'Limits describes the maximum amount of compute
                         resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                       type: object
@@ -95,7 +92,6 @@ spec:
                         - type: integer
                         - type: string
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        x-kubernetes-int-or-string: true
                       description: 'Requests describes the minimum amount of compute
                         resources required. If Requests is omitted for a container,
                         it defaults to Limits if that is explicitly specified, otherwise
@@ -128,8 +124,8 @@ spec:
               properties:
                 imageName:
                   description: IBM Licensing Service docker Image Name, will override
-                    default value and disable IBM_LICENSING_IMAGE env value in operator
-                    deployment
+                    default value and disable IBM_LICENSING_IMAGE env value in
+                    operator deployment
                   type: string
                 imagePullPolicy:
                   description: PullPolicy describes a policy for if/when to pull a
@@ -141,13 +137,13 @@ spec:
                   type: string
                 imageRegistry:
                   description: IBM Licensing Service docker Image Registry, will override
-                    default value and disable IBM_LICENSING_IMAGE env value in operator
-                    deployment
+                    default value and disable IBM_LICENSING_IMAGE env value in
+                    operator deployment
                   type: string
                 imageTagPostfix:
                   description: IBM Licensing Service docker Image Tag or Digest, will
-                    override default value and disable IBM_LICENSING_IMAGE env value
-                    in operator deployment
+                    override default value and disable IBM_LICENSING_IMAGE env
+                    value in operator deployment
                   type: string
                 resources:
                   description: ResourceRequirements describes the compute resource
@@ -159,7 +155,6 @@ spec:
                         - type: integer
                         - type: string
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        x-kubernetes-int-or-string: true
                       description: 'Limits describes the maximum amount of compute
                         resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                       type: object
@@ -169,7 +164,6 @@ spec:
                         - type: integer
                         - type: string
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        x-kubernetes-int-or-string: true
                       description: 'Requests describes the minimum amount of compute
                         resources required. If Requests is omitted for a container,
                         it defaults to Limits if that is explicitly specified, otherwise
@@ -182,8 +176,8 @@ spec:
               properties:
                 imageName:
                   description: IBM Licensing Service docker Image Name, will override
-                    default value and disable IBM_LICENSING_IMAGE env value in operator
-                    deployment
+                    default value and disable IBM_LICENSING_IMAGE env value in
+                    operator deployment
                   type: string
                 imagePullPolicy:
                   description: PullPolicy describes a policy for if/when to pull a
@@ -195,13 +189,13 @@ spec:
                   type: string
                 imageRegistry:
                   description: IBM Licensing Service docker Image Registry, will override
-                    default value and disable IBM_LICENSING_IMAGE env value in operator
-                    deployment
+                    default value and disable IBM_LICENSING_IMAGE env value in
+                    operator deployment
                   type: string
                 imageTagPostfix:
                   description: IBM Licensing Service docker Image Tag or Digest, will
-                    override default value and disable IBM_LICENSING_IMAGE env value
-                    in operator deployment
+                    override default value and disable IBM_LICENSING_IMAGE env
+                    value in operator deployment
                   type: string
                 resources:
                   description: ResourceRequirements describes the compute resource
@@ -213,7 +207,6 @@ spec:
                         - type: integer
                         - type: string
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        x-kubernetes-int-or-string: true
                       description: 'Limits describes the maximum amount of compute
                         resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                       type: object
@@ -223,7 +216,6 @@ spec:
                         - type: integer
                         - type: string
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        x-kubernetes-int-or-string: true
                       description: 'Requests describes the minimum amount of compute
                         resources required. If Requests is omitted for a container,
                         it defaults to Limits if that is explicitly specified, otherwise
@@ -945,9 +937,3 @@ spec:
   - name: v1alpha1
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []

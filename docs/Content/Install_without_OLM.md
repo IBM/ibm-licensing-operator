@@ -54,12 +54,13 @@ d. Apply RBAC roles and CRD:
 
 ```bash
 # add CRD:
-kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
-kubectl apply -f deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 # add RBAC:
-kubectl apply -f deploy/role.yaml
-kubectl apply -f deploy/service_account.yaml
-kubectl apply -f deploy/role_binding.yaml
+kubectl apply -f config/rbac/role.yaml
+kubectl apply -f bundle/manifests/ibm-license-service_v1_serviceaccount.yaml
+kubectl apply -f bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml
+kubectl apply -f config/rbac/role_binding.yaml
 ```
 
 e. Modify the `operator.yaml` image based on tags.
@@ -67,21 +68,21 @@ e. Modify the `operator.yaml` image based on tags.
 - For **LINUX** users:
 
 ```bash
-export operator_version=1.4.1
-export operand_version=1.4.1
-sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
-sed -i 's/@sha256.*/:'"${operand_version}"'/g' deploy/operator.yaml
-kubectl apply -f deploy/operator.yaml
+LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
+export operand_version=$(git tag | tail -n1 | tr -d v)
+sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
+sed -i 's/@sha256.*/:'"${operand_version}"'/g' config/manager/manager.yaml
+kubectl apply -f config/manager/manager.yaml
 ```
 
 - For **MAC** users:
 
 ```bash
-export operator_version=1.4.1
-export operand_version=1.4.1
-sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
-sed -i "" 's/@sha256.*/:'"${operand_version}"'/g' deploy/operator.yaml
-kubectl apply -f deploy/operator.yaml
+LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
+export operand_version=$(git tag | tail -n1 | tr -d v)
+sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
+sed -i "" 's/@sha256.*/:'"${operand_version}"'/g' config/manager/manager.yaml
+kubectl apply -f config/manager/manager.yaml
 ```
 
 **Results:**

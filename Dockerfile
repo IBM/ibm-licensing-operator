@@ -23,6 +23,7 @@ ARG IMAGE_MAINTAINER
 ARG IMAGE_VENDOR
 ARG IMAGE_VERSION
 ARG IMAGE_RELEASE
+ARG IMAGE_BUILDDATE
 ARG IMAGE_DESCRIPTION
 ARG IMAGE_SUMMARY
 ARG IMAGE_OPENSHIFT_TAGS
@@ -55,7 +56,7 @@ ENV OPERATOR=/usr/local/bin/ibm-licensing-operator \
 
 # install operator binary
 COPY bin/ibm-licensing-operator ${OPERATOR}
-COPY deploy/crds ${DEPLOY_DIR}
+COPY bundle ${DEPLOY_DIR}
 
 COPY build/bin /usr/local/bin
 RUN  /usr/local/bin/user_setup
@@ -66,6 +67,7 @@ COPY LICENSE /licenses
 
 # add commit image release
 RUN  echo "$IMAGE_RELEASE" > /IMAGE_RELEASE
+RUN  echo "$IMAGE_BUILDDATE" > /IMAGE_BUILDDATE
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
 
