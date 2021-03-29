@@ -32,8 +32,11 @@ REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.c
 SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom"
 
 # Default bundle image tag
-BUNDLE_IMG ?= ibm-licensing-operator-bundle:$(CSV_VERSION)
-CATALOG_IMG ?= ibm-licensing-operator-catalog:$(CSV_VERSION)
+IMAGE_BUNDLE_NAME ?= ibm-licensing-operator-bundle
+IMAGE_CATALOG_NAME ?= ibm-licensing-operator-catalog
+
+BUNDLE_IMG ?= $(IMAGE_BUNDLE_NAME)-$(LOCAL_ARCH):$(VERSION)
+CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
 IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE ?= ibm-license-service-reporter-ui
@@ -230,7 +233,7 @@ build:
 	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh bin/$(IMAGE_NAME) ./main.go
 	@strip $(STRIP_FLAGS) bin/$(IMAGE_NAME)
 
-build-push-image: build-image push-image
+build-push-image: build-image push-image catalogsource
 
 build-image: build
 	@echo $(DOCKER_BUILD_OPTS)
@@ -241,7 +244,7 @@ push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
 
-build-push-image-development: build-image-development push-image-development
+build-push-image-development: build-image-development push-image-development catalogsource-development
 
 build-image-development: build
 	@echo $(DOCKER_BUILD_OPTS)
@@ -265,12 +268,13 @@ get-image-sha: ## replaces operand tag for digest in operator.yaml and csv
 multiarch-image: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION) ${MANIFEST_VERSION}
 	common/scripts/catalog_build.sh $(REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
-	make catalogsource
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION) ${MANIFEST_VERSION}
 
 multiarch-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH)
-	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${CSV_VERSION_DEVELOPMENT}
-	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${CSV_VERSION_DEVELOPMENT}
-	make catalogsource-development
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${MANIFEST_VERSION}
+	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION) ${MANIFEST_VERSION}
+
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
 
@@ -483,7 +487,8 @@ scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
 catalogsource: opm
-	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
+	@echo "Build CatalogSource for $(LOCAL_ARCH)..."
+	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_$(LOCAL_ARCH)"
 	chmod +x ./yq
 	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${REGISTRY}/${IMG}:${CSV_VERSION}"
@@ -497,7 +502,8 @@ catalogsource: opm
 	docker push  ${REGISTRY}/${CATALOG_IMG}
 
 catalogsource-development: opm
-	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_amd64"
+	@echo "Build Development CatalogSource for $(LOCAL_ARCH)..."
+	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_$(LOCAL_ARCH)"
 	chmod +x ./yq
 	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${SCRATCH_REGISTRY}/${IMG}:${CSV_VERSION}"
