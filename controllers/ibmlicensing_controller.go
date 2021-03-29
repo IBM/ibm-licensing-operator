@@ -144,7 +144,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	reconcileFunctions := []interface{}{
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
-		r.reconcileUploadConfigMap,
+		r.reconcileConfigMaps,
 		r.reconcileServices,
 		r.reconcileDeployment,
 		r.reconcileIngress,
@@ -236,18 +236,26 @@ func (r *IBMLicensingReconciler) reconcileUploadToken(instance *operatorv1alpha1
 	return r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
 }
 
-func (r *IBMLicensingReconciler) reconcileUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	reqLogger := r.Log.WithValues("reconcileUploadConfigMap", "Entry", "instance.GetName()", instance.GetName())
-	expectedCM := service.GetUploadConfigMap(instance)
-	foundCM := &corev1.ConfigMap{}
-	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedCM, foundCM)
-	if err != nil || reconcileResult.Requeue {
-		return reconcileResult, err
+func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcileConfigMaps", "Entry", "instance.GetName()", instance.GetName())
+	expectedCMs := []*corev1.ConfigMap{
+		service.GetUploadConfigMap(instance),
+		service.GetInfoConfigMap(instance),
 	}
-	if foundCM.Data[service.UploadConfigMapKey] == expectedCM.Data[service.UploadConfigMapKey] {
-		return reconcile.Result{}, nil
+	for _, expectedCM := range expectedCMs {
+		foundCM := &corev1.ConfigMap{}
+		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedCM, foundCM)
+		if err != nil || reconcileResult.Requeue {
+			return reconcileResult, err
+		}
+		if !reflect.DeepEqual(expectedCM.Data, foundCM.Data) {
+			if updateReconcileResult, err := res.UpdateResource(&reqLogger, r.Client, expectedCM, foundCM); err != nil || updateReconcileResult.Requeue {
+				return updateReconcileResult, err
+			}
+		}
+
 	}
-	return res.UpdateResource(&reqLogger, r.Client, expectedCM, foundCM)
+	return reconcile.Result{}, nil
 }
 
 func (r *IBMLicensingReconciler) reconcileServices(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {

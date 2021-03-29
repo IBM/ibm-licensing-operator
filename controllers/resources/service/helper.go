@@ -46,7 +46,7 @@ func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
 }
 
-func GetUploadURL(instance *operatorv1alpha1.IBMLicensing) string {
+func GetServiceURL(instance *operatorv1alpha1.IBMLicensing) string {
 	var urlPrefix string
 	if instance.Spec.HTTPSEnable {
 		urlPrefix = "https://"

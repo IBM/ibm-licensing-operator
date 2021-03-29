@@ -46,6 +46,10 @@ metadata:
           "registry": "common-service",
           "description": "Binding information that should be accessible to licensing adopters",
           "bindings": {
+            "public-api-data": {
+              "secret": "ibm-licensing-token",
+              "configmap": "ibm-licensing-info"
+            },
             "public-api-token": {
               "secret": "ibm-licensing-token"
             },

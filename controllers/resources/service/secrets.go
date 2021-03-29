@@ -29,7 +29,7 @@ const APIUploadTokenKeyName = "token-upload"
 
 const ReporterSecretTokenKeyName = "token"
 
-const UploadConfigMapKey = "url"
+const URLConfigMapKey = "url"
 
 func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
 	return resources.GetSecretToken(instance.Spec.APISecretToken, instance.Spec.InstanceNamespace, APISecretTokenKeyName, LabelsForMeta(instance))
@@ -47,7 +47,20 @@ func GetUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) *corev1.ConfigM
 			Namespace: instance.Spec.InstanceNamespace,
 			Labels:    metaLabels,
 		},
-		Data: map[string]string{UploadConfigMapKey: GetUploadURL(instance)},
+		Data: map[string]string{URLConfigMapKey: GetServiceURL(instance)},
+	}
+	return expectedCM
+}
+
+func GetInfoConfigMap(instance *operatorv1alpha1.IBMLicensing) *corev1.ConfigMap {
+	metaLabels := LabelsForMeta(instance)
+	expectedCM := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ibm-licensing-info",
+			Namespace: instance.Spec.InstanceNamespace,
+			Labels:    metaLabels,
+		},
+		Data: map[string]string{URLConfigMapKey: GetServiceURL(instance)},
 	}
 	return expectedCM
 }
