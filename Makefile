@@ -487,7 +487,7 @@ scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
 catalogsource: opm
-	@echo "Build CatalogSource for $(LOCAL_ARCH)..."
+	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_$(LOCAL_ARCH)"
 	chmod +x ./yq
 	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
@@ -502,7 +502,7 @@ catalogsource: opm
 	docker push  ${REGISTRY}/${CATALOG_IMG}
 
 catalogsource-development: opm
-	@echo "Build Development CatalogSource for $(LOCAL_ARCH)..."
+	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_$(LOCAL_ARCH)"
 	chmod +x ./yq
 	./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
