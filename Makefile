@@ -308,7 +308,7 @@ help: ## Display this help
 
 # Run tests
 #ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-test: $(CONFIG_DOCKER_TARGET_SCRATCH)
+test: 
 	@echo "Running tests for the controllers."
 	make catalogsource-development
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION) ${MANIFEST_VERSION}
