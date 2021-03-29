@@ -26,13 +26,17 @@ import (
 )
 
 func GetMeterDefinition(instance *operatorv1alpha1.IBMLicensing) []*rhmp.MeterDefinition {
-	return []*rhmp.MeterDefinition{getCloudPakMeterDefinition(instance), getProductMeterDefinition(instance)}
+	return []*rhmp.MeterDefinition{
+		getCloudPakMeterDefinition(instance),
+		getProductMeterDefinition(instance),
+		getChargebackMeterDefinition(instance)}
+
 }
 
 func getCloudPakMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.MeterDefinition {
 	return &rhmp.MeterDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetMeterDefinitionName(instance, true),
+			Name:      GetMeterDefinitionName(instance, "product"),
 			Namespace: instance.Spec.InstanceNamespace,
 		},
 		Spec: rhmp.MeterDefinitionSpec{
@@ -59,7 +63,7 @@ func getCloudPakMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.M
 					Period:             &metav1.Duration{Duration: 24 * time.Hour},
 					WorkloadType:       rhmp.WorkloadTypeService,
 					Metric:             "{{ .Label.metricId}}",
-					Query:              "product_license_usage{}",
+					Query:              "avg_over_time(product_license_usage{}[1d])",
 					GroupBy:            []string{"metricId", "productId"},
 					ValueLabelOverride: "{{ .Label.value}}",
 					DateLabelOverride:  "{{ .Label.date}}",
@@ -72,7 +76,7 @@ func getCloudPakMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.M
 func getProductMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.MeterDefinition {
 	return &rhmp.MeterDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetMeterDefinitionName(instance, false),
+			Name:      GetMeterDefinitionName(instance, "bundleproduct"),
 			Namespace: instance.Spec.InstanceNamespace,
 		},
 		Spec: rhmp.MeterDefinitionSpec{
@@ -99,7 +103,7 @@ func getProductMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.Me
 					Period:             &metav1.Duration{Duration: 24 * time.Hour},
 					WorkloadType:       rhmp.WorkloadTypeService,
 					Metric:             "{{ .Label.metricId}}",
-					Query:              "product_license_usage_details{}",
+					Query:              "avg_over_time(product_license_usage_details{}[1d])",
 					GroupBy:            []string{"metricId", "productId"},
 					ValueLabelOverride: "{{ .Label.value}}",
 					DateLabelOverride:  "{{ .Label.date}}",
@@ -109,10 +113,47 @@ func getProductMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.Me
 	}
 }
 
-func GetMeterDefinitionName(instance *operatorv1alpha1.IBMLicensing, isCloudpak bool) string {
-	if isCloudpak {
-		return LicensingResourceBase + "-product-" + instance.GetName()
+func getChargebackMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.MeterDefinition {
+	return &rhmp.MeterDefinition{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      GetMeterDefinitionName(instance, "chargeback"),
+			Namespace: instance.Spec.InstanceNamespace,
+		},
+		Spec: rhmp.MeterDefinitionSpec{
+			Group: "{{ .Label.productId}}.licensing.ibm.com",
+			Kind:  "IBMLicensing-{{ .Label.groupName}}",
+			ResourceFilters: []rhmp.ResourceFilter{
+				{
+					Namespace: &rhmp.NamespaceFilter{
+						UseOperatorGroup: true,
+					},
+					OwnerCRD: &rhmp.OwnerCRDFilter{
+						GroupVersionKind: rhmpcommon.GroupVersionKind{
+							APIVersion: "operator.ibm.com/v1alpha1",
+							Kind:       "IBMLicensing",
+						},
+					},
+					WorkloadType: rhmp.WorkloadTypeService,
+				},
+			},
+			Meters: []rhmp.MeterWorkload{
+				{
+					Name:               "{{ .Label.productId}}.licensing.ibm.com",
+					Aggregation:        "max",
+					Period:             &metav1.Duration{Duration: 24 * time.Hour},
+					WorkloadType:       rhmp.WorkloadTypeService,
+					Metric:             "{{ .Label.metricId}}",
+					Query:              "avg_over_time(product_license_usage_chargeback{}[1d])",
+					GroupBy:            []string{"metricId", "productId"},
+					ValueLabelOverride: "{{ .Label.value}}",
+					DateLabelOverride:  "{{ .Label.date}}",
+				},
+			},
+		},
 	}
-	return LicensingResourceBase + "-bundleproduct-" + instance.GetName()
+}
+
+func GetMeterDefinitionName(instance *operatorv1alpha1.IBMLicensing, meterType string) string {
+	return LicensingResourceBase + "-" + meterType + "-" + instance.GetName()
 
 }

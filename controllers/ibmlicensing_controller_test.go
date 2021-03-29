@@ -213,6 +213,12 @@ var _ = Describe("IBMLicensing controller", func() {
 				return route != nil
 			}, timeout, interval).Should(BeTrue())
 
+			By("Checking if chargeback is disabled")
+			Eventually(func() bool {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
+				return newInstance.Spec.IsChargebackEnabled()
+			}, timeout, interval).Should(Equal(false))
+
 		})
 
 		It("Should create IBMLicensing with RHMP enabled", func() {
@@ -267,17 +273,29 @@ var _ = Describe("IBMLicensing controller", func() {
 			By("Checking if meter definition exists for cloudpak")
 			Eventually(func() bool {
 				meterDefinition := &rhmp.MeterDefinition{}
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetMeterDefinitionName(newInstance, true), Namespace: namespace}, meterDefinition)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetMeterDefinitionName(newInstance, "product"), Namespace: namespace}, meterDefinition)).Should(Succeed())
 				return meterDefinition != nil
 			}, timeout, interval).Should(BeTrue())
 
 			By("Checking if meter definition exists for bundle product")
 			Eventually(func() bool {
 				meterDefinition := &rhmp.MeterDefinition{}
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetMeterDefinitionName(newInstance, false), Namespace: namespace}, meterDefinition)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetMeterDefinitionName(newInstance, "bundleproduct"), Namespace: namespace}, meterDefinition)).Should(Succeed())
 				return meterDefinition != nil
 			}, timeout, interval).Should(BeTrue())
 
+			By("Checking if meter definition exists for chargeback")
+			Eventually(func() bool {
+				meterDefinition := &rhmp.MeterDefinition{}
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetMeterDefinitionName(newInstance, "chargeback"), Namespace: namespace}, meterDefinition)).Should(Succeed())
+				return meterDefinition != nil
+			}, timeout, interval).Should(BeTrue())
+
+			By("Checking if chargeback is enabled")
+			Eventually(func() bool {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
+				return newInstance.Spec.IsChargebackEnabled()
+			}, timeout, interval).Should(Equal(true))
 		})
 	})
 })
