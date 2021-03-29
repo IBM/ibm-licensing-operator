@@ -36,6 +36,9 @@ BUNDLE_IMG ?= ibm-licensing-operator-bundle:$(CSV_VERSION)
 CATALOG_IMG ?= ibm-licensing-operator-catalog:$(CSV_VERSION)
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
+IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE ?= ibm-license-service-reporter-ui
+IBM_POSTGRESQL_IMAGE ?= ibm-postgresql
+IBM_LICENSE_SERVICE_REPORTER_IMAGE ?= ibm-license-service-reporter
 IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 
 # Options for 'bundle-build'
@@ -439,6 +442,11 @@ else
 OPM=$(shell which opm)
 endif
 
+ifeq (, $(shell which podman))
+PODMAN=docker
+else
+PODMAN=podman
+endif
 
 
 alm-example:
@@ -485,7 +493,7 @@ catalogsource: opm
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value'  "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"
 	make bundle-build
 	docker push ${REGISTRY}/${BUNDLE_IMG}
-	$(OPM) index add --permissive -c docker --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
+	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
 	docker push  ${REGISTRY}/${CATALOG_IMG}
 
 catalogsource-development: opm
@@ -499,7 +507,7 @@ catalogsource-development: opm
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"
 	make bundle-build-development
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
-	$(OPM) index add --permissive  -c docker  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	$(OPM) index add --permissive  -c ${PODMAN}  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push  ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 
 .PHONY: all build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
