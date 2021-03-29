@@ -496,7 +496,7 @@ catalogsource: opm
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value'  "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value'  "${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${POSTGRESS_VERSION}"
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value'  "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"
-	make bundle-build
+	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
 	docker push ${REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
 	docker push  ${REGISTRY}/${CATALOG_IMG}
