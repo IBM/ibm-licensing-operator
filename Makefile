@@ -436,8 +436,8 @@ ifeq (, $(shell which opm))
 	git clone  --branch v1.16.1  https://github.com/operator-framework/operator-registry.git ;\
 	cd ./operator-registry ; \
 	git checkout v1.16.1;\
-	make ;\
-	ls -l ;\
+	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=eb9fff53' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=v1.16.0' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2021-03-30T13:32:56Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
+	file ./bin/opm ;\
 	cp ./bin/opm ~/ ; \
 	rm -rf $$OPM_GEN_TMP_DIR ;\
 	}
@@ -516,5 +516,5 @@ catalogsource-development: opm
 	$(OPM) index add --permissive  -c ${PODMAN}  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push  ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 
-.PHONY: all build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
+.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
 
