@@ -437,7 +437,6 @@ ifeq (, $(shell which opm))
 	cd ./operator-registry ; \
 	git checkout v1.16.1;\
 	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=eb9fff53' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=v1.16.0' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2021-03-30T13:32:56Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
-	file ./bin/opm ;\
 	cp ./bin/opm ~/ ; \
 	rm -rf $$OPM_GEN_TMP_DIR ;\
 	}
