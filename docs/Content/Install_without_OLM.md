@@ -19,6 +19,8 @@ Complete the following procedure to install License Service on a system that doe
 
 ## Installation
 
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
+
 1\. Create the required resources.
 
 a. Run the following command to create the `ibm-common-services` namespace where you will later install the operator.

@@ -15,6 +15,8 @@
 
 ## Installation
 
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
+
 1\. Prepare Docker images.
 
 a.  Run the following command to prepare your Docker images.
@@ -169,7 +171,6 @@ metadata:
   name: instance
 spec:
   apiSecretToken: ibm-licensing-token
-  datasource: datacollector
   httpsEnable: false
   instanceNamespace: ibm-common-services
   imagePullSecrets:
