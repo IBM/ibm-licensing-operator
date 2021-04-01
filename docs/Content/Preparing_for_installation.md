@@ -44,6 +44,10 @@ License Service consists of two main components that require resources: the oper
 
  **Note:** You can modify the limits and requests for the application deployment by editing the IBMLicensing instance. For more information, see [Configuration](Configuration.md).
 
+### Minimal resource requirements
+
+For minimal resource requirements for License Service, see License Service requirements in [Hardware requirements of small profile](https://www.ibm.com/support/knowledgecenter/SSHKN6/installer/3.x.x/small_profile.html).
+
 <b>Related links</b>
 
 - [Go back to home page](../License_Service_main.md#documentation)

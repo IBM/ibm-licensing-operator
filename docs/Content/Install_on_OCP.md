@@ -12,6 +12,8 @@
 
 ## Installation
 
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
+
 1\. **Create the CatalogSource**
 
 Create the CatalogSource to get the operator bundles that are available at the public website: `quay.io`. The CatalogSource allows your cluster to establish connection to `quay.io`.
@@ -70,11 +72,9 @@ a. Go to **OperatorHub>Operator Subscription**
 
 b. As an Installation Mode select **A specific namespace on the cluster**, and set it to **ibm-common-services** namespace that you created in the previous step.
 
-c. Choose the **stable-v1** channel.
+c. Choose the **v3** channel.
 
 d. Click **Subscribe**.
-
-![Subscribe to IBM Licensing OLM](/images/subscribe-licensing.png)
 
 5\. **Verify that the installation is successful**
 
@@ -94,11 +94,7 @@ Create an IBM Licensing instance.
 
 ![OCP click Create IBM Licensing](/images/ocp_create_instance.png)
 
-2\. Click **Create IBMLicensing** to edit the parameters. Change datasource to `datacollector`.
-
-For more information about the parameters, see [IBMLicensingOperatorParameters](images/IBMLicensingOperatorParameters.csv).
-
-![OCP instance datacollector](/images/ocp_instance_datacollector.png)
+2\. Click **Create IBMLicensing** and edit the available parameters if needed.  For more information about the parameters, see the [Custom Resource Definition](/deploy/olm-catalog/ibm-licensing-operator/1.4.2/operator.ibm.com_ibmlicensings_crd.yaml).
 
 3\. Click **Create**.
 
