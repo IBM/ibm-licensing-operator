@@ -24,7 +24,7 @@ kubectl apply -f https://github.com/IBM/ibm-licensing-operator/releases/download
 export my_docker_registry=<your private registry>
 export operator_version=1.4.2
 export operand_version=1.4.2
-export operand_db_version=12.0.3
+export operand_db_version=12.0.4
 ```
 
 ```yaml
