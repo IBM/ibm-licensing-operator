@@ -14,7 +14,7 @@ You can verify if License Service is properly deployed and whether it collects t
 
 ```bash
 # apply the yaml from here:
-export operator_release_version=v1.3.1
+export operator_release_version=v1.4.2
 kubectl apply -f https://github.com/IBM/ibm-licensing-operator/releases/download/${operator_release_version}/rbac_and_crd.yaml
 ```
 
@@ -22,9 +22,9 @@ kubectl apply -f https://github.com/IBM/ibm-licensing-operator/releases/download
 
 ```bash
 export my_docker_registry=<your private registry>
-export operator_version=1.3.1
-export operand_version=1.3.1
-export operand_db_version=12.0.3
+export operator_version=1.4.2
+export operand_version=1.4.2
+export operand_db_version=12.0.4
 ```
 
 ```yaml
