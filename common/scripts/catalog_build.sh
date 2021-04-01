@@ -33,10 +33,10 @@ LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
 NEW_CSV=manifests/ibm-licensing-operator.clusterserviceversion.yaml
 mv manifests/ibm* "$NEW_CSV"
 
-yq w -i "$NEW_CSV" 'replaces' "ibm-licensing-operator.v$LATEST_VERSION"
-yq w -i "$NEW_CSV" 'metadata.annotations."olm.skipRange"' ">=1.0.0 <$LATEST_VERSION"
-yq w -i "$NEW_CSV" 'metadata.name' "ibm-licensing-operator.v$LATEST_VERSION"
-yq w -i "$NEW_CSV" 'spec.template.spec.containers[*].image' "${IMAGE_REPO}/${IMAGE_NAME}@${DIGEST}"
+sed -i "/replaces/c\  replaces: ibm-licensing-operator.v$LATEST_VERSION" "$NEW_CSV"
+sed -i "/olm.skipRange:/c\    olm.skipRange: \'>=1.0.0 <$LATEST_VERSION\'" "$NEW_CSV"
+sed -i "/name: ibm-licensing-operator.v/c\  name: ibm-licensing-operator.v$LATEST_VERSION" "$NEW_CSV"
+sed -i "s|quay.io/opencloudio/ibm-licensing-operator:.*|${IMAGE_REPO}/${IMAGE_NAME}@${DIGEST}|" "$NEW_CSV"
 
 VCS_URL=https://github.com/IBM/ibm-common-service-catalog
 VCS_REF=random
