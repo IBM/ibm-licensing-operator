@@ -43,6 +43,7 @@ jobs:
     - name: Download binaries
       env:
         ROKS_TOKEN: ${{ secrets.ROKS_TOKEN }}
+        ROKS_SERVER: ${{ secrets.ROKS_SERVER }}
         JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
       run: |
         echo $RANDOM > ./random.txt
@@ -52,11 +53,7 @@ jobs:
         export MUTEX_OFF=false
         wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.0/openshift-client-linux-4.6.0.tar.gz
         tar -xvf ./openshift-client-linux-4.6.0.tar.gz
-        ls -l
-        echo "0"
-        ./oc login --token="${{secrets.ROKS_TOKEN}}"  --server=https://c108-e.eu-gb.containers.cloud.ibm.com:30780
-        echo "a"
-        ./oc get nodes
+        ./oc login --token="${{secrets.ROKS_TOKEN}}"  --server="${{secrets.ROKS_SERVER}}"
         ./common/scripts/tests/clear_ocp.sh
 
     - name: Test Unit Operator with CodeCoverage
@@ -69,7 +66,6 @@ jobs:
         export NAMESPACE=ibm-common-services$SUFIX
         export WATCH_NAMESPACE=ibm-common-services$SUFIX
         export OCP=true
-        ./oc get nodes
         if [[ $GITHUB_BASE_REF == 'development' || $GITHUB_REF == 'refs/heads/development' ]]
         then
           make coverage-kind-development > ./test_coverage.txt 2>&1
@@ -81,7 +77,6 @@ jobs:
       if: always()
       run: |
         export PATH=`pwd`:$PATH
-        ./oc get nodes
         kubectl describe pods --all-namespaces  > ./pods.txt 2>&1
 
     - name: Clear
@@ -90,7 +85,6 @@ jobs:
         export MUTEX_ON=false
         export MUTEX_OFF=true
         export SUFIX=`cat ./random.txt`
-        ./oc get nodes
         ./common/scripts/tests/clear_ocp.sh
 
     - name: Archive logs
