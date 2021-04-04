@@ -25,8 +25,6 @@ on:
       - development
 
 # Environment variables available to all jobs and steps in this workflow
-env:
-  ROKS_TOKEN: ${{ secrets.ROKS_TOKEN }}
 jobs:
   setup-build-publish-deploy:
     name: Operator tests on OCP
@@ -44,6 +42,7 @@ jobs:
 
     - name: Download binaries
       env:
+        ROKS_TOKEN: ${{ secrets.ROKS_TOKEN }}
         JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
       run: |
         echo $RANDOM > ./random.txt
@@ -54,7 +53,10 @@ jobs:
         wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.0/openshift-client-linux-4.6.0.tar.gz
         tar -xvf ./openshift-client-linux-4.6.0.tar.gz
         ls -l
+        echo "0"
         ./oc login --token=${{ secrets.ROKS_TOKEN }}
+        echo "a"
+        ./oc get nodes
         ./common/scripts/tests/clear_ocp.sh
 
     - name: Test Unit Operator with CodeCoverage
