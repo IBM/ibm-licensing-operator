@@ -26,7 +26,7 @@ on:
 
 # Environment variables available to all jobs and steps in this workflow
 env:
-  AWS_OCP_KUBECONFIG: ${{ secrets.AWS_OCP_KUBECONFIG }}
+  ROKS_TOKEN: ${{ secrets.ROKS_TOKEN }}
 jobs:
   setup-build-publish-deploy:
     name: Operator tests on OCP
@@ -46,13 +46,12 @@ jobs:
       env:
         JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
       run: |
-        echo "$AWS_OCP_KUBECONFIG" > ./kubeconfig
-        export KUBECONFIG=`pwd`/kubeconfig
         echo $RANDOM > ./random.txt
         export SUFIX=`cat ./random.txt`
         echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
         export MUTEX_ON=true
         export MUTEX_OFF=false
+        kubectl login --token=${{ secrets.ROKS_TOKEN }}
         ./common/scripts/tests/clear_ocp.sh
 
     - name: Test Unit Operator with CodeCoverage
