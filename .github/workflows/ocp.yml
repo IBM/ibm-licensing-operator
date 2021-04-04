@@ -51,7 +51,10 @@ jobs:
         echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
         export MUTEX_ON=true
         export MUTEX_OFF=false
-        kubectl login --token=${{ secrets.ROKS_TOKEN }}
+        wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.0/openshift-client-linux-4.6.0.tar.gz
+        tar -xvf ./openshift-client-linux-4.6.0.tar.gz
+        ls -l
+        ./oc login --token=${{ secrets.ROKS_TOKEN }}
         ./common/scripts/tests/clear_ocp.sh
 
     - name: Test Unit Operator with CodeCoverage
