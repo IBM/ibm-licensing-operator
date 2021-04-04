@@ -54,7 +54,7 @@ jobs:
         tar -xvf ./openshift-client-linux-4.6.0.tar.gz
         ls -l
         echo "0"
-        ./oc login --token="${{secrets.ROKS_TOKEN}}" --server=https://c108-e.eu-gb.containers.cloud.ibm.com:30780
+        ./oc login --token="${{secrets.ROKS_TOKEN}}" 
         echo "a"
         ./oc get nodes
         ./common/scripts/tests/clear_ocp.sh
@@ -63,13 +63,13 @@ jobs:
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: |
-        export KUBECONFIG=`pwd`/kubeconfig
         export PATH=`pwd`:$PATH
         export USE_EXISTING_CLUSTER=true
         export SUFIX=`cat ./random.txt`
         export NAMESPACE=ibm-common-services$SUFIX
         export WATCH_NAMESPACE=ibm-common-services$SUFIX
         export OCP=true
+        ./oc get nodes
         if [[ $GITHUB_BASE_REF == 'development' || $GITHUB_REF == 'refs/heads/development' ]]
         then
           make coverage-kind-development > ./test_coverage.txt 2>&1
@@ -81,7 +81,7 @@ jobs:
       if: always()
       run: |
         export PATH=`pwd`:$PATH
-        export KUBECONFIG=`pwd`/kubeconfig
+        ./oc get nodes
         kubectl describe pods --all-namespaces  > ./pods.txt 2>&1
 
     - name: Clear
@@ -90,7 +90,7 @@ jobs:
         export MUTEX_ON=false
         export MUTEX_OFF=true
         export SUFIX=`cat ./random.txt`
-        export KUBECONFIG=`pwd`/kubeconfig
+        ./oc get nodes
         ./common/scripts/tests/clear_ocp.sh
 
     - name: Archive logs
