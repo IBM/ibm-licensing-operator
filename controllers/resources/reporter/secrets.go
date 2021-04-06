@@ -19,11 +19,37 @@ package reporter
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	"github.com/ibm/ibm-licensing-operator/controllers/resources"
+	"github.com/ibm/ibm-licensing-operator/version"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const APIReciverSecretTokenKeyName = "token"
+
+const ZenNginxConf = `location /license-service-reporter/ {
+  access_by_lua_file /nginx_data/checkjwt.lua;	
+  proxy_http_version 1.1;
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection "upgrade";
+  proxy_set_header Host $host;      
+  proxy_pass http://ibm-license-service-reporter.ibm-common-services.svc.cluster.local:3001/license-service-reporter/;
+  proxy_read_timeout 10m;
+}`
+
+const ZenExtensions = `[
+  {
+    "extension_point_id": "left_menu_item",
+    "extension_name": "nav-license-service-reporter",
+    "display_name": "Licensing",
+    "order_hint": 1200,
+    "match_permissions": "administrator",
+    "meta": {},
+    "details": {
+      "href": "/license-service-reporter?isZen=true",
+      "icon": "nav/icons/help"
+    }
+  }
+]`
 
 func GetAPISecretToken(instance *operatorv1alpha1.IBMLicenseServiceReporter) (*corev1.Secret, error) {
 	return resources.GetSecretToken(instance.Spec.APISecretToken, instance.GetNamespace(), APIReciverSecretTokenKeyName, LabelsForMeta(instance))
@@ -50,4 +76,23 @@ func GetDatabaseSecret(instance *operatorv1alpha1.IBMLicenseServiceReporter) (*c
 		},
 	}
 	return expectedSecret, nil
+}
+
+func GetZenConfigMap(instance *operatorv1alpha1.IBMLicenseServiceReporter) *corev1.ConfigMap {
+	labels := map[string]string{
+		"icpdata_addon":         "true",
+		"icpdata_addon_version": version.Version,
+	}
+	expectedCM := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ibm-license-service-reporter-zen",
+			Namespace: instance.GetNamespace(),
+			Labels:    labels,
+		},
+		Data: map[string]string{
+			"nginx.conf": ZenNginxConf,
+			"extensions": ZenExtensions,
+		},
+	}
+	return expectedCM
 }
