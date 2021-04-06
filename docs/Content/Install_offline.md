@@ -107,11 +107,9 @@ g. Modify the `operator.yaml` image so that your private registry is used:
 ```bash
 LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
 export operator_version=$(git tag | tail -n1 | tr -d v)
-export operand_version=$(git tag | tail -n1 | tr -d v)
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
 sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
-sed -i 's/@sha256.*/:'"${operand_version}"'/g' config/manager/manager.yaml
 kubectl apply -f config/manager/manager.yaml
 ```
 
@@ -120,11 +118,9 @@ kubectl apply -f config/manager/manager.yaml
 ```bash
 LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
 export operator_version=$(git tag | tail -n1 | tr -d v)
-export operand_version=$(git tag | tail -n1 | tr -d v)
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i "" 's/quay.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
 sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
-sed -i "" 's/@sha256.*/:'"${operand_version}"'/g' config/manager/manager.yaml
 kubectl apply -f config/manager/manager.yaml
 ```
 
