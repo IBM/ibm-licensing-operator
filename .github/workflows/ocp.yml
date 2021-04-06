@@ -25,8 +25,6 @@ on:
       - development
 
 # Environment variables available to all jobs and steps in this workflow
-env:
-  AWS_OCP_KUBECONFIG: ${{ secrets.AWS_OCP_KUBECONFIG }}
 jobs:
   setup-build-publish-deploy:
     name: Operator tests on OCP
@@ -44,22 +42,24 @@ jobs:
 
     - name: Download binaries
       env:
+        ROKS_TOKEN: ${{ secrets.ROKS_TOKEN }}
+        ROKS_SERVER: ${{ secrets.ROKS_SERVER }}
         JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
       run: |
-        echo "$AWS_OCP_KUBECONFIG" > ./kubeconfig
-        export KUBECONFIG=`pwd`/kubeconfig
         echo $RANDOM > ./random.txt
         export SUFIX=`cat ./random.txt`
         echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
         export MUTEX_ON=true
         export MUTEX_OFF=false
+        wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.0/openshift-client-linux-4.6.0.tar.gz
+        tar -xvf ./openshift-client-linux-4.6.0.tar.gz
+        ./oc login --token="${{secrets.ROKS_TOKEN}}"  --server="${{secrets.ROKS_SERVER}}"
         ./common/scripts/tests/clear_ocp.sh
 
     - name: Test Unit Operator with CodeCoverage
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: |
-        export KUBECONFIG=`pwd`/kubeconfig
         export PATH=`pwd`:$PATH
         export USE_EXISTING_CLUSTER=true
         export SUFIX=`cat ./random.txt`
@@ -77,7 +77,6 @@ jobs:
       if: always()
       run: |
         export PATH=`pwd`:$PATH
-        export KUBECONFIG=`pwd`/kubeconfig
         kubectl describe pods --all-namespaces  > ./pods.txt 2>&1
 
     - name: Clear
@@ -86,7 +85,6 @@ jobs:
         export MUTEX_ON=false
         export MUTEX_OFF=true
         export SUFIX=`cat ./random.txt`
-        export KUBECONFIG=`pwd`/kubeconfig
         ./common/scripts/tests/clear_ocp.sh
 
     - name: Archive logs

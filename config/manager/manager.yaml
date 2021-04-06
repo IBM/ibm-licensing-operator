@@ -42,6 +42,8 @@ spec:
               value: quay.io/opencloudio/ibm-postgresql:12.0.4
             - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
               value: quay.io/opencloudio/ibm-license-service-reporter:1.5.0
+            - name: IBM_LICENSING_USAGE_IMAGE
+              value: quay.io/opencloudio/ibm-licensing-usage:1.5.0
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:
