@@ -132,7 +132,7 @@ cat <<EOF | kubectl apply -f -
         - my-registry-token
       databaseContainer:
         imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
-        imageTagPostfix: 12.0.3
+        imageTagPostfix: 12.0.5
       reporterUIContainer:
         imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
         imageTagPostfix: 1.3.2
