@@ -65,9 +65,10 @@ b. Run the following command to create the namespace for installing the operator
 ```bash
 kubectl create namespace <installation_namespace>
 ```
-where `<namespace_name>` is the name of the namespace where you want to install the operator. 
 
-For example: 
+where `<namespace_name>` is the name of the namespace where you want to install the operator.
+
+For example:
 
 ```bash
 kubectl create namespace ibm-common-services
