@@ -45,8 +45,8 @@ const ZenExtensions = `[
     "match_permissions": "administrator",
     "meta": {},
     "details": {
-	  "parent_folder": "dap-header-administer",
-      "href": "/license-service-reporter?isZen=true"
+		"parent_folder": "dap-header-administer",
+		"href": "/license-service-reporter?isZen=true"
     }
   }
 ]`
