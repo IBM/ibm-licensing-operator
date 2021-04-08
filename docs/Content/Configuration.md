@@ -81,13 +81,13 @@ spec:
       kubernetes.io/ingress.class: "public-iks-k8s-nginx"
       nginx.ingress.kubernetes.io/rewrite-target: /$2
     path: /ibm-licensing-service-instance(/|$)(.*)
-    host: <your_host> 
+    host: <your_host>
 EOF
 ```
 
 To retrieve your host, run the following command in IBM Cloud CLI:
 
-```
+```bash
 ibmcloud ks cluster get --cluster <cluster_name_or_id> | grep Ingress
 ```
 
