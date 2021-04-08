@@ -59,22 +59,32 @@ a. Run the following command on machine where you have access to your cluster an
 export my_docker_registry=<SAME REGISTRY AS BEFORE>
 ```
 
-b. Run the following command to create the `ibm-common-services` namespace where you will later install the operator.
+b. Run the following command to create the namespace for installing the operator.
+
+**Note:** You can install the operator in the `ibm-common-services` namespace or other custom namespace.
+
+```bash
+kubectl create namespace <installation_namespace>
+```
+
+where `<namespace_name>` is the name of the namespace where you want to install the operator.
+
+For example:
 
 ```bash
 kubectl create namespace ibm-common-services
 ```
 
-c. If your cluster needs the access token to your private Docker registry, create the secret in the `ibm-common-services` namespace:
+c. If your cluster needs the access token to your private Docker registry, create the secret in the dedicated installation namespace:
 
 ```bash
-kubectl create secret -n ibm-common-services docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
+kubectl create secret -n <installation_namespace> docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
 ```
 
-d. Set the context so that the resources are made in the `ibm-common-services` namespace:
+d. Set the context so that the resources are created in the dedicated installation namespace.
 
 ```bash
-kubectl config set-context --current --namespace=ibm-common-services
+kubectl config set-context --current --namespace=<installation_namespace>
 ```
 
 e. Use `git clone`:
@@ -88,6 +98,10 @@ cd ibm-licensing-operator/
 **Note:** If You cannot use `git clone` on machine with `kubectl` (for example, when you do not have the Internet connection), use the solution described in the troubleshooting section. See [Preparing resources for offline installation without git](Troubleshooting.md#preparing-resources-for-offline-installation-without-git). Then, see the Results underneath this step.
 
 f. Apply RBAC roles and CRD:
+
+**Note:** If you are installing the operator in the namespace other than `ibm-common-services`,  change the `ibm-common-services`namespace to your custom namespace in the following files: `role.yaml`, `role_binding.yaml` and  `operator.yaml`.
+
+Run the following commands:
 
 ```bash
 # add CRD:
@@ -144,9 +158,11 @@ spec:
   apiSecretToken: ibm-licensing-token
   datasource: datacollector
   httpsEnable: true
-  instanceNamespace: ibm-common-services
+  instanceNamespace: <installation_namespace>
 EOF
 ```
+
+where the `<installation_namespace>` is the name of the namespace where you installed License Service.
 
 2\. If you created the secret that is needed to access the images, add it to the configuration.
 
