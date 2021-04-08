@@ -81,7 +81,7 @@ func getProductMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.Me
 		},
 		Spec: rhmp.MeterDefinitionSpec{
 			Group: "{{ .Label.productId}}.licensing.ibm.com",
-			Kind:  "IBMLicensing",
+			Kind:  "IBMLicensing-Bundle",
 			ResourceFilters: []rhmp.ResourceFilter{
 				{
 					Namespace: &rhmp.NamespaceFilter{

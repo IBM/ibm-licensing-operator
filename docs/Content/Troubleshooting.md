@@ -25,7 +25,7 @@ export my_docker_registry=<your private registry>
 LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
 export operator_version=$(git tag | tail -n1 | tr -d v)
 export operand_version=$(git tag | tail -n1 | tr -d v)
-export operand_db_version=12.0.3
+export operand_db_version=12.0.5
 ```
 
 ```yaml
