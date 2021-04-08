@@ -65,7 +65,7 @@ b. Run the following command to create the namespace for installing the operator
 ```bash
 kubectl create namespace <installation_namespace>
 ```
-where <namespace_name> is the name of the namespace where you want to install the operator. 
+where `<namespace_name>` is the name of the namespace where you want to install the operator. 
 
 For example: 
 
@@ -153,9 +153,11 @@ spec:
   apiSecretToken: ibm-licensing-token
   datasource: datacollector
   httpsEnable: true
-  instanceNamespace: ibm-common-services
+  instanceNamespace: <installation_namespace>
 EOF
 ```
+
+where the `<installation_namespace>` is the name of the namespace where you installed License Service.
 
 2\. If you created the secret that is needed to access the images, add it to the configuration.
 
