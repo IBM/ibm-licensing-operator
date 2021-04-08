@@ -229,3 +229,8 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 	}
 	return nil
 }
+
+// Returns true if configmaps are equal
+func CompareConfigMap(cm1, cm2 *corev1.ConfigMap) bool {
+	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels)
+}
