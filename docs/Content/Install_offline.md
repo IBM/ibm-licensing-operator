@@ -17,7 +17,17 @@
 
 This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
 
-1\. Prepare Docker images.
+1\.Clone the repository by using `fit clone`. Run the following command:
+
+```bash
+export operator_release_version=v1.4.2
+git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
+cd ibm-licensing-operator/
+```
+
+**Note:** If you cannot use `git clone` on machine with `kubectl` (for example, when you do not have the Internet connection), use the solution described in the troubleshooting section. See [Preparing resources for offline installation without git](Troubleshooting.md#preparing-resources-for-offline-installation-without-git).
+
+2\. Prepare Docker images.
 
 a.  Run the following command to prepare your Docker images.
 
@@ -51,7 +61,7 @@ docker tag quay.io/opencloudio/ibm-licensing:${operand_version} ${my_docker_regi
 docker push ${my_docker_registry}/ibm-licensing:${operand_version}
 ```
 
-2\. Create the required resources.
+3\. Create the required resources.
 
 a. Run the following command on machine where you have access to your cluster and can use `kubectl`.
 
@@ -87,17 +97,7 @@ d. Set the context so that the resources are created in the dedicated installati
 kubectl config set-context --current --namespace=<installation_namespace>
 ```
 
-e. Use `git clone`:
-
-```bash
-export operator_release_version=v1.4.1
-git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
-cd ibm-licensing-operator/
-```
-
-**Note:** If You cannot use `git clone` on machine with `kubectl` (for example, when you do not have the Internet connection), use the solution described in the troubleshooting section. See [Preparing resources for offline installation without git](Troubleshooting.md#preparing-resources-for-offline-installation-without-git). Then, see the Results underneath this step.
-
-f. Apply RBAC roles and CRD:
+e. Apply RBAC roles and CRD:
 
 **Note:** If you are installing the operator in the namespace other than `ibm-common-services`,  change the `ibm-common-services`namespace to your custom namespace in the following files: `role.yaml`, `role_binding.yaml` and  `operator.yaml`.
 
@@ -114,7 +114,7 @@ kubectl apply -f bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml
 kubectl apply -f config/rbac/role_binding.yaml
 ```
 
-g. Modify the `operator.yaml` image so that your private registry is used:
+f. Modify the `operator.yaml` image so that your private registry is used:
 
 - For **LINUX** users:
 
