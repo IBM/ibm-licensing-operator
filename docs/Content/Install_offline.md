@@ -111,7 +111,6 @@ Then run the following commands with correct variable:
 ```bash
 export operator_version=1.4.2
 sed -i 's|quay.io/opencloudio|'"${my_docker_registry}"'|g' deploy/operator.yaml
-sed -i 's|operator:latest.*|operator:'"${operator_version}"'|g' deploy/operator.yaml
 if [ ! -z "${licensing_namespace}" ]; then
   sed -i 's|ibm-common-services|'"${licensing_namespace}"'|g' deploy/*.yaml
 fi
@@ -131,7 +130,6 @@ kubectl apply -f deploy/operator.yaml
 ```bash
 export operator_version=1.4.2
 sed -i "" 's|quay.io/opencloudio|'"${my_docker_registry}"'|g' deploy/operator.yaml
-sed -i "" 's|operator:latest.*|operator:'"${operator_version}"'|g' deploy/operator.yaml
 if [ ! -z "${licensing_namespace}" ]; then
   sed -i "" 's|ibm-common-services|'"${licensing_namespace}"'|g' deploy/*.yaml
 fi
