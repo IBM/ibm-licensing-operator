@@ -73,45 +73,39 @@ b. Run the following command to create the namespace for installing the operator
 **Note:** You can install the operator in the `ibm-common-services` namespace or other custom namespace.
 
 ```bash
-kubectl create namespace <installation_namespace>
+export licensing_namespace=<installation_namespace>
+kubectl create namespace ${licensing_namespace}
 ```
 
-where `<namespace_name>` is the name of the namespace where you want to install the operator.
+where `<installation_namespace>` is the name of the namespace where you want to install the operator.
 
 For example:
 
 ```bash
-kubectl create namespace ibm-common-services
+export licensing_namespace=ibm-common-services
+kubectl create namespace ${licensing_namespace}
 ```
 
 c. If your cluster needs the access token to your private Docker registry, create the secret in the dedicated installation namespace:
 
 ```bash
-kubectl create secret -n <installation_namespace> docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
+kubectl create secret -n ${licensing_namespace} docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
 ```
 
 d. Set the context so that the resources are created in a dedicated installation namespace.
 
 ```bash
-kubectl config set-context --current --namespace=<installation_namespace>
+kubectl config set-context --current --namespace=${licensing_namespace}
 ```
 
 e. Apply RBAC roles, CRD and `operator.yaml`:
-
-Change licensing_namespace variable if you are installing License Service in a different namespace.
-
-```bash
-export licensing_namespace=<installation_namespace>
-```
-
-Then run the following commands with correct variable:
 
 - For **LINUX** users:
 
 ```bash
 export operator_version=1.4.2
 sed -i 's|quay.io/opencloudio|'"${my_docker_registry}"'|g' deploy/operator.yaml
-if [ ! -z "${licensing_namespace}" ]; then
+if [ "${licensing_namespace}" != "ibm-common-services" ]; then
   sed -i 's|ibm-common-services|'"${licensing_namespace}"'|g' deploy/*.yaml
 fi
 # add CRD:
@@ -130,7 +124,7 @@ kubectl apply -f deploy/operator.yaml
 ```bash
 export operator_version=1.4.2
 sed -i "" 's|quay.io/opencloudio|'"${my_docker_registry}"'|g' deploy/operator.yaml
-if [ ! -z "${licensing_namespace}" ]; then
+if [ "${licensing_namespace}" != "ibm-common-services" ]; then
   sed -i "" 's|ibm-common-services|'"${licensing_namespace}"'|g' deploy/*.yaml
 fi
 # add CRD:
@@ -164,11 +158,11 @@ spec:
   apiSecretToken: ibm-licensing-token
   datasource: datacollector
   httpsEnable: true
-  instanceNamespace: <installation_namespace>
+  instanceNamespace: ${licensing_namespace}
 EOF
 ```
 
-where the `<installation_namespace>` is the name of the namespace where you installed License Service.
+where the `${licensing_namespace}` is the name of the namespace where you installed License Service.
 
 2\. If you created the secret that is needed to access the images, add it to the configuration.
 
