@@ -62,7 +62,7 @@ spec:
 EOF
 ```
 
-- IBM Cloud with bluemix ingress
+- IBM Cloud Kubernetes Services (IKS) on IBM Cloud
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -78,11 +78,20 @@ spec:
   ingressEnabled: true
   ingressOptions:
     annotations:
-      ingress.bluemix.net/rewrite-path: "serviceName=ibm-licensing-service-instance rewrite=/"
-    path: /ibm-licensing-service-instance
-    host: <your_host> # maybe this value can be skipped, you need to check
+      kubernetes.io/ingress.class: "public-iks-k8s-nginx"
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+    path: /ibm-licensing-service-instance(/|$)(.*)
+    host: <your_host>
 EOF
 ```
+
+To retrieve your host, run the following command in IBM Cloud CLI:
+
+```bash
+ibmcloud ks cluster get --cluster <cluster_name_or_id> | grep Ingress
+```
+
+For more information, see [Setting up Kubernetes Ingress](https://cloud.ibm.com/docs/containers?topic=containers-ingress-types) in IBM Cloud Docs.
 
 **Note:** For HTTPS, set `spec.httpsEnable` to `true`, and edit `ingressOptions`. Read more about the options here:
 [IBMLicensingOperatorParameters](../../images/IBMLicensingOperatorParameters.csv)

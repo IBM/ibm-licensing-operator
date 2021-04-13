@@ -109,6 +109,7 @@ func (r *IBMLicenseServiceReporterReconciler) Reconcile(req reconcile.Request) (
 		r.reconcileDatabaseSecret,
 		r.reconcilePersistentVolumeClaim,
 		r.reconcileService,
+		r.reconcileConfigMaps,
 		r.reconcileDeployment,
 		r.reconcileReporterRoute,
 		r.reconcileUIIngress,
@@ -306,6 +307,28 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileService(instance *operato
 		return reconcileResult, err
 	}
 	return res.UpdateServiceIfNeeded(&reqLogger, r.Client, expectedService, foundService)
+}
+
+func (r *IBMLicenseServiceReporterReconciler) reconcileConfigMaps(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcileConfigMaps", "Entry", "instance.GetName()", instance.GetName())
+	expectedCMs := []*corev1.ConfigMap{
+		reporter.GetZenConfigMap(instance),
+	}
+	for _, expectedCM := range expectedCMs {
+		foundCM := &corev1.ConfigMap{}
+		namespacedName := types.NamespacedName{Name: expectedCM.GetName(), Namespace: expectedCM.GetNamespace()}
+		reconcileResult, err := r.reconcileResourceExistence(instance, expectedCM, foundCM, namespacedName)
+		if err != nil || reconcileResult.Requeue {
+			return reconcileResult, err
+		}
+		if !res.CompareConfigMap(foundCM, expectedCM) {
+			if updateReconcileResult, err := res.UpdateResource(&reqLogger, r.Client, expectedCM, foundCM); err != nil || updateReconcileResult.Requeue {
+				return updateReconcileResult, err
+			}
+		}
+
+	}
+	return reconcile.Result{}, nil
 }
 
 func (r *IBMLicenseServiceReporterReconciler) reconcileDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
