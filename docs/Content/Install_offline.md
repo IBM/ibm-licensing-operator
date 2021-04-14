@@ -17,7 +17,7 @@
 
 This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
 
-1\.Clone the repository by using `fit clone`. Run the following command:
+1\.Clone the repository by using `git clone`. Run the following command:
 
 ```bash
 export operator_release_version=v1.4.2
@@ -29,7 +29,7 @@ cd ibm-licensing-operator/
 
 2\. Prepare Docker images.
 
-a.  Run the following command to prepare your Docker images.
+a.  Run the following command to prepare your Docker images:
 
 ```bash
 export my_docker_registry=<YOUR PRIVATE REGISTRY IMAGE PREFIX HERE; for example: "my.registry:5000" or "my.private.registry.example.com">
@@ -37,20 +37,20 @@ export operator_version=1.4.2
 export operand_version=1.4.2
 ```
 
-b. Pull the required images with the following command.
+b. Pull the required images with the following command:
 
 ```bash
 docker pull quay.io/opencloudio/ibm-licensing-operator:${operator_version}
 docker pull quay.io/opencloudio/ibm-licensing:${operand_version}
 ```
 
-c. Before pushing the images to your private registry, make sure that you are logged in. Use the following command.
+c. Before pushing the images to your private registry, make sure that you are logged in. Use the following command:
 
 ```bash
 docker login ${my_docker_registry}
 ```
 
-d. Tag the images with your registry prefix and push with the following commands.
+d. Tag the images with your registry prefix and push with the following commands:
 
 ```bash
 docker tag quay.io/opencloudio/ibm-licensing-operator:${operator_version} ${my_docker_registry}/ibm-licensing-operator:${operator_version}
@@ -68,7 +68,7 @@ a. Run the following command on a machine where you have access to your cluster 
 export my_docker_registry=<SAME REGISTRY AS BEFORE>
 ```
 
-b. Run the following command to create the namespace for installing the operator.
+b. Run the following command to set the `licensing_namespace` variable and create the namespace for installing the operator.
 
 **Note:** You can install the operator in the `ibm-common-services` namespace or other custom namespace.
 
@@ -92,7 +92,7 @@ c. If your cluster needs the access token to your private Docker registry, creat
 kubectl create secret -n ${licensing_namespace} docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
 ```
 
-d. Set the context so that the resources are created in a dedicated installation namespace.
+d. Set the context so that the resources are created in a dedicated installation namespace:
 
 ```bash
 kubectl config set-context --current --namespace=${licensing_namespace}
