@@ -108,6 +108,7 @@ LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
 export operator_version=$(git tag | tail -n1 | tr -d v)
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
+sed -i 's/operator:.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
 sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
 if [ "${licensing_namespace}" != "ibm-common-services" ]; then
   sed -i 's|ibm-common-services|'"${licensing_namespace}"'|g' config/rbac/*.yaml
@@ -132,6 +133,7 @@ LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
 export operator_version=$(git tag | tail -n1 | tr -d v)
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i "" 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
+sed -i "" 's/operator:.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
 sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
 if [ "${licensing_namespace}" != "ibm-common-services" ]; then
   sed -i "" 's|ibm-common-services|'"${licensing_namespace}"'|g' config/rbac/*.yaml
