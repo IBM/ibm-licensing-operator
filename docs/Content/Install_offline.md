@@ -17,7 +17,7 @@
 
 This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
 
-1\.Clone the repository by using `fit clone`. Run the following command:
+1\.Clone the repository by using `git clone`. Run the following command:
 
 ```bash
 export operator_release_version=v1.4.2
@@ -29,7 +29,7 @@ cd ibm-licensing-operator/
 
 2\. Prepare Docker images.
 
-a.  Run the following command to prepare your Docker images.
+a.  Run the following command to prepare your Docker images:
 
 ```bash
 export my_docker_registry=<YOUR PRIVATE REGISTRY IMAGE PREFIX HERE; for example: "my.registry:5000" or "my.private.registry.example.com">
@@ -37,20 +37,20 @@ export operator_version=1.4.2
 export operand_version=1.4.2
 ```
 
-b. Pull the required images with the following command.
+b. Pull the required images with the following command:
 
 ```bash
 docker pull quay.io/opencloudio/ibm-licensing-operator:${operator_version}
 docker pull quay.io/opencloudio/ibm-licensing:${operand_version}
 ```
 
-c. Before pushing the images to your private registry, make sure that you are logged in. Use the following command.
+c. Before pushing the images to your private registry, make sure that you are logged in. Use the following command:
 
 ```bash
 docker login ${my_docker_registry}
 ```
 
-d. Tag the images with your registry prefix and push with the following commands.
+d. Tag the images with your registry prefix and push with the following commands:
 
 ```bash
 docker tag quay.io/opencloudio/ibm-licensing-operator:${operator_version} ${my_docker_registry}/ibm-licensing-operator:${operator_version}
@@ -62,47 +62,52 @@ docker push ${my_docker_registry}/ibm-licensing:${operand_version}
 
 3\. Create the required resources.
 
-a. Run the following command on machine where you have access to your cluster and can use `kubectl`.
+a. Run the following command on a machine where you have access to your cluster and can use `kubectl`.
 
 ```bash
 export my_docker_registry=<SAME REGISTRY AS BEFORE>
 ```
 
-b. Run the following command to create the namespace for installing the operator.
+b. Run the following command to set the `licensing_namespace` variable and create the namespace for installing the operator.
 
 **Note:** You can install the operator in the `ibm-common-services` namespace or other custom namespace.
 
 ```bash
-kubectl create namespace <installation_namespace>
+export licensing_namespace=<installation_namespace>
+kubectl create namespace ${licensing_namespace}
 ```
 
-where `<namespace_name>` is the name of the namespace where you want to install the operator.
+where `<installation_namespace>` is the name of the namespace where you want to install the operator.
 
 For example:
 
 ```bash
-kubectl create namespace ibm-common-services
+export licensing_namespace=ibm-common-services
+kubectl create namespace ${licensing_namespace}
 ```
 
 c. If your cluster needs the access token to your private Docker registry, create the secret in the dedicated installation namespace:
 
 ```bash
-kubectl create secret -n <installation_namespace> docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
+kubectl create secret -n ${licensing_namespace} docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
 ```
 
-d. Set the context so that the resources are created in the dedicated installation namespace.
+d. Set the context so that the resources are created in a dedicated installation namespace:
 
 ```bash
-kubectl config set-context --current --namespace=<installation_namespace>
+kubectl config set-context --current --namespace=${licensing_namespace}
 ```
 
-e. Apply RBAC roles and CRD.
+e. Apply RBAC roles, CRD and `operator.yaml`:
 
-**Note:** If you are installing the operator in the namespace other than `ibm-common-services`,  change the `ibm-common-services`namespace to your custom namespace in the following files: `role.yaml`, `role_binding.yaml` and  `operator.yaml`.
-
-Run the following commands:
+- For **LINUX** users:
 
 ```bash
+export operator_version=1.4.2
+sed -i 's|quay.io/opencloudio|'"${my_docker_registry}"'|g' deploy/operator.yaml
+if [ "${licensing_namespace}" != "ibm-common-services" ]; then
+  sed -i 's|ibm-common-services|'"${licensing_namespace}"'|g' deploy/*.yaml
+fi
 # add CRD:
 kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
 kubectl apply -f deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
@@ -110,16 +115,7 @@ kubectl apply -f deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yam
 kubectl apply -f deploy/role.yaml
 kubectl apply -f deploy/service_account.yaml
 kubectl apply -f deploy/role_binding.yaml
-```
-
-f. Modify the `operator.yaml` image so that your private registry is used:
-
-- For **LINUX** users:
-
-```bash
-export operator_version=1.4.2
-ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[/&]/\&/g')
-sed -i 's/quay.io/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
+# add operator:
 kubectl apply -f deploy/operator.yaml
 ```
 
@@ -127,8 +123,18 @@ kubectl apply -f deploy/operator.yaml
 
 ```bash
 export operator_version=1.4.2
-ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[/&]/\&/g')
-sed -i "" 's/quay.io/opencloudio/'"${ESCAPED_REPLACE}"'/g' deploy/operator.yaml
+sed -i "" 's|quay.io/opencloudio|'"${my_docker_registry}"'|g' deploy/operator.yaml
+if [ "${licensing_namespace}" != "ibm-common-services" ]; then
+  sed -i "" 's|ibm-common-services|'"${licensing_namespace}"'|g' deploy/*.yaml
+fi
+# add CRD:
+kubectl apply -f deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
+kubectl apply -f deploy/crds/operator.ibm.com_ibmlicenseservicereporters_crd.yaml
+# add RBAC:
+kubectl apply -f deploy/role.yaml
+kubectl apply -f deploy/service_account.yaml
+kubectl apply -f deploy/role_binding.yaml
+# add operator:
 kubectl apply -f deploy/operator.yaml
 ```
 
@@ -140,7 +146,7 @@ Create the IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
-1\. To create the the IBM Licensing instance, run the following command:
+1\. To create the IBM Licensing instance, run the following command:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -152,11 +158,11 @@ spec:
   apiSecretToken: ibm-licensing-token
   datasource: datacollector
   httpsEnable: true
-  instanceNamespace: <installation_namespace>
+  instanceNamespace: ${licensing_namespace}
 EOF
 ```
 
-where the `<installation_namespace>` is the name of the namespace where you installed License Service.
+where the `${licensing_namespace}` is the name of the namespace where you installed License Service.
 
 2\. If you created the secret that is needed to access the images, add it to the configuration.
 
