@@ -99,12 +99,12 @@ type IBMLicensingSpec struct {
 	RHMPEnabled *bool `json:"rhmpEnabled,omitempty"`
 
 	// Should collect usage based metrics?
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Usage Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Usage Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
 	UsageEnabled bool `json:"usageEnabled,omitempty"`
 
 	// Usage Container Settings
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Usage Container Settings",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Usage Container Settings",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
 	UsageContainer Container `json:"usageContainer,omitempty"`
 

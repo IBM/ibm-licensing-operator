@@ -248,12 +248,12 @@ spec:
             displayName: Usage Container Settings
             path: usageContainer
             x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
+              - urn:alm:descriptor:com.tectonic.ui:hidden
           - description: Should collect usage based metrics?
             displayName: Usage Enabled
             path: usageEnabled
             x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+              - urn:alm:descriptor:com.tectonic.ui:hidden
         version: v1alpha1
       - description: IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters API
         displayName: IBMLicense Service Reporter
