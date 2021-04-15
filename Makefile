@@ -18,7 +18,7 @@
 CSV_VERSION ?= 1.5.0
 CSV_VERSION_DEVELOPMENT ?= development
 POSTGRESS_VERSION ?= 12.0.5
-OLD_CSV_VERSION ?= 1.4.1
+OLD_CSV_VERSION ?= 1.4.2
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -40,6 +40,9 @@ IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE ?= ibm-license-service-reporter-ui
 IBM_POSTGRESQL_IMAGE ?= ibm-postgresql
 IBM_LICENSE_SERVICE_REPORTER_IMAGE ?= ibm-license-service-reporter
 IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
+
+CHANNELS="v3,beta"
+DEFAULT_CHANNEL=v3
 
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
@@ -469,6 +472,7 @@ pre-bundle: manifests
 	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_licensing.yaml
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
+	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces' ${OLD_CSV_VERSION}
 	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml
 	operator-sdk bundle validate ./bundle
 
