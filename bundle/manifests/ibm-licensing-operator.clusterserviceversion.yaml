@@ -569,3 +569,4 @@ spec:
   provider:
     name: IBM
   version: 1.5.0
+  replaces: 1.4.2
