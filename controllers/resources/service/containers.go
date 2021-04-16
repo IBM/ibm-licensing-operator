@@ -123,6 +123,15 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 		}...)
 
 	}
+
+	if spec.EnvVariable != nil {
+		for key, value := range spec.EnvVariable {
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name:  key,
+				Value: value,
+			})
+		}
+	}
 	return environmentVariables
 }
 

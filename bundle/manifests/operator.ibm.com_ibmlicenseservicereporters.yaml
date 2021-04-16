@@ -86,6 +86,11 @@ spec:
                       type: object
                   type: object
               type: object
+            envVariable:
+              additionalProperties:
+                type: string
+              description: Environment variable setting
+              type: object
             httpsCertsSource:
               description: 'options: self-signed or custom'
               enum:

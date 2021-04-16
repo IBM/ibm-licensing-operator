@@ -24,6 +24,10 @@ import (
 
 // IBMLicenseServiceReporterSpec defines the desired state of IBMLicenseServiceReporter
 type IBMLicenseServiceReporterSpec struct {
+	// Environment variable setting
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Environment variable setting",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
+	// +optional
+	EnvVariable map[string]string `json:"envVariable"`
 	// Receiver Settings
 	ReceiverContainer Container `json:"receiverContainer,omitempty"`
 	// Receiver Settings

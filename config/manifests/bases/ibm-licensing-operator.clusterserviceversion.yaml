@@ -30,6 +30,12 @@ spec:
       displayName: IBMLicense Service Reporter
       kind: IBMLicenseServiceReporter
       name: ibmlicenseservicereporters.operator.ibm.com
+      specDescriptors:
+      - description: Environment variable setting
+        displayName: Environment variable setting
+        path: envVariable
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
       version: v1alpha1
     - description: IBM License Service is the Schema for the ibmlicensings API
       displayName: IBM License Service
@@ -100,6 +106,11 @@ spec:
         path: datasource
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Environment variable setting
+        displayName: Environment variable setting
+        path: envVariable
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
       - description: Enables https access at pod level, httpsCertsSource needed if true
         displayName: HTTPS Enable
         path: httpsEnable
