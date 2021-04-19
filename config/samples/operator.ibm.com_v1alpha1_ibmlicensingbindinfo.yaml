@@ -15,5 +15,3 @@ spec:
     public-api-upload: 
       secret: ibm-licensing-upload-token
       configmap: ibm-licensing-upload-config
-    public-zen:
-      configmap: ibm-license-service-reporter-zen
