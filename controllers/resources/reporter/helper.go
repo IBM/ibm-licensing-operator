@@ -103,17 +103,19 @@ func getReciverEnvVariables(spec operatorv1alpha1.IBMLicenseServiceReporterSpec)
 }
 
 func getEnvVariable(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []corev1.EnvVar {
+	if spec.EnvVariable == nil {
+		return nil
+	}
 	var environmentVariables = []corev1.EnvVar{}
-	if spec.EnvVariable != nil {
-		for key, value := range spec.EnvVariable {
-			environmentVariables = append(environmentVariables, corev1.EnvVar{
-				Name:  key,
-				Value: value,
-			})
-		}
+	for key, value := range spec.EnvVariable {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  key,
+			Value: value,
+		})
 	}
 	return environmentVariables
 }
+
 func UpdateVersion(client client.Client, instance *operatorv1alpha1.IBMLicenseServiceReporter) error {
 	if instance.Spec.Version != version.Version {
 		instance.Spec.Version = version.Version
