@@ -472,7 +472,7 @@ pre-bundle: manifests
 	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_licensing.yaml
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces' ${OLD_CSV_VERSION}
+	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces' ibm-licensing-operator.v${OLD_CSV_VERSION}
 	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml
 	operator-sdk bundle validate ./bundle
 
