@@ -49,6 +49,8 @@ var Seconds60 int64 = 60
 var IsRouteAPI = true
 var IsServiceCAAPI = true
 var RHMPEnabled = false
+var IsUIEnabled = false
+var UIPlatformSecretName = "platform-oidc-credentials"
 
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"
@@ -150,6 +152,7 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 		return DeleteResource(reqLogger, client, found)
 	}
 	for _, annotation := range annotationsForServicesToCheck {
+		//goland:noinspection GoNilness
 		if found.Annotations[annotation] != expected.Annotations[annotation] {
 			return UpdateResource(reqLogger, client, found, expected)
 		}

@@ -18,7 +18,7 @@ package reporter
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	"github.com/ibm/ibm-licensing-operator/controllers/resources"
+	res "github.com/ibm/ibm-licensing-operator/controllers/resources"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,13 +31,20 @@ func GetDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) *appsv1
 	selectorLabels := LabelsForSelector(instance)
 	podLabels := LabelsForPod(instance)
 
-	imagePullSecrets := []corev1.LocalObjectReference{}
+	var imagePullSecrets []corev1.LocalObjectReference
 	if instance.Spec.ImagePullSecrets != nil {
 		for _, pullSecret := range instance.Spec.ImagePullSecrets {
 			imagePullSecrets = append(imagePullSecrets, corev1.LocalObjectReference{Name: pullSecret})
 		}
 	}
 
+	containers := []corev1.Container{
+		GetDatabaseContainer(instance),
+		GetReceiverContainer(instance),
+	}
+	if res.IsUIEnabled {
+		containers = append(containers, GetReporterUIContainer(instance))
+	}
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetResourceName(instance),
@@ -55,17 +62,13 @@ func GetDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) *appsv1
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels:      podLabels,
-					Annotations: resources.AnnotationsForPod(),
+					Annotations: res.AnnotationsForPod(),
 				},
 				Spec: corev1.PodSpec{
-					Volumes:        getLicenseServiceReporterVolumes(instance.Spec),
-					InitContainers: GetLicenseReporterInitContainers(instance),
-					Containers: []corev1.Container{
-						GetDatabaseContainer(instance),
-						GetReceiverContainer(instance),
-						GetReporterUIContainer(instance),
-					},
-					TerminationGracePeriodSeconds: &resources.Seconds60,
+					Volumes:                       getLicenseServiceReporterVolumes(instance.Spec),
+					InitContainers:                GetLicenseReporterInitContainers(instance),
+					Containers:                    containers,
+					TerminationGracePeriodSeconds: &res.Seconds60,
 					ServiceAccountName:            GetServiceAccountName(instance),
 					ImagePullSecrets:              imagePullSecrets,
 					Affinity: &corev1.Affinity{

@@ -110,6 +110,7 @@ func (r *IBMLicenseServiceReporterReconciler) Reconcile(req reconcile.Request) (
 		r.reconcilePersistentVolumeClaim,
 		r.reconcileService,
 		r.reconcileConfigMaps,
+		r.reconcileOidcCredentials,
 		r.reconcileDeployment,
 		r.reconcileReporterRoute,
 		r.reconcileUIIngress,
@@ -331,6 +332,26 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileConfigMaps(instance *oper
 	return reconcile.Result{}, nil
 }
 
+func (r *IBMLicenseServiceReporterReconciler) reconcileOidcCredentials(
+	instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcileOidcCredentials", "Entry", "instance.GetName()", instance.GetName())
+	foundSecret := &corev1.Secret{}
+	namespacedName := types.NamespacedName{Name: res.UIPlatformSecretName, Namespace: instance.GetNamespace()}
+	err := r.Client.Get(context.TODO(), namespacedName, foundSecret)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			reqLogger.Info(res.UIPlatformSecretName + " secret does not exist => Reporter should exist without UI container")
+			res.IsUIEnabled = false
+			return reconcile.Result{}, nil
+		}
+		reqLogger.Error(err, "Failed to get "+res.UIPlatformSecretName+" secret")
+		return reconcile.Result{}, err
+	}
+	reqLogger.Info(res.UIPlatformSecretName + " secret does exist => Reporter should exist with UI container")
+	res.IsUIEnabled = true
+	return reconcile.Result{}, nil
+}
+
 func (r *IBMLicenseServiceReporterReconciler) reconcileDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
 	expectedDeployment := reporter.GetDeployment(instance)
@@ -378,6 +399,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileIngressProxy(instance *op
 	return r.reconcileResourceExistence(instance, expectedIngress, foundIngress, namespacedName)
 }
 
+//goland:noinspection GoUnusedParameter
 func (r *IBMLicenseServiceReporterReconciler) reconcileSenderConfiguration(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
 	return reconcile.Result{}, reporter.AddSenderConfiguration(r.Client, r.Log)
 }
