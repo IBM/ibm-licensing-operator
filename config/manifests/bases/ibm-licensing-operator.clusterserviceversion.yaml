@@ -151,7 +151,7 @@ spec:
         path: instanceNamespace
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-      - description: Is Red Had Marketplace enabled
+      - description: Is Red Hat Marketplace enabled
         displayName: RHMP Enabled
         path: rhmpEnabled
         x-descriptors:
