@@ -98,7 +98,7 @@ type IBMLicensingSpec struct {
 	// +optional
 	RouteEnabled *bool `json:"routeEnabled,omitempty"`
 
-	// Is Red Had Marketplace enabled
+	// Is Red Hat Marketplace enabled
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="RHMP Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	RHMPEnabled *bool `json:"rhmpEnabled,omitempty"`
