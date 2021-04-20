@@ -53,6 +53,11 @@ spec:
               - metering
               - datacollector
               type: string
+            envVariable:
+              additionalProperties:
+                type: string
+              description: Environment variable setting
+              type: object
             httpsCertsSource:
               description: 'options: self-signed or custom'
               enum:
@@ -149,7 +154,7 @@ spec:
                   type: object
               type: object
             rhmpEnabled:
-              description: Is Red Had Marketplace enabled
+              description: Is Red Hat Marketplace enabled
               type: boolean
             routeEnabled:
               description: Should Route be created to expose IBM Licensing Service API? (only on OpenShift cluster)

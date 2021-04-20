@@ -59,6 +59,11 @@ type IBMLicensingRouteOptions struct {
 // IBMLicensingSpec defines the desired state of IBMLicensing
 type IBMLicensingSpec struct {
 
+	// Environment variable setting
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Environment variable setting",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
+	// +optional
+	EnvVariable map[string]string `json:"envVariable,omitempty"`
+
 	// Container Settings
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Container Settings",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
@@ -93,7 +98,7 @@ type IBMLicensingSpec struct {
 	// +optional
 	RouteEnabled *bool `json:"routeEnabled,omitempty"`
 
-	// Is Red Had Marketplace enabled
+	// Is Red Hat Marketplace enabled
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="RHMP Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	RHMPEnabled *bool `json:"rhmpEnabled,omitempty"`

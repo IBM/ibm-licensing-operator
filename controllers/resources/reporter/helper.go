@@ -84,6 +84,38 @@ func getDatabaseEnvFromSourceVariables() []corev1.EnvFromSource {
 	}
 }
 
+func getReciverEnvVariables(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []corev1.EnvVar {
+	environmentVariables := []corev1.EnvVar{
+		{
+			Name:  "HTTPS_CERTS_SOURCE",
+			Value: string(spec.HTTPSCertsSource),
+		},
+	}
+	if spec.EnvVariable != nil {
+		for key, value := range spec.EnvVariable {
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name:  key,
+				Value: value,
+			})
+		}
+	}
+	return environmentVariables
+}
+
+func getEnvVariable(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []corev1.EnvVar {
+	if spec.EnvVariable == nil {
+		return nil
+	}
+	var environmentVariables = []corev1.EnvVar{}
+	for key, value := range spec.EnvVariable {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  key,
+			Value: value,
+		})
+	}
+	return environmentVariables
+}
+
 func UpdateVersion(client client.Client, instance *operatorv1alpha1.IBMLicenseServiceReporter) error {
 	if instance.Spec.Version != version.Version {
 		instance.Spec.Version = version.Version

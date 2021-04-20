@@ -27,7 +27,7 @@ import (
 )
 
 func getReporterUIEnvironmentVariables(instance *operatorv1alpha1.IBMLicenseServiceReporter) []corev1.EnvVar {
-	return []corev1.EnvVar{
+	var environmentVariables = []corev1.EnvVar{
 		{
 			Name: "WLP_CLIENT_ID",
 			ValueFrom: &corev1.EnvVarSource{
@@ -82,6 +82,15 @@ func getReporterUIEnvironmentVariables(instance *operatorv1alpha1.IBMLicenseServ
 			Value: "https://icp-management-ingress/idprovider",
 		},
 	}
+	if instance.Spec.EnvVariable != nil {
+		for key, value := range instance.Spec.EnvVariable {
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name:  key,
+				Value: value,
+			})
+		}
+	}
+	return environmentVariables
 
 }
 
