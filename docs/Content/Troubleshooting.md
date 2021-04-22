@@ -3,6 +3,7 @@
 - [Verifying completeness of license usage data](#verifying-completeness-of-license-usage-data)
 - [Preparing resources for offline installation without git](#preparing-resources-for-offline-installation-without-git)
 - [License Service pods are crashing and License Service cannot run](#license-service-pods-are-crashing-and-license-service-cannot-run)
+- [License Service API is unavailable with 503 Service Unavailable error](#license-service-api-is-unavailable-with-503-service-unavailable-error)
 
 ## Verifying completeness of license usage data
 
@@ -128,5 +129,13 @@ Complete the following steps to fix the problem:
 2\. If the response contains information about the running pod, uninstall License Service from `kube-system` namespace.
 
 <b>Related links</b>
+
+## License Service API is unavailable with 503 Service Unavailable error
+
+You might get 503 Service Unavailable error when you make a License Service API call when you use the custom ingress certificate. The custom ingress certificate is not acceptable for License Service. To fix this issue, complete the following actions:
+
+1\. Generate the correct certificate for Fully Qualified Domain Name (FQDN) of License Service. To check the License Service URL, go to the OpenShift console, go to **Networking** > **Routes**. Find the `ibm-licensing-service-instance` route. The License Service URL is listed as **Location**.
+
+2\. [Configure your custom certificate](Configuration.md#using-custom-certificates).
 
 - [Go back to home page](../License_Service_main.md#documentation)
