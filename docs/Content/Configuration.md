@@ -147,14 +147,13 @@ kubectl edit IBMLicensing instance
 
 6\.Edit the YAML and add the following parameters to the `IBMLicensing` section, under `spec`:
 
-  - To enable the https connection, add the following line:
+- To enable the https connection, add the following line:
 
-    `httpsEnable: true`
+`httpsEnable: true`
 
-  - To apply the custom certificate that you created as `ibm-licensing-certs`, add the following line:
+- To apply the custom certificate that you created as `ibm-licensing-certs`, add the following line:
 
-    `httpsCertsSource: custom`
-
+`httpsCertsSource: custom`
 
 For example:
 
@@ -169,7 +168,6 @@ metadata:
 ```
 
 7/. Save the changes in YAML.
-
 
 ## Cleaning existing License Service dependencies
 
