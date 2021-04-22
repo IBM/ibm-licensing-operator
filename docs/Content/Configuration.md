@@ -124,7 +124,7 @@ You can use either a self-signed certificate or a custom certificate when you us
 
 1\. Change the certificate name to `tls.crt`.
 
-2\. Change the key name to 'tls.key'.
+2\. Change the key name to `tls.key`.
 
 3\. Run the following command to change the directory to where the certificate and the key are stored:
 
@@ -145,7 +145,7 @@ kubectl create secret tls ibm-licensing-certs --key tls.key --cert tls.crt -n ${
 kubectl edit IBMLicensing instance
 ```
 
-6\.Edit the YAML and add the following parameters to the `IBMLicensing` section, under `spec`:
+6\. Edit the YAML and add the following parameters to the `IBMLicensing` section, under `spec`:
 
 - To enable the https connection, add the following line:
 
@@ -167,7 +167,7 @@ metadata:
     httpsCertsSource: custom
 ```
 
-7/. Save the changes in YAML.
+7\. Save the changes in YAML.
 
 ## Cleaning existing License Service dependencies
 
