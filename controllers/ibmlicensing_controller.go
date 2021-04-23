@@ -426,7 +426,7 @@ func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1al
 	if !instance.Spec.IsRHMPEnabled() {
 		return reconcile.Result{}, nil
 	}
-	r.Log.WithValues("reconcileMeterDefinition", "Entry", "instance.GetName()", instance.GetName())
+	reqLogger := r.Log.WithValues("reconcileMeterDefinition", "Entry", "instance.GetName()", instance.GetName())
 	expected := service.GetMeterDefinition(instance)
 	found := &rhmp.MeterDefinition{}
 	owner := service.GetPrometheusService(instance)
@@ -438,6 +438,23 @@ func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1al
 		result, err := r.reconcileResourceNamespacedExistenceWithCustomController(instance, owner, es, found)
 		if err != nil || result.Requeue {
 			return result, err
+		}
+		possibleUpdateNeeded := true
+		if found.ObjectMeta.Name != es.ObjectMeta.Name {
+			reqLogger.Info("Names not equal", "old", found.ObjectMeta.Name, "new", es.ObjectMeta.Name)
+		} else if found.Spec.Kind != es.Spec.Kind {
+			reqLogger.Info("Found wrong Kind")
+		} else if len(found.Spec.Meters) == 0 {
+			reqLogger.Info("Found MeterDefinition without Meters")
+		} else if len(found.Spec.Meters) > 0 && found.Spec.Meters[0].Query != es.Spec.Meters[0].Query {
+			reqLogger.Info("Found MeterDefinition with wrong Query",
+				"old", fmt.Sprintf("%v", found.Spec.Meters[0].Query),
+				"new", fmt.Sprintf("%v", es.Spec.Meters[0].Query))
+		} else {
+			possibleUpdateNeeded = false
+		}
+		if possibleUpdateNeeded {
+			return res.UpdateResource(&reqLogger, r.Client, es, found)
 		}
 	}
 	return reconcile.Result{}, nil
