@@ -122,40 +122,52 @@ Then examine the status part of the output. It should include host, path, tls (i
 
 You can use either a self-signed certificate or a custom certificate when you use License Service API over https. In order to set up a custom certificate complete the following steps:
 
-1\. Make sure that the IBM Licensing operator is installed.
+1\. Change the certificate name to `tls.crt`.
 
-2\. Create a Kubernetes TLS secret in the namespace where License Service is deployed.
+2\. Change the key name to `tls.key`.
 
-   a. Change the certificate name to 'tls.crt'.
-
-   b. Change the key name to 'tls.key'.
-
-   c. In the terminal, change the directory to where the key and the certificate are stored.
+3\. Run the following command to change the directory to where the certificate and the key are stored:
 
 ```bash
-cd <directory with the certificate and the key>
+cd <certificate_directory>
 ```
 
-   d. Create the secret with the following command:
+4\. Create a secret by using the following command:
 
 ```bash
-licensingNamespace=ibm-common-services
+licensingNamespace=$(oc get pods --all-namespaces | grep "ibm-licensing-service-" | awk {'print $1'})
 kubectl create secret tls ibm-licensing-certs --key tls.key --cert tls.crt -n ${licensingNamespace}
 ```
 
-3\. Edit a new IBM Licensing instance, or edit the existing one to include the certificate:
+5\. Open the IBMLicensing instance YAML to include the certificate by running the following command:
 
-   ```yaml
-   apiVersion: operator.ibm.com/v1alpha1
-   kind: IBMLicensing
-   metadata:
-      name: instance
-   # ...
-   spec:
-      httpsEnable: true # <- this enables https
-      httpsCertsSource: custom # <- this makes License Service API use ibm-licensing-certs secret
-   # ... append rest of the License Service configuration here
-   ```
+```bash
+kubectl edit IBMLicensing instance
+```
+
+6\. Edit the YAML and add the following parameters to the `IBMLicensing` section, under `spec`:
+
+- To enable the https connection, add the following line:
+
+`httpsEnable: true`
+
+- To apply the custom certificate that you created as `ibm-licensing-certs`, add the following line:
+
+`httpsCertsSource: custom`
+
+For example:
+
+```yaml
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+    name: instance
+  spec:
+    httpsEnable: true
+    httpsCertsSource: custom
+```
+
+7\. Save the changes in YAML.
 
 ## Cleaning existing License Service dependencies
 
