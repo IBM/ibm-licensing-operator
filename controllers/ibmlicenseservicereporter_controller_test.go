@@ -43,13 +43,13 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 	)
 
 	BeforeEach(func() {
-		ctx := context.Background()
+		ctx1 := context.Background()
 		instanceForRemove := &operatorv1alpha1.IBMLicenseServiceReporter{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
 			}}
-		k8sClient.Delete(ctx, instanceForRemove)
+		k8sClient.Delete(ctx1, instanceForRemove)
 
 		Eventually(func() bool {
 			instanceRemoved := &operatorv1alpha1.IBMLicenseServiceReporter{
@@ -57,27 +57,27 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 					Name:      name,
 					Namespace: namespace,
 				}}
-			k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instanceRemoved)
+			k8sClient.Get(ctx1, types.NamespacedName{Name: name, Namespace: namespace}, instanceRemoved)
 			return len(instanceRemoved.Status.LicensingReporterPods) < 1
 		}, timeout, interval).Should(BeTrue())
 	})
 
 	AfterEach(func() {
-		ctx := context.Background()
+		ctx2 := context.Background()
 		instanceForRemove := &operatorv1alpha1.IBMLicenseServiceReporter{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
 			}}
 
-		k8sClient.Delete(ctx, instanceForRemove)
+		k8sClient.Delete(ctx2, instanceForRemove)
 		Eventually(func() bool {
 			instanceRemoved := &operatorv1alpha1.IBMLicenseServiceReporter{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      name,
 					Namespace: namespace,
 				}}
-			k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instanceRemoved)
+			k8sClient.Get(ctx2, types.NamespacedName{Name: name, Namespace: namespace}, instanceRemoved)
 			return len(instanceRemoved.Status.LicensingReporterPods) < 1
 		}, timeout, interval).Should(BeTrue())
 	})
