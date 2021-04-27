@@ -40,15 +40,15 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 	var (
 		ctx               context.Context
 		instance          *operatorv1alpha1.IBMLicenseServiceReporter
+	)
+
+	BeforeEach(func() {
+		ctx = context.Background()
 		instanceForRemove = &operatorv1alpha1.IBMLicenseServiceReporter{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
 			}}
-	)
-
-	BeforeEach(func() {
-		ctx = context.Background()
 		k8sClient.Delete(ctx, instanceForRemove)
 
 		Eventually(func() bool {
@@ -63,6 +63,13 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 	})
 
 	AfterEach(func() {
+		ctx = context.Background()
+		instanceForRemove = &operatorv1alpha1.IBMLicenseServiceReporter{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			}}
+
 		k8sClient.Delete(ctx, instanceForRemove)
 		Eventually(func() bool {
 			instanceRemoved := &operatorv1alpha1.IBMLicenseServiceReporter{
