@@ -58,7 +58,7 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 					Namespace: namespace,
 				}}
 			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instanceRemoved)).ShouldNot(Succeed())
-			return instanceRemoved == nil
+			return len(instanceRemoved.Status.LicensingReporterPods) < 1
 		}, timeout, interval).Should(BeTrue())
 	})
 
@@ -71,7 +71,7 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 					Namespace: namespace,
 				}}
 			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, instanceRemoved)).ShouldNot(Succeed())
-			return instanceRemoved == nil
+			return len(instanceRemoved.Status.LicensingReporterPods) < 1
 		}, timeout, interval).Should(BeTrue())
 	})
 	
