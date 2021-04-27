@@ -43,8 +43,8 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 	)
 
 	BeforeEach(func() {
-		ctx = context.Background()
-		instanceForRemove = &operatorv1alpha1.IBMLicenseServiceReporter{
+		ctx := context.Background()
+		instanceForRemove := &operatorv1alpha1.IBMLicenseServiceReporter{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
@@ -63,8 +63,8 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 	})
 
 	AfterEach(func() {
-		ctx = context.Background()
-		instanceForRemove = &operatorv1alpha1.IBMLicenseServiceReporter{
+		ctx := context.Background()
+		instanceForRemove := &operatorv1alpha1.IBMLicenseServiceReporter{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
