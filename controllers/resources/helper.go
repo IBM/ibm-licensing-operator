@@ -141,6 +141,7 @@ func UpdateResource(reqLogger *logr.Logger, client c.Client,
 func UpdateServiceIfNeeded(reqLogger *logr.Logger, client c.Client, expectedService *corev1.Service, foundService *corev1.Service) (reconcile.Result, error) {
 	for _, annotation := range annotationsForServicesToCheck {
 		if foundService.Annotations[annotation] != expectedService.Annotations[annotation] {
+			expectedService.Spec.ClusterIP = foundService.Spec.ClusterIP
 			return UpdateResource(reqLogger, client, expectedService, foundService)
 		}
 	}
