@@ -62,26 +62,7 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 		}, timeout, interval).Should(BeTrue())
 	})
 
-	AfterEach(func() {
-		ctx2 := context.Background()
-		instanceForRemove := &operatorv1alpha1.IBMLicenseServiceReporter{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: namespace,
-			}}
 
-		k8sClient.Delete(ctx2, instanceForRemove)
-		Eventually(func() bool {
-			instanceRemoved := &operatorv1alpha1.IBMLicenseServiceReporter{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace,
-				}}
-			k8sClient.Get(ctx2, types.NamespacedName{Name: name, Namespace: namespace}, instanceRemoved)
-			return len(instanceRemoved.Status.LicensingReporterPods) < 1
-		}, timeout, interval).Should(BeTrue())
-	})
-	
 	Context("Initializing IBMLicenseServiceReporter Status", func() {
 		It("Should create IBMLicenseServiceReporter", func() {
 			if !ocp {
