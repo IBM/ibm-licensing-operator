@@ -48,6 +48,7 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 	)
 
 	BeforeEach(func() {
+		ctx = context.Background()
 		k8sClient.Delete(ctx, instanceForRemove)
 	})
 
