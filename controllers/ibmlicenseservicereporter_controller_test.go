@@ -50,10 +50,10 @@ var _ = Describe("IBMLicenseServiceReporter controller", func() {
 	BeforeEach(func() {
 		k8sClient.Delete(ctx, instanceForRemove)
 	})
-	
+
 	AfterEach(func() {
 		k8sClient.Delete(ctx, instanceForRemove)
-	})	
+	})
 
 	Context("Initializing IBMLicenseServiceReporter Status", func() {
 		It("Should create IBMLicenseServiceReporter", func() {
