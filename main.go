@@ -38,6 +38,8 @@ import (
 	operatoribmcomv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	"github.com/ibm/ibm-licensing-operator/controllers"
 	networkingv1 "k8s.io/api/networking/v1"
+
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -78,6 +80,8 @@ func init() {
 	utilruntime.Must(networkingv1.AddToScheme(scheme))
 
 	utilruntime.Must(meterdefv1beta1.AddToScheme(scheme))
+
+	utilruntime.Must(odlm.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 

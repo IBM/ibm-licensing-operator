@@ -19,12 +19,18 @@ package reporter
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"github.com/go-logr/logr"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
+	res "github.com/ibm/ibm-licensing-operator/controllers/resources"
 	"github.com/ibm/ibm-licensing-operator/version"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
 const DatabaseConfigSecretName = "license-service-hub-db-config"
@@ -49,6 +55,13 @@ const LicenseReporterResourceBase = "ibm-license-service-reporter"
 const LicenseReporterComponentName = "ibm-license-service-reporter-svc"
 const LicenseReporterReleaseName = "ibm-license-service-reporter"
 const LicenseReportOCPCertName = "ibm-license-reporter-cert"
+
+const OperatorName = "ibm-licensing-operator"
+
+const ZenConfigMapName = "ibm-license-service-reporter-zen"
+const LicenseReportBindInfoName = "ibm-license-service-reporter-bindinfo"
+const OperandRegistry = "common-service"
+const ZenBindingName = "public-zen-config"
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicenseServiceReporter) string {
 	return LicenseReporterResourceBase + "-" + instance.GetName()
@@ -178,4 +191,33 @@ func ClearDefaultSenderConfiguration(client client.Client, log logr.Logger) {
 
 		}
 	}
+}
+
+func GetBindInfo(instance *operatorv1alpha1.IBMLicenseServiceReporter) *odlm.OperandBindInfo {
+	return &odlm.OperandBindInfo{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      LicenseReportBindInfoName,
+			Namespace: instance.GetNamespace(),
+		},
+		Spec: odlm.OperandBindInfoSpec{
+			Operand:           OperatorName,
+			Registry:          OperandRegistry,
+			RegistryNamespace: instance.GetNamespace(),
+			Description:       "Binding information that should be accessible to IBM License Service Reporter adopters",
+			Bindings: map[string]odlm.SecretConfigmap{
+				ZenBindingName: {
+					Configmap: ZenConfigMapName,
+				},
+			},
+		},
+	}
+}
+
+func UpdateOperandBindInfoIfNeeded(reqLogger *logr.Logger, client client.Client, expectedBindInfo *odlm.OperandBindInfo,
+	foundBindInfo *odlm.OperandBindInfo) (reconcile.Result, error) {
+
+	if !reflect.DeepEqual(expectedBindInfo.Spec, foundBindInfo.Spec) {
+		return res.UpdateResource(reqLogger, client, expectedBindInfo, foundBindInfo)
+	}
+	return reconcile.Result{}, nil
 }

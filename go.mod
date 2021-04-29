@@ -3,6 +3,7 @@ module github.com/ibm/ibm-licensing-operator
 go 1.15
 
 require (
+	github.com/IBM/operand-deployment-lifecycle-manager v1.5.0
 	github.com/coreos/prometheus-operator v0.41.0
 	github.com/go-logr/logr v0.3.0
 	github.com/onsi/ginkgo v1.14.2

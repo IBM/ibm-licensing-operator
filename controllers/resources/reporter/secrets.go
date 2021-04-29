@@ -87,7 +87,7 @@ func GetZenConfigMap(instance *operatorv1alpha1.IBMLicenseServiceReporter) *core
 	}
 	expectedCM := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ibm-license-service-reporter-zen",
+			Name:      ZenConfigMapName,
 			Namespace: instance.GetNamespace(),
 			Labels:    labels,
 		},

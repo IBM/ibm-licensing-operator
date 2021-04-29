@@ -39,6 +39,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
 /**
@@ -87,7 +89,7 @@ type reconcileLRFunctionType = func(*operatorv1alpha1.IBMLicenseServiceReporter)
 
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=apps,resources=deployments;daemonsets;replicasets;statefulsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods;services;services/finalizers;endpoints;persistentvolumeclaims;events;configmaps;secrets;namespaces;serviceaccounts,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=operator.ibm.com,resources=ibmlicenseservicereporters;ibmlicenseservicereporters/status;ibmlicenseservicereporters/finalizers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-common-services,groups=operator.ibm.com,resources=ibmlicenseservicereporters;ibmlicenseservicereporters/status;ibmlicenseservicereporters/finalizers;operandbindinfos,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicenseservicereporters;ibmlicenseservicereporters/status;ibmlicenseservicereporters/finalizers,verbs=get;list;watch;create;update;patch;delete
 
 func (r *IBMLicenseServiceReporterReconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) {
@@ -110,6 +112,7 @@ func (r *IBMLicenseServiceReporterReconciler) Reconcile(req reconcile.Request) (
 		r.reconcilePersistentVolumeClaim,
 		r.reconcileService,
 		r.reconcileConfigMaps,
+		r.reconcileOperandBindInfo,
 		r.reconcileOidcCredentials,
 		r.reconcileDeployment,
 		r.reconcileReporterRoute,
@@ -332,6 +335,22 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileConfigMaps(instance *oper
 	return reconcile.Result{}, nil
 }
 
+func (r *IBMLicenseServiceReporterReconciler) reconcileOperandBindInfo(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
+
+	if res.IsODLM {
+		reqLogger := r.Log.WithValues("reconcileService", "Entry", "instance.GetName()", instance.GetName())
+		expectedBindInfo := reporter.GetBindInfo(instance)
+		foundBindInfo := &odlm.OperandBindInfo{}
+		namespacedName := types.NamespacedName{Name: expectedBindInfo.GetName(), Namespace: expectedBindInfo.GetNamespace()}
+		reconcileResult, err := r.reconcileResourceExistence(instance, expectedBindInfo, foundBindInfo, namespacedName)
+		if err != nil || reconcileResult.Requeue {
+			return reconcileResult, err
+		}
+		return reporter.UpdateOperandBindInfoIfNeeded(&reqLogger, r.Client, expectedBindInfo, foundBindInfo)
+	}
+	return reconcile.Result{}, nil
+}
+
 func (r *IBMLicenseServiceReporterReconciler) reconcileOidcCredentials(
 	instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("reconcileOidcCredentials", "Entry", "instance.GetName()", instance.GetName())
@@ -456,5 +475,10 @@ func (r *IBMLicenseServiceReporterReconciler) controllerStatus() {
 		r.Log.Info("ServiceCA feature is enabled")
 	} else {
 		r.Log.Info("ServiceCA feature is disabled")
+	}
+	if res.IsODLM {
+		r.Log.Info("ODLM is available")
+	} else {
+		r.Log.Info("ODLM is unavailable")
 	}
 }
