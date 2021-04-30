@@ -25,6 +25,8 @@ import (
 	"reflect"
 	"time"
 
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
+
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	"github.com/ibm/ibm-licensing-operator/api/v1alpha1"
@@ -50,6 +52,7 @@ var IsRouteAPI = true
 var IsServiceCAAPI = true
 var RHMPEnabled = false
 var IsUIEnabled = false
+var IsODLM = true
 var UIPlatformSecretName = "platform-oidc-credentials"
 
 // Important product values needed for annotations
@@ -232,6 +235,14 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 	} else {
 		IsServiceCAAPI = false
 	}
+
+	odlmTestInstance := &odlm.OperandBindInfo{}
+	if err := client.List(context.TODO(), odlmTestInstance, listOpts...); err == nil {
+		IsODLM = true
+	} else {
+		IsODLM = false
+	}
+
 	return nil
 }
 

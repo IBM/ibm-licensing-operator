@@ -28,10 +28,12 @@ const APIReciverSecretTokenKeyName = "token"
 
 const ZenNginxConf = `location /license-service-reporter/ {
   access_by_lua_file /nginx_data/checkjwt.lua;
+  set_by_lua $nsdomain 'return os.getenv("NS_DOMAIN")';
   proxy_http_version 1.1;
   proxy_set_header Upgrade $http_upgrade;
   proxy_set_header Connection "upgrade";
   proxy_set_header Host $host;
+  proxy_set_header zen-namespace-domain $nsdomain;
   proxy_pass http://ibm-license-service-reporter.ibm-common-services.svc.cluster.local:3001/license-service-reporter/;
   proxy_read_timeout 10m;
 }`
@@ -85,7 +87,7 @@ func GetZenConfigMap(instance *operatorv1alpha1.IBMLicenseServiceReporter) *core
 	}
 	expectedCM := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ibm-license-service-reporter-zen",
+			Name:      ZenConfigMapName,
 			Namespace: instance.GetNamespace(),
 			Labels:    labels,
 		},

@@ -501,6 +501,7 @@ spec:
                 - ibmlicenseservicereporters
                 - ibmlicenseservicereporters/finalizers
                 - ibmlicenseservicereporters/status
+                - operandbindinfos
               verbs:
                 - create
                 - delete
