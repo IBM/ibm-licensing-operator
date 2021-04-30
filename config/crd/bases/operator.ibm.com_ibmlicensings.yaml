@@ -154,10 +154,11 @@ spec:
               type: string
             logLevel:
               description: 'Should application pod show additional information, options:
-                DEBUG, INFO'
+                DEBUG, INFO, VERBOSE'
               enum:
               - DEBUG
               - INFO
+              - VERBOSE
               type: string
             resources:
               description: ResourceRequirements describes the compute resource requirements.

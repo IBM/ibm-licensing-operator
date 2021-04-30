@@ -104,10 +104,11 @@ spec:
                 type: string
               type: array
             logLevel:
-              description: 'Should application pod show additional information, options: DEBUG, INFO'
+              description: 'Should application pod show additional information, options: DEBUG, INFO, VERBOSE'
               enum:
               - DEBUG
               - INFO
+              - VERBOSE
               type: string
             receiverContainer:
               description: Receiver Settings

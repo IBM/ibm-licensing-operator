@@ -47,6 +47,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "DEBUG",
 		})
 	}
+	if spec.IsDebug() || spec.IsVerbose() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "SPRING_PROFILES_ACTIVE",
+			Value: "verbose",
+		})
+	}
 	if spec.HTTPSEnable {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "HTTPS_CERTS_SOURCE",
