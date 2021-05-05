@@ -463,6 +463,9 @@ alm-example:
 	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingbindinfo.yaml`,\
 	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingrequest.yaml`\
 	]"
+	yq d -i ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrolebinding.yaml 'subjects[0].namespace'
+	yq d -i ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_rolebinding.yaml 'subjects[0].namespace'
+
 
 # Generate bundle manifests and metadata, then validate generated files.
 pre-bundle: manifests

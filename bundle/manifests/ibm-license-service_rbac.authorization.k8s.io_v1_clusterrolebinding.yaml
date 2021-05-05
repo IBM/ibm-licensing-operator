@@ -12,6 +12,5 @@ roleRef:
   kind: ClusterRole
   name: ibm-license-service
 subjects:
-- kind: ServiceAccount
-  name: ibm-license-service
-  namespace: ibm-common-services
+  - kind: ServiceAccount
+    name: ibm-license-service
