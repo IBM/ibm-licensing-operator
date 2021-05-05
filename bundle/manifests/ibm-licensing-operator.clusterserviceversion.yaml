@@ -311,6 +311,24 @@ spec:
               verbs:
                 - list
           serviceAccountName: ibm-licensing-operator
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+                - namespaces
+                - nodes
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - metrics.k8s.io
+              resources:
+                - pods
+              verbs:
+                - get
+                - list
+          serviceAccountName: ibm-license-service
       deployments:
         - name: ibm-licensing-operator
           spec:
@@ -551,6 +569,17 @@ spec:
                 - update
                 - watch
           serviceAccountName: ibm-licensing-operator
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - configmaps
+              verbs:
+                - create
+                - get
+                - list
+                - update
+          serviceAccountName: ibm-license-service
     strategy: deployment
   installModes:
     - supported: true
