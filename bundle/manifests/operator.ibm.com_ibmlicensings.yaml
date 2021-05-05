@@ -126,10 +126,11 @@ spec:
               description: Existing or to be created namespace where application will start. In case metering data collection is used, should be the same namespace as metering components
               type: string
             logLevel:
-              description: 'Should application pod show additional information, options: DEBUG, INFO'
+              description: 'Should application pod show additional information, options: DEBUG, INFO, VERBOSE'
               enum:
               - DEBUG
               - INFO
+              - VERBOSE
               type: string
             resources:
               description: ResourceRequirements describes the compute resource requirements.

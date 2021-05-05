@@ -85,8 +85,8 @@ const (
 )
 
 type IBMLicenseServiceBaseSpec struct {
-	// Should application pod show additional information, options: DEBUG, INFO
-	// +kubebuilder:validation:Enum=DEBUG;INFO
+	// Should application pod show additional information, options: DEBUG, INFO, VERBOSE
+	// +kubebuilder:validation:Enum=DEBUG;INFO;VERBOSE
 	LogLevel string `json:"logLevel,omitempty"`
 	// Secret name used to store application token, either one that exists, or one that will be created
 	APISecretToken string `json:"apiSecretToken,omitempty"`
@@ -111,6 +111,10 @@ func (spec *IBMLicensingSpec) GetDefaultReporterTokenName() string {
 
 func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
+}
+
+func (spec *IBMLicensingSpec) IsVerbose() bool {
+	return spec.LogLevel == "VERBOSE"
 }
 
 func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool,
