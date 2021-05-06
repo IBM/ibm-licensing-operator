@@ -1,0 +1,3 @@
+- command: update
+  path: spec.install.spec.clusterPermissions[1].rules
+  value:
