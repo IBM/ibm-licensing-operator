@@ -65,7 +65,7 @@ QUAY_USERNAME ?=
 QUAY_PASSWORD ?=
 
 # Linter urls that should be skipped
-MARKDOWN_LINT_WHITELIST ?= https://quay.io/cnr,https://www-03preprod.ibm.com/support/knowledgecenter/SSHKN6/installer/3.3.0/install_operator.html,https://github.com/IBM/ibm-licensing-operator/releases/download/,https://github.com/operator-framework/operator-lifecycle-manager/releases/download,http://ibm.biz/
+MARKDOWN_LINT_WHITELIST ?= https://quay.io/cnr,https://www-03preprod.ibm.com/support/knowledgecenter/SSHKN6/installer/3.3.0/install_operator.html,https://github.com/IBM/ibm-licensing-operator/releases/download/,https://github.com/operator-framework/operator-lifecycle-manager/releases/download,http://ibm.biz/,https://ibm.biz/,https://goreportcard.com/,
 
 # The namespace that operator will be deployed in
 NAMESPACE ?= ibm-common-services
