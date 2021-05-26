@@ -133,7 +133,8 @@ func UpdateResource(reqLogger *logr.Logger, client c.Client,
 	err := client.Update(context.TODO(), expectedResource)
 	if err != nil {
 		// only need to delete resource as new will be recreated on next reconciliation
-		(*reqLogger).Error(err, "Failed to update "+resTypeString+", deleting...", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+		(*reqLogger).Info("Could not update "+resTypeString+", due to having not compatible changes between expected and updated resource, "+
+			"will try to delete it and create new one...", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
 		return DeleteResource(reqLogger, client, foundResource)
 	}
 	(*reqLogger).Info("Updated "+resTypeString+" successfully", "Namespace", expectedResource.GetNamespace(), "Name", expectedResource.GetName())
