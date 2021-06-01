@@ -6,18 +6,18 @@
 
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
 
-- [License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)](#ibm-licensing-operator)
+- [License Service as a part of an IBM Cloud Pak (included in IBM Cloud Pak foundational services)](#ibm-licensing-operator)
 - [License Service without an IBM Cloud Pak](#ibm-licensing-operator-for-deploying-license-service-without-an-ibm-cloud-pak)
 
 # ibm-licensing-operator
 
-<b>Scenario: License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)</b>
+<b>Scenario: License Service as a part of an IBM Cloud Pak (included in IBM Cloud Pak foundational services)</b>
 
-> **Important:** Do not install this operator directly. Only install this operator using the IBM Common Services Operator. For more information about installing this operator and other Common Services operators, see [Installer documentation](http://ibm.biz/cpcs_opinstall). If you are using this operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For more information about IBM Cloud Paks, see [IBM Cloud Paks that use Common Services](http://ibm.biz/cpcs_cloudpaks).
+> **Important:** Do not install this operator directly. Only install this operator using the IBM Cloud Pak foundational services Operator. For more information about installing this operator and other foundational services operators, see [Installer documentation](http://ibm.biz/cpcs_opinstall). If you are using this operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For more information about IBM Cloud Paks, see [IBM Cloud Paks that use IBM Cloud Pak foundational services](http://ibm.biz/cpcs_cloudpaks).
 
-You can use the ibm-licensing-operator to install License Service as a part of IBM Cloud Platform Common Services or an IBM Cloud Pak. You can use License Service to collect information about license usage of IBM containerized products and IBM Cloud Paks per cluster. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
+You can use the ibm-licensing-operator to install License Service as a part of IBM Cloud Pak foundational services or an IBM Cloud Pak. You can use License Service to collect information about license usage of IBM containerized products and IBM Cloud Paks per cluster. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 
-For more information about the available IBM Cloud Platform Common Services, see the [IBM Knowledge Center](http://ibm.biz/cpcsdocs).
+For more information about the available IBM Cloud Pak foundational services, see the [IBM Documentation](http://ibm.biz/cpcsdocs).
 
 ## Supported platforms
 
@@ -31,17 +31,17 @@ Red Hat OpenShift Container Platform 4.2 or newer installed on Linux x86_64, Lin
 
 Before you install this operator, you need to first install the operator dependencies and prerequisites:
 
-- For the list of operator dependencies, see the IBM Knowledge Center [Common Services dependencies documentation](http://ibm.biz/cpcs_opdependencies).
-- For the list of prerequisites for installing the operator, see the IBM Knowledge Center [Preparing to install services documentation](http://ibm.biz/cpcs_opinstprereq).
+- For the list of operator dependencies, see [Dependencies of the IBM Cloud Pak foundational services](http://ibm.biz/cpcs_opdependencies) in the IBM Documentation.
+- For the list of prerequisites for installing the operator, see [Preparing to install services documentation](http://ibm.biz/cpcs_opinstprereq) in the IBM Documentation.
 
 > **Important:** If you installed License Service with the stand-alone IBM containerized software and you want to install an IBM Cloud Pak, it is recommended to first uninstall License Service from every cluster. Before uninstalling, the best practice is to retrieve an audit snapshot to ensure no data is lost. The Cloud Pak will install a new instance of License Service. This is a temporary action that we would like to automate in the future.
 
 ## Documentation
 
-To install the operator with the IBM Common Services Operator follow the the installation and configuration instructions within the IBM Knowledge Center.
+To install the operator with the IBM Cloud Pak foundational services Operator follow the the installation and configuration instructions within the IBM Documentation.
 
-- If you are using the operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak. For a list of IBM Cloud Paks, see [IBM Cloud Paks that use Common Services](http://ibm.biz/cpcs_cloudpaks).
-- If you are using the operator with an IBM Containerized Software as a part of IBM Cloud Platform Common Services, see the [Installer documentation](http://ibm.biz/cpcs_opinstall) in Knowledge Center.
+- If you are using the operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak. For a list of IBM Cloud Paks, see [IBM Cloud Paks that use IBM Cloud Pak foundational services](http://ibm.biz/cpcs_cloudpaks).
+- If you are using the operator with an IBM Containerized Software as a part of IBM Cloud Pak foundational services, see the [Installer documentation](http://ibm.biz/cpcs_opinstall) in the IBM Documentation.
 
 ## SecurityContextConstraints Requirements
 

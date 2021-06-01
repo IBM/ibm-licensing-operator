@@ -26,7 +26,7 @@ License Service
 
 Currently, supported core-based metrics for container licensing are Processor Value Unit (PVU) and Virtual Processor Core (VPC). For core license metrics, you are obliged to use License Service and periodically generate an audit snapshots to fulfill container licensing requirements.
 
-For more information about core and non-core metrics that are collected by License Service, see [Reported metrics](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/reported_metrics.html).
+For more information about core and non-core metrics that are collected by License Service, see [Reported metrics](https://www.ibm.com/docs/en/cpfs?topic=operator-reported-metrics).
 
 License Service collects data that is required for compliance and audit purposes. With License Service, you can retrieve an audit snapshot per cluster without any configuration.
 
@@ -38,7 +38,7 @@ For more information, see the following resources:
 
 - [IBM Container Licenses on Passport Advantage](https://www.ibm.com/software/passportadvantage/containerlicenses.html)
 - [Container licensing FAQs](https://www.ibm.com/software/passportadvantage/containerfaqov.html)
-- [How to: Retrieving an audit snapshot](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/APIs.html#auditSnapshot)
+- [How to: Retrieving an audit snapshot](https://www.ibm.com/docs/en/cpfs?topic=service-apis-retrieving-license-data#auditSnapshot)
 
 <b>Best practices</b>
 
@@ -65,7 +65,7 @@ For more information, see the following resources:
     - [Modifying the application deployment resources](Content/Configuration.md#modifying-the-application-deployment-resources)
 - [Retrieving license usage data from the cluster](Content/Retrieving_data.md)
     - [Available APIs](Content/Retrieving_data.md#available-apis)
-    - [Retrieving an audit snapshot](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/APIs.html#auditSnapshot)
+    - [Retrieving an audit snapshot](https://www.ibm.com/docs/en/cpfs?topic=service-apis-retrieving-license-data#auditSnapshot)
     - [Tracking license usage in multicluster environment](Content/Retrieving_data.md#tracking-license-usage-in-multicluster-environment)
 - [Uninstalling License Service from a Kubernetes cluster](Content/Uninstalling.md)
 - [Backup and upgrade](Content/Backup_and_upgrade.md)
