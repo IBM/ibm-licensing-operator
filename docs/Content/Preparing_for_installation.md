@@ -46,7 +46,7 @@ License Service consists of two main components that require resources: the oper
 
 ### Minimal resource requirements
 
-For minimal resource requirements for License Service, see License Service requirements in [Hardware requirements of small profile](https://www.ibm.com/support/knowledgecenter/SSHKN6/installer/3.x.x/small_profile.html).
+For minimal resource requirements for License Service, see License Service requirements in [Hardware requirements of small profile](https://www.ibm.com/docs/en/cpfs?topic=services-hardware-requirements-small-profile).
 
 <b>Related links</b>
 

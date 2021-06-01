@@ -7,7 +7,7 @@
 
 ## Verifying completeness of license usage data
 
-You can verify if License Service is properly deployed and whether it collects the complete license usage data. For more information, see [Verifying completeness of license usage data and troubleshooting](https://www.ibm.com/support/knowledgecenter/SSHKN6/license-service/1.x.x/monitoring.html).
+You can verify if License Service is properly deployed and whether it collects the complete license usage data. For more information, see [Verifying completeness of license usage data and troubleshooting](https://www.ibm.com/docs/en/cpfs?topic=operator-verifying-completeness-license-usage-data-troubleshooting).
 
 ## Preparing resources for offline installation without git
 
@@ -15,7 +15,7 @@ You can verify if License Service is properly deployed and whether it collects t
 
 ```bash
 # apply the yaml from here:
-export operator_release_version=v1.4.1
+export operator_release_version=v1.5.0
 kubectl apply -f https://github.com/IBM/ibm-licensing-operator/releases/download/${operator_release_version}/rbac_and_crd.yaml
 ```
 
@@ -52,7 +52,7 @@ spec:
         app.kubernetes.io/managed-by: "ibm-licensing-operator"
         app.kubernetes.io/name: "ibm-licensing"
       annotations:
-        productName: IBM Cloud Platform Common Services
+        productName: IBM Cloud Pak foundational services
         productID: "068a62892a1e4db39641342e592daa25"
         productMetric: FREE
     spec:
@@ -118,7 +118,7 @@ EOF
 
 ## License Service pods are crashing and License Service cannot run
 
-If your License Service pods are crashing and you see multiple instances of License Service with the CrashLoopBackOff status in your OpenShift console, you might have License Service deployed to more than one namespace. As a result, two License Service operators are running in two namespaces and the service crashes. The ibm-licensing-operator should only be deployed in the ibm-common-services namespace, however, if you deployed License Service more than once, the older version of License Service might be deployed to kube-system namespace.
+If your License Service pods are crashing and you see multiple instances of License Service with the `CrashLoopBackOff` status in your OpenShift console, you might have License Service deployed to more than one namespace. As a result, two License Service operators are running in two namespaces and the service crashes. The `ibm-licensing-operator` should only be deployed in the `ibm-common-services` namespace, however, if you deployed License Service more than once, the older version of License Service might be deployed to `kube-system` namespace.
 
 Complete the following steps to fix the problem:
 
