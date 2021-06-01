@@ -45,7 +45,7 @@ oc project ibm-common-services
 c. Use `git clone`.
 
 ```bash
-export operator_release_version=v1.4.1
+export operator_release_version=v1.5.0
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
