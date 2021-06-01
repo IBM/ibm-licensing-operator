@@ -33,6 +33,7 @@ import (
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -169,11 +170,16 @@ func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource Resou
 	resTypeString := reflect.TypeOf(foundResource).String()
 	err := client.Delete(context.TODO(), foundResource)
 	if err != nil {
-		(*reqLogger).Error(err, "Failed to delete "+resTypeString+" during recreation", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
-		return reconcile.Result{}, err
+		if apierrors.IsNotFound(err) {
+			(*reqLogger).Info("Could not delete "+resTypeString+", as it was already deleted", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+		} else {
+			(*reqLogger).Error(err, "Failed to delete "+resTypeString+" during recreation", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+			return reconcile.Result{}, err
+		}
+	} else {
+		// Resource deleted successfully - return and requeue to create new one
+		(*reqLogger).Info("Deleted "+resTypeString+" successfully", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
 	}
-	// Resource deleted successfully - return and requeue to create new one
-	(*reqLogger).Info("Deleted "+resTypeString+" successfully", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
 	return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 30}, nil
 }
 
