@@ -182,7 +182,7 @@ func (spec *IBMLicensingSpec) IsRHMPEnabled() bool {
 }
 
 func (spec *IBMLicensingSpec) IsChargebackEnabled() bool {
-	if spec.IsRHMPEnabled() && spec.ChargebackEnabled == nil {
+	if spec.IsRHMPEnabled() {
 		return true
 	}
 	return spec.ChargebackEnabled != nil && *spec.ChargebackEnabled
