@@ -54,7 +54,7 @@ endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?=  "crd:trivialVersions=true"
+CRD_OPTIONS ?=  "crd:crdVersions=v1"
 
 # Set the registry and tag for the operand images
 OPERAND_REGISTRY ?= $(REGISTRY)
