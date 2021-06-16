@@ -41,13 +41,13 @@ kubectl get crd clusterserviceversions.operators.coreos.com
 
   To make sure that OLM is installed, verify the `csv` with the following command:
 
-  ```
+  ```bash
   kubectl get csv --all-namespaces
   ```
 
   If you get the following response, OLM is installed and you can go to step 2:
 
-  ```
+  ```console
   NAMESPACE               NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
   olm                   packageserver                   Package Server           0.18.1                                    Succeeded
   ```
