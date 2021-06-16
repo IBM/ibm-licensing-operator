@@ -66,15 +66,13 @@ b. Select **IBM Licensing Operator** and click **Install**.
 
 ![Operator Hub IBM Licensing](/images/operator-hub-licensing.png)
 
-4\. **Create the operator subscription**
+c. Set **Update Channel** to the `v3` version.
 
-a. Go to **OperatorHub>Operator Subscription**
+d. As an **Installation Mode** select **A specific namespace on the cluster**, and set it to `ibm-common-services` namespace that you created in the previous step.
 
-b. As an Installation Mode select **A specific namespace on the cluster**, and set it to **ibm-common-services** namespace that you created in the previous step.
+e. Set **Approval Strategy** to **Automatic**.
 
-c. Choose the **v3** channel.
-
-d. Click **Subscribe**.
+f. Click **Install**.
 
 5\. **Verify that the installation is successful**
 
@@ -94,7 +92,7 @@ Create an IBM Licensing instance.
 
 ![OCP click Create IBM Licensing](/images/ocp_create_instance.png)
 
-2\. Click **Create IBMLicensing** and edit the available parameters if needed.  For more information about the parameters, see the [Custom Resource Definition](/deploy/olm-catalog/ibm-licensing-operator/1.5.0/operator.ibm.com_ibmlicensings_crd.yaml).
+2\. Click **Create IBMLicensing** and edit the available parameters if needed.  For more information about the parameters, see the [Custom Resource Definition](/bundle/manifests/operator.ibm.com_ibmlicensings.yaml).
 
 3\. Click **Create**.
 
