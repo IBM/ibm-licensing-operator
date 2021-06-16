@@ -32,18 +32,33 @@ b. Check if you have OLM installed. For example, run the following command.
 kubectl get crd clusterserviceversions.operators.coreos.com
 ```
 
-- If you get the following response, OLM is installed and you can go to step 2: Create the CatalogSource.
+- If you get the following response, OLM might be installed.
 
-```console
-NAME                                          CREATED AT
-clusterserviceversions.operators.coreos.com   2020-06-04T14:42:13Z
-```
+  ```console
+  NAME                                          CREATED AT
+  clusterserviceversions.operators.coreos.com   2020-06-04T14:42:13Z
+  ```
 
-- If you get the following response, OLM CRD is not installed.
+  To make sure that OLM is installed, verify the `csv` with the following command:
 
-```console
-Error from server (NotFound): customresourcedefinitions.apiextensions.k8s.io "clusterserviceversions.operators.coreos.com" not found
-```
+  ```
+  kubectl get csv --all-namespaces
+  ```
+
+  If you get the following response, OLM is installed and you can go to step 2:
+
+  ```
+  NAMESPACE               NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
+  olm                   packageserver                   Package Server           0.18.1                                    Succeeded
+  ```
+
+  **Note:** If you get `No resources found` in response that means that you do not have OLM installed. Continue with step 1c.
+
+- If you get the following response, OLM CRD is not installed. Continue with step 1c.
+
+  ```console
+  Error from server (NotFound): customresourcedefinitions.apiextensions.k8s.io "clusterserviceversions.operators.coreos.com" not found
+  ```
 
 c.  If you do not have OLM, download it from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases). Use following script to download and install OLM v13.0
 
