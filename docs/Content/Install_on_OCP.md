@@ -74,7 +74,7 @@ e. Set **Approval Strategy** to **Automatic**.
 
 f. Click **Install**.
 
-5\. **Verify that the installation is successful**
+4\. **Verify that the installation is successful**
 
 To check whether the installation is successful, wait for about 1 minute, and go to **Installed operators**. You should see IBM Licensing Operator with the **Succeeded** status.
 
