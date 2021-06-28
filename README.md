@@ -64,27 +64,4 @@ You can use the `ibm-licensing-operator` to install License Service on any Kuber
 
 For the overview and documentation, see [License Service deployment without an IBM Cloud Pak](docs/License_Service_main.md).
 
-<!---
-- [Preparing for installation](docs/Preparing_for_installation.md)
-  - [Supported platforms](docs/Preparing_for_installation.md#supported-platforms)
-  - [Operator versions](docs/Preparing_for_installation.md#operator-versions)
-- [Installing License Service](docs/Installation_scenarios.md)
-    - [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](docs/Automatic_installation.md)
-    - [Manually installing License Service on OCP 4.2+](docs/Install_on_OCP.md)
-    - [Manually installing License Service on Kubernetes from scratch with `kubectl`](docs/Install_from_scratch.md)
-    - [Offline installation](docs/Install_offline.md)
-- [Configuration](docs/Configuration.md)
-  - [Configuring ingress](docs/Configuration.md#configuring-ingress)
-  - [Checking License Service components](docs/Configuration.md#checking-license-service-components)
-  - [Using custom certificates](docs/Configuration.md#using-custom-certificates)
-  - [Cleaning existing License Service dependencies](docs/Configuration.md#cleaning-existing-license-service-dependencies)
-- [Retrieving license usage data from the cluster](docs/Retrieving_data.md)
-  - [Available APIs](docs/Retrieving_data.md#available-apis)
-  - [Tracking license usage in multicluster environment](docs/Retrieving_data.md#tracking-license-usage-in-multicluster-environment)
-- [Uninstalling License Service from a Kubernetes cluster](docs/Uninstalling.md)
-- [Troubleshooting](docs/Troubleshooting.md)
-  - [Preparing resources for offline installation without git](docs/Troubleshooting.md#prepareing-resources-for-offline-installation-without-git)
---->
-
-
-
+**Note:** License Service Reporter, which is an extension of License Service that aggregates the license usage data from multiple clusters, is not available without an IBM Cloud Pak on OpenShift Container Platform. License Service Reporter is only available as a part of an IBM Cloud Pak on OpenShift Container Platform (included in IBM Cloud Pak foundational services).
