@@ -12,7 +12,7 @@
 
 ## Installation
 
-This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.
 
   **Note:** To install License Service on Windows, adjust the commands to fit the Windows standard.
 
