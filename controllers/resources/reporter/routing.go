@@ -19,11 +19,12 @@ package reporter
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	routev1 "github.com/openshift/api/route/v1"
-	extensionsv1 "k8s.io/api/extensions/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *routev1.Route {
+
 	return &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      LicenseReporterResourceBase,
@@ -49,25 +50,29 @@ func annotationsForIngress() map[string]string {
 	return map[string]string{"icp.management.ibm.com/auth-type": "access-token", "kubernetes.io/ingress.class": "ibm-icp-management"}
 }
 
-func GetUIIngress(instance *operatorv1alpha1.IBMLicenseServiceReporter) *extensionsv1.Ingress {
-	return &extensionsv1.Ingress{
+func GetUIIngress(instance *operatorv1alpha1.IBMLicenseServiceReporter) *networkingv1.Ingress {
+	return &networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        LicenseReporterUIBase,
 			Namespace:   instance.GetNamespace(),
 			Labels:      LabelsForMeta(instance),
 			Annotations: annotationsForIngress(),
 		},
-		Spec: extensionsv1.IngressSpec{
-			Rules: []extensionsv1.IngressRule{
+		Spec: networkingv1.IngressSpec{
+			Rules: []networkingv1.IngressRule{
 				{
-					IngressRuleValue: extensionsv1.IngressRuleValue{
-						HTTP: &extensionsv1.HTTPIngressRuleValue{
-							Paths: []extensionsv1.HTTPIngressPath{
+					IngressRuleValue: networkingv1.IngressRuleValue{
+						HTTP: &networkingv1.HTTPIngressRuleValue{
+							Paths: []networkingv1.HTTPIngressPath{
 								{
 									Path: "/license-service-reporter",
-									Backend: extensionsv1.IngressBackend{
-										ServiceName: LicenseReporterResourceBase,
-										ServicePort: reporterUIServicePort,
+									Backend: networkingv1.IngressBackend{
+										Service: &networkingv1.IngressServiceBackend{
+											Name: LicenseReporterResourceBase,
+											Port: networkingv1.ServiceBackendPort{
+												Number: UIPort,
+											},
+										},
 									},
 								},
 							},
@@ -79,23 +84,27 @@ func GetUIIngress(instance *operatorv1alpha1.IBMLicenseServiceReporter) *extensi
 	}
 }
 
-func GetUIIngressProxy(instance *operatorv1alpha1.IBMLicenseServiceReporter) *extensionsv1.Ingress {
-	return &extensionsv1.Ingress{
+func GetUIIngressProxy(instance *operatorv1alpha1.IBMLicenseServiceReporter) *networkingv1.Ingress {
+	return &networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      LicenseReporterUIBase + "-proxy",
 			Namespace: instance.GetNamespace(),
 			Labels:    LabelsForMeta(instance),
 		},
-		Spec: extensionsv1.IngressSpec{
-			Rules: []extensionsv1.IngressRule{
+		Spec: networkingv1.IngressSpec{
+			Rules: []networkingv1.IngressRule{
 				{
-					IngressRuleValue: extensionsv1.IngressRuleValue{
-						HTTP: &extensionsv1.HTTPIngressRuleValue{
-							Paths: []extensionsv1.HTTPIngressPath{{
+					IngressRuleValue: networkingv1.IngressRuleValue{
+						HTTP: &networkingv1.HTTPIngressRuleValue{
+							Paths: []networkingv1.HTTPIngressPath{{
 								Path: "/console",
-								Backend: extensionsv1.IngressBackend{
-									ServiceName: LicenseReporterResourceBase,
-									ServicePort: reporterUIServicePort,
+								Backend: networkingv1.IngressBackend{
+									Service: &networkingv1.IngressServiceBackend{
+										Name: LicenseReporterResourceBase,
+										Port: networkingv1.ServiceBackendPort{
+											Number: UIPort,
+										},
+									},
 								},
 							}},
 						},
