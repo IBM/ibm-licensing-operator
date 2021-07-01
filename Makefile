@@ -479,6 +479,8 @@ alm-example:
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrolebinding.yaml
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_rolebinding.yaml
+	rm -f ./bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml
+	rm -f ./bundle/manifests/ibm-license-service_v1_serviceaccount.yaml
 
 # Generate bundle manifests and metadata, then validate generated files.
 pre-bundle: manifests
