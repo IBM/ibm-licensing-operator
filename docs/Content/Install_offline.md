@@ -119,6 +119,7 @@ kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
+kubectl apply -f config/rbac/service_account.yaml
 kubectl apply -f config/rbac/role_binding.yaml
 # add operator:
 kubectl apply -f config/manager/manager.yaml
