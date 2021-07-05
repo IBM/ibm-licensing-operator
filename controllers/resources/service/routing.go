@@ -18,6 +18,7 @@ package service
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
+	"github.com/ibm/ibm-licensing-operator/controllers/resources"
 	routev1 "github.com/openshift/api/route/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -93,7 +94,8 @@ func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.
 						HTTP: &networkingv1.HTTPIngressRuleValue{
 							Paths: []networkingv1.HTTPIngressPath{
 								{
-									Path: path,
+									Path:     path,
+									PathType: &resources.PathType,
 									Backend: networkingv1.IngressBackend{
 										Service: &networkingv1.IngressServiceBackend{
 											Name: GetLicensingServiceName(instance),

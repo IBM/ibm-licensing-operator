@@ -20,6 +20,7 @@ import (
 	"context"
 	"crypto/rand"
 	"errors"
+	networkingv1 "k8s.io/api/networking/v1"
 	"math/big"
 	"os"
 	"reflect"
@@ -55,6 +56,8 @@ var RHMPEnabled = false
 var IsUIEnabled = false
 var IsODLM = true
 var UIPlatformSecretName = "platform-oidc-credentials"
+
+var PathType = networkingv1.PathTypeImplementationSpecific
 
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"

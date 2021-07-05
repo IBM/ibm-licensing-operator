@@ -18,6 +18,7 @@ package reporter
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
+	"github.com/ibm/ibm-licensing-operator/controllers/resources"
 	routev1 "github.com/openshift/api/route/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -65,7 +66,8 @@ func GetUIIngress(instance *operatorv1alpha1.IBMLicenseServiceReporter) *network
 						HTTP: &networkingv1.HTTPIngressRuleValue{
 							Paths: []networkingv1.HTTPIngressPath{
 								{
-									Path: "/license-service-reporter",
+									Path:     "/license-service-reporter",
+									PathType: &resources.PathType,
 									Backend: networkingv1.IngressBackend{
 										Service: &networkingv1.IngressServiceBackend{
 											Name: LicenseReporterResourceBase,
@@ -97,7 +99,8 @@ func GetUIIngressProxy(instance *operatorv1alpha1.IBMLicenseServiceReporter) *ne
 					IngressRuleValue: networkingv1.IngressRuleValue{
 						HTTP: &networkingv1.HTTPIngressRuleValue{
 							Paths: []networkingv1.HTTPIngressPath{{
-								Path: "/console",
+								Path:     "/console",
+								PathType: &resources.PathType,
 								Backend: networkingv1.IngressBackend{
 									Service: &networkingv1.IngressServiceBackend{
 										Name: LicenseReporterResourceBase,
