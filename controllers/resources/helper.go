@@ -20,11 +20,12 @@ import (
 	"context"
 	"crypto/rand"
 	"errors"
-	networkingv1 "k8s.io/api/networking/v1"
 	"math/big"
 	"os"
 	"reflect"
 	"time"
+
+	networkingv1 "k8s.io/api/networking/v1"
 
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 

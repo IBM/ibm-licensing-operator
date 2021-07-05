@@ -18,9 +18,10 @@ package controllers
 
 import (
 	"context"
-	networkingv1 "k8s.io/api/networking/v1"
 	"reflect"
 	"time"
+
+	networkingv1 "k8s.io/api/networking/v1"
 
 	routev1 "github.com/openshift/api/route/v1"
 
