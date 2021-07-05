@@ -19,7 +19,7 @@ Complete the following procedure to install License Service on a system that doe
 
 ## Installation
 
-This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak.
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.
 
 1\. Create the required resources.
 
@@ -58,8 +58,7 @@ kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
-kubectl apply -f bundle/manifests/ibm-license-service_v1_serviceaccount.yaml
-kubectl apply -f bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml
+kubectl apply -f config/rbac/service_account.yaml
 kubectl apply -f config/rbac/role_binding.yaml
 ```
 

@@ -322,13 +322,13 @@ prepare-unit-test:
 	kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo ""
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml || echo ""
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicensings.yaml || echo ""
-	kubectl apply -f ./bundle/manifests/ibm-license-service_v1_serviceaccount.yaml -n ${NAMESPACE} || echo ""
-	kubectl apply -f ./bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml -n ${NAMESPACE} || echo ""
 	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
 	kubectl apply -f ./config/rbac/role_ns.yaml || echo ""
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/service_account.yaml > ./config/rbac/service_account_ns.yaml
+	kubectl apply -f ./config/rbac/service_account_ns.yaml|| echo ""
 	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role_binding.yaml > ./config/rbac/role_binding_ns.yaml
 	kubectl apply -f ./config/rbac/role_binding_ns.yaml || echo ""
-	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/develop/v2/bundle/manifests/marketplace.redhat.com_meterdefinitions.yaml
+	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/master/v2/bundle/manifests/marketplace.redhat.com_meterdefinitions.yaml
 	kubectl apply -f marketplace.redhat.com_meterdefinitions.yaml
 	curl -O https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
 	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
@@ -479,6 +479,8 @@ alm-example:
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrolebinding.yaml
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_rolebinding.yaml
+	rm -f ./bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml
+	rm -f ./bundle/manifests/ibm-license-service_v1_serviceaccount.yaml
 
 # Generate bundle manifests and metadata, then validate generated files.
 pre-bundle: manifests
