@@ -186,7 +186,7 @@ type IBMLicensingStatus struct {
 // +operator-sdk:csv:customresourcedefinitions:resources={{Role,v1,},{RoleBinding,v1,}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{ReplicaSets,v1,},{Ingresses,v1beta1,}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{status,v1alpha1,},{configmaps,v1,}}
-// +operator-sdk:csv:customresourcedefinitions:resources={{ibmlicensings,v1alpha1,},{ibmlicenseservicereporters,v1alpha1,}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{ibmlicensings,v1alpha1,},{ibmlicenseservicereporters,v1alpha1},{ibmlicensingmetadatas,v1alpha1}}
 type IBMLicensing struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

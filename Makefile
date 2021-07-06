@@ -322,10 +322,10 @@ prepare-unit-test:
 	kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo ""
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml || echo ""
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicensings.yaml || echo ""
-	kubectl apply -f ./bundle/manifests/ibm-license-service_v1_serviceaccount.yaml -n ${NAMESPACE} || echo ""
-	kubectl apply -f ./bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml -n ${NAMESPACE} || echo ""
 	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
 	kubectl apply -f ./config/rbac/role_ns.yaml || echo ""
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/service_account.yaml > ./config/rbac/service_account_ns.yaml
+	kubectl apply -f ./config/rbac/service_account_ns.yaml|| echo ""
 	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role_binding.yaml > ./config/rbac/role_binding_ns.yaml
 	kubectl apply -f ./config/rbac/role_binding_ns.yaml || echo ""
 	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/master/v2/bundle/manifests/marketplace.redhat.com_meterdefinitions.yaml
@@ -479,17 +479,21 @@ alm-example:
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrolebinding.yaml
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_rolebinding.yaml
+	rm -f ./bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml
+	rm -f ./bundle/manifests/ibm-license-service_v1_serviceaccount.yaml
 
 # Generate bundle manifests and metadata, then validate generated files.
 pre-bundle: manifests
 	operator-sdk generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
 	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" > yq_tmp_reporter.yaml
-	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_licensing.yaml
+	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_metadata.yaml
+	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[2]" > yq_tmp_licensing.yaml
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
+	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[2]" -f yq_tmp_metadata.yaml
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces' ibm-licensing-operator.v${OLD_CSV_VERSION}
-	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml
+	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml yq_tmp_metadata.yaml
 	operator-sdk bundle validate ./bundle
 
 bundle: pre-bundle alm-example
