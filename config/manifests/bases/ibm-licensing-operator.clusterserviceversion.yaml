@@ -3,7 +3,7 @@ kind: ClusterServiceVersion
 metadata:
   annotations:
     alm-examples: '[]'
-    capabilities: Basic Install
+    capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
     containerImage: quay.io/opencloudio/ibm-licensing-operator:1.6.0
