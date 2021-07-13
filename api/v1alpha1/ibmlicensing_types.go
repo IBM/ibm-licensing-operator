@@ -174,7 +174,9 @@ type IBMLicensingStatus struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// IBM License Service is the Schema for the ibmlicensings API
+// IBM License Service is the Schema for the ibmlicensings API.
+// Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
+// License By installing this product you accept the license terms https://ibm.biz/icpfs39license.
 // +kubebuilder:printcolumn:name="Pod Phase",type=string,JSONPath=`.status..phase`
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ibmlicensings,scope=Cluster
