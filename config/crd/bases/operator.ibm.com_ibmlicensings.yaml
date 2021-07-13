@@ -23,7 +23,10 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: IBM License Service is the Schema for the ibmlicensings API
+        description: 'IBM License Service is the Schema for the ibmlicensings API.
+          Documentation For additional details regarding install parameters check:
+          https://ibm.biz/icpfs39install. License By installing this product you accept
+          the license terms https://ibm.biz/icpfs39license.'
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
