@@ -19,7 +19,7 @@ package v1alpha1
 import (
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
-	extensionsv1 "k8s.io/api/extensions/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -40,7 +40,7 @@ type IBMLicensingIngressOptions struct {
 	// TLS Options to enable secure connection
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="TLS",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
-	TLS []extensionsv1.IngressTLS `json:"tls,omitempty"`
+	TLS []networkingv1.IngressTLS `json:"tls,omitempty"`
 
 	// If you use non-default host include it here
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Host",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
@@ -174,7 +174,9 @@ type IBMLicensingStatus struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// IBM License Service is the Schema for the ibmlicensings API
+// IBM License Service is the Schema for the ibmlicensings API.
+// Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
+// License By installing this product you accept the license terms https://ibm.biz/icpfs39license.
 // +kubebuilder:printcolumn:name="Pod Phase",type=string,JSONPath=`.status..phase`
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ibmlicensings,scope=Cluster

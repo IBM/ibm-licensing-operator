@@ -68,7 +68,7 @@ metadata:
           "requests": []
         }
       }]
-    capabilities: Basic Install
+    capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
     containerImage: quay.io/opencloudio/ibm-licensing-operator:1.6.0
@@ -92,7 +92,7 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-      - description: IBM License Service is the Schema for the ibmlicensings API
+      - description: 'IBM License Service is the Schema for the ibmlicensings API. Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install. License By installing this product you accept the license terms https://ibm.biz/icpfs39license.'
         displayName: IBM License Service
         kind: IBMLicensing
         name: ibmlicensings.operator.ibm.com
@@ -260,7 +260,7 @@ spec:
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:hidden
         version: v1alpha1
-      - description: IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters API
+      - description: 'IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters API. Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install. License By installing this product you accept the license terms https://ibm.biz/icpfs39license.'
         displayName: IBMLicense Service Reporter
         kind: IBMLicenseServiceReporter
         name: ibmlicenseservicereporters.operator.ibm.com

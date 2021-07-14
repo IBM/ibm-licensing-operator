@@ -25,6 +25,8 @@ import (
 	"reflect"
 	"time"
 
+	networkingv1 "k8s.io/api/networking/v1"
+
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -55,6 +57,8 @@ var RHMPEnabled = false
 var IsUIEnabled = false
 var IsODLM = true
 var UIPlatformSecretName = "platform-oidc-credentials"
+
+var PathType = networkingv1.PathTypeImplementationSpecific
 
 // Important product values needed for annotations
 const LicensingProductName = "IBM Cloud Platform Common Services"

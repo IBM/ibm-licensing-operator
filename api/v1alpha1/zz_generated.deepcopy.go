@@ -38,7 +38,7 @@ package v1alpha1
 import (
 	v1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -255,7 +255,7 @@ func (in *IBMLicensingIngressOptions) DeepCopyInto(out *IBMLicensingIngressOptio
 	}
 	if in.TLS != nil {
 		in, out := &in.TLS, &out.TLS
-		*out = make([]v1beta1.IngressTLS, len(*in))
+		*out = make([]networkingv1.IngressTLS, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
