@@ -23,13 +23,13 @@ import (
 type IBMLicensingMetadataCondition struct {
 	// List of annotations used for matching pod
 	Annotation map[string]string `json:"annotation"`
-	// List of annotations that matched pod would be extended
-	Extend map[string]string `json:"extend"`
 }
 
 // IBMLicensingMetadataSpec defines the desired state of IBMLicensingMetadata
 type IBMLicensingMetadataSpec struct {
 	Condition IBMLicensingMetadataCondition `json:"condition"`
+	// List of annotations that matched pod would be extended
+	Extend map[string]string `json:"extend"`
 }
 
 // IBMLicensingMetadataStatus defines the observed state of IBMLicensingMetadata

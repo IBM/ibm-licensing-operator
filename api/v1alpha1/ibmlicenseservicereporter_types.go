@@ -51,7 +51,9 @@ type IBMLicenseServiceReporterStatus struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters API
+// IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters API.
+// Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
+// License By installing this product you accept the license terms https://ibm.biz/icpfs39license.
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ibmlicenseservicereporters,scope=Namespaced
 type IBMLicenseServiceReporter struct {

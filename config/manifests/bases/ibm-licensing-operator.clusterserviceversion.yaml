@@ -3,7 +3,7 @@ kind: ClusterServiceVersion
 metadata:
   annotations:
     alm-examples: '[]'
-    capabilities: Basic Install
+    capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
     containerImage: quay.io/opencloudio/ibm-licensing-operator:99.0.0
@@ -11,6 +11,7 @@ metadata:
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the licensing usage of products.
     olm.skipRange: '>=1.0.0 <99.0.0'
     operators.operatorframework.io/builder: operator-sdk-v1.2.0
+    operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com"]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
@@ -26,7 +27,7 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters API
+    - description: 'IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters API. Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install. License By installing this product you accept the license terms https://ibm.biz/icpfs39license.'
       displayName: IBMLicense Service Reporter
       kind: IBMLicenseServiceReporter
       name: ibmlicenseservicereporters.operator.ibm.com
@@ -37,7 +38,7 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
       version: v1alpha1
-    - description: IBM License Service is the Schema for the ibmlicensings API
+    - description: 'IBM License Service is the Schema for the ibmlicensings API. Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install. License By installing this product you accept the license terms https://ibm.biz/icpfs39license.'
       displayName: IBM License Service
       kind: IBMLicensing
       name: ibmlicensings.operator.ibm.com

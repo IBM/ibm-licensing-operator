@@ -31,7 +31,6 @@ import (
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	extensionsv1 "k8s.io/api/extensions/v1beta1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -391,7 +390,7 @@ func (r *IBMLicensingReconciler) reconcileRoute(instance *operatorv1alpha1.IBMLi
 func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	if instance.Spec.IsIngressEnabled() {
 		expectedIngress := service.GetLicensingIngress(instance)
-		foundIngress := &extensionsv1.Ingress{}
+		foundIngress := &networkingv1.Ingress{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedIngress, foundIngress)
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err

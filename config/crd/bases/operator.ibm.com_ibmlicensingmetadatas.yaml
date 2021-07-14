@@ -42,17 +42,17 @@ spec:
                       type: string
                     description: List of annotations used for matching pod
                     type: object
-                  extend:
-                    additionalProperties:
-                      type: string
-                    description: List of annotations that matched pod would be extended
-                    type: object
                 required:
                 - annotation
-                - extend
+                type: object
+              extend:
+                additionalProperties:
+                  type: string
+                description: List of annotations that matched pod would be extended
                 type: object
             required:
             - condition
+            - extend
             type: object
           status:
             description: IBMLicensingMetadataStatus defines the observed state of

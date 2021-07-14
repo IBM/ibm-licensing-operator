@@ -18,8 +18,9 @@ package service
 
 import (
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
+	"github.com/ibm/ibm-licensing-operator/controllers/resources"
 	routev1 "github.com/openshift/api/route/v1"
-	extensionsv1 "k8s.io/api/extensions/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -60,9 +61,9 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing) *routev1.Route {
 	}
 }
 
-func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *extensionsv1.Ingress {
+func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.Ingress {
 	var (
-		tls         []extensionsv1.IngressTLS
+		tls         []networkingv1.IngressTLS
 		path, host  string
 		annotations map[string]string
 	)
@@ -78,25 +79,30 @@ func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *extensionsv1.
 		}
 		annotations = options.Annotations
 	}
-	return &extensionsv1.Ingress{
+	return &networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        GetResourceName(instance),
 			Namespace:   instance.Spec.InstanceNamespace,
 			Annotations: annotations,
 		},
-		Spec: extensionsv1.IngressSpec{
+		Spec: networkingv1.IngressSpec{
 			TLS: tls,
-			Rules: []extensionsv1.IngressRule{
+			Rules: []networkingv1.IngressRule{
 				{
 					Host: host,
-					IngressRuleValue: extensionsv1.IngressRuleValue{
-						HTTP: &extensionsv1.HTTPIngressRuleValue{
-							Paths: []extensionsv1.HTTPIngressPath{
+					IngressRuleValue: networkingv1.IngressRuleValue{
+						HTTP: &networkingv1.HTTPIngressRuleValue{
+							Paths: []networkingv1.HTTPIngressPath{
 								{
-									Path: path,
-									Backend: extensionsv1.IngressBackend{
-										ServiceName: GetLicensingServiceName(instance),
-										ServicePort: licensingServicePort,
+									Path:     path,
+									PathType: &resources.PathType,
+									Backend: networkingv1.IngressBackend{
+										Service: &networkingv1.IngressServiceBackend{
+											Name: GetLicensingServiceName(instance),
+											Port: networkingv1.ServiceBackendPort{
+												Number: licensingServicePort.IntVal,
+											},
+										},
 									},
 								},
 							},
