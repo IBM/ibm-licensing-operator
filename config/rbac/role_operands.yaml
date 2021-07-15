@@ -19,7 +19,13 @@ rules:
     verbs:
       - get
       - list
-
+  - apiGroups:
+      - operator.ibm.com
+    resources:
+      - ibmlicensingmetadatas
+    verbs:
+      - get
+      - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
