@@ -15,7 +15,7 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.6.0
+CSV_VERSION ?= 1.7.0
 CSV_VERSION_DEVELOPMENT ?= development
 POSTGRESS_VERSION ?= 12.0.6
 OLD_CSV_VERSION ?= 1.5.0
@@ -311,7 +311,7 @@ help: ## Display this help
 
 # Run tests
 #ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-test: 
+test:
 	@echo "Running tests for the controllers."
 	#@mkdir -p ${ENVTEST_ASSETS_DIR}
 	#@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
