@@ -4,7 +4,7 @@
 <img alt="Uptime Robot status" src="https://img.shields.io/uptimerobot/status/m786127186-a86f251061d6fd7958c67707?label=OCP%20test%20cluster">
 [![Code Coverage](https://codecov.io/gh/IBM/ibm-licensing-operator/branch/master/graphs/badge.svg?branch=master)](https://codecov.io/gh/IBM/ibm-licensing-operator?branch=master)
 
-**IMPORTANT:** The `master` branch contains the currently developed version of License Service and its content should not be used. Switch to another branch to view the content for the already-released version of License Service, for example `release-<version>` branch.
+IMPORTANT: The current branch contains the operator and documentation for License Service version 1.6.x. Switch to another branch to view the content for other releases.
 
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
 
@@ -27,7 +27,7 @@ Red Hat OpenShift Container Platform 4.2 or newer installed on Linux x86_64, Lin
 
 ## Operator versions
 
-- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.2, 1.2.3, 1.3.1, 1.4.1, 1.5.0
+- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.2, 1.2.3, 1.3.1, 1.4.1, 1.5.0, 1.6.0
 
 ## Prerequisites
 
