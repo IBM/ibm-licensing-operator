@@ -356,31 +356,8 @@ func (r *IBMLicensingReconciler) reconcileRoute(instance *operatorv1alpha1.IBMLi
 			return reconcileResult, err
 		}
 		reqLogger := r.Log.WithValues("reconcileRoute", "Entry", "instance.GetName()", instance.GetName())
-		possibleUpdateNeeded := true
-		if foundRoute.ObjectMeta.Name != expectedRoute.ObjectMeta.Name {
-			reqLogger.Info("Names not equal", "old", foundRoute.ObjectMeta.Name, "new", expectedRoute.ObjectMeta.Name)
-		} else if foundRoute.Spec.To.Name != expectedRoute.Spec.To.Name {
-			reqLogger.Info("Specs To Name not equal",
-				"old", fmt.Sprintf("%v", foundRoute.Spec),
-				"new", fmt.Sprintf("%v", expectedRoute.Spec))
-		} else if foundRoute.Spec.TLS == nil && expectedRoute.Spec.TLS != nil {
-			reqLogger.Info("Found Route has empty TLS options, but Expected Route has not empty TLS options",
-				"old", fmt.Sprintf("%v", foundRoute.Spec.TLS),
-				"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
-		} else if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS == nil {
-			reqLogger.Info("Expected Route has empty TLS options, but Found Route has not empty TLS options",
-				"old", fmt.Sprintf("%v", foundRoute.Spec.TLS),
-				"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
-		} else if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS != nil &&
-			(foundRoute.Spec.TLS.Termination != expectedRoute.Spec.TLS.Termination ||
-				foundRoute.Spec.TLS.InsecureEdgeTerminationPolicy != expectedRoute.Spec.TLS.InsecureEdgeTerminationPolicy) {
-			reqLogger.Info("Expected Route has different TLS options than Found Route",
-				"old", fmt.Sprintf("%v", foundRoute.Spec.TLS),
-				"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
-		} else {
-			possibleUpdateNeeded = false
-		}
-		if possibleUpdateNeeded {
+
+		if !res.CompareRoutes(reqLogger, expectedRoute, foundRoute) {
 			return res.UpdateResource(&reqLogger, r.Client, expectedRoute, foundRoute)
 		}
 	}

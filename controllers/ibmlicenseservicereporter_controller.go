@@ -400,7 +400,16 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileReporterRoute(instance *o
 		expectedRoute := reporter.GetReporterRoute(instance)
 		foundRoute := &routev1.Route{}
 		namespacedName := types.NamespacedName{Name: expectedRoute.GetName(), Namespace: expectedRoute.GetNamespace()}
-		return r.reconcileResourceExistence(instance, expectedRoute, foundRoute, namespacedName)
+		reconcileResult, err := r.reconcileResourceExistence(instance, expectedRoute, foundRoute, namespacedName)
+
+		if err != nil || reconcileResult.Requeue {
+			return reconcileResult, err
+		}
+		reqLogger := r.Log.WithValues("reconcileRoute", "Entry", "instance.GetName()", instance.GetName())
+
+		if !res.CompareRoutes(reqLogger, expectedRoute, foundRoute) {
+			return res.UpdateResource(&reqLogger, r.Client, expectedRoute, foundRoute)
+		}
 	}
 	return reconcile.Result{}, nil
 }
