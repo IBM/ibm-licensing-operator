@@ -15,7 +15,7 @@ metadata:
           "name": "instance"
         },
         "spec": {
-          "version": "1.6.0",
+          "version": "1.7.0",
           "apiSecretToken": "ibm-licensing-token",
           "datasource": "datacollector",
           "httpsEnable": true
@@ -32,7 +32,7 @@ metadata:
           "name": "instance"
         },
         "spec": {
-          "version": "1.6.0"
+          "version": "1.7.0"
         }
       },{
         "apiVersion": "operator.ibm.com/v1alpha1",
@@ -71,11 +71,12 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
-    containerImage: quay.io/opencloudio/ibm-licensing-operator:1.6.0
+    containerImage: quay.io/opencloudio/ibm-licensing-operator:1.7.0
     createdAt: "2020-06-22T10:22:31Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the licensing usage of products.
-    olm.skipRange: '>=1.0.0 <1.6.0'
+    olm.skipRange: '>=1.0.0 <1.7.0'
     operators.operatorframework.io/builder: operator-sdk-v1.3.0
+    operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com"]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
@@ -85,7 +86,7 @@ metadata:
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: ibm-licensing-operator.v1.6.0
+  name: ibm-licensing-operator.v1.7.0
   namespace: ibm-common-services
 spec:
   apiservicedefinitions: {}
@@ -136,6 +137,9 @@ spec:
             name: ""
             version: v1
           - kind: ibmlicenseservicereporters
+            name: ""
+            version: v1alpha1
+          - kind: ibmlicensingmetadatas
             name: ""
             version: v1alpha1
           - kind: ibmlicensings
@@ -267,6 +271,10 @@ spec:
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:hidden
         version: v1alpha1
+      - displayName: IBMLicensing Metadata
+        kind: IBMLicensingMetadata
+        name: ibmlicensingmetadatas.operator.ibm.com
+        version: v1alpha1
   description: "**Important:**\n- If you are using the IBM Licensing Operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For the link to your IBM Cloud Pak documentation, see [IBM Cloud Paks that use Common Services](https://ibm.biz/cpcs_cloudpaks).\n- If you are using the IBM Cloud Platform Common Services, do not install the IBM Licensing Operator directly. Only install this operator using the IBM Common Services Operator. For more information about installing this operator and other Common Services operators, see [Installer documentation](https://ibm.biz/cpcs_opinstall). Additionally, you can exit this panel and navigate to the IBM Common Services tile in **OperatorHub** to learn more about the operator.\n- If you are using a stand-alone IBM Container Software, you can use the IBM Licensing Operator directly. For more information, see [ibm-licensing-operator for stand-alone IBM Containerized Software](https://github.com/IBM/ibm-licensing-operator#ibm-licensing-operator-for-stand-alone-ibm-containerized-software).\n\n**IBM Licensing Operator overview**\n\nIBM Licensing Operator installs License Service. You can use License Service to collect information about license usage of IBM Containerized products and IBM Cloud Paks per cluster. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.\n\n**Supported platforms**\n\nRed Hat OpenShift Container Platform 4.5 or newer installed on Linux x86_64, Linux on Power (ppc64le), Linux on IBM Z and LinuxONE.\n\n**Prerequisites**\n\nThe following prerequisites apply when you install License Service as a part of an IBM Cloud Pak or with IBM Cloud Platform Common Services.\n- For the list of operator dependencies, see the IBM Knowledge Center [Common Services dependencies documentation](https://ibm.biz/cpcs_opdependencies). The dependencies are automatically managed by Operant Deployment Lifecycle Manager.\n- For the list of prerequisites for installing the operator, see the IBM Knowledge Center [Preparing to install services documentation](https://ibm.biz/cpcs_opinstprereq).\n\n**Documentation**\n\n- If you are using the IBM Licensing Operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak, for a list of IBM Cloud Paks, see [IBM Cloud Paks that use Common Services](https://ibm.biz/cpcs_cloudpaks). \n- If you are using the operator with an IBM Containerized Software:\n    - To install License Service as a part of the IBM Cloud Platform Common Services, see the Knowledge Center [Installer documentation](https://ibm.biz/cpcs_opinstall)).\n    - To install License Service directly, click **Install** and create an **IBM Licensing** resource instance. For more information, see [ibm-licensing-operator for stand-alone IBM Containerized Software](https://github.com/ibm/ibm-licensing-operator#create-instance-on-openshift-console-42)."
   displayName: IBM Licensing Operator
   icon:
@@ -328,6 +336,13 @@ spec:
               verbs:
                 - get
                 - list
+            - apiGroups:
+                - operator.ibm.com
+              resources:
+                - ibmlicensingmetadatas
+              verbs:
+                - get
+                - list
           serviceAccountName: ibm-license-service
       deployments:
         - name: ibm-licensing-operator
@@ -365,15 +380,15 @@ spec:
                       - ibm-licensing-operator
                     env:
                       - name: IBM_LICENSING_IMAGE
-                        value: quay.io/opencloudio/ibm-licensing:1.6.0
+                        value: quay.io/opencloudio/ibm-licensing:1.7.0
                       - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.6.0
+                        value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.7.0
                       - name: IBM_POSTGRESQL_IMAGE
-                        value: quay.io/opencloudio/ibm-postgresql:12.0.7
+                        value: quay.io/opencloudio/ibm-postgresql:12.0.8
                       - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter:1.6.0
+                        value: quay.io/opencloudio/ibm-license-service-reporter:1.7.0
                       - name: IBM_LICENSING_USAGE_IMAGE
-                        value: quay.io/opencloudio/ibm-licensing-usage:1.6.0
+                        value: quay.io/opencloudio/ibm-licensing-usage:1.7.0
                       - name: WATCH_NAMESPACE
                         valueFrom:
                           fieldRef:
@@ -388,7 +403,7 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: spec.serviceAccountName
-                    image: quay.io/opencloudio/ibm-licensing-operator:1.6.0
+                    image: quay.io/opencloudio/ibm-licensing-operator:1.7.0
                     imagePullPolicy: Always
                     name: ibm-licensing-operator
                     resources:
@@ -605,5 +620,5 @@ spec:
   maturity: alpha
   provider:
     name: IBM
-  version: 1.6.0
-  replaces: ibm-licensing-operator.v1.5.0
+  version: 1.7.0
+  replaces: ibm-licensing-operator.v1.6.0

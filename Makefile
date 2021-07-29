@@ -15,10 +15,10 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.6.0
+CSV_VERSION ?= 1.7.0
 CSV_VERSION_DEVELOPMENT ?= development
-POSTGRESS_VERSION ?= 12.0.6
-OLD_CSV_VERSION ?= 1.5.0
+POSTGRESS_VERSION ?= 12.0.8
+OLD_CSV_VERSION ?= 1.6.0
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -311,7 +311,7 @@ help: ## Display this help
 
 # Run tests
 #ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-test: 
+test:
 	@echo "Running tests for the controllers."
 	#@mkdir -p ${ENVTEST_ASSETS_DIR}
 	#@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
@@ -364,7 +364,12 @@ manager: generate
 	go build -o bin/$(IMAGE_NAME) main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
-run: generate fmt vet manifests
+run: fmt vet
+	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
+	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}; \
+	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}; \
+	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${POSTGRESS_VERSION}; \
+	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
 	WATCH_NAMESPACE= go run ./main.go
 
 # Install CRDs into a cluster
@@ -487,11 +492,13 @@ pre-bundle: manifests
 	operator-sdk generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
 	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" > yq_tmp_reporter.yaml
-	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_licensing.yaml
+	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_metadata.yaml
+	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[2]" > yq_tmp_licensing.yaml
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
+	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[2]" -f yq_tmp_metadata.yaml
 	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces' ibm-licensing-operator.v${OLD_CSV_VERSION}
-	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml
+	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml yq_tmp_metadata.yaml
 	operator-sdk bundle validate ./bundle
 
 bundle: pre-bundle alm-example
