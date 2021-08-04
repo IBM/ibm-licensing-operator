@@ -271,6 +271,7 @@ spec:
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:hidden
         version: v1alpha1
+      - description: 'IBMLicensingMetadata is the Schema for the ibmlicenseservice. Track VPC license usage of Pods, managed by automation, for which licensing annotations are not defined at deployment time, like for open source OpenLiberty.'
       - displayName: IBMLicensing Metadata
         kind: IBMLicensingMetadata
         name: ibmlicensingmetadatas.operator.ibm.com
