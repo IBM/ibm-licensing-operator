@@ -1,6 +1,6 @@
 module github.com/ibm/ibm-licensing-operator
 
-go 1.15
+go 1.16
 
 require (
 	github.com/IBM/operand-deployment-lifecycle-manager v1.5.0

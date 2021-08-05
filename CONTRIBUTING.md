@@ -62,7 +62,7 @@ Then try downloading newer golang version from [golang.org](https://golang.org) 
 - make sure $GOROOT will be set to the newer one
 
 It was tested to work with these environment variables and setup:
-- go version go1.15.6 linux/amd64
+- go version go1.16.6 linux/amd64
 - Red Hat Enterprise Linux 8
 - GOROOT=/usr/local/go
 - GOPATH=$HOME/go
