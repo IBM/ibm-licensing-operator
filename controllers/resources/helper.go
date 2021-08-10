@@ -56,8 +56,10 @@ var IsRouteAPI = true
 var IsServiceCAAPI = true
 var RHMPEnabled = false
 var IsUIEnabled = false
+var IsZenAvailable = false
 var IsODLM = true
 var UIPlatformSecretName = "platform-oidc-credentials"
+var ZenServiceBrokerSecretName = "zen-service-broker-secret"
 
 var PathType = networkingv1.PathTypeImplementationSpecific
 
@@ -290,4 +292,16 @@ func CompareRoutes(reqLogger logr.Logger, expectedRoute, foundRoute *routev1.Rou
 		areEqual = true
 	}
 	return areEqual
+}
+
+func CheckSecretExistence(client c.Reader, secretNamespacedName types.NamespacedName) (bool, error) {
+	foundSecret := &corev1.Secret{}
+	err := client.Get(context.TODO(), secretNamespacedName, foundSecret)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }

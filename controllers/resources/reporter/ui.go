@@ -26,6 +26,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+const ZenServiceBrokerSecretTokenKeyName = "token"
+
 func getReporterUIEnvironmentVariables(instance *operatorv1alpha1.IBMLicenseServiceReporter) []corev1.EnvVar {
 	var environmentVariables = []corev1.EnvVar{
 		{
@@ -82,6 +84,21 @@ func getReporterUIEnvironmentVariables(instance *operatorv1alpha1.IBMLicenseServ
 			Value: "https://icp-management-ingress/idprovider",
 		},
 	}
+
+	if resources.IsZenAvailable {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name: "zenServiceBrokerSecret",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: resources.ZenServiceBrokerSecretName,
+					},
+					Key: ZenServiceBrokerSecretTokenKeyName,
+				},
+			},
+		})
+	}
+
 	if instance.Spec.EnvVariable != nil {
 		for key, value := range instance.Spec.EnvVariable {
 			environmentVariables = append(environmentVariables, corev1.EnvVar{
@@ -111,6 +128,9 @@ func GetReporterUIContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter
 	container := resources.GetContainerBase(instance.Spec.ReporterUIContainer)
 	container.Env = getReporterUIEnvironmentVariables(instance)
 	container.Name = UIContainerName
+	if resources.IsZenAvailable {
+		container.VolumeMounts = getUIVolumeMounts()
+	}
 	container.Ports = []corev1.ContainerPort{
 		{
 			ContainerPort: UIPort,

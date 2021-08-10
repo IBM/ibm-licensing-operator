@@ -115,6 +115,7 @@ func (r *IBMLicenseServiceReporterReconciler) Reconcile(req reconcile.Request) (
 		r.reconcileConfigMaps,
 		r.reconcileOperandBindInfo,
 		r.reconcileOidcCredentials,
+		r.reconcileZenAvailability,
 		r.reconcileDeployment,
 		r.reconcileReporterRoute,
 		r.reconcileUIIngress,
@@ -354,22 +355,40 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileOperandBindInfo(instance 
 
 func (r *IBMLicenseServiceReporterReconciler) reconcileOidcCredentials(
 	instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
+	var err error
 	reqLogger := r.Log.WithValues("reconcileOidcCredentials", "Entry", "instance.GetName()", instance.GetName())
-	foundSecret := &corev1.Secret{}
 	namespacedName := types.NamespacedName{Name: res.UIPlatformSecretName, Namespace: instance.GetNamespace()}
-	err := r.Client.Get(context.TODO(), namespacedName, foundSecret)
+
+	res.IsUIEnabled, err = res.CheckSecretExistence(r.Client, namespacedName)
+
 	if err != nil {
-		if errors.IsNotFound(err) {
-			reqLogger.Info(res.UIPlatformSecretName + " secret does not exist => Reporter should exist without UI container")
-			res.IsUIEnabled = false
-			return reconcile.Result{}, nil
-		}
 		reqLogger.Error(err, "Failed to get "+res.UIPlatformSecretName+" secret")
-		return reconcile.Result{}, err
+	} else if res.IsUIEnabled {
+		reqLogger.Info(res.UIPlatformSecretName + " secret does exist => Reporter should exist with UI container")
+	} else {
+		reqLogger.Info(res.UIPlatformSecretName + " secret does not exist => Reporter should exist without UI container")
 	}
-	reqLogger.Info(res.UIPlatformSecretName + " secret does exist => Reporter should exist with UI container")
-	res.IsUIEnabled = true
-	return reconcile.Result{}, nil
+
+	return reconcile.Result{}, err
+}
+
+func (r *IBMLicenseServiceReporterReconciler) reconcileZenAvailability(
+	instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
+	var err error
+	reqLogger := r.Log.WithValues("reconcileZenAvailability", "Entry", "instance.GetName()", instance.GetName())
+	namespacedName := types.NamespacedName{Name: res.ZenServiceBrokerSecretName, Namespace: instance.GetNamespace()}
+
+	res.IsZenAvailable, err = res.CheckSecretExistence(r.Client, namespacedName)
+
+	if err != nil {
+		reqLogger.Error(err, "Failed to get "+res.ZenServiceBrokerSecretName+" secret")
+	} else if res.IsZenAvailable {
+		reqLogger.Info(res.ZenServiceBrokerSecretName + " secret does exist")
+	} else {
+		reqLogger.Info(res.ZenServiceBrokerSecretName + " secret does not exist")
+	}
+
+	return reconcile.Result{}, err
 }
 
 func (r *IBMLicenseServiceReporterReconciler) reconcileDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
