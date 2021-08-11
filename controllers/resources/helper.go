@@ -162,13 +162,8 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 	if expected != nil && found != nil && expected.Spec.Endpoints[0].Scheme != found.Spec.Endpoints[0].Scheme {
 		return DeleteResource(reqLogger, client, found)
 	}
-	for _, annotation := range annotationsForServicesToCheck {
-		//goland:noinspection GoNilness
-		if found.Annotations[annotation] != expected.Annotations[annotation] {
-			return UpdateResource(reqLogger, client, found, expected)
-		}
-	}
-	return reconcile.Result{}, nil
+	// there are many changes that we want to always ensure are correct
+	return UpdateResource(reqLogger, client, found, expected)
 }
 
 func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource ResourceObject) (reconcile.Result, error) {
