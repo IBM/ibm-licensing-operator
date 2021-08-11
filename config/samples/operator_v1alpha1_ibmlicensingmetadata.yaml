@@ -2,4 +2,7 @@ apiVersion: operator.ibm.com/v1alpha1
 kind: IBMLicensingMetadata
 metadata:
   name: ibmlicensingmetadata-sample
-spec: {}
+spec:
+  condition:
+    annotation: {}
+  extend: {}
