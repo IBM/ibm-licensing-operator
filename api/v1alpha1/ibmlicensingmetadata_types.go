@@ -37,7 +37,12 @@ type IBMLicensingMetadataStatus struct {
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
+// IBMLicensingMetadata is the schema for IBM License Service. Thanks to IBMLicensingMetadata, you can track
+// the license usage of Virtual Processor Core (VPC) metric by Pods that are managed by automation,
+// for which licensing annotations are not defined at the time of deployment, such as the open source OpenLiberty.
+/// For more information, see documentation: https://ibm.biz/icpfs39install.
+// License: By installing this product you accept the license terms. For more information about the license,
+// see https://ibm.biz/icpfs39license.
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ibmlicensingmetadatas,scope=Namespaced
 type IBMLicensingMetadata struct {

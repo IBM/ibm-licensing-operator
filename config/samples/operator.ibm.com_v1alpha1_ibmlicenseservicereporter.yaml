@@ -1,7 +1,7 @@
 apiVersion: operator.ibm.com/v1alpha1
 kind: IBMLicenseServiceReporter
-metadata: 
-  labels: 
+metadata:
+  labels:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing

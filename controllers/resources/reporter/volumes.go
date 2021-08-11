@@ -24,6 +24,9 @@ import (
 
 const APISecretTokenVolumeName = "api-token"
 const LicenseReporterHTTPSCertsVolumeName = "license-reporter-https-certs"
+const ZenCertsVolumeName = "zen-tls-certs"
+const ZenCertsSecretName = "internal-tls"
+const ZenCertsMountPath = "/opt/ibm/license-service-reporter/zen-tls-certs"
 
 const persistentVolumeClaimVolumeName = "data"
 
@@ -56,6 +59,15 @@ func getDatabaseVolumeMounts() []corev1.VolumeMount {
 	}
 }
 
+func getUIVolumeMounts() []corev1.VolumeMount {
+	return []corev1.VolumeMount{
+		{
+			Name:      ZenCertsVolumeName,
+			MountPath: ZenCertsMountPath,
+		},
+	}
+}
+
 func getLicenseServiceReporterVolumes(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []corev1.Volume {
 	volumes := []corev1.Volume{
 
@@ -81,5 +93,10 @@ func getLicenseServiceReporterVolumes(spec operatorv1alpha1.IBMLicenseServiceRep
 	if resources.IsServiceCAAPI && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 		volumes = append(volumes, resources.GetVolume(LicenseReporterHTTPSCertsVolumeName, LicenseReportOCPCertName))
 	}
+
+	if resources.IsZenAvailable {
+		volumes = append(volumes, resources.GetVolume(ZenCertsVolumeName, ZenCertsSecretName))
+	}
+
 	return volumes
 }

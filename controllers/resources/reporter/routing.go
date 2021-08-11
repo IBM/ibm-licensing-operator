@@ -26,6 +26,18 @@ import (
 
 func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *routev1.Route {
 
+	var tls *routev1.TLSConfig
+	defaultRouteTLS := &routev1.TLSConfig{
+		Termination: routev1.TLSTerminationPassthrough,
+	}
+	if instance.Spec.RouteOptions != nil {
+		if instance.Spec.RouteOptions.TLS != nil {
+			tls = instance.Spec.RouteOptions.TLS
+		}
+	} else {
+		tls = defaultRouteTLS
+	}
+
 	return &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      LicenseReporterResourceBase,
@@ -40,9 +52,7 @@ func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *rou
 			Port: &routev1.RoutePort{
 				TargetPort: receiverTargetPortName,
 			},
-			TLS: &routev1.TLSConfig{
-				Termination: routev1.TLSTerminationPassthrough,
-			},
+			TLS: tls,
 		},
 	}
 }
