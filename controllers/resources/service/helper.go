@@ -33,14 +33,11 @@ const LicensingServiceAccount = "ibm-license-service"
 const UsageServiceName = "ibm-licensing-service-usage"
 const PrometheusServiceName = "ibm-licensing-service-prometheus"
 const PrometheusServiceMonitor = "ibm-licensing-service-service-monitor"
-const PrometheusCAPath = "/etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt"
 
 const LicensingServiceAppLabel = "ibm-licensing-service-instance"
-const MarketplaceMonitoringLabel = "marketplace.redhat.com/operator"
 const ServiceMonitorSelectorLabel = "marketplace.redhat.com/metering"
 const ReleaseLabel = "ibm-licensing-service-prometheus"
 const ReleaseUsageLabel = "ibm-licensing-service-usage"
-const MeterbaseLabel = "rhm-marketplaceconfig-meterbase"
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
