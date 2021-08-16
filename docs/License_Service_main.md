@@ -39,6 +39,7 @@ For more information, see the following resources:
 - [IBM Container Licenses on Passport Advantage](https://www.ibm.com/software/passportadvantage/containerlicenses.html)
 - [Container licensing FAQs](https://www.ibm.com/software/passportadvantage/containerfaqov.html)
 - [How to: Retrieving an audit snapshot](https://www.ibm.com/docs/en/cpfs?topic=service-apis-retrieving-license-data#auditSnapshot)
+- [Audit snapshot](https://www.ibm.com/docs/en/cpfs?topic=operator-audit-snapshot)
 
 <b>Best practices</b>
 
