@@ -24,14 +24,15 @@ on:
         - master
         - development
 jobs:
+
   scorecard:
     name: Scorecrd tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.14
+        go-version: ^1.16
       id: go
 
     - name: Checkout
@@ -41,7 +42,7 @@ jobs:
       run: |
         make build
         curl -Lo ./operator-sdk "https://github.com/operator-framework/operator-sdk/releases/download/v0.17.0/operator-sdk-v0.17.0-x86_64-linux-gnu"
-        curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.9.0/kind-$(uname)-amd64"
+        curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.11.1/kind-$(uname)-amd64"
         chmod +x ./operator-sdk
         chmod +x ./kind
         ./kind create cluster --image kindest/node:v1.17.2
@@ -79,7 +80,7 @@ jobs:
      
   setup-build-publish-deploy:
     name: Operator tests on KinD
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
 
     - name: Set up Go 1.x
@@ -101,7 +102,7 @@ jobs:
         JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
       run: |
         wget https://github.com/operator-framework/operator-sdk/releases/download/v0.17.0/operator-sdk-v0.17.0-x86_64-linux-gnu
-        wget https://github.com/kubernetes-sigs/kind/releases/download/v0.8.0/kind-linux-amd64
+        wget https://github.com/kubernetes-sigs/kind/releases/download/v0.11.1/kind-linux-amd64
         mv ./kind-linux-amd64 ./kind
         mv ./operator-sdk-v0.17.0-x86_64-linux-gnu ./operator-sdk
         chmod +x ./operator-sdk
