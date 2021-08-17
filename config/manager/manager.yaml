@@ -35,15 +35,15 @@ spec:
             - ibm-licensing-operator
           env:
             - name: IBM_LICENSING_IMAGE
-              value: quay.io/opencloudio/ibm-licensing:1.7.0
+              value: quay.io/opencloudio/ibm-licensing:1.8.0
             - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-              value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.7.0
+              value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.8.0
             - name: IBM_POSTGRESQL_IMAGE
-              value: quay.io/opencloudio/ibm-postgresql:12.0.8
+              value: quay.io/opencloudio/ibm-postgresql:1.8.0
             - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-              value: quay.io/opencloudio/ibm-license-service-reporter:1.7.0
+              value: quay.io/opencloudio/ibm-license-service-reporter:1.8.0
             - name: IBM_LICENSING_USAGE_IMAGE
-              value: quay.io/opencloudio/ibm-licensing-usage:1.7.0
+              value: quay.io/opencloudio/ibm-licensing-usage:1.8.0
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -58,7 +58,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
-          image: quay.io/opencloudio/ibm-licensing-operator:1.7.0
+          image: quay.io/opencloudio/ibm-licensing-operator:1.8.0
           imagePullPolicy: Always
           name: ibm-licensing-operator
           resources:

@@ -26,7 +26,6 @@ export my_docker_registry=<your private registry>
 LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
 export operator_version=$(git tag | tail -n1 | tr -d v)
 export operand_version=$(git tag | tail -n1 | tr -d v)
-export operand_db_version=12.0.5
 ```
 
 ```yaml
@@ -91,7 +90,7 @@ spec:
             - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
               value: "${my_docker_registry}/ibm-license-service-reporter-ui:${operand_version}"
             - name: IBM_POSTGRESQL_IMAGE
-              value: "${my_docker_registry}/ibm-postgresql:${operand_db_version}"
+              value: "${my_docker_registry}/ibm-postgresql:${operand_version}"
             - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
               value: "${my_docker_registry}/ibm-license-service-reporter:${operand_version}"
             - name: SA_NAME
