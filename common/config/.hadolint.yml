@@ -1,9 +1,11 @@
 ignored:
   - FAKE_DL3003
+  - DL3007
   - DL3059
-  
+
 trustedRegistries:
   - gcr.io
   - docker.io
   - quay.io
   - registry.access.redhat.com
+  - hyc-cloud-private-edge-docker-local.artifactory.swg-devops.com
