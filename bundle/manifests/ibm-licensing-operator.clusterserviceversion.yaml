@@ -385,7 +385,7 @@ spec:
                       - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
                         value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.8.0
                       - name: IBM_POSTGRESQL_IMAGE
-                        value: quay.io/opencloudio/ibm-postgresql:12.0.9
+                        value: quay.io/opencloudio/ibm-postgresql:1.8.0
                       - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
                         value: quay.io/opencloudio/ibm-license-service-reporter:1.8.0
                       - name: IBM_LICENSING_USAGE_IMAGE
@@ -629,7 +629,7 @@ spec:
     - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
       image: quay.io/opencloudio/ibm-license-service-reporter-ui:1.8.0
     - name: IBM_POSTGRESQL_IMAGE
-      image: quay.io/opencloudio/ibm-postgresql:12.0.9
+      image: quay.io/opencloudio/ibm-postgresql:1.8.0
     - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
       image: quay.io/opencloudio/ibm-license-service-reporter:1.8.0
     - name: IBM_LICENSING_USAGE_IMAGE
