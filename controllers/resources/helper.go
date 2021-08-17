@@ -159,11 +159,90 @@ func UpdateServiceIfNeeded(reqLogger *logr.Logger, client c.Client, expectedServ
 }
 
 func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, found *monitoringv1.ServiceMonitor) (reconcile.Result, error) {
-	if expected != nil && found != nil && expected.Spec.Endpoints[0].Scheme != found.Spec.Endpoints[0].Scheme {
-		return DeleteResource(reqLogger, client, found)
+	if expected == nil || found == nil {
+		err := errors.New("cannot update to empty service monitor")
+		(*reqLogger).Error(err, "Expected and found service monitor cannot be nil.")
+		return reconcile.Result{}, err
 	}
-	// there are many changes that we want to always ensure are correct
-	return UpdateResource(reqLogger, client, found, expected)
+	updateResource := func() (reconcile.Result, error) {
+		return UpdateResource(reqLogger, client, expected, found)
+	}
+	for _, annotation := range annotationsForServicesToCheck {
+		if found.Annotations[annotation] != expected.Annotations[annotation] {
+			return updateResource()
+		}
+	}
+	expectedSpec := expected.Spec
+	foundSpec := found.Spec
+	// we assume only one endpoint, if changed in expected service monitor then modify this method as well
+	if len(expectedSpec.Endpoints) != 1 {
+		err := errors.New("expected service monitor endpoints error")
+		(*reqLogger).Error(
+			err, "Expected service monitor should have 1 endpoint, change this function otherwise.",
+			"Namespace", found.GetNamespace(), "Name", found.GetName())
+		return reconcile.Result{}, err
+	}
+	if len(foundSpec.Endpoints) != len(expectedSpec.Endpoints) {
+		// deleting will also cause updating, this needs to be done when in-place update cannot work
+		return updateResource()
+	}
+	expectedEndpoint := expectedSpec.Endpoints[0]
+	foundEndpoint := foundSpec.Endpoints[0]
+	if expectedEndpoint.Scheme != foundEndpoint.Scheme {
+		return updateResource()
+	}
+	if expectedEndpoint.TargetPort != nil {
+		if foundEndpoint.TargetPort == nil ||
+			expectedEndpoint.TargetPort.StrVal != foundEndpoint.TargetPort.StrVal ||
+			expectedEndpoint.TargetPort.IntVal != foundEndpoint.TargetPort.IntVal {
+			return updateResource()
+		}
+	} else {
+		if foundEndpoint.TargetPort != nil {
+			return updateResource()
+		}
+	}
+	if expectedEndpoint.Interval != foundEndpoint.Interval || expectedEndpoint.Path != foundEndpoint.Path {
+		return updateResource()
+	}
+	if expectedEndpoint.RelabelConfigs != nil {
+		if foundEndpoint.RelabelConfigs == nil ||
+			len(expectedEndpoint.RelabelConfigs) != len(foundEndpoint.RelabelConfigs) {
+			return updateResource()
+		}
+		// we assume only one relabeling, if changed in expected service monitor then modify this method as well
+		if len(expectedEndpoint.RelabelConfigs) != 1 {
+			err := errors.New("expected service monitor relabeling error")
+			(*reqLogger).Error(
+				err, "Expected service monitor should have 1 relabeling, change this function otherwise.",
+				"Namespace", found.GetNamespace(), "Name", found.GetName())
+			return reconcile.Result{}, err
+		}
+		expectedRelabeling := expectedEndpoint.RelabelConfigs[0]
+		foundRelabeling := foundEndpoint.RelabelConfigs[0]
+		if expectedRelabeling.Replacement != foundRelabeling.Replacement ||
+			expectedRelabeling.TargetLabel != foundRelabeling.TargetLabel {
+			return updateResource()
+		}
+	} else {
+		if foundEndpoint.RelabelConfigs != nil {
+			return updateResource()
+		}
+	}
+	if expectedEndpoint.TLSConfig != nil {
+		if foundEndpoint.TLSConfig == nil ||
+			!reflect.DeepEqual(expectedEndpoint.TLSConfig, foundEndpoint.TLSConfig) {
+			return updateResource()
+		}
+	} else {
+		if foundEndpoint.TLSConfig != nil {
+			return updateResource()
+		}
+	}
+	if !reflect.DeepEqual(expectedSpec.Selector, foundSpec.Selector) {
+		return updateResource()
+	}
+	return reconcile.Result{}, nil
 }
 
 func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource ResourceObject) (reconcile.Result, error) {
