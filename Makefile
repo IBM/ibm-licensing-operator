@@ -237,7 +237,7 @@ build:
 
 build-push-image: build-image push-image catalogsource
 
-build-image: build
+build-image: $(CONFIG_DOCKER_TARGET) build
 	@echo $(DOCKER_BUILD_OPTS)
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
@@ -248,7 +248,7 @@ push-image: $(CONFIG_DOCKER_TARGET) build-image
 
 build-push-image-development: build-image-development push-image-development catalogsource-development
 
-build-image-development: build
+build-image-development: $(CONFIG_DOCKER_TARGET) build
 	@echo $(DOCKER_BUILD_OPTS)
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
