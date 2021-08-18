@@ -29,6 +29,28 @@ func GetNetworkPolicyName(instance *operatorv1alpha1.IBMLicensing) string {
 
 func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *networkingv1.NetworkPolicy {
 	protocol := corev1.ProtocolTCP
+	prometheusPorts := []networkingv1.NetworkPolicyPort{
+		{
+			Port:     &prometheusServicePort,
+			Protocol: &protocol,
+		},
+	}
+	defaultPrometheusPeer := []networkingv1.NetworkPolicyPeer{
+		{
+			NamespaceSelector: getOneKeyValueLabelSelector(
+				"marketplace.redhat.com/operator", "true"),
+			PodSelector: getOneKeyValueLabelSelector(
+				"prometheus", "rhm-marketplaceconfig-meterbase"),
+		},
+	}
+	userWorkloadPrometheusPeer := []networkingv1.NetworkPolicyPeer{
+		{
+			NamespaceSelector: getOneKeyValueLabelSelector(
+				"name", "openshift-user-workload-monitoring"),
+			PodSelector: getOneKeyValueLabelSelector(
+				"prometheus", "user-workload"),
+		},
+	}
 	return &networkingv1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetNetworkPolicyName(instance),
@@ -39,18 +61,12 @@ func GetNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) *networkingv1.Net
 			PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeIngress},
 			Ingress: []networkingv1.NetworkPolicyIngressRule{
 				{
-					Ports: []networkingv1.NetworkPolicyPort{
-						{
-							Port:     &prometheusServicePort,
-							Protocol: &protocol,
-						},
-					},
-					From: []networkingv1.NetworkPolicyPeer{
-						{
-							NamespaceSelector: getNetworkPolicyFromNamespaceSelector(),
-							PodSelector:       getNetworkPolicyFromPodSelector(),
-						},
-					},
+					Ports: prometheusPorts,
+					From:  defaultPrometheusPeer,
+				},
+				{
+					Ports: prometheusPorts,
+					From:  userWorkloadPrometheusPeer,
 				},
 				{
 					Ports: []networkingv1.NetworkPolicyPort{
@@ -78,17 +94,10 @@ func getNetworkPolicyPodSelector() metav1.LabelSelector {
 	}
 }
 
-func getNetworkPolicyFromNamespaceSelector() *metav1.LabelSelector {
+func getOneKeyValueLabelSelector(key string, value string) *metav1.LabelSelector {
 	return &metav1.LabelSelector{
 		MatchLabels: map[string]string{
-			MarketplaceMonitoringLabel: "true",
-		},
-	}
-}
-func getNetworkPolicyFromPodSelector() *metav1.LabelSelector {
-	return &metav1.LabelSelector{
-		MatchLabels: map[string]string{
-			"prometheus": MeterbaseLabel,
+			key: value,
 		},
 	}
 }
