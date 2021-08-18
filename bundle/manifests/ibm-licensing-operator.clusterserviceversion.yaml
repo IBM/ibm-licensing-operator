@@ -527,6 +527,7 @@ spec:
                 - delete
                 - get
                 - list
+                - update
                 - watch
             - apiGroups:
                 - operator.ibm.com

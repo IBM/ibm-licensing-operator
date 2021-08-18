@@ -71,8 +71,14 @@ func getRelabelConfigs(instance *operatorv1alpha1.IBMLicensing) []*monitoringv1.
 func getTLSConfig(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConfig {
 	if instance.Spec.HTTPSEnable {
 		return &monitoringv1.TLSConfig{
-			CAFile:     PrometheusCAPath,
-			ServerName: getServerName(instance),
+			CA: monitoringv1.SecretOrConfigMap{
+				ConfigMap: &corev1.ConfigMapKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: "ibm-cs-operator-webhook-ca",
+					},
+					Key: "service-ca.crt",
+				},
+			},
 		}
 	}
 	return nil

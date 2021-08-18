@@ -85,7 +85,7 @@ type IBMLicensingReconciler struct {
 
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="apps",resources=deployments/finalizers,verbs=update
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;watch;list;delete
+// +kubebuilder:rbac:namespace=ibm-common-services,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;watch;list;delete;update
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods,verbs=get
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods,verbs=get
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=apps,resources=replicasets;deployments,verbs=get
