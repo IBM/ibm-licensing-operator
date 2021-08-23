@@ -3,6 +3,7 @@
 
 - [Supported platforms](#supported-platforms)
 - [Required resources](#required-resources)
+- [Cluster permissions](#cluster-permissions)
 
 ## Supported platforms
 
@@ -47,6 +48,16 @@ License Service consists of two main components that require resources: the oper
 ### Minimal resource requirements
 
 For minimal resource requirements for License Service, see License Service requirements in [Hardware requirements of small profile](https://www.ibm.com/docs/en/cpfs?topic=services-hardware-requirements-small-profile).
+
+## Cluster permissions
+
+The IBM License Service operator requires certain cluster-level permissions to perform the main operations. These permissions are closely tracked and documented so that users can understand any implications that they might have on other workloads in the cluster.
+
+|**API group**| **Resources** | **Verbs**  | **Description**    | 
+|:------------:|--------------|-------------|--------------------|
+|" "|pods </br> namespaces </br> nodes|Get </br> List|The cluster permissions for the `ibm-license-service` service account are **read-only access** permissions that are required to properly discover the running {{site.data.keyword.IBM_notm}} applications to report license usage of the Virtual Processor Core (VPC) and Processor Value Unit (PVU) metrics.|
+|operator.openshift.io|servicecas|List|These permissions are required to generate the TLS certificate for License Service. |
+|operator.ibm.com| ibmlicensings </br> ibmlicenseservicereporters </br> ibmlicensings/status </br> ibmlicenseservicereporters/status </br> ibmlicensings/finalizers </br> ibmlicenseservicereporters/finalizers|Create </br> Delete </br> Get </br> List </br> Patch </br> Update </br> Watch| The cluster permissions for the `ibm-licensing-operator` service account are required to properly manage the status of the IBM License Service operator.|
 
 <b>Related links</b>
 
