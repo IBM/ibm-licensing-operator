@@ -77,6 +77,13 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "true",
 		})
 	}
+	htThreadsPerCores := spec.GetHyperThreadingThreadsPerCoreOrNil()
+	if htThreadsPerCores != nil {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "HYPER_THREADING_THREADS_PER_CORE",
+			Value: strconv.Itoa(*htThreadsPerCores),
+		})
+	}
 	if spec.ChargebackRetentionPeriod != nil {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "CONTRIBUTIONS_DATA_RETENTION",

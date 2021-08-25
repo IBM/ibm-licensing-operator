@@ -113,6 +113,22 @@ func (spec *IBMLicensingSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
 
+func (spec *IBMLicensingSpec) HaveFeatures() bool {
+	return spec.Features != nil
+}
+
+func (spec *IBMLicensingSpec) IsHyperThreadingEnabled() bool {
+	return spec.HaveFeatures() && spec.Features.HyperThreading != nil
+}
+
+func (spec *IBMLicensingSpec) GetHyperThreadingThreadsPerCoreOrNil() *int {
+	if !spec.IsHyperThreadingEnabled() {
+		return nil
+	}
+	ht := spec.Features.HyperThreading
+	return &ht.ThreadsPerCore
+}
+
 func (spec *IBMLicensingSpec) IsVerbose() bool {
 	return spec.LogLevel == "VERBOSE"
 }

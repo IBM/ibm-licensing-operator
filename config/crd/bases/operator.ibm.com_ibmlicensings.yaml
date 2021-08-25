@@ -65,6 +65,25 @@ spec:
                   type: string
                 description: Environment variable setting
                 type: object
+              features:
+                description: Set additional features under this field
+                properties:
+                  hyperThreading:
+                    description: Configure if you have HyperThreading (HT) or Symmetrical
+                      Multi-Threading (SMT) enabled
+                    properties:
+                      threadsPerCore:
+                        description: Set the value based on the lowest HT/SMT value
+                          based on the lowest configuration of worker nodes
+                        enum:
+                        - 2
+                        - 4
+                        - 8
+                        type: integer
+                    required:
+                    - threadsPerCore
+                    type: object
+                type: object
               httpsCertsSource:
                 description: 'options: self-signed or custom'
                 enum:
