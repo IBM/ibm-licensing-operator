@@ -23,3 +23,23 @@ type Features struct {
 	// +optional
 	HyperThreading *features.HyperThreading `json:"hyperThreading,omitempty"`
 }
+
+func (spec *IBMLicensingSpec) HaveFeatures() bool {
+	return spec.Features != nil
+}
+
+func (spec *IBMLicensingSpec) IsHyperThreadingEnabled() bool {
+	return spec.HaveFeatures() && spec.Features.HyperThreading != nil
+}
+
+func (spec *IBMLicensingSpec) GetHyperThreadingThreadsPerCoreOrNil() *int {
+	if !spec.IsHyperThreadingEnabled() {
+		return nil
+	}
+	threadsPerCore := spec.Features.HyperThreading.ThreadsPerCore
+	// threadsPerCore works as a multiplier so when it is 1 we ignore it
+	if threadsPerCore == 1 {
+		return nil
+	}
+	return &threadsPerCore
+}

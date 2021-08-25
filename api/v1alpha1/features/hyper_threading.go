@@ -18,6 +18,6 @@ package features
 
 type HyperThreading struct {
 	// Set the value based on the lowest HT/SMT value based on the lowest configuration of worker nodes
-	// +kubebuilder:validation:Enum=2;4;8
+	// +kubebuilder:validation:Enum=1;2;4;8
 	ThreadsPerCore int `json:"threadsPerCore"`
 }

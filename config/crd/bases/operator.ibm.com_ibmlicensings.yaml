@@ -76,6 +76,7 @@ spec:
                         description: Set the value based on the lowest HT/SMT value
                           based on the lowest configuration of worker nodes
                         enum:
+                        - 1
                         - 2
                         - 4
                         - 8
