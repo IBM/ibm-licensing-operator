@@ -211,7 +211,7 @@ build:
 
 build-push-image: build-image push-image
 
-build-image: build
+build-image: $(CONFIG_DOCKER_TARGET) build
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f build/Dockerfile .
 
@@ -221,7 +221,7 @@ push-image: $(CONFIG_DOCKER_TARGET) build-image
 
 build-push-image-development: build-image-development push-image-development
 
-build-image-development: build
+build-image-development: $(CONFIG_DOCKER_TARGET) build
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f build/Dockerfile .
 
@@ -242,6 +242,9 @@ get-image-sha: ## replaces operand tag for digest in operator.yaml and csv
 multiarch-image: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION) ${MANIFEST_VERSION}
 	common/scripts/catalog_build.sh $(REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
+
+multiarch-image-latest: $(CONFIG_DOCKER_TARGET)
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION)
 
 multiarch-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${MANIFEST_VERSION}
