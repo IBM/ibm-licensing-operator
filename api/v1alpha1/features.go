@@ -16,7 +16,9 @@
 
 package v1alpha1
 
-import "github.com/ibm/ibm-licensing-operator/api/v1alpha1/features"
+import (
+	"github.com/ibm/ibm-licensing-operator/api/v1alpha1/features"
+)
 
 type Features struct {
 	// Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading (SMT) enabled
