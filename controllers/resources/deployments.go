@@ -43,6 +43,25 @@ func equalProbes(probe1 *corev1.Probe, probe2 *corev1.Probe) bool {
 	return reflect.DeepEqual(probe1, probe2)
 }
 
+func equalEnvVars(envVarArr1, envVarArr2 []corev1.EnvVar) bool {
+	if len(envVarArr1) != len(envVarArr2) {
+		return false
+	}
+	for _, env1 := range envVarArr1 {
+		contains := false
+		for _, env2 := range envVarArr2 {
+			if env1.Name == env2.Name && env1.Value == env2.Value {
+				contains = true
+				break
+			}
+		}
+		if !contains {
+			return contains
+		}
+	}
+	return true
+}
+
 func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container, containers2 []corev1.Container) bool {
 	if len(containers1) != len(containers2) {
 		(*reqLogger).Info("Deployment has wrong amount of containers")
@@ -85,7 +104,7 @@ func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container,
 			(*reqLogger).Info("Container " + foundContainer.Name + " wrong containers ports")
 		} else if !reflect.DeepEqual(foundContainer.VolumeMounts, expectedContainer.VolumeMounts) {
 			(*reqLogger).Info("Container " + foundContainer.Name + " wrong VolumeMounts in container")
-		} else if !reflect.DeepEqual(foundContainer.Env, expectedContainer.Env) {
+		} else if !equalEnvVars(foundContainer.Env, expectedContainer.Env) { // DeepEqual requires same order of items, which results in false negatives, so we use custom comparison function
 			(*reqLogger).Info("Container " + foundContainer.Name + " wrong env variables in container")
 		} else if !reflect.DeepEqual(foundContainer.SecurityContext, expectedContainer.SecurityContext) {
 			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container security context")
