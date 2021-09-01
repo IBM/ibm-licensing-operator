@@ -38,7 +38,7 @@ Repo maintainers can assign you an issue or pull request by leaving a
 ## Linting prerequisite
 
 - git
-- go version v1.12+
+- go version v1.17+
 - some tools below requires python with pip (tested on python3), and ruby with gem and bundler to install
 - Linting Tools
 
