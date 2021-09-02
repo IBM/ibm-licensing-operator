@@ -272,6 +272,9 @@ multiarch-image: $(CONFIG_DOCKER_TARGET)
 	common/scripts/catalog_build.sh $(REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION) ${MANIFEST_VERSION}
 
+multiarch-image-latest: $(CONFIG_DOCKER_TARGET)
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION)
+
 multiarch-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${MANIFEST_VERSION}
 	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
