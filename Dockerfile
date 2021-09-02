@@ -41,6 +41,7 @@ LABEL org.label-schema.vendor="$IMAGE_VENDOR" \
       maintainer="$IMAGE_MAINTAINER" \
       vendor="$IMAGE_VENDOR" \
       version="$IMAGE_VERSION" \
+      commit="$VCS_REF" \
       release="$IMAGE_RELEASE" \
       description="$IMAGE_DESCRIPTION" \
       summary="$IMAGE_SUMMARY" \
