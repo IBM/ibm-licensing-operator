@@ -7,7 +7,7 @@
 ## Prerequisites
 
 - Administrator permissions for the cluster
-- `kubectl` 1.11.3 or higher
+- `kubectl` 1.16 or higher
 - Linux or iOS
 
 ## Installation
