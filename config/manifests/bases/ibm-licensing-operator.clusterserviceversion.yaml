@@ -115,6 +115,11 @@ spec:
         path: envVariable
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Set additional features under this field
+        displayName: Features
+        path: features
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Enables https access at pod level, httpsCertsSource needed if true
         displayName: HTTPS Enable
         path: httpsEnable
