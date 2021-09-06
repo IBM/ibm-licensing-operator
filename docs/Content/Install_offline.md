@@ -88,9 +88,16 @@ kubectl create namespace ${licensing_namespace}
 ```
 
 c. If your cluster needs the access token to your private Docker registry, create the secret in the dedicated installation namespace:
-
+- For **LINUX** users:
 ```bash
 kubectl create secret -n ${licensing_namespace} docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
+sed -i -e "5s/^//p; 5s/^.*/imagePullSecrets:\n- name: my-registry-token/" config/rbac/service_account.yaml 
+```
+
+- For **MAC** users:
+```bash
+kubectl create secret -n ${licensing_namespace} docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
+sed -i '' -e "5s/^//p; 5s/^.*/imagePullSecrets:\n- name: my-registry-token/" config/rbac/service_account.yaml 
 ```
 
 d. Set the context so that the resources are created in a dedicated installation namespace:
@@ -108,17 +115,16 @@ LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
 export operator_version=$(git tag | tail -n1 | tr -d v)
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
-sed -i 's/operator:.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
-sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
+sed -i "s/annotations\['olm.targetNamespaces'\]/namespace/g" config/manager/manager.yaml
 if [ "${licensing_namespace}" != "ibm-common-services" ]; then
   sed -i 's|ibm-common-services|'"${licensing_namespace}"'|g' config/rbac/*.yaml
-  sed -i 's|ibm-common-services|'"${licensing_namespace}"'|g' bundle/manifests/*.yaml
 fi
 # add CRD:
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
+kubectl apply -f config/rbac/role_operands.yaml
 kubectl apply -f config/rbac/service_account.yaml
 kubectl apply -f config/rbac/role_binding.yaml
 # add operator:
@@ -132,17 +138,16 @@ LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
 export operator_version=$(git tag | tail -n1 | tr -d v)
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i "" 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
-sed -i "" 's/operator:.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
-sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
+sed -i "" "s/annotations\['olm.targetNamespaces'\]/namespace/g" config/manager/manager.yaml
 if [ "${licensing_namespace}" != "ibm-common-services" ]; then
   sed -i "" 's|ibm-common-services|'"${licensing_namespace}"'|g' config/rbac/*.yaml
-  sed -i "" 's|ibm-common-services|'"${licensing_namespace}"'|g' bundle/manifests/*.yaml
 fi
 # add CRD:
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
+kubectl apply -f config/rbac/role_operands.yaml
 kubectl apply -f config/rbac/service_account.yaml
 kubectl apply -f config/rbac/role_binding.yaml
 # add operator:
@@ -166,10 +171,8 @@ kind: IBMLicensing
 metadata:
   name: instance
 spec:
-  apiSecretToken: ibm-licensing-token
   datasource: datacollector
   httpsEnable: true
-  instanceNamespace: ${licensing_namespace}
 EOF
 ```
 
@@ -198,8 +201,7 @@ metadata:
   name: instance
 spec:
   apiSecretToken: ibm-licensing-token
-  httpsEnable: false
-  instanceNamespace: ibm-common-services
+  httpsEnable: true
   imagePullSecrets:
     - my-registry-token
 ```
