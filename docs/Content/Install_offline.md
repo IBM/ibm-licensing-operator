@@ -89,15 +89,17 @@ kubectl create namespace ${licensing_namespace}
 
 c. If your cluster needs the access token to your private Docker registry, create the secret in the dedicated installation namespace:
 - For **LINUX** users:
+
 ```bash
 kubectl create secret -n ${licensing_namespace} docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
-sed -i -e "5s/^//p; 5s/^.*/imagePullSecrets:\n- name: my-registry-token/" config/rbac/service_account.yaml 
+sed -i -e "5s/^//p; 5s/^.*/imagePullSecrets:\n- name: my-registry-token/" config/rbac/service_account.yaml
 ```
 
 - For **MAC** users:
+
 ```bash
 kubectl create secret -n ${licensing_namespace} docker-registry my-registry-token --docker-server=${my_docker_registry} --docker-username=<YOUR_REGISTRY_USERNAME> --docker-password=<YOUR_REGISTRY_TOKEN> --docker-email=<YOUR_REGISTRY_EMAIL, probably can be same as username>
-sed -i '' -e "5s/^//p; 5s/^.*/imagePullSecrets:\n- name: my-registry-token/" config/rbac/service_account.yaml 
+sed -i '' -e "5s/^//p; 5s/^.*/imagePullSecrets:\n- name: my-registry-token/" config/rbac/service_account.yaml
 ```
 
 d. Set the context so that the resources are created in a dedicated installation namespace:
