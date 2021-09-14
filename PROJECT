@@ -3,15 +3,17 @@ layout: go.kubebuilder.io/v2
 projectName: ibm-licensing-operator
 repo: github.com/IBM/ibm-licensing-operator
 resources:
-- group: operator
+- controller: true
+  group: operator
   kind: IBMLicensing
   version: v1alpha1
-- group: operator
+- controller: true
+  group: operator
   kind: IBMLicenseServiceReporter
   version: v1alpha1
 - group: operator
   kind: IBMLicensingMetadata
   version: v1alpha1
-version: 3-alpha
+version: "3"
 plugins:
   go.operator-sdk.io/v2-alpha: {}
