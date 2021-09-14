@@ -21,12 +21,15 @@ License Service
 - Currently, License Service refreshes the data every 5 minutes. However, this might be subject to change in the future. With this frequency, you can capture changes in a dynamic cloud environment.
 - Provides the API that you can use to retrieve data that outlines the highest license usage on the cluster.
 - Provides the API that you can use to retrieve an audit snapshot that lists the highest license usage values for the requested period for products that are deployed on a cluster.
+- Supports hyperthreading on worker nodes also referred to as Simultaneous multithreading (SMT) or Hyperthreading (HT).
 
 ## Using License Service for container licensing
 
 Currently, supported core-based metrics for container licensing are Processor Value Unit (PVU) and Virtual Processor Core (VPC). For core license metrics, you are obliged to use License Service and periodically generate an audit snapshots to fulfill container licensing requirements.
 
 For more information about core and non-core metrics that are collected by License Service, see [Reported metrics](https://www.ibm.com/docs/en/cpfs?topic=operator-reported-metrics).
+
+If your cluster has hyperthreading, also referred to as Simultaneous multithreading (SM) or Hyperthreading (HT), enabled, see [Hyperthreading](https://www.ibm.com/docs/en/cpfs?topic=operator-hyperthreading).
 
 License Service collects data that is required for compliance and audit purposes. With License Service, you can retrieve an audit snapshot per cluster without any configuration.
 
