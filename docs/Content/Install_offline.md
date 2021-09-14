@@ -33,7 +33,6 @@ a.  Run the following command to prepare your Docker images:
 
 ```bash
 export my_docker_registry=<YOUR PRIVATE REGISTRY IMAGE PREFIX HERE; for example: "my.registry:5000" or "my.private.registry.example.com">
-LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
 export operator_version=$(git tag | tail -n1 | tr -d v)
 export operand_version=$(git tag | tail -n1 | tr -d v)
 ```
@@ -113,8 +112,6 @@ e. Apply RBAC roles, CRD and `operator.yaml`:
 - For **LINUX** users:
 
 ```bash
-LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
-export operator_version=$(git tag | tail -n1 | tr -d v)
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
 sed -i "s/annotations\['olm.targetNamespaces'\]/namespace/g" config/manager/manager.yaml
@@ -136,8 +133,6 @@ kubectl apply -f config/manager/manager.yaml
 - For **MAC** users:
 
 ```bash
-LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
-export operator_version=$(git tag | tail -n1 | tr -d v)
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i "" 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
 sed -i "" "s/annotations\['olm.targetNamespaces'\]/namespace/g" config/manager/manager.yaml
@@ -177,8 +172,6 @@ spec:
   httpsEnable: true
 EOF
 ```
-
-where the `${licensing_namespace}` is the name of the namespace where you installed License Service.
 
 2\. If you created the secret that is needed to access the images, add it to the configuration.
 
