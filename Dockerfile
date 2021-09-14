@@ -22,6 +22,7 @@ ARG IMAGE_NAME_ARCH
 ARG IMAGE_MAINTAINER
 ARG IMAGE_VENDOR
 ARG IMAGE_VERSION
+ARG VERSION
 ARG IMAGE_RELEASE
 ARG IMAGE_BUILDDATE
 ARG IMAGE_DESCRIPTION
@@ -40,8 +41,10 @@ LABEL org.label-schema.vendor="$IMAGE_VENDOR" \
       name="$IMAGE_NAME" \
       maintainer="$IMAGE_MAINTAINER" \
       vendor="$IMAGE_VENDOR" \
-      version="$IMAGE_VERSION" \
+      image-version="$IMAGE_VERSION" \
+      version="$VERSION" \
       release="$IMAGE_RELEASE" \
+      build-date="$IMAGE_BUILDDATE" \
       description="$IMAGE_DESCRIPTION" \
       summary="$IMAGE_SUMMARY" \
       io.k8s.display-name="$IMAGE_DISPLAY_NAME" \

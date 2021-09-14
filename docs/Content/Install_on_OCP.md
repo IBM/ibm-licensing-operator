@@ -6,7 +6,7 @@
 
 ## Prerequisites
 
-- A cluster with OCP version 4.2 or higher
+- A cluster with OCP version 4.6 or higher
 - Administrator permissions for the OCP cluster
 - Access to the OpenShift Console
 
