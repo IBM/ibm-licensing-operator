@@ -56,7 +56,7 @@ For more information, see the following resources:
     - [Required resources](Content/Preparing_for_installation.md#required-resources)
 - [Installing License Service](Content/Installation_scenarios.md)
     - [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](Content/Automatic_installation.md)
-    - [Manually installing License Service on OCP 4.2+](Content/Install_on_OCP.md)
+    - [Manually installing License Service on OCP 4.6+](Content/Install_on_OCP.md)
     - [Manual installation without the Operator Lifecycle Manager (OLM)](Content/Install_without_OLM.md)
     - [Manually installing License Service on Kubernetes from scratch with `kubectl`](Content/Install_from_scratch.md)
     - [Offline installation](Content/Install_offline.md)

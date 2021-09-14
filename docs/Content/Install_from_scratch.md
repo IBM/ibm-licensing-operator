@@ -7,7 +7,7 @@
 ## Prerequisites
 
 - Administrator permissions for the cluster
-- `kubectl` 1.11.3 or higher
+- `kubectl` 1.16 or higher
 - Linux or iOS
 
 ## Installation
@@ -199,7 +199,7 @@ a. See if the IBM Licensing Operator is deployed by OLM from the `CatalogSource`
 ```console
 $ kubectl get clusterserviceversion -n ibm-common-services
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.5.0   IBM Licensing Operator   1.5.0     ibm-licensing-operator.v1.5.0   Succeeded
+ibm-licensing-operator.v1.8.0   IBM Licensing Operator   1.8.0     ibm-licensing-operator.v1.8.0   Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
