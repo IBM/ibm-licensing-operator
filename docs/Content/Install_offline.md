@@ -17,13 +17,15 @@
 
 This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.
 
-1\.Clone the repository by using `git clone`. Run the following command:
+1\. Clone the repository by using `git clone`. Run the following command:
 
 ```bash
 export operator_release_version=v1.8.0
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
+
+**Note:** If you cannot use `git clone`, just download the sources, unzip, and enter ibm-licensing-operator directory. [Sources](https://github.com/IBM/ibm-licensing-operator/archive/refs/heads/release-1.8.zip)
 
 2\. Prepare Docker images.
 
