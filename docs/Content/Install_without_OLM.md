@@ -25,20 +25,21 @@ This procedure guides you through the installation of License Service. It does n
 a. Run the following command to create the `ibm-common-services` namespace where you will later install the operator.
 
 ```bash
-kubectl create namespace ibm-common-services
+export licensing_namespace=ibm-common-services
+kubectl create namespace ${licensing_namespace}
 ```
 
-b. Use the following command to set the context so that the resources are created in the `ibm-common-services` namespace.
+b. Use the following command to set the context so that the resources are created.
 
 ```bash
 current_context=$(kubectl config current-context)
-kubectl config set-context ${current_context} --namespace=ibm-common-services
+kubectl config set-context ${current_context} --namespace=${licensing_namespace}
 ```
 
 or when you are using OpenShift just:
 
 ```bash
-oc project ibm-common-services
+oc project ${licensing_namespace}
 ```
 
 c. Use `git clone`.
@@ -49,7 +50,25 @@ git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-op
 cd ibm-licensing-operator/
 ```
 
-d. Apply RBAC roles and CRD:
+d. Switch namespaces in rbac if different namespace than `ibm-common-services`:
+
+- For **LINUX** users:
+
+```bash
+if [ "${licensing_namespace}" != "" ] && [ "${licensing_namespace}" != "ibm-common-services" ]; then
+  sed -i 's|ibm-common-services|'"${licensing_namespace}"'|g' config/rbac/*.yaml
+fi
+```
+
+- For **MAC** users:
+
+```bash
+if [ "${licensing_namespace}" != "" ] && [ "${licensing_namespace}" != "ibm-common-services" ]; then
+  sed -i "" 's|ibm-common-services|'"${licensing_namespace}"'|g' config/rbac/*.yaml
+fi
+```
+
+e. Apply RBAC roles and CRD:
 
 ```bash
 # add CRD:
@@ -57,29 +76,24 @@ kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
+kubectl apply -f config/rbac/role_operands.yaml
 kubectl apply -f config/rbac/service_account.yaml
 kubectl apply -f config/rbac/role_binding.yaml
 ```
 
-e. Modify the `operator.yaml` image based on tags.
+f. Modify the `operator.yaml` image based on tags.
 
 - For **LINUX** users:
 
 ```bash
-LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
-export operand_version=$(git tag | tail -n1 | tr -d v)
-sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
-sed -i 's/@sha256.*/:'"${operand_version}"'/g' config/manager/manager.yaml
+sed -i "s/annotations\['olm.targetNamespaces'\]/namespace/g" config/manager/manager.yaml
 kubectl apply -f config/manager/manager.yaml
 ```
 
 - For **MAC** users:
 
 ```bash
-LATEST_VERSION=$(git tag | tail -n1 | tr -d v)
-export operand_version=$(git tag | tail -n1 | tr -d v)
-sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' config/manager/manager.yaml
-sed -i "" 's/@sha256.*/:'"${operand_version}"'/g' config/manager/manager.yaml
+sed -i "" "s/annotations\['olm.targetNamespaces'\]/namespace/g" config/manager/manager.yaml
 kubectl apply -f config/manager/manager.yaml
 ```
 
@@ -91,7 +105,7 @@ Create an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
-1\. To create the the IBM Licensing instance, run the following command.
+1\. To create the IBM Licensing instance, run the following command.
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -100,15 +114,14 @@ kind: IBMLicensing
 metadata:
   name: instance
 spec:
-  apiSecretToken: ibm-licensing-token
   datasource: datacollector
   httpsCertsSource: self-signed
   httpsEnable: true
-  instanceNamespace: ibm-common-services
 EOF
 ```
 
 **Results:**
+Give operator couple minutes to configure all needed components.
 Installation is complete and **License Service** is running in your cluster.
 
 <b>Related links</b>

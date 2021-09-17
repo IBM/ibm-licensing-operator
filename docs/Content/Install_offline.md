@@ -17,7 +17,7 @@
 
 This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.
 
-1\.Clone the repository by using `git clone`. Run the following command:
+1\. Clone the repository by using `git clone`. Run the following command:
 
 ```bash
 export operator_release_version=v1.8.0
@@ -25,7 +25,7 @@ git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-op
 cd ibm-licensing-operator/
 ```
 
-**Note:** If you cannot use `git clone` on machine with `kubectl` (for example, when you do not have the Internet connection), use the solution described in the troubleshooting section. See [Preparing resources for offline installation without git](Troubleshooting.md#preparing-resources-for-offline-installation-without-git).
+**Note:** If you cannot use `git clone`, just download the sources, unzip, and enter ibm-licensing-operator directory. [Sources](https://github.com/IBM/ibm-licensing-operator/archive/refs/heads/release-1.8.zip)
 
 2\. Prepare Docker images.
 
@@ -115,7 +115,7 @@ e. Apply RBAC roles, CRD and `operator.yaml`:
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
 sed -i "s/annotations\['olm.targetNamespaces'\]/namespace/g" config/manager/manager.yaml
-if [ "${licensing_namespace}" != "ibm-common-services" ]; then
+if [ "${licensing_namespace}" != "" ] && [ "${licensing_namespace}" != "ibm-common-services" ]; then
   sed -i 's|ibm-common-services|'"${licensing_namespace}"'|g' config/rbac/*.yaml
 fi
 # add CRD:
@@ -136,7 +136,7 @@ kubectl apply -f config/manager/manager.yaml
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
 sed -i "" 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
 sed -i "" "s/annotations\['olm.targetNamespaces'\]/namespace/g" config/manager/manager.yaml
-if [ "${licensing_namespace}" != "ibm-common-services" ]; then
+if [ "${licensing_namespace}" != "" ] && [ "${licensing_namespace}" != "ibm-common-services" ]; then
   sed -i "" 's|ibm-common-services|'"${licensing_namespace}"'|g' config/rbac/*.yaml
 fi
 # add CRD:

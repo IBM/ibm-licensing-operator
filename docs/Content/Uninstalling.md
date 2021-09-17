@@ -141,13 +141,13 @@ kubectl delete deployment ibm-licensing-operator -n ${licensingNamespace}
 ```bash
 # configure namespace:
 licensingNamespace=ibm-common-services
-# delete rbac for operator:
+# delete rbac for operand:
 kubectl delete RoleBinding ibm-license-service -n ${licensingNamespace}
 kubectl delete ClusterRoleBinding ibm-license-service
 kubectl delete ServiceAccount ibm-license-service -n ${licensingNamespace}
 kubectl delete Role ibm-license-service -n ${licensingNamespace}
 kubectl delete ClusterRole ibm-license-service
-# delete rbac for operand:
+# delete rbac for operator:
 kubectl delete RoleBinding ibm-licensing-operator -n ${licensingNamespace}
 kubectl delete ClusterRoleBinding ibm-licensing-operator
 kubectl delete ServiceAccount ibm-licensing-operator -n ${licensingNamespace}
