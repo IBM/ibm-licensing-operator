@@ -72,6 +72,5 @@ For more information, see the following resources:
     - [Upgrading to License service 1.4.x from an earlier version](Content/Upgrading_to_14x.md)
 - [Troubleshooting](Content/Troubleshooting.md)
     - [Verifying completeness of license usage data](Content/Troubleshooting.md#verifying-completeness-of-license-usage-data)
-    - [Preparing resources for offline installation without git](Content/Troubleshooting.md#prepareing-resources-for-offline-installation-without-git)
     - [License Service pods are crashing and License Service cannot run](Content/Troubleshooting.md#license-service-pods-are-crashing-and-license-service-cannot-run)
     - [License Service API is unavailable with 503 Service Unavailable error](Content/Troubleshooting.md#license-service-api-is-unavailable-with-503-service-unavailable-error)
