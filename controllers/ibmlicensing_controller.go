@@ -199,7 +199,7 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 		instance.Status.LicensingPods = podStatuses
 		err := r.Client.Status().Update(context.TODO(), instance)
 		if err != nil {
-			reqLogger.Info("Warning: Failed to update pod status, this does not affect License Service")
+			reqLogger.Info("Failed to update pod status, this does not affect License Service")
 		}
 	}
 
