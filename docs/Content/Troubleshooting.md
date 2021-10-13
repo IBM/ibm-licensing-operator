@@ -1,12 +1,32 @@
 # Troubleshooting
 
 - [Verifying completeness of license usage data](#verifying-completeness-of-license-usage-data)
+- [Enable additional information in logs for troubleshooting purposes](enable-additional-information-in-log-for-troubleshooting-purposes)
 - [License Service pods are crashing and License Service cannot run](#license-service-pods-are-crashing-and-license-service-cannot-run)
 - [License Service API is unavailable with 503 Service Unavailable error](#license-service-api-is-unavailable-with-503-service-unavailable-error)
 
 ## Verifying completeness of license usage data
 
 You can verify if License Service is properly deployed and whether it collects the complete license usage data. For more information, see [Verifying completeness of license usage data and troubleshooting](https://www.ibm.com/docs/en/cpfs?topic=operator-verifying-completeness-license-usage-data-troubleshooting).
+
+## Enable additional information in logs for troubleshooting purposes
+
+By default, the License Service instance pod logs contain only the basic information about the service. You can enable the additional information in logs for troubleshooting purposes by adding the `logLevel` parameter to the `spec` section in the custom resource.
+
+The available `logLevel` options:
+
+- `DEBUG` - This option enables all debug information in logs.
+- `VERBOSE` - This option extends the logs with information about license calculation and API calls.
+
+Following is an example configuration:
+
+```
+- name: ibm-licensing-operator
+  spec:
+    IBMLicensing:
+      logLevel: DEBUG
+```
+{: codeblock}
 
 ## License Service pods are crashing and License Service cannot run
 
