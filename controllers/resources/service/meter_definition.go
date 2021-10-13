@@ -25,7 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func GetMeterDefinition(instance *operatorv1alpha1.IBMLicensing) []*rhmp.MeterDefinition {
+func GetMeterDefinitionList(instance *operatorv1alpha1.IBMLicensing) []*rhmp.MeterDefinition {
 	return []*rhmp.MeterDefinition{
 		getCloudPakMeterDefinition(instance),
 		getProductMeterDefinition(instance),
