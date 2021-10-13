@@ -18,7 +18,7 @@ License Service collects and measures the license usage of your products at the 
 License Service
 
 - Collects and measures the license usage of Virtual Processor Core (VPC) and Processor Value Unit (PVU) metrics at the cluster level of IBM Containerized products that are enabled for reporting. To learn if your product is enabled for reporting, contact the product support.
-- Currently, License Service refreshes the data every 5 minutes. However, this might be subject to change in the future. With this frequency, you can capture changes in a dynamic cloud environment.
+- Currently, License Service refreshes the data every 5 minutes. With this frequency, you can capture changes in a dynamic cloud environment. License Service stores the historical licensing data for the last 24 months. However, the frequency and the retention period might be subject to change in the future.
 - Provides the API that you can use to retrieve data that outlines the highest license usage on the cluster.
 - Provides the API that you can use to retrieve an audit snapshot that lists the highest license usage values for the requested period for products that are deployed on a cluster.
 
@@ -67,10 +67,12 @@ For more information, see the following resources:
     - [Available APIs](Content/Retrieving_data.md#available-apis)
     - [Retrieving an audit snapshot](https://www.ibm.com/docs/en/cpfs?topic=service-apis-retrieving-license-data#auditSnapshot)
     - [Tracking license usage in multicluster environment](Content/Retrieving_data.md#tracking-license-usage-in-multicluster-environment)
+- [Integration with Red Hat Marketplace](https://www.ibm.com/docs/en/cpfs?topic=operator-integration-red-hat-marketplace)
 - [Uninstalling License Service from a Kubernetes cluster](Content/Uninstalling.md)
 - [Backup and upgrade](Content/Backup_and_upgrade.md)
     - [Upgrading to License service 1.4.x from an earlier version](Content/Upgrading_to_14x.md)
 - [Troubleshooting](Content/Troubleshooting.md)
     - [Verifying completeness of license usage data](Content/Troubleshooting.md#verifying-completeness-of-license-usage-data)
+    - [Enable additional information in logs for troubleshooting purposes](Content/Troubleshooting.md#enable-additional-information-in-log-for-troubleshooting-purposes)
     - [License Service pods are crashing and License Service cannot run](Content/Troubleshooting.md#license-service-pods-are-crashing-and-license-service-cannot-run)
     - [License Service API is unavailable with 503 Service Unavailable error](Content/Troubleshooting.md#license-service-api-is-unavailable-with-503-service-unavailable-error)
