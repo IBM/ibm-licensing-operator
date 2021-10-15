@@ -403,34 +403,75 @@ func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1al
 		return reconcile.Result{}, nil
 	}
 	reqLogger := r.Log.WithValues("reconcileMeterDefinition", "Entry", "instance.GetName()", instance.GetName())
-	expected := service.GetMeterDefinition(instance)
+	expectedMeterDefinitionList := service.GetMeterDefinitionList(instance)
 	found := &rhmp.MeterDefinition{}
 	owner := service.GetPrometheusService(instance)
 	result, err := res.UpdateOwner(&r.Log, r.Client, owner)
 	if err != nil || result.Requeue {
 		return result, err
 	}
-	for _, es := range expected {
-		result, err := r.reconcileResourceNamespacedExistenceWithCustomController(instance, owner, es, found)
+	for _, expected := range expectedMeterDefinitionList {
+		result, err := r.reconcileResourceNamespacedExistenceWithCustomController(instance, owner, expected, found)
 		if err != nil || result.Requeue {
 			return result, err
 		}
 		possibleUpdateNeeded := true
-		if found.ObjectMeta.Name != es.ObjectMeta.Name {
-			reqLogger.Info("Names not equal", "old", found.ObjectMeta.Name, "new", es.ObjectMeta.Name)
-		} else if found.Spec.Kind != es.Spec.Kind {
-			reqLogger.Info("Found wrong Kind")
-		} else if len(found.Spec.Meters) == 0 {
-			reqLogger.Info("Found MeterDefinition without Meters")
-		} else if len(found.Spec.Meters) > 0 && found.Spec.Meters[0].Query != es.Spec.Meters[0].Query {
-			reqLogger.Info("Found MeterDefinition with wrong Query",
-				"old", fmt.Sprintf("%v", found.Spec.Meters[0].Query),
-				"new", fmt.Sprintf("%v", es.Spec.Meters[0].Query))
+		foundMeters := found.Spec.Meters
+		var foundMeter *rhmp.MeterWorkload
+		if len(foundMeters) == 1 {
+			foundMeter = &foundMeters[0]
+		}
+		if foundMeter != nil {
+			expectedMeter := expected.Spec.Meters[0]
+			// check basic parameters
+			if found.ObjectMeta.Name != expected.ObjectMeta.Name {
+				reqLogger.Info("Names not equal", "old", found.ObjectMeta.Name, "new", expected.ObjectMeta.Name)
+			} else if found.Spec.Kind != expected.Spec.Kind {
+				reqLogger.Info("Found wrong Kind")
+			} else if foundMeter.Query != expectedMeter.Query {
+				reqLogger.Info("Found MeterDefinition with wrong Query",
+					"old", fmt.Sprintf("%v", foundMeter.Query),
+					"new", fmt.Sprintf("%v", expectedMeter.Query))
+			} else if foundMeter.Aggregation != expectedMeter.Aggregation {
+				reqLogger.Info("Found MeterDefinition with wrong Aggregation",
+					"old", fmt.Sprintf("%v", foundMeter.Aggregation),
+					"new", fmt.Sprintf("%v", expectedMeter.Aggregation))
+			} else if foundMeter.Name != expectedMeter.Name {
+				reqLogger.Info("Found MeterDefinition with wrong Name",
+					"old", fmt.Sprintf("%v", foundMeter.Name),
+					"new", fmt.Sprintf("%v", expectedMeter.Name))
+			} else if foundMeter.ValueLabelOverride != expectedMeter.ValueLabelOverride {
+				reqLogger.Info("Found MeterDefinition with wrong ValueLabelOverride",
+					"old", fmt.Sprintf("%v", foundMeter.ValueLabelOverride),
+					"new", fmt.Sprintf("%v", expectedMeter.ValueLabelOverride))
+			} else if foundMeter.Metric != expectedMeter.Metric {
+				reqLogger.Info("Found MeterDefinition with wrong Metric",
+					"old", fmt.Sprintf("%v", foundMeter.Metric),
+					"new", fmt.Sprintf("%v", expectedMeter.Metric))
+			} else if foundMeter.WorkloadType != expectedMeter.WorkloadType {
+				reqLogger.Info("Found MeterDefinition with wrong WorkloadType",
+					"old", fmt.Sprintf("%v", foundMeter.WorkloadType),
+					"new", fmt.Sprintf("%v", expectedMeter.WorkloadType))
+			} else if foundMeter.DateLabelOverride != expectedMeter.DateLabelOverride {
+				reqLogger.Info("Found MeterDefinition with wrong DateLabelOverride",
+					"old", fmt.Sprintf("%v", foundMeter.DateLabelOverride),
+					"new", fmt.Sprintf("%v", expectedMeter.DateLabelOverride))
+			} else {
+				possibleUpdateNeeded = false
+			}
+			if !possibleUpdateNeeded {
+				if !res.ListsEqualsLikeSets(expectedMeter.GroupBy, foundMeter.GroupBy) {
+					reqLogger.Info("Found meter groupBy has wrong params",
+						"old", fmt.Sprintf("%v", foundMeter.GroupBy),
+						"new", fmt.Sprintf("%v", expectedMeter.GroupBy))
+					possibleUpdateNeeded = true
+				}
+			}
 		} else {
-			possibleUpdateNeeded = false
+			reqLogger.Info("Found MeterDefinition without Meter")
 		}
 		if possibleUpdateNeeded {
-			return res.UpdateResource(&reqLogger, r.Client, es, found)
+			return res.UpdateResource(&reqLogger, r.Client, expected, found)
 		}
 	}
 	return reconcile.Result{}, nil
@@ -489,7 +530,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 			"Namespace", expectedRes.GetNamespace())
 		return reconcile.Result{}, err
 	}
-	reqLogger.Info(resType.String() + " is correct!")
+	reqLogger.Info(resType.String() + " exists!")
 	return reconcile.Result{}, nil
 }
 

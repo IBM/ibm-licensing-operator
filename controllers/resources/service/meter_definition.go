@@ -25,7 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func GetMeterDefinition(instance *operatorv1alpha1.IBMLicensing) []*rhmp.MeterDefinition {
+func GetMeterDefinitionList(instance *operatorv1alpha1.IBMLicensing) []*rhmp.MeterDefinition {
 	return []*rhmp.MeterDefinition{
 		getCloudPakMeterDefinition(instance),
 		getProductMeterDefinition(instance),
@@ -102,9 +102,9 @@ func getProductMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.Me
 					Aggregation:        "max",
 					Period:             &metav1.Duration{Duration: 24 * time.Hour},
 					WorkloadType:       rhmp.WorkloadTypeService,
-					Metric:             "{{ .Label.metricId}}",
+					Metric:             "{{ .Label.parentMetricId}}",
 					Query:              "avg_over_time(product_license_usage_details{}[1d])",
-					GroupBy:            []string{"metricId", "productId"},
+					GroupBy:            []string{"metricId", "productId", "parentMetricId", "parentProductId", "productConversionRatio"},
 					ValueLabelOverride: "{{ .Label.value}}",
 					DateLabelOverride:  "{{ .Label.date}}",
 				},
@@ -142,9 +142,9 @@ func getChargebackMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp
 					Aggregation:        "max",
 					Period:             &metav1.Duration{Duration: 24 * time.Hour},
 					WorkloadType:       rhmp.WorkloadTypeService,
-					Metric:             "{{ .Label.metricId}}",
+					Metric:             "{{ .Label.parentMetricId}}",
 					Query:              "avg_over_time(product_license_usage_chargeback{}[1d])",
-					GroupBy:            []string{"metricId", "productId"},
+					GroupBy:            []string{"metricId", "productId", "parentMetricId", "parentProductId", "productConversionRatio"},
 					ValueLabelOverride: "{{ .Label.value}}",
 					DateLabelOverride:  "{{ .Label.date}}",
 				},

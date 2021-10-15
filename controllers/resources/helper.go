@@ -102,6 +102,29 @@ func Contains(s []corev1.LocalObjectReference, e corev1.LocalObjectReference) bo
 	return false
 }
 
+// we could use reflection to have this method for all types but for now strings would be enough
+func ListsEqualsLikeSets(list1 []string, list2 []string) bool {
+	if list1 == nil {
+		return list2 == nil
+	}
+	if len(list1) != len(list2) {
+		return false
+	}
+	for _, item1 := range list1 {
+		found := false
+		for _, item2 := range list2 {
+			if item2 == item1 {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
 func AnnotationsForPod() map[string]string {
 	return map[string]string{"productName": LicensingProductName,
 		"productID": LicensingProductID, "productMetric": LicensingProductMetric}
