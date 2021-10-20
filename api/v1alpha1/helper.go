@@ -106,14 +106,6 @@ func (spec *IBMLicensingSpec) GetDefaultReporterTokenName() string {
 	return defaultReporterTokenSecretName
 }
 
-func (spec *IBMLicensingSpec) IsDebug() bool {
-	return spec.LogLevel == "DEBUG"
-}
-
-func (spec *IBMLicensingSpec) IsVerbose() bool {
-	return spec.LogLevel == "VERBOSE"
-}
-
 func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool,
 	operatorNamespace string) error {
 	if spec.InstanceNamespace == "" {

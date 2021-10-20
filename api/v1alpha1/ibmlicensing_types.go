@@ -143,9 +143,9 @@ type IBMLicensingSpec struct {
 	// +optional
 	Features *Features `json:"features,omitempty"`
 
-    // Should application pod show additional information, options: DEBUG, INFO, VERBOSE
-    // +kubebuilder:validation:Enum=DEBUG;INFO;VERBOSE
-    LogLevel string `json:"logLevel,omitempty"`
+	// Should application pod show additional information, options: DEBUG, INFO, VERBOSE
+	// +kubebuilder:validation:Enum=DEBUG;INFO;VERBOSE
+	LogLevel string `json:"logLevel,omitempty"`
 }
 
 type IBMLicensingSenderSpec struct {
@@ -217,4 +217,12 @@ type IBMLicensingList struct {
 
 func init() {
 	SchemeBuilder.Register(&IBMLicensing{}, &IBMLicensingList{})
+}
+
+func (spec *IBMLicensingSpec) IsDebug() bool {
+	return spec.LogLevel == "DEBUG"
+}
+
+func (spec *IBMLicensingSpec) IsVerbose() bool {
+	return spec.LogLevel == "VERBOSE"
 }
