@@ -42,6 +42,14 @@ type IBMLicenseServiceReporterSpec struct {
 	Capacity resource.Quantity `json:"capacity,omitempty" protobuf:"bytes,2,opt,name=capacity"`
 }
 
+func (spec *IBMLicenseServiceReporterSpec) IsDebug() bool {
+	return spec.LogLevel == "DEBUG"
+}
+
+func (spec *IBMLicenseServiceReporterSpec) IsVerbose() bool {
+	return spec.LogLevel == "VERBOSE"
+}
+
 // IBMLicenseServiceReporterStatus defines the observed state of IBMLicenseServiceReporter
 type IBMLicenseServiceReporterStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
