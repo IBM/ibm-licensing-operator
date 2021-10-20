@@ -142,6 +142,10 @@ type IBMLicensingSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Features",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	Features *Features `json:"features,omitempty"`
+
+    // Should application pod show additional information, options: DEBUG, INFO, VERBOSE
+    // +kubebuilder:validation:Enum=DEBUG;INFO;VERBOSE
+    LogLevel string `json:"logLevel,omitempty"`
 }
 
 type IBMLicensingSenderSpec struct {
