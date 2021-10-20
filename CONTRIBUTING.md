@@ -86,3 +86,12 @@ make
 ```
 
 Now, you can follow the [README](./README.md) to work with the ibm-licensing-operator.
+
+## Version bump
+
+Run script `common/scripts/next_csv.sh` in project root directory with parameters: a current version, new version, old version..
+Example to bump operator from 1.9.0 to 1.10.0:
+
+```shell
+common/scripts/next_csv.sh 1.9.0 1.10.0 1.8.0
+```
