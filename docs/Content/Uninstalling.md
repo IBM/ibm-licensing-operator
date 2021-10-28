@@ -18,17 +18,20 @@ Complete the following steps to uninstall License Service in online and offline 
 
 ## Step 1: Deleting the IBM Licensing resource
 
-1\. Delete the `IBMLicensing custom` resource.
+Delete the `IBMLicensing custom` resource.
 
 Delete the instance and the operator will clean its resources.
-First, check what `ibmlicensing` instances you have by running the following command:
+
+1\. check what `ibmlicensing` instances you have by running the following command:
 
 ```bash
 licensingNamespace=ibm-common-services
 kubectl get ibmlicensing -n ${licensingNamespace} -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}"
 ```
 
-The command should return one instance. Delete this instance, if it exists with the following command:
+The command should return one instance. 
+
+2\. Delete this instance, if it exists with the following command:
 
 ```bash
 licensingNamespace=ibm-common-services
