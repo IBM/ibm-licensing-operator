@@ -104,6 +104,18 @@ func getReciverEnvVariables(spec operatorv1alpha1.IBMLicenseServiceReporterSpec)
 			Value: string(spec.HTTPSCertsSource),
 		},
 	}
+	if spec.IsDebug() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "logging.level.com.ibm",
+			Value: "DEBUG",
+		})
+	}
+	if spec.IsDebug() || spec.IsVerbose() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "SPRING_PROFILES_ACTIVE",
+			Value: "verbose",
+		})
+	}
 	if spec.EnvVariable != nil {
 		for key, value := range spec.EnvVariable {
 			environmentVariables = append(environmentVariables, corev1.EnvVar{

@@ -109,11 +109,11 @@ func (spec *IBMLicensingSpec) GetDefaultReporterTokenName() string {
 	return defaultReporterTokenSecretName
 }
 
-func (spec *IBMLicensingSpec) IsDebug() bool {
+func (spec *IBMLicenseServiceBaseSpec) IsDebug() bool {
 	return spec.LogLevel == "DEBUG"
 }
 
-func (spec *IBMLicensingSpec) IsVerbose() bool {
+func (spec *IBMLicenseServiceBaseSpec) IsVerbose() bool {
 	return spec.LogLevel == "VERBOSE"
 }
 
