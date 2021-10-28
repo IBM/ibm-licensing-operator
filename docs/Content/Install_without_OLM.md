@@ -20,16 +20,16 @@ Complete the following procedure to install License Service on a system that doe
 
 This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.
 
-1\. Create the required resources.
+Complete the following steps to create the required resources.
 
-a. Run the following command to create the `ibm-common-services` namespace where you will later install the operator.
+1\. Run the following command to create the `ibm-common-services` namespace where you will later install the operator.
 
 ```bash
 export licensing_namespace=ibm-common-services
 kubectl create namespace ${licensing_namespace}
 ```
 
-b. Use the following command to set the context so that the resources are created.
+2\. Use the following command to set the context so that the resources are created.
 
 ```bash
 current_context=$(kubectl config current-context)
@@ -42,7 +42,7 @@ or when you are using OpenShift just:
 oc project ${licensing_namespace}
 ```
 
-c. Use `git clone`.
+3\. Use `git clone`.
 
 ```bash
 export operator_release_version=v1.9.0
@@ -50,7 +50,7 @@ git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-op
 cd ibm-licensing-operator/
 ```
 
-d. Switch namespaces in rbac if different namespace than `ibm-common-services`:
+4\. Switch namespaces in rbac if different namespace than `ibm-common-services`:
 
 - For **LINUX** users:
 
@@ -68,12 +68,13 @@ if [ "${licensing_namespace}" != "" ] && [ "${licensing_namespace}" != "ibm-comm
 fi
 ```
 
-e. Apply RBAC roles and CRD:
+5\. Apply RBAC roles and CRD:
 
 ```bash
 # add CRD:
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
+config/crd/bases/operator.ibm.com_ibmlicensingmetadatas.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
 kubectl apply -f config/rbac/role_operands.yaml
@@ -81,7 +82,7 @@ kubectl apply -f config/rbac/service_account.yaml
 kubectl apply -f config/rbac/role_binding.yaml
 ```
 
-f. Modify the `operator.yaml` image based on tags.
+6\. Modify the `operator.yaml` image based on tags.
 
 - For **LINUX** users:
 
@@ -105,7 +106,7 @@ Create an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
-1\. To create the IBM Licensing instance, run the following command.
+To create the IBM Licensing instance, run the following command.
 
 ```yaml
 cat <<EOF | kubectl apply -f -
