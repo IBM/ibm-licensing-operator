@@ -127,18 +127,18 @@ cat <<EOF | kubectl apply -f -
         app.kubernetes.io/managed-by: ibm-licensing-operator
         app.kubernetes.io/name: ibm-licensing
     spec:
-      version: 1.3.2
+      version: 1.3.3
       imagePullSecrets:
         - my-registry-token
       databaseContainer:
         imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
-        imageTagPostfix: 12.0.5
+        imageTagPostfix: 1.3.3
       reporterUIContainer:
         imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
-        imageTagPostfix: 1.3.2
+        imageTagPostfix: 1.3.3
       receiverContainer:
         imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
-        imageTagPostfix: 1.3.2
+        imageTagPostfix: 1.3.3
 EOF
   [ "$?" -eq "0" ]
 
