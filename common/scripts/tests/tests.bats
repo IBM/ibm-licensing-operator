@@ -126,7 +126,7 @@ cat <<EOF | kubectl apply -f -
     datasource: datacollector
     httpsEnable: true
     imageRegistry: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
-    imageTagPostfix: 1.3.2
+    imageTagPostfix: 1.3.3
     imagePullSecrets:
       - my-registry-token
     instanceNamespace: ibm-common-services$SUFIX
