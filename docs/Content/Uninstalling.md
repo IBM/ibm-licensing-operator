@@ -29,7 +29,7 @@ licensingNamespace=ibm-common-services
 kubectl get ibmlicensing -n ${licensingNamespace} -o jsonpath="{range .items[*]}{.metadata.name}{'\n'}"
 ```
 
-The command should return one instance. 
+The command should return one instance.
 
 2\. Delete this instance, if it exists with the following command:
 
