@@ -24,6 +24,10 @@ type Features struct {
 	// Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading (SMT) enabled
 	// +optional
 	HyperThreading *features.HyperThreading `json:"hyperThreading,omitempty"`
+
+	//Enable legacy Auth
+	//+optional
+	LegacyAuthEnabled *bool `json:"legacyAuthEnabled,omitempty"`
 }
 
 func (spec *IBMLicensingSpec) HaveFeatures() bool {
@@ -32,6 +36,14 @@ func (spec *IBMLicensingSpec) HaveFeatures() bool {
 
 func (spec *IBMLicensingSpec) IsHyperThreadingEnabled() bool {
 	return spec.HaveFeatures() && spec.Features.HyperThreading != nil
+}
+
+func (spec *IBMLicensingSpec) IsLegacyAuthEnabled() bool {
+	if spec.HaveFeatures() && spec.Features.LegacyAuthEnabled != nil && *spec.Features.LegacyAuthEnabled {
+		return false
+	} else {
+		return true
+	}
 }
 
 func (spec *IBMLicensingSpec) GetHyperThreadingThreadsPerCoreOrNil() *int {

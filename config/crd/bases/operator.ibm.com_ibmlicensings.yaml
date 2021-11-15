@@ -84,6 +84,9 @@ spec:
                     required:
                     - threadsPerCore
                     type: object
+                  legacyAuthEnabled:
+                    description: Enable legacy Auth
+                    type: boolean
                 type: object
               httpsCertsSource:
                 description: 'options: self-signed or custom'

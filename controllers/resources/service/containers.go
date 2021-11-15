@@ -90,6 +90,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: strconv.Itoa(*spec.ChargebackRetentionPeriod),
 		})
 	}
+	if !spec.IsLegacyAuthEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "LEGACY_AUTH_ENABLED",
+			Value: "false",
+		})
+	}
 	if spec.Sender != nil {
 
 		if spec.Sender.ClusterID != "" {
