@@ -43,7 +43,7 @@ oc project ibm-common-services
 c. Use `git clone`.
 
 ```bash
-export operator_release_version=v1.3.2
+export operator_release_version=v1.3.3
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
@@ -65,8 +65,8 @@ e. Modify the `operator.yaml` image based on tags.
 - For **LINUX** users:
 
 ```bash
-export operator_version=1.3.2
-export operand_version=1.3.2
+export operator_version=1.3.3
+export operand_version=1.3.3
 sed -i 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
 sed -i 's/@sha256.*/:'"${operand_version}"'/g' deploy/operator.yaml
 kubectl apply -f deploy/operator.yaml
@@ -75,8 +75,8 @@ kubectl apply -f deploy/operator.yaml
 - For **MAC** users:
 
 ```bash
-export operator_version=1.3.2
-export operand_version=1.3.2
+export operator_version=1.3.3
+export operand_version=1.3.3
 sed -i "" 's/operator@sha256.*/operator:'"${operator_version}"'/g' deploy/operator.yaml
 sed -i "" 's/@sha256.*/:'"${operand_version}"'/g' deploy/operator.yaml
 kubectl apply -f deploy/operator.yaml
