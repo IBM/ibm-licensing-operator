@@ -349,6 +349,18 @@ spec:
               verbs:
                 - get
                 - list
+            - apiGroups:
+                - authentication.k8s.io
+              resources:
+                - tokenreviews
+              verbs:
+                - create
+            - apiGroups:
+                - authorization.k8s.io
+              resources:
+                - subjectaccessreviews
+              verbs:
+                - create
           serviceAccountName: ibm-license-service
       deployments:
         - name: ibm-licensing-operator
