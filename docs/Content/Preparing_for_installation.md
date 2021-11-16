@@ -48,6 +48,12 @@ License Service consists of two main components that require resources: the oper
 
 For minimal resource requirements for License Service, see License Service requirements in [Hardware requirements of small profile](https://www.ibm.com/docs/en/cpfs?topic=services-hardware-requirements-small-profile).
 
+## Hyperthreading
+
+License Service supports multiple threads per physical core also referred to as Simultaneous multithreading (SMT) or Hyper-Threading (HT).
+
+For more information about how to enable hyperthreading in License Service, and examples, see [Hyperthreading](https://www.ibm.com/docs/en/cpfs?topic=operator-hyperthreading).
+
 <b>Related links</b>
 
 - [Go back to home page](../License_Service_main.md#documentation)
