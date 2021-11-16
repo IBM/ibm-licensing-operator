@@ -361,6 +361,15 @@ spec:
                 - subjectaccessreviews
               verbs:
                 - create
+            - nonResourceURLs:
+                - /products
+                - /snapshot
+                - /bundled_products
+                - /health
+                - /status
+                - /services
+              verbs:
+                - get
           serviceAccountName: ibm-license-service
       deployments:
         - name: ibm-licensing-operator
