@@ -24,10 +24,17 @@ type Features struct {
 	// Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading (SMT) enabled
 	// +optional
 	HyperThreading *features.HyperThreading `json:"hyperThreading,omitempty"`
+	// Restricts License Service to get pods only from namespaces chosen in common service's NamespaceScope custom resource.
+	// +optional
+	NamespaceScopeEnabled *bool `json:"namespaceScopeEnabled,omitempty"`
 }
 
 func (spec *IBMLicensingSpec) HaveFeatures() bool {
 	return spec.Features != nil
+}
+
+func (spec *IBMLicensingSpec) IsNamespaceScopeEnabled() bool {
+	return spec.HaveFeatures() && spec.Features.NamespaceScopeEnabled != nil && *spec.Features.NamespaceScopeEnabled
 }
 
 func (spec *IBMLicensingSpec) IsHyperThreadingEnabled() bool {

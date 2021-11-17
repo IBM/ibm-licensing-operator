@@ -86,6 +86,10 @@ spec:
                     required:
                     - threadsPerCore
                     type: object
+                  namespaceScopeEnabled:
+                    description: Restricts License Service to get pods only from namespaces
+                      chosen in common service's NamespaceScope custom resource.
+                    type: boolean
                 type: object
               httpsCertsSource:
                 description: 'options: self-signed or custom'

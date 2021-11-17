@@ -38,7 +38,7 @@ package v1alpha1
 
 import (
 	"github.com/ibm/ibm-licensing-operator/api/v1alpha1/features"
-	v1 "github.com/openshift/api/route/v1"
+	"github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -66,6 +66,11 @@ func (in *Features) DeepCopyInto(out *Features) {
 	if in.HyperThreading != nil {
 		in, out := &in.HyperThreading, &out.HyperThreading
 		*out = new(features.HyperThreading)
+		**out = **in
+	}
+	if in.NamespaceScopeEnabled != nil {
+		in, out := &in.NamespaceScopeEnabled, &out.NamespaceScopeEnabled
+		*out = new(bool)
 		**out = **in
 	}
 }
