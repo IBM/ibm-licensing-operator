@@ -39,7 +39,7 @@ func (spec *IBMLicensingSpec) IsHyperThreadingEnabled() bool {
 }
 
 func (spec *IBMLicensingSpec) IsLegacyAuthEnabled() bool {
-	if spec.HaveFeatures() && spec.Features.LegacyAuthEnabled != nil && *spec.Features.LegacyAuthEnabled {
+	if spec.HaveFeatures() && spec.Features.LegacyAuthEnabled != nil && !*spec.Features.LegacyAuthEnabled {
 		return false
 	} else {
 		return true
