@@ -47,6 +47,7 @@ if [[ "${STATIC}" !=  "1" ]];then
 fi
 
 ${GOBINARY} version
+${GOBINARY} env
 
 time GOOS=${BUILD_GOOS} GOARCH=${BUILD_GOARCH} ${GOBINARY} build \
         ${V} "${GOBUILDFLAGS_ARRAY[@]}" ${GCFLAGS:+-gcflags "${GCFLAGS}"} \
