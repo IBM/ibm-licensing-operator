@@ -46,7 +46,7 @@ if [[ "${STATIC}" !=  "1" ]];then
     LDFLAGS=""
 fi
 echo 111111
-${GOBINARY} version
+echo ${GOBINARY}
 
 time GOOS=${BUILD_GOOS} GOARCH=${BUILD_GOARCH} ${GOBINARY} build \
         ${V} "${GOBUILDFLAGS_ARRAY[@]}" ${GCFLAGS:+-gcflags "${GCFLAGS}"} \
