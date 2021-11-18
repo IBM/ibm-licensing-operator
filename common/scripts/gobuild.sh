@@ -45,7 +45,7 @@ export CGO_ENABLED=0
 if [[ "${STATIC}" !=  "1" ]];then
     LDFLAGS=""
 fi
-
+echo 111111
 ${GOBINARY} version
 
 time GOOS=${BUILD_GOOS} GOARCH=${BUILD_GOARCH} ${GOBINARY} build \
