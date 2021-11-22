@@ -1,5 +1,9 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+**IMPORTANT:** The current branch contains the operator and documentation for License Service version 1.0.x. Switch to another branch to view the content for other releases. This documentation is outdated. To view the documentation for the latest version of License Service, see [License Service for stand-alone IBM Containerized Software](https://ibm.biz/license_service4containers).
+.**
+
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [IBM Licensing Operator](#ibm-licensing-operator)
