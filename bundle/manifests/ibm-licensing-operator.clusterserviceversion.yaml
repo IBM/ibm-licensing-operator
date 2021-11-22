@@ -361,6 +361,8 @@ spec:
                 - subjectaccessreviews
               verbs:
                 - create
+          serviceAccountName: ibm-license-service
+        - rules:
             - nonResourceURLs:
                 - /products
                 - /snapshot
@@ -370,7 +372,7 @@ spec:
                 - /services
               verbs:
                 - get
-          serviceAccountName: ibm-license-service
+          serviceAccountName: ibm-licensing-default-reader
       deployments:
         - name: ibm-licensing-operator
           spec:
