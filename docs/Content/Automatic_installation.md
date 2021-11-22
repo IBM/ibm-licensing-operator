@@ -3,6 +3,9 @@
 
 You can use an automatic script to install License Service on the cluster, and automatically create the License Service instance.
 
+**Important:** This procedure is outdated. For the latest version, see [License Service for stand-alone IBM Containerized Software](https://ibm.biz/license_service4containers).
+
+
 - [Supported configurations](#supported-configurations)
 - [Installation](#installation)
 
