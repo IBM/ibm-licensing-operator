@@ -1,3 +1,5 @@
+**IMPORTANT:** The current branch contains the operator and documentation for License Service version 1.1.x. Switch to another branch to view the content for other releases. This documentation is outdated. To view the documentation for the latest version of License Service, see [License Service for stand-alone IBM Containerized Software](https://ibm.biz/license_service4containers).
+
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
 * [License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)](#ibm-licensing-operator)
 * [License Service for stand-alone IBM Containerized Software without IBM Cloud Paks](#ibm-licensing-operator-for-stand-alone-ibm-containerized-software)
