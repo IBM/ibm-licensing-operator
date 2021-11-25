@@ -25,6 +25,7 @@ type Features struct {
 	// +optional
 	HyperThreading *features.HyperThreading `json:"hyperThreading,omitempty"`
 	// Special terms, must be granted by IBM Pricing.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Namespace scope enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
 	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
 }

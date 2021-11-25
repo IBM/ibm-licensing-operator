@@ -41,7 +41,7 @@ const ReleaseLabel = "ibm-licensing-service-prometheus"
 const ReleaseUsageLabel = "ibm-licensing-service-usage"
 
 const NamespaceScopeLabelKey = "intent"
-const NamespaceScopeLabelValue = "projected-odlm"
+const NamespaceScopeLabelValue = "projected"
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()

@@ -87,8 +87,7 @@ spec:
                     - threadsPerCore
                     type: object
                   nssEnabled:
-                    description: Restricts License Service to get pods only from namespaces
-                      chosen in common service's NamespaceScope custom resource.
+                    description: Special terms, must be granted by IBM Pricing.
                     type: boolean
                 type: object
               httpsCertsSource:
