@@ -59,7 +59,7 @@ For more information about how to enable hyperthreading in License Service, and 
 
 The IBM License Service operator requires certain cluster-level permissions to perform the main operations. These permissions are closely tracked and documented so that users can understand any implications that they might have on other workloads in the cluster.
 
-|**API group**| **Resources** | **Verbs**  | **Description**    | 
+|**API group**| **Resources** | **Verbs**  | **Description**    |
 |:------------:|--------------|-------------|--------------------|
 |" "|pods </br> namespaces </br> nodes|Get </br> List|The cluster permissions for the `ibm-license-service` service account are **read-only access** permissions that are required to properly discover the running {{site.data.keyword.IBM_notm}} applications to report license usage of the Virtual Processor Core (VPC) and Processor Value Unit (PVU) metrics.|
 |operator.openshift.io|servicecas|List|These permissions are required to generate the TLS certificate for License Service. |
