@@ -53,7 +53,7 @@ For more information, see the following resources:
     - [Supported platforms](Content/Preparing_for_installation.md#supported-platforms)
     - [Required resources](Content/Preparing_for_installation.md#required-resources)
     - [Hyperthreading](Content/Preparing_for_installation.md#hyperthreading)
-    - [Cluster permissions](Content/Preparing_for_installation.md#cluster_permissions)
+    - [Cluster permissions](Content/Preparing_for_installation.md#cluster-permissions)
 - [Installing License Service](Content/Installation_scenarios.md)
     - [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](Content/Automatic_installation.md)
     - [Manually installing License Service on OCP 4.2+](Content/Install_on_OCP.md)
