@@ -1,9 +1,3 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/IBM/ibm-licensing-operator)](https://goreportcard.com/report/github.com/IBM/ibm-licensing-operator)
-![kind](https://github.com/IBM/ibm-licensing-operator/workflows/kind/badge.svg)
-![ocp](https://github.com/IBM/ibm-licensing-operator/workflows/ocp/badge.svg)
-<img alt="Uptime Robot status" src="https://img.shields.io/uptimerobot/status/m786127186-a86f251061d6fd7958c67707?label=OCP%20test%20cluster">
-[![Code Coverage](https://codecov.io/gh/IBM/ibm-licensing-operator/branch/master/graphs/badge.svg?branch=master)](https://codecov.io/gh/IBM/ibm-licensing-operator?branch=master)
-
 **IMPORTANT:** The `master` branch contains the currently developed version of License Service and its content should not be used. Switch to another branch to view the content for the already-released version of License Service, for example `release-<version>` branch.
 
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
