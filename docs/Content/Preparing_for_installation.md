@@ -3,6 +3,8 @@
 
 - [Supported platforms](#supported-platforms)
 - [Required resources](#required-resources)
+- [Hyperthreading](#hyperthreading)
+- [Cluster permissions](#cluster-permissions)
 
 ## Supported platforms
 
@@ -33,12 +35,11 @@ License Service is supported on Linux on Power (ppc64le), Linux on IBM Z and Lin
 
 License Service consists of two main components that require resources: the operator deployment and the application deployment.
 
- |Parameter|Operator|Application|Overall resources|
- |---|---|---|---|
- |CPU Limits| 20m| 500m| |
- |Memory Limits| 150Mi|512Mi|
- |CPU Requests| 10m|200m|**210m**|
- |Memory Requests|50Mi|256Mi|**306Mi**|
+ |Platform|CPU Request (m)| CPU Limit (m)|Memory Request (Mi)|Memory Limit (Mi)|
+|---|---|---|---|---|
+|Linux® x86_64| 200 | 300| 430| 850|
+|Linux® on Power® (ppc64le)|300| 400| 230| 543|
+|Linux® on IBM® Z and LinuxONE| 200| 300| 230| 350|
 
  *_where m stands for Millicores, and Mi for Mebibytes_
 
@@ -47,6 +48,22 @@ License Service consists of two main components that require resources: the oper
 ### Minimal resource requirements
 
 For minimal resource requirements for License Service, see License Service requirements in [Hardware requirements of small profile](https://www.ibm.com/docs/en/cpfs?topic=services-hardware-requirements-small-profile).
+
+## Hyperthreading
+
+License Service supports multiple threads per physical core also referred to as Simultaneous multithreading (SMT) or Hyper-Threading (HT).
+
+For more information about how to enable hyperthreading in License Service, and examples, see [Hyperthreading](https://www.ibm.com/docs/en/cpfs?topic=operator-hyperthreading).
+
+## Cluster permissions
+
+The IBM License Service operator requires certain cluster-level permissions to perform the main operations. These permissions are closely tracked and documented so that users can understand any implications that they might have on other workloads in the cluster.
+
+|**API group**| **Resources** | **Verbs**  | **Description**    | 
+|:------------:|--------------|-------------|--------------------|
+|" "|pods </br> namespaces </br> nodes|Get </br> List|The cluster permissions for the `ibm-license-service` service account are **read-only access** permissions that are required to properly discover the running {{site.data.keyword.IBM_notm}} applications to report license usage of the Virtual Processor Core (VPC) and Processor Value Unit (PVU) metrics.|
+|operator.openshift.io|servicecas|List|These permissions are required to generate the TLS certificate for License Service. |
+|operator.ibm.com| ibmlicensings </br> ibmlicenseservicereporters </br> ibmlicensings/status </br> ibmlicenseservicereporters/status </br> ibmlicensings/finalizers </br> ibmlicenseservicereporters/finalizers|Create </br> Delete </br> Get </br> List </br> Patch </br> Update </br> Watch| The cluster permissions for the `ibm-licensing-operator` service account are required to properly manage the status of the IBM License Service operator.|
 
 <b>Related links</b>
 
