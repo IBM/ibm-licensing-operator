@@ -86,7 +86,7 @@ spec:
                     required:
                     - threadsPerCore
                     type: object
-                  namespaceScopeEnabled:
+                  nssEnabled:
                     description: Restricts License Service to get pods only from namespaces
                       chosen in common service's NamespaceScope custom resource.
                     type: boolean

@@ -24,9 +24,9 @@ type Features struct {
 	// Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading (SMT) enabled
 	// +optional
 	HyperThreading *features.HyperThreading `json:"hyperThreading,omitempty"`
-	// Restricts License Service to get pods only from namespaces chosen in common service's NamespaceScope custom resource.
+	// Special terms, must be granted by IBM Pricing.
 	// +optional
-	NamespaceScopeEnabled *bool `json:"namespaceScopeEnabled,omitempty"`
+	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
 }
 
 func (spec *IBMLicensingSpec) HaveFeatures() bool {
