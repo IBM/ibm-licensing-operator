@@ -150,7 +150,7 @@ include common/Makefile.common.mk
 version.properties:
 	infofile_path ?= version.properties
 	$(shell echo "version="$(CSV_VERSION) > $(infofile_path))
-	$(shell echo "build_date=$(BUILD_DATE) >> $(infofile_path))
+	$(shell echo "build_date="$(BUILD_DATE) >> $(infofile_path))
 	$(shell echo "commit="$(VCS_REF) >> $(infofile_path))
 
 ############################################################
@@ -188,35 +188,6 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 # Default value will run all linters, override these make target with your requirements:
 #    eg: lint: lint-go lint-yaml
 lint: lint-all vet
-
-coverage-kind: prepare-unit-test ## Run coverage if possible
-	export USE_EXISTING_CLUSTER=true; \
-	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
-	export NAMESPACE=${NAMESPACE}; \
-	export WATCH_NAMESPACE=${NAMESPACE}; \
-	export OCP=${OCP}; \
-	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
-	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}; \
-	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}; \
-	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}; \
-	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
-	./common/scripts/codecov.sh ${BUILD_LOCALLY}
-
-coverage-kind-development: prepare-unit-test ## Run coverage if possible
-	export USE_EXISTING_CLUSTER=true; \
-	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
-	export NAMESPACE=${NAMESPACE}; \
-	export WATCH_NAMESPACE=${NAMESPACE}; \
-	export OCP=${OCP}; \
-	export IBM_LICENSING_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
-	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
-	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
-	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}; \
-	export IBM_LICENSING_USAGE_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
-	./common/scripts/codecov.sh ${BUILD_LOCALLY}
-
-coverage: ## Run coverage if possible
-	@echo "coverage on kind in github action"
 
 ############################################################
 # install operator sdk section
