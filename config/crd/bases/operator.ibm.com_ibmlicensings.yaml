@@ -84,6 +84,9 @@ spec:
                     required:
                     - threadsPerCore
                     type: object
+                  nssEnabled:
+                    description: Special terms, must be granted by IBM Pricing.
+                    type: boolean
                 type: object
               httpsCertsSource:
                 description: 'options: self-signed or custom'

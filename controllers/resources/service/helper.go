@@ -30,6 +30,7 @@ const LicensingReleaseName = "ibm-licensing-service"
 const LicenseServiceOCPCertName = "ibm-license-service-cert"
 const PrometheusServiceOCPCertName = "ibm-licensing-service-prometheus-cert"
 const LicensingServiceAccount = "ibm-license-service"
+const LicensingServiceAccountRestricted = "ibm-license-service-restricted"
 const UsageServiceName = "ibm-licensing-service-usage"
 const PrometheusServiceName = "ibm-licensing-service-prometheus"
 const PrometheusServiceMonitor = "ibm-licensing-service-service-monitor"
@@ -38,6 +39,9 @@ const LicensingServiceAppLabel = "ibm-licensing-service-instance"
 const ServiceMonitorSelectorLabel = "marketplace.redhat.com/metering"
 const ReleaseLabel = "ibm-licensing-service-prometheus"
 const ReleaseUsageLabel = "ibm-licensing-service-usage"
+
+const NamespaceScopeLabelKey = "intent"
+const NamespaceScopeLabelValue = "projected"
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
@@ -72,6 +76,9 @@ func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]s
 	selectorLabels := LabelsForSelector(instance)
 	for key, value := range selectorLabels {
 		podLabels[key] = value
+	}
+	if instance.Spec.IsNamespaceScopeEnabled() {
+		podLabels[NamespaceScopeLabelKey] = NamespaceScopeLabelValue
 	}
 	return podLabels
 }
