@@ -28,10 +28,19 @@ type Features struct {
 	//Enable legacy Auth
 	//+optional
 	LegacyAuthEnabled *bool `json:"legacyAuthEnabled,omitempty"`
+
+	// Special terms, must be granted by IBM Pricing.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Namespace scope enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
+	// +optional
+	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
 }
 
 func (spec *IBMLicensingSpec) HaveFeatures() bool {
 	return spec.Features != nil
+}
+
+func (spec *IBMLicensingSpec) IsNamespaceScopeEnabled() bool {
+	return spec.HaveFeatures() && spec.Features.NamespaceScopeEnabled != nil && *spec.Features.NamespaceScopeEnabled
 }
 
 func (spec *IBMLicensingSpec) IsHyperThreadingEnabled() bool {

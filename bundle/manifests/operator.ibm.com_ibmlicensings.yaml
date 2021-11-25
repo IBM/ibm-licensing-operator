@@ -89,6 +89,9 @@ spec:
                   legacyAuthEnabled:
                     description: Enable legacy Auth
                     type: boolean
+                  nssEnabled:
+                    description: Special terms, must be granted by IBM Pricing.
+                    type: boolean
                 type: object
               httpsCertsSource:
                 description: 'options: self-signed or custom'

@@ -172,8 +172,11 @@ spec:
           - description: Set additional features under this field
             displayName: Features
             path: features
+          - description: Special terms, must be granted by IBM Pricing.
+            displayName: Namespace scope enabled
+            path: features.nssEnabled
             x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
+              - urn:alm:descriptor:com.tectonic.ui:hidden
           - description: Enables https access at pod level, httpsCertsSource needed if true
             displayName: HTTPS Enable
             path: httpsEnable
@@ -362,6 +365,23 @@ spec:
               verbs:
                 - create
           serviceAccountName: ibm-license-service
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - namespaces
+                - nodes
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - operator.ibm.com
+              resources:
+                - ibmlicensingmetadatas
+              verbs:
+                - get
+                - list
+          serviceAccountName: ibm-license-service-restricted
         - rules:
             - nonResourceURLs:
                 - /products
@@ -625,6 +645,24 @@ spec:
                 - list
                 - update
           serviceAccountName: ibm-license-service
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - configmaps
+              verbs:
+                - create
+                - get
+                - list
+                - update
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+              verbs:
+                - get
+                - list
+          serviceAccountName: ibm-license-service-restricted
     strategy: deployment
   installModes:
     - supported: true

@@ -481,9 +481,15 @@ alm-example:
 	yq r -P ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/clusterrole.yaml
 	yq r -P ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml rules > /tmp/role.yaml
 	yq r -P bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/reader-clusterrole.yaml
+	yq r -P ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/clusterrole2.yaml
+	yq r -P ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_role.yaml rules > /tmp/role2.yaml
+
 	sed -i -e 's/^/  /' /tmp/clusterrole.yaml
 	sed -i -e 's/^/  /' /tmp/role.yaml
 	sed -i -e 's/^/  /' /tmp/reader-clusterrole.yaml
+	sed -i -e 's/^/  /' /tmp/clusterrole2.yaml
+	sed -i -e 's/^/  /' /tmp/role2.yaml
+
 	cp ./common/scripts/updateCSV/updateCP.yaml /tmp/updateCP.yaml
 	cp ./common/scripts/updateCSV/updateAccessCP.yaml /tmp/updateAccessCP.yaml
 	cat /tmp/clusterrole.yaml >> /tmp/updateCP.yaml
@@ -491,20 +497,37 @@ alm-example:
 	cat ./common/scripts/updateCSV/saCP.yaml >> /tmp/updateCP.yaml
 	cat ./common/scripts/updateCSV/saAccessCP.yaml >> /tmp/updateAccessCP.yaml
 	yq w -i -s /tmp/updateCP.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+
+	cp ./common/scripts/updateCSV/updateCP2.yaml /tmp/updateCP2.yaml
+	cat /tmp/clusterrole2.yaml >> /tmp/updateCP2.yaml
+	cat ./common/scripts/updateCSV/saCP2.yaml >> /tmp/updateCP2.yaml
+	yq w -i -s /tmp/updateCP2.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+
 	yq w -i -s /tmp/updateAccessCP.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	cp ./common/scripts/updateCSV/updateP.yaml /tmp/updateP.yaml
 	cat /tmp/role.yaml >> /tmp/updateP.yaml
 	cat ./common/scripts/updateCSV/saP.yaml >> /tmp/updateP.yaml
 	yq w -i -s /tmp/updateP.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+
+	cp ./common/scripts/updateCSV/updateP2.yaml /tmp/updateP2.yaml
+	cat /tmp/role2.yaml >> /tmp/updateP2.yaml
+	cat ./common/scripts/updateCSV/saP2.yaml >> /tmp/updateP2.yaml
+	yq w -i -s /tmp/updateP2.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml
 	rm -f ./bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrolebinding.yaml
 	rm -f ./bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrolebinding.yaml
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_rolebinding.yaml
+	rm -f ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_clusterrole.yaml
+	rm -f ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_role.yaml
+	rm -f ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_clusterrolebinding.yaml
+	rm -f ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_rolebinding.yaml
 	rm -f ./bundle/manifests/ibm-licensing-operator_v1_serviceaccount.yaml
 	rm -f ./bundle/manifests/ibm-licensing-default-reader_v1_serviceaccount.yaml
 	rm -f ./bundle/manifests/ibm-license-service_v1_serviceaccount.yaml
+	rm -f ./bundle/manifests/ibm-license-service-restricted_v1_serviceaccount.yaml
 
 # Generate bundle manifests and metadata, then validate generated files.
 pre-bundle: manifests

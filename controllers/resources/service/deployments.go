@@ -38,6 +38,10 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 		}
 	}
 
+	serviceAccount := LicensingServiceAccount
+	if instance.Spec.IsNamespaceScopeEnabled() {
+		serviceAccount = LicensingServiceAccountRestricted
+	}
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetResourceName(instance),
@@ -59,7 +63,7 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 					InitContainers:                GetLicensingInitContainers(instance.Spec),
 					Containers:                    GetLicensingContainer(instance.Spec),
 					TerminationGracePeriodSeconds: &resources.Seconds60,
-					ServiceAccountName:            LicensingServiceAccount,
+					ServiceAccountName:            serviceAccount,
 					ImagePullSecrets:              imagePullSecrets,
 					Affinity: &corev1.Affinity{
 						NodeAffinity: &corev1.NodeAffinity{
