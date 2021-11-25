@@ -172,8 +172,11 @@ spec:
           - description: Set additional features under this field
             displayName: Features
             path: features
+          - description: Special terms, must be granted by IBM Pricing.
+            displayName: Namespace scope enabled
+            path: features.nssEnabled
             x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
+              - urn:alm:descriptor:com.tectonic.ui:hidden
           - description: Enables https access at pod level, httpsCertsSource needed if true
             displayName: HTTPS Enable
             path: httpsEnable
