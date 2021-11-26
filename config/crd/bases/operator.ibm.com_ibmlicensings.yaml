@@ -68,6 +68,14 @@ spec:
               features:
                 description: Set additional features under this field
                 properties:
+                  auth:
+                    properties:
+                      urlBasedEnabled:
+                        description: Enable URL based Auth
+                        type: boolean
+                    required:
+                    - urlBasedEnabled
+                    type: object
                   hyperThreading:
                     description: Configure if you have HyperThreading (HT) or Symmetrical
                       Multi-Threading (SMT) enabled
