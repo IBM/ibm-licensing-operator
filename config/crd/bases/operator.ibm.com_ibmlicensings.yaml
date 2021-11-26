@@ -73,6 +73,8 @@ spec:
                       urlBasedEnabled:
                         description: Enable URL based Auth
                         type: boolean
+                    required:
+                    - urlBasedEnabled
                     type: object
                   hyperThreading:
                     description: Configure if you have HyperThreading (HT) or Symmetrical

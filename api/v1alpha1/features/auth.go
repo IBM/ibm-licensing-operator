@@ -19,5 +19,5 @@ package features
 type Auth struct {
 	// Enable URL based Auth
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Url Based Based Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
-	URLBasedEnabled bool `json:"urlBasedEnabled,omitempty"`
+	URLBasedEnabled bool `json:"urlBasedEnabled"`
 }
