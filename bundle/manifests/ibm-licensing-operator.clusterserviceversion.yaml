@@ -177,6 +177,11 @@ spec:
             path: features.nssEnabled
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:hidden
+          - description: Authentication settings
+            displayName: Authentication settings
+            path: features.auth
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:hidden
           - description: Enables https access at pod level, httpsCertsSource needed if true
             displayName: HTTPS Enable
             path: httpsEnable

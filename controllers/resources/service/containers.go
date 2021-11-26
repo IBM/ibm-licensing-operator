@@ -96,9 +96,9 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: strconv.Itoa(*spec.ChargebackRetentionPeriod),
 		})
 	}
-	if !spec.IsLegacyAuthEnabled() {
+	if !spec.IsURLBasedAuthEnabled() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "LEGACY_AUTH_ENABLED",
+			Name:  "URL_AUTH_ENABLED",
 			Value: "false",
 		})
 	}

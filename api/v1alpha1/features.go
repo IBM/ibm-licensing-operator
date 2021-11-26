@@ -25,9 +25,8 @@ type Features struct {
 	// +optional
 	HyperThreading *features.HyperThreading `json:"hyperThreading,omitempty"`
 
-	//Enable legacy Auth
-	//+optional
-	LegacyAuthEnabled *bool `json:"legacyAuthEnabled,omitempty"`
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Auth",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
+	Auth *features.Auth `json:"auth,omitempty"`
 
 	// Special terms, must be granted by IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Namespace scope enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
@@ -47,12 +46,11 @@ func (spec *IBMLicensingSpec) IsHyperThreadingEnabled() bool {
 	return spec.HaveFeatures() && spec.Features.HyperThreading != nil
 }
 
-func (spec *IBMLicensingSpec) IsLegacyAuthEnabled() bool {
-	if spec.HaveFeatures() && spec.Features.LegacyAuthEnabled != nil && !*spec.Features.LegacyAuthEnabled {
+func (spec *IBMLicensingSpec) IsURLBasedAuthEnabled() bool {
+	if spec.HaveFeatures() && spec.Features.Auth != nil && !spec.Features.Auth.URLBasedEnabled {
 		return false
-	} else {
-		return true
 	}
+	return true
 }
 
 func (spec *IBMLicensingSpec) GetHyperThreadingThreadsPerCoreOrNil() *int {

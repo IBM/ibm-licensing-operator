@@ -68,6 +68,12 @@ spec:
               features:
                 description: Set additional features under this field
                 properties:
+                  auth:
+                    properties:
+                      urlBasedEnabled:
+                        description: Enable URL based Auth
+                        type: boolean
+                    type: object
                   hyperThreading:
                     description: Configure if you have HyperThreading (HT) or Symmetrical
                       Multi-Threading (SMT) enabled
@@ -84,9 +90,6 @@ spec:
                     required:
                     - threadsPerCore
                     type: object
-                  legacyAuthEnabled:
-                    description: Enable legacy Auth
-                    type: boolean
                   nssEnabled:
                     description: Special terms, must be granted by IBM Pricing.
                     type: boolean
