@@ -81,3 +81,18 @@ roleRef:
   kind: ClusterRole
   name: ibm-license-service-restricted
   apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ibm-licensing-default-reader
+  namespace: ibm-common-services
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ibm-licensing-default-reader
+subjects:
+  - kind: ServiceAccount
+    name: ibm-licensing-default-reader
+    namespace: ibm-common-services
