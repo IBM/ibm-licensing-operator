@@ -139,7 +139,7 @@ type IBMLicensingSpec struct {
 	Sender *IBMLicensingSenderSpec `json:"sender,omitempty"`
 
 	// Set additional features under this field
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Features",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Features"
 	// +optional
 	Features *Features `json:"features,omitempty"`
 }

@@ -580,8 +580,9 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 	}
 	if instance.Spec.UsageEnabled {
 		r.Log.Info("Usage container is enabled")
-	} else {
-		r.Log.Info("Usage container is disabled")
+	}
+	if instance.Spec.IsNamespaceScopeEnabled() {
+		r.Log.Info("Namespace scope restriction is enabled")
 	}
 
 }

@@ -24,14 +24,33 @@ type Features struct {
 	// Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading (SMT) enabled
 	// +optional
 	HyperThreading *features.HyperThreading `json:"hyperThreading,omitempty"`
+
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Auth",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
+	Auth *features.Auth `json:"auth,omitempty"`
+
+	// Special terms, must be granted by IBM Pricing.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Namespace scope enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
+	// +optional
+	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
 }
 
 func (spec *IBMLicensingSpec) HaveFeatures() bool {
 	return spec.Features != nil
 }
 
+func (spec *IBMLicensingSpec) IsNamespaceScopeEnabled() bool {
+	return spec.HaveFeatures() && spec.Features.NamespaceScopeEnabled != nil && *spec.Features.NamespaceScopeEnabled
+}
+
 func (spec *IBMLicensingSpec) IsHyperThreadingEnabled() bool {
 	return spec.HaveFeatures() && spec.Features.HyperThreading != nil
+}
+
+func (spec *IBMLicensingSpec) IsURLBasedAuthEnabled() bool {
+	if spec.HaveFeatures() && spec.Features.Auth != nil && !spec.Features.Auth.URLBasedEnabled {
+		return false
+	}
+	return true
 }
 
 func (spec *IBMLicensingSpec) GetHyperThreadingThreadsPerCoreOrNil() *int {
