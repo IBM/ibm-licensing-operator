@@ -56,9 +56,7 @@ jobs:
         ./oc login --token="${{secrets.ROKS_TOKEN}}"  --server="${{secrets.ROKS_SERVER}}"
         ./common/scripts/tests/clear_ocp.sh
 
-    - name: Test Unit Operator with CodeCoverage
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    - name: Test Unit Operator
       run: |
         export PATH=`pwd`:$PATH
         export USE_EXISTING_CLUSTER=true
@@ -68,9 +66,9 @@ jobs:
         export OCP=true
         if [[ $GITHUB_BASE_REF == 'development' || $GITHUB_REF == 'refs/heads/development' ]]
         then
-          make coverage-kind-development > ./test_coverage.txt 2>&1
+          make unit-test-development 2>&1
         else
-          make coverage-kind > ./test_coverage.txt 2>&1
+          make unit-test 2>&1
         fi
 
     - name: Check all pods
