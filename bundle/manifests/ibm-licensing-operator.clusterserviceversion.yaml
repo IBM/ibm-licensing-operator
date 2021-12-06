@@ -15,7 +15,7 @@ metadata:
           "name": "instance"
         },
         "spec": {
-          "version": "1.11.0",
+          "version": "1.12.0",
           "apiSecretToken": "ibm-licensing-token",
           "datasource": "datacollector",
           "httpsEnable": true
@@ -32,7 +32,7 @@ metadata:
           "name": "instance"
         },
         "spec": {
-          "version": "1.11.0"
+          "version": "1.12.0"
         }
       },{
         "apiVersion": "operator.ibm.com/v1alpha1",
@@ -71,10 +71,10 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
-    containerImage: quay.io/opencloudio/ibm-licensing-operator:1.11.0
+    containerImage: quay.io/opencloudio/ibm-licensing-operator:1.12.0
     createdAt: "2020-06-22T10:22:31Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the licensing usage of products.
-    olm.skipRange: '>=1.0.0 <1.11.0'
+    olm.skipRange: '>=1.0.0 <1.12.0'
     operators.operatorframework.io/builder: operator-sdk-v1.11.0
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com"]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
@@ -86,7 +86,7 @@ metadata:
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: ibm-licensing-operator.v1.11.0
+  name: ibm-licensing-operator.v1.12.0
   namespace: ibm-common-services
 spec:
   apiservicedefinitions: {}
@@ -172,16 +172,8 @@ spec:
           - description: Set additional features under this field
             displayName: Features
             path: features
-          - description: Special terms, must be granted by IBM Pricing.
-            displayName: Namespace scope enabled
-            path: features.nssEnabled
             x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:hidden
-          - description: Authentication settings
-            displayName: Authentication settings
-            path: features.auth
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:hidden
+              - urn:alm:descriptor:com.tectonic.ui:text
           - description: Enables https access at pod level, httpsCertsSource needed if true
             displayName: HTTPS Enable
             path: httpsEnable
@@ -446,15 +438,15 @@ spec:
                       - ibm-licensing-operator
                     env:
                       - name: IBM_LICENSING_IMAGE
-                        value: quay.io/opencloudio/ibm-licensing:1.11.0
+                        value: quay.io/opencloudio/ibm-licensing:1.12.0
                       - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.11.0
+                        value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.12.0
                       - name: IBM_POSTGRESQL_IMAGE
-                        value: quay.io/opencloudio/ibm-postgresql:1.11.0
+                        value: quay.io/opencloudio/ibm-postgresql:1.12.0
                       - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter:1.11.0
+                        value: quay.io/opencloudio/ibm-license-service-reporter:1.12.0
                       - name: IBM_LICENSING_USAGE_IMAGE
-                        value: quay.io/opencloudio/ibm-licensing-usage:1.11.0
+                        value: quay.io/opencloudio/ibm-licensing-usage:1.12.0
                       - name: WATCH_NAMESPACE
                         valueFrom:
                           fieldRef:
@@ -469,7 +461,7 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: spec.serviceAccountName
-                    image: quay.io/opencloudio/ibm-licensing-operator:1.11.0
+                    image: quay.io/opencloudio/ibm-licensing-operator:1.12.0
                     imagePullPolicy: Always
                     name: ibm-licensing-operator
                     resources:
@@ -706,17 +698,17 @@ spec:
   provider:
     name: IBM
   relatedImages:
-    - image: quay.io/opencloudio/ibm-licensing-operator:1.11.0
+    - image: quay.io/opencloudio/ibm-licensing-operator:1.12.0
       name: IBM_LICENSING_OPERATOR_IMAGE
-    - image: quay.io/opencloudio/ibm-licensing:1.11.0
+    - image: quay.io/opencloudio/ibm-licensing:1.12.0
       name: IBM_LICENSING_IMAGE
-    - image: quay.io/opencloudio/ibm-license-service-reporter-ui:1.11.0
+    - image: quay.io/opencloudio/ibm-license-service-reporter-ui:1.12.0
       name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-    - image: quay.io/opencloudio/ibm-postgresql:1.11.0
+    - image: quay.io/opencloudio/ibm-postgresql:1.12.0
       name: IBM_POSTGRESQL_IMAGE
-    - image: quay.io/opencloudio/ibm-license-service-reporter:1.11.0
+    - image: quay.io/opencloudio/ibm-license-service-reporter:1.12.0
       name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-    - image: quay.io/opencloudio/ibm-licensing-usage:1.11.0
+    - image: quay.io/opencloudio/ibm-licensing-usage:1.12.0
       name: IBM_LICENSING_USAGE_IMAGE
-  version: 1.11.0
-  replaces: ibm-licensing-operator.v1.10.0
+  version: 1.12.0
+  replaces: ibm-licensing-operator.v1.11.0
