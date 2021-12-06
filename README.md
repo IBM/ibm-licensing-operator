@@ -1,4 +1,4 @@
-**IMPORTANT:** The `master` branch contains the currently developed version of License Service and its content should not be used. Switch to another branch to view the content for the already-released version of License Service, for example `release-<version>` branch.
+**IMPORTANT:** The current branch contains the operator and documentation for License Service version 1.11.x. Switch to another branch to view the content for other releases.
 
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
 
@@ -21,7 +21,7 @@ Red Hat OpenShift Container Platform 4.2 or newer installed on Linux x86_64, Lin
 
 ## Operator versions
 
-- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.2, 1.2.3, 1.3.1, 1.4.1, 1.5.0
+- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.2, 1.2.3, 1.3.1, 1.4.1, 1.5.0, 1.6.0, 1.7.0, 1.8.0, 1.9.0, 1.10.0, 1.11.0
 
 ## Prerequisites
 

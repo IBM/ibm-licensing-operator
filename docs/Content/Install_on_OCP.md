@@ -1,4 +1,4 @@
-# Manual installation on OpenShift Container Platform (OCP) version 4.2 or higher
+# Manual installation on OpenShift Container Platform (OCP) version 4.6 or higher
 
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
@@ -88,7 +88,7 @@ Create an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
-1\. Log in to the Openshift console and go to **Installed Operators > IBM Licensing Operator > IBM Licensing tab > Create IBMLicensing**.
+1\. Log in to the OpenShift console and go to **Installed Operators > IBM Licensing Operator > IBM Licensing tab > Create IBMLicensing**.
 
 ![OCP click Create IBM Licensing](/images/ocp_create_instance.png)
 
