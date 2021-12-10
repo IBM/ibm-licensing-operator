@@ -77,7 +77,7 @@ kubectl config set-context --current --namespace=ibm-common-services
 e. Use `git clone`:
 
 ```bash
-export operator_release_version=release_eus
+export operator_release_version=v1.3.3
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
