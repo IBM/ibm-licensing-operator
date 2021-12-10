@@ -7,7 +7,7 @@ Choose the installation path that fits your environment best.
 Installing License Service
 
 - [Automatic installation using Operator Lifecycle Manager (OLM)](Automatic_installation.md)
-- [Manual installation on OpenShift Container Platform (OCP) version 4.2 or higher](Install_on_OCP.md)
+- [Manual installation on OpenShift Container Platform (OCP)](Install_on_OCP.md)
 - [Manual installation without the Operator Lifecycle Manager (OLM)](Install_without_OLM.md)
 - [Manual installation on Kubernetes from scratch with `kubectl`](Install_from_scratch.md)
 - [Offline installation](Install_offline.md)
