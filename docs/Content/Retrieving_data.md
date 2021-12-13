@@ -28,8 +28,8 @@ You can use the non-automated procedure to create a cumulative report for your e
 
 **Note:** License Service has recently been upgraded with an extension for tracking license usage in multicluster environment called License Service Reporter. However, at this point License Service Reporter is only supported with License Service instance that is shipped with IBM Cloud Pak foundational services and integrated with IBM Cloud Pak solutions.
 
-If you have an IBM Cloud Pak deployed in your environment and you deployed License Service Reporter, you can configure a non-OpenShift cluster to deliver licensing data to License Service Reporter. 
-For more information, about how to configure your Kubernetes cluster as License Service Reporter data source, see [Configuraing data sources: Configuring the License Service instance for non-OpenShift clusters](https://www.ibm.com/docs/en/cpfs?topic=reporter-configuring-data-sources#cluster_other).
+If you have an IBM Cloud Pak deployed in your environment and you deployed License Service Reporter, you can configure an OpenShift or non-OpenShift cluster to deliver licensing data  from the License Service instance to License Service Reporter.
+For more information, about how to configure your Kubernetes cluster as License Service Reporter data source, see [Configuring data sources](https://www.ibm.com/docs/en/cpfs?topic=reporter-configuring-data-sources).
 
 For more information about License Service Reporter, see [Tracking license usage in multicluster environment with License Service Reporter](https://www.ibm.com/docs/en/cpfs?topic=tluime-tracking-license-usage-in-multicluster-environment-license-service-reporter).
 
