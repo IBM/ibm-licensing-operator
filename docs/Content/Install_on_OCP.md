@@ -1,4 +1,4 @@
-# Manual installation on OpenShift Container Platform (OCP) version 4.2 or higher
+# Manual installation on OpenShift Container Platform (OCP) version 4.6 or higher
 
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
