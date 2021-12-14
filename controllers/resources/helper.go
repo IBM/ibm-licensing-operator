@@ -26,6 +26,8 @@ import (
 	"reflect"
 	"time"
 
+	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+
 	networkingv1 "k8s.io/api/networking/v1"
 
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
@@ -329,6 +331,13 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 
 	listOpts := []c.ListOption{
 		c.InNamespace(namespace),
+	}
+
+	MeterDefinitionCRD := &rhmp.MeterDefinition{}
+	if err := client.List(context.TODO(), MeterDefinitionCRD, listOpts...); err == nil {
+		RHMPEnabled = true
+	} else {
+		RHMPEnabled = false
 	}
 
 	routeTestInstance := &routev1.Route{}
