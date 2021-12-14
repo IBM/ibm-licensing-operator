@@ -21,6 +21,7 @@ License Service
 - Currently, License Service refreshes the data every 5 minutes. However, this might be subject to change in the future. With this frequency, you can capture changes in a dynamic cloud environment.
 - Provides the API that you can use to retrieve data that outlines the highest license usage on the cluster.
 - Provides the API that you can use to retrieve an audit snapshot that lists the highest license usage values for the requested period for products that are deployed on a cluster.
+- Supports hyperthreading on worker nodes also referred to as Simultaneous multithreading (SMT) or Hyperthreading (HT).
 
 ## Using License Service for container licensing
 
