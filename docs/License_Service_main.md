@@ -15,7 +15,6 @@ License Service is required for monitoring and measuring license usage of the IB
 
 License Service collects and measures the license usage of your products at the cluster level. You can retrieve this data upon request for monitoring and compliance. You can also retrieve an audit snapshot of the data that is audit evidence.
 
-
 License Service
 
 - Collects and measures the license usage of Virtual Processor Core (VPC) and Processor Value Unit (PVU) metrics at the cluster level of IBM Containerized products that are enabled for reporting. To learn if your product is enabled for reporting, contact the product support.
