@@ -144,7 +144,6 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 		} else {
 			reqLogger.Info("Red Hat Marketplace wasn't detected")
 		}
-
 	}
 	if spec.APISecretToken == "" {
 		spec.APISecretToken = defaultLicensingTokenSecretName

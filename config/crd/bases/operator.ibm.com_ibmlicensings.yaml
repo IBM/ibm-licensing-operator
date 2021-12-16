@@ -370,6 +370,11 @@ spec:
           status:
             description: IBMLicensingStatus defines the observed state of IBMLicensing
             properties:
+              features:
+                properties:
+                  rhmpEnabled:
+                    type: boolean
+                type: object
               licensingPods:
                 description: The status of IBM License Service Pods.
                 items:
@@ -1026,8 +1031,6 @@ spec:
                       type: string
                   type: object
                 type: array
-            required:
-            - licensingPods
             type: object
         type: object
     served: true
