@@ -117,7 +117,7 @@ func (spec *IBMLicenseServiceBaseSpec) IsVerbose() bool {
 	return spec.LogLevel == "VERBOSE"
 }
 
-func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool,
+func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool,
 	operatorNamespace string) error {
 	if spec.InstanceNamespace == "" {
 		spec.InstanceNamespace = operatorNamespace
@@ -139,6 +139,12 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteE
 	}
 	if spec.RHMPEnabled == nil {
 		spec.RHMPEnabled = &rhmpEnabled
+		if rhmpEnabled {
+			reqLogger.Info("Red Hat Marketplace reporting enabled automatically")
+		} else {
+			reqLogger.Info("Red Hat Marketplace wasn't detected")
+		}
+
 	}
 	if spec.APISecretToken == "" {
 		spec.APISecretToken = defaultLicensingTokenSecretName

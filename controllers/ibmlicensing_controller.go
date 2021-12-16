@@ -130,7 +130,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		reqLogger.Error(err, "Can not update version in CR")
 	}
 
-	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled, r.OperatorNamespace)
+	err = instance.Spec.FillDefaultValues(reqLogger, res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled, r.OperatorNamespace)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
