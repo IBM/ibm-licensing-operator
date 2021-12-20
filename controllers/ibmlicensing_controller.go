@@ -130,7 +130,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		reqLogger.Error(err, "Can not update version in CR")
 	}
 
-	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled, r.OperatorNamespace)
+	err = instance.Spec.FillDefaultValues(reqLogger, res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled, r.OperatorNamespace)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -194,9 +194,16 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 		podStatuses = append(podStatuses, pod.Status)
 	}
 
-	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) {
+	var featuresStatuses operatorv1alpha1.IBMLicensingFeaturesStatus
+
+	rhmpEnabled := instance.Spec.IsRHMPEnabled()
+
+	featuresStatuses.RHMPEnabled = &rhmpEnabled
+
+	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) && !reflect.DeepEqual(featuresStatuses, instance.Status.Features) {
 		reqLogger.Info("Updating IBMLicensing status")
 		instance.Status.LicensingPods = podStatuses
+		instance.Status.Features = featuresStatuses
 		err := r.Client.Status().Update(context.TODO(), instance)
 		if err != nil {
 			reqLogger.Info("Failed to update pod status, this does not affect License Service")
