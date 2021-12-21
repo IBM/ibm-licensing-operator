@@ -196,7 +196,12 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 
 	var featuresStatuses operatorv1alpha1.IBMLicensingFeaturesStatus
 
-	rhmpEnabled := instance.Spec.IsRHMPEnabled()
+	var rhmpEnabled bool
+	if instance.Spec.RHMPEnabled == nil {
+		rhmpEnabled = res.RHMPEnabled
+	} else {
+		rhmpEnabled = false
+	}
 
 	featuresStatuses.RHMPEnabled = &rhmpEnabled
 
