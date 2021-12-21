@@ -140,9 +140,9 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 	if spec.RHMPEnabled == nil {
 		spec.RHMPEnabled = &rhmpEnabled
 		if rhmpEnabled {
-			reqLogger.Info("Red Hat Marketplace reporting enabled automatically")
+			reqLogger.Info("RHMP reporting enabled automatically")
 		} else {
-			reqLogger.Info("Red Hat Marketplace wasn't detected")
+			reqLogger.Info("RHMP wasn't detected")
 		}
 	}
 	if spec.APISecretToken == "" {
