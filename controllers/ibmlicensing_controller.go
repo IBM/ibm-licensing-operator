@@ -200,12 +200,12 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 	if instance.Spec.RHMPEnabled == nil {
 		rhmpEnabled = res.RHMPEnabled
 	} else {
-		rhmpEnabled = false
+		rhmpEnabled = *instance.Spec.RHMPEnabled
 	}
 
 	featuresStatuses.RHMPEnabled = &rhmpEnabled
 
-	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) && !reflect.DeepEqual(featuresStatuses, instance.Status.Features) {
+	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) || !reflect.DeepEqual(featuresStatuses, instance.Status.Features) {
 		reqLogger.Info("Updating IBMLicensing status")
 		instance.Status.LicensingPods = podStatuses
 		instance.Status.Features = featuresStatuses
