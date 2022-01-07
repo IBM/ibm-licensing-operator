@@ -62,15 +62,14 @@ COPY bin/ibm-licensing-operator ${OPERATOR}
 COPY bundle ${DEPLOY_DIR}
 
 COPY build/bin /usr/local/bin
-RUN  /usr/local/bin/user_setup
+
+RUN  /usr/local/bin/user_setup \
+     && echo "$IMAGE_RELEASE" > /IMAGE_RELEASE  \
+     && echo "$IMAGE_BUILDDATE" > /IMAGE_BUILDDATE \
+     && mkdir /licenses
 
 # copy licenses
-RUN mkdir /licenses
 COPY LICENSE /licenses
-
-# add commit image release
-RUN  echo "$IMAGE_RELEASE" > /IMAGE_RELEASE
-RUN  echo "$IMAGE_BUILDDATE" > /IMAGE_BUILDDATE
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
 
