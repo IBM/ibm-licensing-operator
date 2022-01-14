@@ -175,7 +175,7 @@ spec:
         displayName: RHMP Enabled
         path: rhmpEnabled
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:hidden
       - description: Should Route be created to expose IBM Licensing Service API?
           (only on OpenShift cluster)
         displayName: Route Enabled
