@@ -33,9 +33,9 @@ License Service is supported on Linux on Power (ppc64le), Linux on IBM Z and Lin
 
 ## Required resources
 
-License Service consists of two main components that require resources: the operator deployment and the application deployment.
+By default, License Service is installed with the resource settings for medium environments with up to 500 pods and three Cloud Paks. License Service consists of two main components that require resources: the operator deployment and the application deployment. The following table shows the required resources for these components for the medium environment:
 
- |Platform|CPU Request (m)| CPU Limit (m)|Memory Request (Mi)|Memory Limit (Mi)|
+ |Platform|CPU Request (m)| CPU Limit (m)|Memory Request (Mi)|CPU Limit (m)|
 |---|---|---|---|---|
 |Linux® x86_64| 200 | 300| 430| 850|
 |Linux® on Power® (ppc64le)|300| 400| 230| 543|
@@ -43,7 +43,16 @@ License Service consists of two main components that require resources: the oper
 
  *_where m stands for Millicores, and Mi for Mebibytes_
 
- **Note:** You can modify the limits and requests for the application deployment by editing the IBMLicensing instance. For more information, see [Configuration](Configuration.md).
+If your environment is smaller, or bigger than the default, you can change the limits and resources for the application deployment by editing the IBMLicensing instance. For more information, see [Configuration](Configuration.md#modifying-the-application-deployment-resources).
+
+The following table shows the available deployment profiles with the respective resource requirements.
+
+|Profile|Environment|CPU Limit (m)|Memory Limit (Mi) |
+|small|200 pods and 3 Cloud Paks|200 | 850|
+|medium|500 pods and 3 Cloud Paks|300| 850|
+|large|1000 pods and 3 Cloud Paks|300| 1021|
+
+**Note:** When you have additional software, solution or plugin deployed in your cluster that might require additional memory or CPU resources, for example Dynatrace, check the documentation of this product and add additional resources to prevent memory saturation.
 
 ### Minimal resource requirements
 
