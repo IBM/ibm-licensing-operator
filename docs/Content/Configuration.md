@@ -114,7 +114,7 @@ spec:
 EOF
 ```
 
-To retrieve your host, please consult AWS documentation.
+To retrieve your host, please consult EKS documentation.
 
 
 For more information, see [Setting up Kubernetes Ingress](https://cloud.ibm.com/docs/containers?topic=containers-ingress-types) in IBM Cloud Docs.
