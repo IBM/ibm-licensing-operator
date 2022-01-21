@@ -48,6 +48,7 @@ If your environment is smaller, or bigger than the default, you can change the l
 The following table shows the available deployment profiles with the respective resource requirements.
 
 |Profile|Environment|CPU Limit (m)|Memory Limit (Mi) |
+|---|---|---|---|
 |small|200 pods and 3 Cloud Paks|200 | 850|
 |medium|500 pods and 3 Cloud Paks|300| 850|
 |large|1000 pods and 3 Cloud Paks|300| 1021|
