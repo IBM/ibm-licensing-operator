@@ -91,6 +91,32 @@ To retrieve your host, run the following command in IBM Cloud CLI:
 ibmcloud ks cluster get --cluster <cluster_name_or_id> | grep Ingress
 ```
 
+
+- Amazon Elastic Kubernetes Service (EKS)
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+  apiSecretToken: ibm-licensing-token
+  datasource: datacollector
+  httpsEnable: false
+  instanceNamespace: ibm-common-services
+  ingressEnabled: true
+  ingressOptions:
+    annotations: 
+      'nginx.ingress.kubernetes.io/rewrite-target': '/$2'
+    path: /ibm-licensing-service-instance(/|$)(.*)
+    host: <your_host>
+EOF
+```
+
+To retrieve your host, please consult AWS documentation.
+
+
 For more information, see [Setting up Kubernetes Ingress](https://cloud.ibm.com/docs/containers?topic=containers-ingress-types) in IBM Cloud Docs.
 
 **Note:** For HTTPS, set `spec.httpsEnable` to `true`, and edit `ingressOptions`. Read more about the options here:
