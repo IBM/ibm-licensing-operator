@@ -105,7 +105,7 @@ spec:
         displayName: Chargeback Enabled
         path: chargebackEnabled
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:checkbox
       - description: Chargeback data retention period in days. Default value is 62
           days.
         displayName: Chargeback Retention Period in days
@@ -132,7 +132,7 @@ spec:
         displayName: HTTPS Enable
         path: httpsEnable
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:checkbox
       - description: Should Ingress be created to expose IBM Licensing Service API?
         displayName: Ingress Enabled
         path: ingressEnabled
@@ -175,13 +175,13 @@ spec:
         displayName: RHMP Enabled
         path: rhmpEnabled
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:hidden
       - description: Should Route be created to expose IBM Licensing Service API?
           (only on OpenShift cluster)
         displayName: Route Enabled
         path: routeEnabled
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:checkbox
       - description: If default SCC user ID fails, you can set runAsUser option to
           fix that
         displayName: Security Context
