@@ -29,7 +29,8 @@ func GetMeterDefinitionList(instance *operatorv1alpha1.IBMLicensing) []*rhmp.Met
 	return []*rhmp.MeterDefinition{
 		getCloudPakMeterDefinition(instance),
 		getProductMeterDefinition(instance),
-		getChargebackMeterDefinition(instance)}
+		getChargebackMeterDefinition(instance),
+		getServiceMeterDefinition(instance)}
 
 }
 
@@ -105,6 +106,46 @@ func getProductMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.Me
 					Metric:             "{{ .Label.parentMetricId}}",
 					Query:              "avg_over_time(product_license_usage_details{}[1d])",
 					GroupBy:            []string{"metricId", "productId", "parentMetricId", "parentProductId", "productConversionRatio"},
+					ValueLabelOverride: "{{ .Label.value}}",
+					DateLabelOverride:  "{{ .Label.date}}",
+				},
+			},
+		},
+	}
+}
+
+func getServiceMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.MeterDefinition {
+	return &rhmp.MeterDefinition{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      GetMeterDefinitionName(instance, "service"),
+			Namespace: instance.Spec.InstanceNamespace,
+		},
+		Spec: rhmp.MeterDefinitionSpec{
+			Group: "{{ .Label.productId}}.adoption.ibm.com",
+			Kind:  "IBMAdoption",
+			ResourceFilters: []rhmp.ResourceFilter{
+				{
+					Namespace: &rhmp.NamespaceFilter{
+						UseOperatorGroup: true,
+					},
+					OwnerCRD: &rhmp.OwnerCRDFilter{
+						GroupVersionKind: rhmpcommon.GroupVersionKind{
+							APIVersion: "operator.ibm.com/v1alpha1",
+							Kind:       "IBMLicensing",
+						},
+					},
+					WorkloadType: rhmp.WorkloadTypeService,
+				},
+			},
+			Meters: []rhmp.MeterWorkload{
+				{
+					Name:               "Cp4d Capability",
+					Aggregation:        "max",
+					Period:             &metav1.Duration{Duration: 24 * time.Hour},
+					WorkloadType:       rhmp.WorkloadTypeService,
+					Metric:             "{{ .Label.parentMetricId}}",
+					Query:              "avg_over_time(cp4d_capability{}[1d])",
+					GroupBy:            []string{"metricId", "productId", "parentMetricId", "parentProductId"},
 					ValueLabelOverride: "{{ .Label.value}}",
 					DateLabelOverride:  "{{ .Label.date}}",
 				},
