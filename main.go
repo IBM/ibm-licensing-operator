@@ -31,6 +31,7 @@ import (
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -127,7 +128,7 @@ func main() {
 		corev1.SchemeGroupVersion.WithKind("ConfigMap"): {
 			LabelSelector: "release in (ibm-license-service-reporter, ibm-licensing-service)",
 		},
-		corev1.SchemeGroupVersion.WithKind("Deployment"): {
+		appsv1.SchemeGroupVersion.WithKind("Deployment"): {
 			LabelSelector: "release in (ibm-license-service-reporter, ibm-licensing-service)",
 		},
 		corev1.SchemeGroupVersion.WithKind("Pod"): {
