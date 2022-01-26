@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	goruntime "runtime"
 	"time"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -103,6 +104,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 
 	reqLogger := r.Log.WithValues("ibmlicensing", req.NamespacedName)
 	reqLogger.Info("Reconciling IBMLicensing")
+	goruntime.GC()
 
 	if err := res.UpdateCacheClusterExtensions(r.Reader); err != nil {
 		reqLogger.Error(err, "Error during checking K8s API")
