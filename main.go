@@ -125,9 +125,6 @@ func main() {
 		corev1.SchemeGroupVersion.WithKind("Secret"): {
 			LabelSelector: "release in (ibm-license-service-reporter, ibm-licensing-service)",
 		},
-		corev1.SchemeGroupVersion.WithKind("ConfigMap"): {
-			LabelSelector: "release in (ibm-license-service-reporter, ibm-licensing-service)",
-		},
 		appsv1.SchemeGroupVersion.WithKind("Deployment"): {
 			LabelSelector: "release in (ibm-license-service-reporter, ibm-licensing-service)",
 		},
