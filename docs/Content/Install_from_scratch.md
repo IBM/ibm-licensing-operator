@@ -36,7 +36,7 @@ kubectl get crd clusterserviceversions.operators.coreos.com
 
 - If you get the following response, OLM might be installed.
 
-  ```{ .text .no-copy }
+  ```{: .text .no-copy }
   NAME                                          CREATED AT
   clusterserviceversions.operators.coreos.com   2020-06-04T14:42:13Z
   ```
@@ -49,7 +49,7 @@ kubectl get crd clusterserviceversions.operators.coreos.com
 
   If you get the following response, OLM is installed and you can go to step 2:
 
-  ```{ .text .no-copy }
+  ```{: .text .no-copy }
   NAMESPACE               NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
   olm                   packageserver                   Package Server           0.18.1                                    Succeeded
   ```
@@ -111,7 +111,7 @@ EOF
 $ kubectl get catalogsource -n $GLOBAL_CATALOG_NAMESPACE
 ```
 
-```{ .text .no-copy }
+```{: .text .no-copy }
 NAME                           DISPLAY                        TYPE   PUBLISHER   AGE
 opencloud-operators            IBMCS Operators                grpc   IBM         20m
 [...]
@@ -123,7 +123,7 @@ opencloud-operators            IBMCS Operators                grpc   IBM        
 $ kubectl get pod -n $GLOBAL_CATALOG_NAMESPACE
 ```
 
-```{ .text .no-copy }
+```{: .text .no-copy }
 NAME                                            READY   STATUS    RESTARTS   AGE
 opencloud-operators-66df4d97ff-4rhjj            1/1     Running   0          80s
 upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
@@ -149,14 +149,14 @@ kubectl get OperatorGroup -n ibm-common-services
 
 - If you get the following response, the operator group is found and you can go to step 4. Create a Subscription.
 
-```{ .text .no-copy }
+```{: .text .no-copy }
 NAME            AGE
 operatorgroup   39d
 ```
 
 - If you get the following result, the operator group is not found and you need to create it.
 
-```{ .text .no-copy }
+```{: .text .no-copy }
 No resources found.
 ```
 
@@ -206,7 +206,7 @@ a. See if the IBM Licensing Operator is deployed by OLM from the `CatalogSource`
 $ kubectl get clusterserviceversion -n ibm-common-services
 ```
 
-```{ .text .no-copy }
+```{: .text .no-copy }
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
 ibm-licensing-operator.v1.12.0   IBM Licensing Operator   1.12.0     ibm-licensing-operator.v1.11.0   Succeeded
 ```
