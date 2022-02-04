@@ -13,6 +13,8 @@ The script is supported on the following platforms:
 - Linux x86 architecture with or without Operator Lifecycle Manager (OLM)
 - Any other cluster that already has Operator Lifecycle Manager (OLM) installed
 
+Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources and cluster permissions.
+
 ## Installation
 
 The script installs License Service, creates an instance and validates the installation steps.
