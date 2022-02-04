@@ -10,6 +10,8 @@
 - `kubectl` 1.16 or higher
 - Linux or iOS
 
+Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources and cluster permissions.
+
 ## Installation
 
 This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.
@@ -34,7 +36,7 @@ kubectl get crd clusterserviceversions.operators.coreos.com
 
 - If you get the following response, OLM might be installed.
 
-  ```console
+  ```{: .text .no-copy }
   NAME                                          CREATED AT
   clusterserviceversions.operators.coreos.com   2020-06-04T14:42:13Z
   ```
@@ -47,7 +49,7 @@ kubectl get crd clusterserviceversions.operators.coreos.com
 
   If you get the following response, OLM is installed and you can go to step 2:
 
-  ```console
+  ```{: .text .no-copy }
   NAMESPACE               NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
   olm                   packageserver                   Package Server           0.18.1                                    Succeeded
   ```
@@ -56,9 +58,7 @@ kubectl get crd clusterserviceversions.operators.coreos.com
 
 - If you get the following response, OLM CRD is not installed. Continue with step 1c.
 
-  ```console
-  Error from server (NotFound): customresourcedefinitions.apiextensions.k8s.io "clusterserviceversions.operators.coreos.com" not found
-  ```
+  `Error from server (NotFound): customresourcedefinitions.apiextensions.k8s.io "clusterserviceversions.operators.coreos.com" not found`
 
 c.  If you do not have OLM, download it from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases). Use following script to download and install OLM v13.0
 
@@ -109,6 +109,9 @@ EOF
 
 ```console
 $ kubectl get catalogsource -n $GLOBAL_CATALOG_NAMESPACE
+```
+
+```{: .text .no-copy }
 NAME                           DISPLAY                        TYPE   PUBLISHER   AGE
 opencloud-operators            IBMCS Operators                grpc   IBM         20m
 [...]
@@ -118,6 +121,9 @@ opencloud-operators            IBMCS Operators                grpc   IBM        
 
 ```console
 $ kubectl get pod -n $GLOBAL_CATALOG_NAMESPACE
+```
+
+```{: .text .no-copy }
 NAME                                            READY   STATUS    RESTARTS   AGE
 opencloud-operators-66df4d97ff-4rhjj            1/1     Running   0          80s
 upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
@@ -143,14 +149,14 @@ kubectl get OperatorGroup -n ibm-common-services
 
 - If you get the following response, the operator group is found and you can go to step 4. Create a Subscription.
 
-```console
+```{: .text .no-copy }
 NAME            AGE
 operatorgroup   39d
 ```
 
 - If you get the following result, the operator group is not found and you need to create it.
 
-```console
+```{: .text .no-copy }
 No resources found.
 ```
 
@@ -198,8 +204,11 @@ a. See if the IBM Licensing Operator is deployed by OLM from the `CatalogSource`
 
 ```console
 $ kubectl get clusterserviceversion -n ibm-common-services
+```
+
+```{: .text .no-copy }
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.11.0   IBM Licensing Operator   1.11.0     ibm-licensing-operator.v1.10.0   Succeeded
+ibm-licensing-operator.v1.12.0   IBM Licensing Operator   1.12.0     ibm-licensing-operator.v1.11.0   Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
@@ -233,6 +242,7 @@ spec:
   apiSecretToken: ibm-licensing-token
   httpsEnable: true
   instanceNamespace: ibm-common-services
+  datasource: datacollector
 EOF
 ```
 

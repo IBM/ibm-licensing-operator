@@ -10,6 +10,8 @@
 - Administrator permissions for the OCP cluster
 - Access to the OpenShift Console
 
+Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources and cluster permissions.
+
 ## Installation
 
 This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.

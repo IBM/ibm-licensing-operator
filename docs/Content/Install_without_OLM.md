@@ -16,6 +16,8 @@ Complete the following procedure to install License Service on a system that doe
     - Has internet access.
     - Has access to your cluster via Kubernetes config.
 
+Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources and cluster permissions.
+
 ## Installation
 
 This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.
@@ -45,7 +47,7 @@ oc project ${licensing_namespace}
 3\. Use `git clone`.
 
 ```bash
-export operator_release_version=v1.8.0
+export operator_release_version=v1.12.0
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
