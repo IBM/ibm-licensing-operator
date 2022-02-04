@@ -107,8 +107,8 @@ EOF
 <b>Check the results</b>
 - Check if a `CatalogSource` is created in the `$GLOBAL_CATALOG_NAMESPACE` namespace:
 
-```console
-$ kubectl get catalogsource -n $GLOBAL_CATALOG_NAMESPACE
+```bash
+kubectl get catalogsource -n $GLOBAL_CATALOG_NAMESPACE
 ```
 
 ```{: .text .no-copy }
@@ -119,8 +119,8 @@ opencloud-operators            IBMCS Operators                grpc   IBM        
 
 - If everything goes well, you should see the following pods:
 
-```console
-$ kubectl get pod -n $GLOBAL_CATALOG_NAMESPACE
+```bash
+kubectl get pod -n $GLOBAL_CATALOG_NAMESPACE
 ```
 
 ```{: .text .no-copy }
@@ -202,8 +202,8 @@ EOF
 
 a. See if the IBM Licensing Operator is deployed by OLM from the `CatalogSource` with the following command.
 
-```console
-$ kubectl get clusterserviceversion -n ibm-common-services
+```bash
+kubectl get clusterserviceversion -n ibm-common-services
 ```
 
 ```{: .text .no-copy }
