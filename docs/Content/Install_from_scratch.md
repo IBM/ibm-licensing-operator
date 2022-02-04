@@ -10,6 +10,8 @@
 - `kubectl` 1.16 or higher
 - Linux or iOS
 
+Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources and cluster permissions.
+
 ## Installation
 
 This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.
@@ -56,9 +58,7 @@ kubectl get crd clusterserviceversions.operators.coreos.com
 
 - If you get the following response, OLM CRD is not installed. Continue with step 1c.
 
-  ```console
-  Error from server (NotFound): customresourcedefinitions.apiextensions.k8s.io "clusterserviceversions.operators.coreos.com" not found
-  ```
+  `Error from server (NotFound): customresourcedefinitions.apiextensions.k8s.io "clusterserviceversions.operators.coreos.com" not found`
 
 c.  If you do not have OLM, download it from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases). Use following script to download and install OLM v13.0
 
@@ -109,6 +109,9 @@ EOF
 
 ```console
 $ kubectl get catalogsource -n $GLOBAL_CATALOG_NAMESPACE
+```
+
+```console
 NAME                           DISPLAY                        TYPE   PUBLISHER   AGE
 opencloud-operators            IBMCS Operators                grpc   IBM         20m
 [...]
@@ -118,6 +121,9 @@ opencloud-operators            IBMCS Operators                grpc   IBM        
 
 ```console
 $ kubectl get pod -n $GLOBAL_CATALOG_NAMESPACE
+```
+
+```console
 NAME                                            READY   STATUS    RESTARTS   AGE
 opencloud-operators-66df4d97ff-4rhjj            1/1     Running   0          80s
 upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
@@ -198,8 +204,11 @@ a. See if the IBM Licensing Operator is deployed by OLM from the `CatalogSource`
 
 ```console
 $ kubectl get clusterserviceversion -n ibm-common-services
+```
+
+```console
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.11.0   IBM Licensing Operator   1.11.0     ibm-licensing-operator.v1.10.0   Succeeded
+ibm-licensing-operator.v1.12.0   IBM Licensing Operator   1.12.0     ibm-licensing-operator.v1.11.0   Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
