@@ -15,9 +15,9 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.13.0
+CSV_VERSION ?= 1.12.0
 CSV_VERSION_DEVELOPMENT ?= development
-OLD_CSV_VERSION ?= 1.12.0
+OLD_CSV_VERSION ?= 1.11.0
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
