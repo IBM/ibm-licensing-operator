@@ -29,12 +29,13 @@ usage()
   echo ""
   echo "note: Use this script only for cluster running on x86 architecture."
   echo ""
-  echo "usage: $0 [--verbose | -v] [--help | -h] [(--olm_version | -o) <version_number>] [--skip_olm_installation | -s] [(--olm_global_catalog_namespace | -c) <OLM global catalog namespace> ] [(--channel | -l) <subscription channel>] [--no-secret-output | -n]"
+  echo "usage: $0 [--verbose | -v] [--help | -h] [(--olm_version | -o) <version_number>] [(--namespace | -p) <custom_namespace>] [--skip_olm_installation | -s] [(--olm_global_catalog_namespace | -c) <OLM global catalog namespace> ] [(--channel | -l) <subscription channel>] [--no-secret-output | -n]"
   echo "options:"
-  echo "[--verbose | -v] - verbose logs from installation"
+  echo "[--verbose | -v] - verbose logs from installation with date"
   echo "[--channel | -l] - do not change unless instructed to. What channel should License Service Operator subscription choose,"
   echo "by default channel=v3"
   echo "[--no-secret-output | -n] - use this option to not show secret at the end of the script"
+  echo "[--namespace | -p] - change namespace where License Service will be installed"
   echo "[--olm_version | -o] <version_number> - what version of OLM should be installed if it doesn't exist,"
   echo "by default olm_version=0.13.0"
   echo "[--skip_olm_installation | -s] - skips installation of OLM, but olm global catalog namespace still needs to be found."
@@ -62,7 +63,7 @@ verify_command_line_processing(){
 verify_kubectl(){
   if ! verbose_output_command kubectl version; then
     echo "Error: kubectl command does not seems to work"
-    echo "try to install it and setup config for your cluster where you want to install IBM License Service"
+    echo "install kubectl and setup config for your cluster where you want to install IBM License Service"
     exit 2
   fi
 }
@@ -348,6 +349,7 @@ show_url(){
 
 verbose_output_command(){
   if [ "$verbose" = "1" ]; then
+    echo -n "$(date -u) : "
     "$@"
   else
     "$@" 1> /dev/null 2>&1
@@ -383,6 +385,9 @@ while [ "$1" != "" ]; do
     -s | --skip_olm_installation )                      skip_olm_installation=1
                                                         ;;
     -n | --no-secret-output )                           no_secret_output=1
+                                                        ;;
+    -p | --namespace )                                  shift
+                                                        INSTALL_NAMESPACE=$1
                                                         ;;
     * )                                                 echo "Error: wrong option: $OPT"
                                                         usage
