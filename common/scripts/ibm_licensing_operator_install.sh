@@ -102,19 +102,23 @@ install_olm(){
     verbose_output_command modded_echo "Trying to get namespace where OLM's packageserver is installed"
     if ! olm_namespace=$(kubectl get csv --all-namespaces -l olm.version -o jsonpath="{.items[?(@.metadata.name=='packageserver')].metadata.namespace}") || [ "${olm_namespace}" == "" ]; then
       if [ "${skip_olm_installation}" != "1" ]; then
-        modded_echo "OLM CRD was found but packageserver csv was not found, will try to install OLM with version ${olm_version}"
-        if ! curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/"${olm_version}"/install.sh | bash -s "${olm_version}"; then
-          modded_echo "Error: Failed to install OLM"
-          modded_echo "You can try to install OLM from here https://github.com/operator-framework/operator-lifecycle-manager/releases and continue installation while skipping OLM part"
-          exit 24
-        fi
-        verbose_output_command modded_echo "Installed OLM ${olm_version}, will try to get olm_namespace again"
-        if ! olm_namespace=$(kubectl get csv --all-namespaces -l olm.version -o jsonpath="{.items[?(@.metadata.name=='packageserver')].metadata.namespace}") || [ "${olm_namespace}" == "" ]; then
-          modded_echo "Error: Failed to get namespace where OLM's packageserver is installed, which is needed for finding OLM's global catalog namespace, make sure you have OLM installed"
-          modded_echo "You can try to install OLM from here https://github.com/operator-framework/operator-lifecycle-manager/releases"
-          modded_echo "If you can find OLM's global catalog namespace yourself try setting parameter --olm_global_catalog_namespace parameter of this script"
-          modded_echo "On OpenShift Container Platform this probably is 'openshift-marketplace', but for older versions and for custom OLM installation it might be 'olm', but you might verify it by looking for OLM's packageserver deployment configuration"
-          exit 25
+        modded_echo "OLM CRD was found but packageserver csv was not found"
+        modded_echo "Looking for olm operator pod namespace"
+        if ! olm_global_catalog_namespace=$(kubectl get pod --all-namespaces -l app=olm-operator -o jsonpath="{.items[0].metadata.namespace}") || [ "${olm_global_catalog_namespace}" == "" ]; then
+          modded_echo "Could not find olm pod in the cluster, installing olm with version ${olm_version}"
+          if ! curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/"${olm_version}"/install.sh | bash -s "${olm_version}"; then
+            modded_echo "Error: Failed to install OLM"
+            modded_echo "You can try to install OLM from here https://github.com/operator-framework/operator-lifecycle-manager/releases and continue installation while skipping OLM part"
+            exit 24
+          fi
+          verbose_output_command modded_echo "Installed OLM ${olm_version}, will try to get olm_namespace again"
+          if ! olm_namespace=$(kubectl get csv --all-namespaces -l olm.version -o jsonpath="{.items[?(@.metadata.name=='packageserver')].metadata.namespace}") || [ "${olm_namespace}" == "" ]; then
+            modded_echo "Error: Failed to get namespace where OLM's packageserver is installed, which is needed for finding OLM's global catalog namespace, make sure you have OLM installed"
+            modded_echo "You can try to install OLM from here https://github.com/operator-framework/operator-lifecycle-manager/releases"
+            modded_echo "If you can find OLM's global catalog namespace yourself try setting parameter --olm_global_catalog_namespace parameter of this script"
+            modded_echo "On OpenShift Container Platform this probably is 'openshift-marketplace', but for older versions and for custom OLM installation it might be 'olm', but you might verify it by looking for OLM's packageserver deployment configuration"
+            exit 25
+          fi
         fi
       else
         modded_echo "Error: Failed to get namespace where OLM's packageserver is installed, which is needed for finding OLM's global catalog namespace, make sure you have OLM installed"
@@ -126,14 +130,16 @@ install_olm(){
     else
       verbose_output_command modded_echo "Namespace where OLM's packageserver is installed is: ${olm_namespace}"
     fi
-    verbose_output_command modded_echo "Trying to get OLM's global catalog namespace so that catalog needed by IBM Licensing can be accessed in any watched namespace."
-    if ! olm_global_catalog_namespace=$(kubectl get deployment --namespace="${olm_namespace}" packageserver -o yaml | grep -A 1 -i global-namespace | tail -1 | cut -d "-" -f 2- | sed -e 's/^[ \t]*//') || [ "${olm_global_catalog_namespace}" == "" ]; then
-      modded_echo "Error: Failed to find OLM's global catalog namespace where catalog for IBM Licensing needs to be installed"
-      modded_echo "If you can find it yourself try setting parameter --olm_global_catalog_namespace parameter of this script"
-      modded_echo "On OpenShift Container Platform this probably is 'openshift-marketplace', but for older versions and for custom OLM installation it might be 'olm', but you might verify it by looking for OLM's packageserver deployment configuration"
-      exit 7
-    else
-      verbose_output_command modded_echo "OLM's global catalog namespace is: ${olm_global_catalog_namespace}"
+    if [ "${olm_global_catalog_namespace}" == "" ]; then
+      verbose_output_command modded_echo "Trying to get OLM's global catalog namespace so that catalog needed by IBM Licensing can be accessed in any watched namespace."
+      if ! olm_global_catalog_namespace=$(kubectl get deployment --namespace="${olm_namespace}" packageserver -o yaml | grep -A 1 -i global-namespace | tail -1 | cut -d "-" -f 2- | sed -e 's/^[ \t]*//') || [ "${olm_global_catalog_namespace}" == "" ]; then
+        modded_echo "Error: Failed to find OLM's global catalog namespace where catalog for IBM Licensing needs to be installed"
+        modded_echo "If you can find it yourself try setting parameter --olm_global_catalog_namespace parameter of this script"
+        modded_echo "On OpenShift Container Platform this probably is 'openshift-marketplace', but for older versions and for custom OLM installation it might be 'olm', but you might verify it by looking for OLM's packageserver deployment configuration"
+        exit 7
+      else
+        verbose_output_command modded_echo "OLM's global catalog namespace is: ${olm_global_catalog_namespace}"
+      fi
     fi
   else
     verbose_output_command modded_echo "OLM global catalog namespace set by user, skipping finding it inside script"
@@ -347,6 +353,17 @@ show_url(){
   fi
 }
 
+skip_to_instance_check=0
+check_ls_exists(){
+  modded_echo "Checking if License Service is already installed"
+  if ! kubectl get ibmlicensing; then
+    modded_echo "License Service doesn't seem to be installed, proceeding with installation."
+  else
+    modded_echo "License Service seems to be installed, skipping to instance check."
+    skip_to_instance_check=1
+  fi
+}
+
 verbose_output_command(){
   if [ "$verbose" = "1" ]; then
     "$@"
@@ -410,11 +427,14 @@ done
 
 verify_command_line_processing
 verify_kubectl
-create_namespace
-install_olm
-handle_catalog_source
-handle_operator_group
-handle_subscription
+check_ls_exists
+if [ "$skip_to_instance_check" != "1" ]; then
+  create_namespace
+  install_olm
+  handle_catalog_source
+  handle_operator_group
+  handle_subscription
+fi
 handle_instance
 show_token
 show_url
