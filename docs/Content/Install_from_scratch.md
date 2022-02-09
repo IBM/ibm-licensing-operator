@@ -41,11 +41,11 @@ kubectl get crd clusterserviceversions.operators.coreos.com
   clusterserviceversions.operators.coreos.com   2020-06-04T14:42:13Z
   ```
 
-- If you get the following response, OLM CRD is not installed. Continue with a step 1c.
+- If you get the following response, OLM CRD is not installed. Continue with step 1c.
 
   `Error from server (NotFound): customresourcedefinitions.apiextensions.k8s.io "clusterserviceversions.operators.coreos.com" not found`
 
-c.  If you do not have OLM, download it from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases). Use following script to download and install the OLM v13.0
+c.  If OLM is not installed, download it from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases). Use following script to download and install OLM v13.0
 
 **Note:** For versions newer than 13.0, the process might differ.
 
@@ -58,7 +58,7 @@ curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releas
 
 2\. **Create the CatalogSource**
 
-a. In order to get GLOBAL_CATALOG_NAMESPACE, check your `global catalog namespace` at yaml from OLM pod named `packageserver` that is somewhere in your cluster. For example, you can use this command:
+a. To get GLOBAL_CATALOG_NAMESPACE, check `global catalog namespace` in a yaml in a `packageserver` OLM pod that is somewhere in your cluster. You can, for example, use the following command:
 
 ```bash
 olm_namespace=$(kubectl get csv --all-namespaces -l olm.version -o jsonpath="{.items[?(@.metadata.name=='packageserver')].metadata.namespace}")
@@ -67,14 +67,16 @@ GLOBAL_CATALOG_NAMESPACE=$(kubectl get deployment --namespace="${olm_namespace}"
 echo ${GLOBAL_CATALOG_NAMESPACE}
 ```
 
-If the result from echo is empty, then you can get global catalog namespace using code block below, but beware! Use below code block only if above method for getting global catalog namespace did not work.
+If you get an empty response to the `echo`command, you can get global catalog namespace using the following command.
+
+**Note:** The following method should only be used for getting global catalog namespace if the previous method failed.
 
 ```bash
 GLOBAL_CATALOG_NAMESPACE=$(kubectl get pod --all-namespaces -l app=olm-operator -o jsonpath="{.items[0].metadata.namespace}")
 echo ${GLOBAL_CATALOG_NAMESPACE}
 ```
 
-b. When you have the `global catalog namespace` set, you can create the CatalogSource by using the following command:
+b. Create the `CatalogSource` by using the following command:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -95,11 +97,13 @@ EOF
 ```
 
 <b>Check the results</b>
-- Check if a `CatalogSource` is created in the `$GLOBAL_CATALOG_NAMESPACE` namespace:
+- Run teh followinfg command to check if the `CatalogSource` is created in the `$GLOBAL_CATALOG_NAMESPACE` namespace:
 
 ```console
 kubectl get catalogsource -n $GLOBAL_CATALOG_NAMESPACE
 ```
+
+The following is the sample output: 
 
 ```{: .text .no-copy }
 NAME                           DISPLAY                        TYPE   PUBLISHER   AGE
@@ -107,11 +111,13 @@ opencloud-operators            IBMCS Operators                grpc   IBM        
 [...]
 ```
 
-- If everything goes well, you should see similar pod running:
+- If everything goes well, you should see similar pod running. Run the following command to check if the pod is running:
 
 ```console
 kubectl get pod -n $GLOBAL_CATALOG_NAMESPACE
 ```
+
+The following is the sample output: 
 
 ```{: .text .no-copy }
 NAME                                            READY   STATUS    RESTARTS   AGE
@@ -136,14 +142,14 @@ b. Check if you have tha operator group in that namespace by running the followi
 kubectl get OperatorGroup -n ibm-common-services
 ```
 
-- If you get the following response, then the operator group was found, and you can go to step 4. Create a Subscription.
+- If you get the following response, the operator group was found, and you can go to step 4. Create a Subscription.
 
 ```{: .text .no-copy }
 NAME            AGE
 operatorgroup   39d
 ```
 
-- If you get the following result, then the operator group was not found, and you need to create it.
+- If you get the following response, the operator group was not found, and you need to create it.
 
 ```{: .text .no-copy }
 No resources found.
@@ -168,7 +174,7 @@ EOF
 4\. **Create a Subscription**
 A subscription is created for the operator and is responsible for upgrades of IBM Licensing Operator when needed.
 
-a. Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value. (from step 2a)
+a. Make sure that the `GLOBAL_CATALOG_NAMESPACE` variable has the global catalog namespace value. The global gatalog namespace was retrievev in step 2a.
 
 b. Create the **Subscription** using the following command:
 
@@ -189,11 +195,13 @@ EOF
 
 5\. **Verify Operator health**
 
-a. See if the IBM Licensing Operator is deployed by the OLM from the `CatalogSource` with the following command.
+a. To check whether the IBM Licensing Operator is deployed by OLM from the `CatalogSource`, run the following command.
 
 ```console
 kubectl get clusterserviceversion -n ibm-common-services
 ```
+
+The following is the sample output: 
 
 ```{: .text .no-copy }
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
