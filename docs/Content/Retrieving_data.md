@@ -15,7 +15,7 @@ You can use a set of dedicated APIs to retrieve the following information:
 - Retrieving information about License Service version
 - Retrieving information about License Service health
 
-To learn how to use the APIs to retrieve data and generate an audit snapshot, see [APIs for retrieving License Service data in IBM Documentation](https://www.ibm.com/docs/en/cpfs?topic=rlud-retrieving-license-usage-data-per-cluster-from-license-service).
+To learn how to use the APIs to retrieve data and generate an audit snapshot, see [APIs for retrieving License Service data in IBM Documentation](https://www.ibm.com/docs/en/cpfs?topic=data-per-cluster-from-license-service).
 
 ## Tracking license usage in multicluster environment
 
