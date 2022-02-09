@@ -73,6 +73,7 @@ For more information, see the following resources:
 - [Uninstalling License Service from a Kubernetes cluster](Content/Uninstalling.md)
 - [Backup and upgrade](Content/Backup_and_upgrade.md)
     - [Upgrading to License service 1.4.x from an earlier version](Content/Upgrading_to_14x.md)
+    - [Upgrading to License service 1.11.x from an earlier version](Content/Upgrading_to_111x.md)
 - [Troubleshooting](Content/Troubleshooting.md)
     - [Verifying completeness of license usage data](Content/Troubleshooting.md#verifying-completeness-of-license-usage-data)
     - [License Service pods are crashing and License Service cannot run](Content/Troubleshooting.md#license-service-pods-are-crashing-and-license-service-cannot-run)
