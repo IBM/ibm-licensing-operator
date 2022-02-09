@@ -10,11 +10,11 @@
 - `kubectl` 1.16 or higher
 - Linux or iOS
 
-Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources and cluster permissions.
+Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources, and cluster permissions.
 
 ## Installation
 
-This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter, which is not available without an IBM Cloud Pak on OpenShift Container Platform.
 
   **Note:** To install License Service on Windows, adjust the commands to fit the Windows standard.
 
@@ -97,7 +97,7 @@ EOF
 ```
 
 <b>Check the results</b>
-- Run teh followinfg command to check if the `CatalogSource` is created in the `$GLOBAL_CATALOG_NAMESPACE` namespace:
+- Run the following command to check if the `CatalogSource` is created in the `$GLOBAL_CATALOG_NAMESPACE` namespace:
 
 ```console
 kubectl get catalogsource -n $GLOBAL_CATALOG_NAMESPACE
@@ -174,7 +174,7 @@ EOF
 4\. **Create a Subscription**
 A subscription is created for the operator and is responsible for upgrades of IBM Licensing Operator when needed.
 
-a. Make sure that the `GLOBAL_CATALOG_NAMESPACE` variable has the global catalog namespace value. The global gatalog namespace was retrievev in step 2a.
+a. Make sure that the `GLOBAL_CATALOG_NAMESPACE` variable has the global catalog namespace value. The global catalog namespace was retrieved in step 2a.
 
 b. Create the **Subscription** using the following command:
 

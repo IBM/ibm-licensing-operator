@@ -5,9 +5,9 @@
 
 You can use the `ibm-licensing-operator` to install License Service on any Kubernetes cluster. License Service collects information about license usage of IBM containerized products. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 
-**Note:** License Service is integrated into IBM Cloud Pak solutions. You do not have to deploy it to clusters where IBM Cloud Pak solutions are deployed. License Service should already be there and collect usage data for the IBM containerized products that are enabled for reporting.
+**Note:** License Service is integrated into IBM Cloud Paks. You do not have to deploy it to clusters where IBM Cloud Paks are deployed. License Service should already be there and collect usage data for the IBM containerized products that are enabled for reporting.
 
-Use the installation scenario that is outlined in this documentation to deploy License Service to a cluster where IBM Cloud Pak solutions are not deployed.
+Use the installation scenario that is outlined in this documentation to deploy License Service to a cluster where IBM Cloud Paks are not deployed.
 
 ## About License Service
 
@@ -25,9 +25,9 @@ License Service
 
 ## Using License Service for container licensing
 
-Currently, supported core-based metrics for container licensing are Processor Value Unit (PVU) and Virtual Processor Core (VPC). For core license metrics, you are obliged to use License Service and periodically generate an audit snapshots to fulfill container licensing requirements.
+Currently, supported core-based metrics for container licensing are Processor Value Unit (PVU) and Virtual Processor Core (VPC). For core license metrics, you are obliged to use License Service and periodically generate an audit snapshot to fulfill container licensing requirements.
 
-For more information about core and non-core metrics that are collected by License Service, see [Reported metrics](https://www.ibm.com/docs/en/cpfs?topic=operator-reported-metrics).
+For more information about core and noncore metrics that are collected by License Service, see [Reported metrics](https://www.ibm.com/docs/en/cpfs?topic=operator-reported-metrics).
 
 License Service collects data that is required for compliance and audit purposes. With License Service, you can retrieve an audit snapshot per cluster without any configuration.
 

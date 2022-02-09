@@ -12,7 +12,7 @@ After you install License Service, you can configure License Service if needed.
 
 ## Configuring ingress
 
-You might want to configure ingress. Here is an <b>example</b> of how you can do it:
+You can configure ingress, for example, by completing the following steps:
 
 1\. Get the nginx ingress controller. You might get it, for example, from here: [https://kubernetes.github.io/ingress-nginx/deploy](https://kubernetes.github.io/ingress-nginx/deploy).
 
