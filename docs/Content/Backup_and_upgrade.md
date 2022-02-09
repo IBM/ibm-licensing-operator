@@ -15,6 +15,7 @@ Nonetheless, it is a good practice to generate an audit snapshot periodically fo
 
 * For online environments, License Service is automatically upgraded with each new operator release.
 * For online environments, to upgrade to License Service version 1.4.x from an earlier version, you must manually update the subscription channel. For more information, see [Upgrading to License Service version 1.4.x from an earlier version](Upgrading_to_14x.md).
+* For online environments, to upgrade to License Service version 1.11.x from an earlier version, you must manually update the `CatalogSource` image. For more information, see [Upgrading to License Service version 1.11.x from an earlier version](Upgrading_to_111x.md).
 * For offline environments, to upgrade License Service to a new version, first uninstall License Service from the cluster and redeploy it.
 
     **Note:** The license usage data is stored in the persistent cluster memory and should not be affected by reinstallation of License Service. However, it is a good practice to create an audit snapshot before reinstalling License Service as a precaution.
