@@ -26,16 +26,16 @@ It was tested on the following systems:
 
 License Service is supported on Linux on Power (ppc64le), Linux on IBM Z and LinuxONE in the following scenarios:
 
- |System|Supported deployment scenario|
- |---|---|
- |<ul><li>Any cluster with pre-installed Operator Lifecycle Manager (OLM)</li></ul>|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](Automatic_installation.md)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](Install_from_scratch.md)</li><li>[Offline installation](Install_offline.md)</li></ul>|
+|System|Supported deployment scenario|
+|---|---|
+|<ul><li>Any cluster with pre-installed Operator Lifecycle Manager (OLM)</li></ul>|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](Automatic_installation.md)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](Install_from_scratch.md)</li><li>[Offline installation](Install_offline.md)</li></ul>|
 |<ul><li>A cluster without Operator Lifecycle Manager (OLM)</li></ul>| <ul><li>[Offline installation](Install_offline.md)</li><li>[Manual installation without the Operator Lifecycle Manager (OLM)](Install_without_OLM.md)</li></ul>|
 
 ## Required resources
 
 By default, License Service is installed with the resource settings for medium environments on Linux® x86_64 with up to 500 pods and three Cloud Paks. License Service consists of two main components that require resources: the operator deployment and the application deployment. The following table shows the required resources for these components for the medium Linux® x86_64 environment:
 
- |CPU Request (m)| CPU Limit (m)|Memory Request (Mi)|Memory Limit (Mi)|
+|CPU Request (m)| CPU Limit (m)|Memory Request (Mi)|Memory Limit (Mi)|
 |---|---|---|---|
 | 200 | 300| 430| 850|
 
@@ -43,7 +43,7 @@ By default, License Service is installed with the resource settings for medium e
 
 The required resources might differ for different platforms. The following table shows the required resources by platform for medium environments:
 
- |Platform|CPU Request (m)| CPU Limit (m)|Memory Request (Mi)|Memory limit  (Mi)|
+|Platform|CPU Request (m)| CPU Limit (m)|Memory Request (Mi)|Memory limit  (Mi)|
 |---|---|---|---|---|
 |Linux® x86_64| 200 | 300| 430| 850|
 |Linux® on Power® (ppc64le)|300| 400| 230| 543|
