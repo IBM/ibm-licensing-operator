@@ -33,7 +33,7 @@ License Service is supported on Linux on Power (ppc64le), Linux on IBM Z and Lin
 
 ## Required resources
 
-By default, License Service is installed with the resource settings for medium environments on Linux® x86_64 platform with up to 500 pods and three Cloud Paks. License Service consists of two main components that require resources: the operator deployment and the application deployment. The following table shows the required resources for these components for the medium Linux® x86_64 environment:
+By default, License Service is installed with the resource settings for medium environments on Linux® x86_64 with up to 500 pods and three Cloud Paks. License Service consists of two main components that require resources: the operator deployment and the application deployment. The following table shows the required resources for these components for the medium Linux® x86_64 environment:
 
  |CPU Request (m)| CPU Limit (m)|Memory Request (Mi)|Memory Limit (Mi)|
 |---|---|---|---|
@@ -41,7 +41,7 @@ By default, License Service is installed with the resource settings for medium e
 
  *_where m stands for Millicores, and Mi for Mebibytes_
 
-Note that required resources will differ in different platforms. The following table shows the required resources by platform for the medium environment:
+The required resources might differ for different platforms. The following table shows the required resources by platform for medium environments:
 
  |Platform|CPU Request (m)| CPU Limit (m)|Memory Request (Mi)|Memory limit  (Mi)|
 |---|---|---|---|---|
@@ -51,13 +51,13 @@ Note that required resources will differ in different platforms. The following t
 
 If your environment is smaller, or bigger than the default, you can change the limits and resources for the application deployment by editing the IBMLicensing instance. For more information, see [Configuration](Configuration.md#modifying-the-application-deployment-resources).
 
-The following table shows the available deployment profiles with the respective resource requirements.
+The following table shows the available deployment profiles with the respective resource requirements for Linux x86_64.
 
 |Profile|Environment|CPU Limit (m)|Memory Limit (Mi) |
 |---|---|---|---|
 |small|200 pods and 3 Cloud Paks|200 | 850|
 |medium|500 pods and 3 Cloud Paks|300| 850|
-|large|1000 pods and 3 Cloud Paks|300| 1021|
+|large|1000 pods and 3 Cloud Paks|300| 1020|
 
 **Note:** When you have additional software, solution or plugin deployed in your cluster that might require additional memory or CPU resources, for example Dynatrace, check the documentation of this product and add additional resources to prevent memory saturation.
 
