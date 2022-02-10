@@ -47,7 +47,6 @@ var memory128Mi = resource.NewQuantity(128*1024*1024, resource.BinarySI)
 
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
-var cpu400m = resource.NewMilliQuantity(400, resource.DecimalSI)
 var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 var memory300Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 var memory384Mi = resource.NewQuantity(384*1024*1024, resource.BinarySI)
@@ -153,8 +152,8 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 	spec.Container.initResourcesIfNil()
 	spec.Container.setResourceLimitMemoryIfNotSet(*memory850Mi)
 	spec.Container.setResourceRequestMemoryIfNotSet(*memory430Mi)
-	spec.Container.setResourceLimitCPUIfNotSet(*cpu400m)
-	spec.Container.setResourceRequestCPUIfNotSet(*cpu300m)
+	spec.Container.setResourceLimitCPUIfNotSet(*cpu300m)
+	spec.Container.setResourceRequestCPUIfNotSet(*cpu200m)
 
 	if err := spec.setContainer(OperandLicensingImageEnvVar); err != nil {
 		return err
