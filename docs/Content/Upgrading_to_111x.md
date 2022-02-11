@@ -24,6 +24,7 @@ To upgrade to License Service 1.11.x, you must manually update the `CatalogSourc
 3\. Wait until the `ClusterServiceVersion` status changes to **Succeeded**. To check the status of `ClusterServiceVersion`, run the following command.
 
 ```bash
+    licensingNamespace=ibm-common-services
     csv_name=$(kubectl get subscription -n "${licensingNamespace}" ibm-licensing-operator-app -o jsonpath='{.status.currentCSV}')
     kubectl get csv -n "${licensingNamespace}" "${csv_name}" -o jsonpath='{.status.phase}'
 ```
