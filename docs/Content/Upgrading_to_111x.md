@@ -1,11 +1,11 @@
-# Upgrading to License Service 1.11.x from an earlier version
+# Upgrading from License Service 1.10.x to the latest version
 
-Learn how to upgrade to License Service version 1.11.x from an earlier version.
+Learn how to upgrade from License Service version 1.10.x to the latest version.
 
-Starting from November 2021, IBM no loger publishes the catalog image updates to `docker.io` which was used by default in IBM License Service installation scripts and procedures that depended on `CatalogSource`.
+Starting from November 2021, IBM no longer publishes the catalog image updates to `docker.io` which was used by default in IBM License Service installation scripts and procedures that depended on `CatalogSource`.
 If you installed IBM License Service before December 2021, you must perform manual steps to update `CatalogSource` image and upgrade License Service version. 
 
-To upgrade to License Service 1.11.x, you must manually update the `CatalogSource` image. Complete the following actions to complete the upgrade.
+To upgrade to the latest version of License Service, you must manually update the `CatalogSource` image. Complete the following actions to complete the upgrade.
 
 1\. Log in to your cluster.
 
@@ -29,7 +29,7 @@ To upgrade to License Service 1.11.x, you must manually update the `CatalogSourc
     kubectl get csv -n "${licensingNamespace}" "${csv_name}" -o jsonpath='{.status.phase}'
 ```
 
-After you update the `CatalogSource` image, License Service is automatically upgraded to version 1.11.x. In the future, updates will be automatic.
+After you update the `CatalogSource` image, License Service is automatically upgraded to the latest version. In the future, updates will be automatic.
 
 <b>Related links</b>
 
