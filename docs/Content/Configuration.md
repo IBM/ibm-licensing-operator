@@ -100,7 +100,7 @@ For more information, see [Setting up Kubernetes Ingress](https://cloud.ibm.com/
 
 ## Checking License Service components
 
-After you install **IBM License Service**, complete the following steps to check whether it works:
+After you install **IBM License Service**, complete the following steps to check whether License Service works properly:
 
 1\. To check if the pod is running, by running the following commands:
 
@@ -110,13 +110,15 @@ kubectl logs $podName -n ibm-common-services
 kubectl describe pod $podName -n ibm-common-services
 ```
 
-2\. Check Route or Ingress settings depending on your parameter settings, for example, using these commands.
+2\. Check Route or Ingress settings depending on your parameter settings, for example, using these commands:
 
 ```bash
 kubectl get ingress -n ibm-common-services -o yaml
 ```
 
 Then examine the status part of the output. It should include host, path, tls (if configured), and other networking information.
+
+3\. Run the License Service APIs, and make sure that you get results that reflect your environment's license usage. For more information, see [APIs for retrieving License Service data in IBM Documentation](https://www.ibm.com/docs/en/cpfs?topic=data-per-cluster-from-license-service).
 
 ## Using custom certificates
 
