@@ -1,7 +1,7 @@
 # Backup and upgrade
 
 * [Backup](#backup)
-* [Upgrades](#upgrades)
+* [Upgrade](#upgrade)
 
 ## Backup
 
