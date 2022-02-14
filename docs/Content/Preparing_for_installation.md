@@ -26,10 +26,10 @@ It was tested on the following systems:
 
 License Service is supported on Linux on Power (ppc64le), Linux on IBM Z and LinuxONE in the following scenarios:
 
-|System|Supported deployment scenario|
+|Installation|Deployment scenario|
 |---|---|
-|<ul><li>Any cluster with pre-installed Operator Lifecycle Manager (OLM)</li></ul>|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](Automatic_installation.md)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](Install_from_scratch.md)</li><li>[Offline installation](Install_offline.md)</li></ul>|
-|<ul><li>A cluster without Operator Lifecycle Manager (OLM)</li></ul>| <ul><li>[Offline installation](Install_offline.md)</li><li>[Manual installation without the Operator Lifecycle Manager (OLM)](Install_without_OLM.md)</li></ul>|
+|<ul><li>With Operator Lifecycle Manager (OLM)</li></ul>|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](Automatic_installation.md)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](Install_from_scratch.md)</li><li>[Offline installation](Install_offline.md)</li></ul>|
+|<ul><li>Without Operator Lifecycle Manager (OLM)</li></ul>| <ul><li>[Offline installation](Install_offline.md)</li><li>[Manual installation without the Operator Lifecycle Manager (OLM)](Install_without_OLM.md)</li></ul>|
 
 ## Required resources
 
