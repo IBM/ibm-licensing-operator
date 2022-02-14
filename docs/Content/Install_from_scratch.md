@@ -7,7 +7,7 @@
 ## Prerequisites
 
 - Administrator permissions for the cluster
-- `kubectl` 1.16 or higher
+- `kubectl` 1.19 or higher
 - Linux or iOS
 
 Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources, and cluster permissions.
@@ -34,7 +34,7 @@ b. Check if you have OLM installed. For example, run the following command.
 kubectl get crd clusterserviceversions.operators.coreos.com
 ```
 
-- If you get the following response, OLM might be installed.
+- If you get the following response, OLM is installed.
 
   ```{: .text .no-copy }
   NAME                                          CREATED AT
@@ -45,12 +45,12 @@ kubectl get crd clusterserviceversions.operators.coreos.com
 
   `Error from server (NotFound): customresourcedefinitions.apiextensions.k8s.io "clusterserviceversions.operators.coreos.com" not found`
 
-c.  If OLM is not installed, download it from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases). Use following script to download and install OLM v13.0
+c.  If OLM is not installed, download it from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases). Use following script to download and install OLM v0.16.1
 
-**Note:** For versions newer than 13.0, the process might differ.
+**Note:** For versions newer than 0.16.1, the process might differ.
 
 ```bash
-olm_version=0.13.0
+olm_version=0.16.1
 curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/${olm_version}/install.sh | bash -s ${olm_version}
 ```
 
@@ -67,7 +67,7 @@ GLOBAL_CATALOG_NAMESPACE=$(kubectl get deployment --namespace="${olm_namespace}"
 echo ${GLOBAL_CATALOG_NAMESPACE}
 ```
 
-If you get an empty response to the `echo`command, you can get global catalog namespace using the following command.
+If you get an empty response to the `echo` command, you can get global catalog namespace using the following command.
 
 **Note:** The following method should only be used for getting global catalog namespace if the previous method failed.
 
