@@ -72,7 +72,7 @@ c. Set **Update Channel** to the `v3` version.
 
 d. As an **Installation Mode** select **A specific namespace on the cluster**, and set it to `ibm-common-services` namespace that you created in the previous step.
 
-e. Set **AUpdate approval** to **Automatic**.
+e. Set **Update approval** to **Automatic**.
 
 f. Click **Install**.
 
