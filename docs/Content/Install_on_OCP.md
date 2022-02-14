@@ -72,7 +72,7 @@ c. Set **Update Channel** to the `v3` version.
 
 d. As an **Installation Mode** select **A specific namespace on the cluster**, and set it to `ibm-common-services` namespace that you created in the previous step.
 
-e. Set **Approval Strategy** to **Automatic**.
+e. Set **AUpdate approval** to **Automatic**.
 
 f. Click **Install**.
 
@@ -90,7 +90,7 @@ Create an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
-1\. Log in to the Openshift console and go to **Installed Operators > IBM Licensing Operator > IBM Licensing tab > Create IBMLicensing**.
+1\. Log in to the Openshift console and go to **Installed Operators** > **IBM Licensing Operator** > **IBM License Service** tab > **Create IBMLicensing**.
 
 ![OCP click Create IBM Licensing](/images/ocp_create_instance.png)
 
