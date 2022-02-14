@@ -382,7 +382,7 @@ log(){
 ##### Parse arguments
 
 verbose=
-olm_version=0.13.0
+olm_version=0.16.1
 skip_olm_installation=
 olm_global_catalog_namespace=
 channel=v3
