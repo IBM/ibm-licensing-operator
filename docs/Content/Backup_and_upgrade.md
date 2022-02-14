@@ -15,7 +15,7 @@ Nonetheless, it is a good practice to generate an audit snapshot periodically fo
 
 * For online environments, License Service is automatically upgraded with each new operator release.
 * For online environments, to upgrade to License Service version 1.4.x from an earlier version, you must manually update the subscription channel. For more information, see [Updating the subscription channels](#updating-the-subscription-channel).
-* For online environments, to upgrade from License Service version 1.10.x to the latest version, you must manually update the `CatalogSource` image. For more information, see [Updating the CatalogSource image](#updating-thecatalogsource-image).
+* For online environments, to upgrade from License Service version uo to 1.10.x to the latest version, you must manually update the `CatalogSource` image. For more information, see [Updating the CatalogSource image](#updating-thecatalogsource-image).
 * For online environments, to upgrade from License Service version 1.3.x or earlier, to the latest version first update the subscription channel, and next update the `CatalogSource`. For more information, see [Updating the subscription channels](#updating-the-subscription-channel) and [Updating the CatalogSource image](#updating-thecatalogsource-image). 
 * For offline environments, to upgrade License Service to a new version, first uninstall License Service from the cluster and redeploy it.
 
@@ -47,7 +47,7 @@ To upgrade to License Service 1.4.x, you must manually update the subscription c
     kubectl get csv -n "${licensingNamespace}" "${csv_name}" -o jsonpath='{.status.phase}'
     ```
 
-After you update the subscription channel, License Service is automatically upgraded to version 1.4.x. In the future, updates will be automatic.
+After you update the subscription channel, License Service is automatically upgraded to version 1.4.x.
 
 ### Updating the CatalogSource image
 
