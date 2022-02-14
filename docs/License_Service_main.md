@@ -72,8 +72,6 @@ For more information, see the following resources:
     - [Tracking license usage in multicluster environment](Content/Retrieving_data.md#tracking-license-usage-in-multicluster-environment)
 - [Uninstalling License Service from a Kubernetes cluster](Content/Uninstalling.md)
 - [Backup and upgrade](Content/Backup_and_upgrade.md)
-    - [Upgrading to License Service 1.4.x from an earlier version](Content/Upgrading_to_14x.md)
-    - [Upgrading from License Service 1.10.x to the latest version](Content/Upgrading_to_111x.md)
 - [Troubleshooting](Content/Troubleshooting.md)
     - [Verifying completeness of license usage data](Content/Troubleshooting.md#verifying-completeness-of-license-usage-data)
     - [License Service pods are crashing and License Service cannot run](Content/Troubleshooting.md#license-service-pods-are-crashing-and-license-service-cannot-run)
