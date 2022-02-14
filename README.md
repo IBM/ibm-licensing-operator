@@ -52,7 +52,7 @@ For more information about the OpenShift Container Platform Security Context Con
 
 <b>Scenario: Learn how to deploy License Service on Kubernetes clusters without an IBM CLoud Pak</b>
 
-You can use the `ibm-licensing-operator` to install License Service on any Kubernetes cluster without an IBM CLoud Pak. License Service collects information about license usage of IBM Containerized Products. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
+You can use the `ibm-licensing-operator` to install License Service on any Kubernetes cluster without an IBM Cloud Pak. License Service collects information about license usage of IBM Containerized Products. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 
 ## Product documentation
 
