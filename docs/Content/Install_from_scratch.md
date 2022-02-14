@@ -243,7 +243,10 @@ spec:
 EOF
 ```
 
-**Results:** Installation is complete and **License Service** is running in your cluster. To check if License Service components are properly installed, and perform extra configuration, see [Configuration](Configuration.md).
+**Results:** Installation is complete and **License Service** is running in your cluster.
+
+## Verification
+To check whether License Service components are properly installed and running, see [Checking License Service components](Configuration.md#checking-license-service components).
 
 <b>Related links</b>
 
