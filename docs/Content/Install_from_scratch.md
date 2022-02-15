@@ -103,7 +103,7 @@ EOF
 kubectl get catalogsource -n $GLOBAL_CATALOG_NAMESPACE
 ```
 
-The following is the sample output: 
+The following is the sample output:
 
 ```{: .text .no-copy }
 NAME                           DISPLAY                        TYPE   PUBLISHER   AGE
@@ -117,7 +117,7 @@ opencloud-operators            IBMCS Operators                grpc   IBM        
 kubectl get pod -n $GLOBAL_CATALOG_NAMESPACE
 ```
 
-The following is the sample output: 
+The following is the sample output:
 
 ```{: .text .no-copy }
 NAME                                            READY   STATUS    RESTARTS   AGE
@@ -201,7 +201,7 @@ a. To check whether the IBM Licensing Operator is deployed by OLM from the `Cata
 kubectl get clusterserviceversion -n ibm-common-services
 ```
 
-The following is the sample output: 
+The following is the sample output:
 
 ```{: .text .no-copy }
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
@@ -246,6 +246,7 @@ EOF
 **Results:** Installation is complete and **License Service** is running in your cluster.
 
 ## Verification
+
 To check whether License Service components are properly installed and running, see [Checking License Service components](Configuration.md#checking-license-service-components).
 
 <b>Related links</b>

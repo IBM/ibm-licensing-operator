@@ -112,9 +112,10 @@ To see the logs, go to **OCP UI->Workloads->Pods** and search for **licensing** 
 5\. To investigate further, click the name of the pod starting with `ibm-licensing-service-instance` and check its logs and events.
 
 **Results:**
-Installation is complete and **License Service** is running in your cluster. 
+Installation is complete and **License Service** is running in your cluster.
 
 ## Verification
+
 To check whether License Service components are properly installed and running, see [Checking License Service components](Configuration.md#checking-license-service-components).
 
 <b>Related links</b>

@@ -91,7 +91,6 @@ To retrieve your host, run the following command in IBM Cloud CLI:
 ibmcloud ks cluster get --cluster <cluster_name_or_id> | grep Ingress
 ```
 
-
 - Amazon Elastic Kubernetes Service (EKS)
 
 ```yaml
@@ -107,7 +106,7 @@ spec:
   instanceNamespace: ibm-common-services
   ingressEnabled: true
   ingressOptions:
-    annotations: 
+    annotations:
       'nginx.ingress.kubernetes.io/rewrite-target': "/\$2"
     path: /ibm-licensing-service-instance(/|$)(.*)
     host: <your_host>
@@ -115,7 +114,6 @@ EOF
 ```
 
 To retrieve your host, please consult EKS documentation.
-
 
 For more information, see [Setting up Kubernetes Ingress](https://cloud.ibm.com/docs/containers?topic=containers-ingress-types) in IBM Cloud Docs.
 

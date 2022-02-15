@@ -27,9 +27,10 @@ This procedure guides you through the installation of License Service. It does n
 2\. Run the script.
 
 **Results:**
-Installation is complete and **License Service** is running in your cluster. 
+Installation is complete and **License Service** is running in your cluster.
 
 ## Verification
+
 To check whether License Service components are properly installed and running, see [Checking License Service components](Configuration.md#checking-license-service-components).
 
 <b>Related links</b>
