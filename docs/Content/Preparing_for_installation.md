@@ -15,11 +15,6 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 - Red Hat OpenShift Container Platform 4.6 and later
 - Kubernetes 1.19 and later
 - Operator Lifecycle Manager (OLM) 0.16.1 or later
-- IBM Cloud Kubernetes Services (IKS)
-- Google Kubernetes Engine (GKE)
-- Azure Kubernetes Service (AKS)
-- Amazon EKS - Managed Kubernetes Service (EKS)
-- Alibaba Cloud - Container Service for Kubernetes (ACK)
 
 <b>Linux on Power (ppc64le), Linux on IBM Z and LinuxONE</b>
 
