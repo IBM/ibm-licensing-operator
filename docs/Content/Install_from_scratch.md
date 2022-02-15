@@ -3,6 +3,7 @@
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+- [Verification](#verification)
 
 ## Prerequisites
 
