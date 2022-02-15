@@ -12,10 +12,9 @@
 
 License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_64.
 
-It was tested on the following systems:
-
-- Red Hat OpenShift Container Platform 4.6 or newer
-- Kubernetes 1.16 or higher
+- Red Hat OpenShift Container Platform 4.6 and later
+- Kubernetes 1.19 and later
+- Operator Lifecycle Manager (OLM) 0.16.1 or later
 - IBM Cloud Kubernetes Services (IKS)
 - Google Kubernetes Engine (GKE)
 - Azure Kubernetes Service (AKS)
