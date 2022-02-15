@@ -5,6 +5,7 @@ You can use an automatic script to install License Service on the cluster, and a
 
 - [Supported configurations](#supported-configurations)
 - [Installation](#installation)
+- [Verification](#verification)
 
 ## Supported configurations
 
