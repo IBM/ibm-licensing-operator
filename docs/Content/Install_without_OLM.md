@@ -2,6 +2,8 @@
 
 Learn how to install License Service without the Operator Lifecycle Manager (OLM).
 
+**Important:** This procedure is outdated. For the latest version, see [License Service for stand-alone IBM Containerized Software](https://ibm.biz/license_service4containers).
+
 Complete the following procedure to install License Service on a system that does not have the Operator Lifecycle Manager (OLM) deployed, for example on Red Hat OpenShift Container Platform 3.11.
 
 - [Prerequisites](#prerequisites)
