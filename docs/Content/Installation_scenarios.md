@@ -2,6 +2,8 @@
 
 Install License Service and create the operator instance.
 
+**Important:** This document is outdated. For the latest version, see [License Service for stand-alone IBM Containerized Software](https://ibm.biz/license_service4containers).
+
 Choose the installation path that fits your environment best.
 
 Installing License Service

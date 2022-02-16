@@ -4,6 +4,8 @@
 <img alt="Uptime Robot status" src="https://img.shields.io/uptimerobot/status/m786127186-a86f251061d6fd7958c67707?label=OCP%20test%20cluster">
 [![Code Coverage](https://codecov.io/gh/IBM/ibm-licensing-operator/branch/master/graphs/badge.svg?branch=master)](https://codecov.io/gh/IBM/ibm-licensing-operator?branch=master)
 
+**IMPORTANT:** The current branch contains the operator and documentation for License Service version 1.3.3. Switch to another branch to view the content for other releases.
+
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
 
 - [License Service as a part of an IBM Cloud Pak (included in IBM Cloud Platform Common Services)](#ibm-licensing-operator)

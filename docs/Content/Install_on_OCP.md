@@ -1,5 +1,7 @@
 # Manual installation on OpenShift Container Platform (OCP)
 
+**Important:** This procedure is outdated. For the latest version, see [License Service for stand-alone IBM Containerized Software](https://ibm.biz/license_service4containers).
+
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
