@@ -9,7 +9,7 @@ You can install License Service with ibm-licensing-operator to collect license u
 
 <b>Scenario: License Service as a part of an IBM Cloud Pak (included in IBM Cloud Pak foundational services)</b>
 
-> **Important:** Do not install this operator directly. Only install this operator using the IBM IBM Cloud Pak foundational services Operator. For more information about installing this operator and other foundational services operators, see [Installer documentation](http://ibm.biz/cpcs_opinstall). If you are using this operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For more information about IBM Cloud Paks, see [IBM Cloud Paks that use IBM Cloud Pak foundational services](http://ibm.biz/cpcs_cloudpaks).
+> **Important:** Do not install this operator directly. Only install this operator using the IBM IBM Cloud Pak foundational services operator. For more information about installing this operator and other foundational services operators, see [Installer documentation](http://ibm.biz/cpcs_opinstall). If you are using this operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For more information about IBM Cloud Paks, see [IBM Cloud Paks that use IBM Cloud Pak foundational services](http://ibm.biz/cpcs_cloudpaks).
 
 You can use the `ibm-licensing-operator` to install License Service as a part of IBM Cloud Pak foundational services or an IBM Cloud Pak. You can use License Service to collect information about license usage of IBM containerized products and IBM Cloud Paks per cluster. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 
@@ -52,7 +52,7 @@ For more information about the OpenShift Container Platform Security Context Con
 
 <b>Scenario: Learn how to deploy License Service on Kubernetes clusters without an IBM CLoud Pak</b>
 
-You can use the `ibm-licensing-operator` to install License Service on any Kubernetes cluster without an IBM CLoud Pak. License Service collects information about license usage of IBM Containerized Products. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
+You can use the `ibm-licensing-operator` to install License Service on any Kubernetes cluster without an IBM Cloud Pak. License Service collects information about license usage of IBM Containerized Products. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 
 ## Product documentation
 

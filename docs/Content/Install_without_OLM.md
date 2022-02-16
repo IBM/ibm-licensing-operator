@@ -7,6 +7,7 @@ Complete the following procedure to install License Service on a system that doe
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+- [Verification](#verification)
 
 ## Prerequisites
 
@@ -126,6 +127,10 @@ EOF
 **Results:**
 Give operator couple minutes to configure all needed components.
 Installation is complete and **License Service** is running in your cluster.
+
+## Verification
+
+To check whether License Service components are properly installed and running, see [Checking License Service components](Configuration.md#checking-license-service-components).
 
 <b>Related links</b>
 
