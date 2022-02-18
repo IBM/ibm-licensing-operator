@@ -29,7 +29,7 @@ License Service is supported on Linux on Power (ppc64le), Linux on IBM Z and Lin
 
 By default, License Service is installed with the resource settings for medium environments with up to 500 pods and three Cloud Paks. License Service consists of two main components that require resources: the operator deployment and the application deployment. The following table shows the required resources for these components for the medium environment:
 
-|CPU Request (m)| CPU Limit (m)|Memory Request (Mi)|Memory Limit (Mi)|
+|Platform|CPU Request (m)|CPU Limit (m)|Memory Request (Mi)|Memory Limit (Mi)|
 |---|---|---|---|---|
 |Linux® x86_64| 200 | 300| 430| 850|
 |Linux® on Power® (ppc64le)|300| 400| 230| 543|
