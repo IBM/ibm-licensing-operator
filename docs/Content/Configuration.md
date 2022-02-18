@@ -225,6 +225,8 @@ kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMES
 
 You can modify the resources that are requested and limited by the Deployment for Application by editing the IBMLicensing instance.
 
+To learn what resources are required for License Service in your environment, see [Preparing for installation: Required resources](Preparing_for_installation.md#required-resources).
+
 1\. To modify the IBMLicensing instance, run the following command:
 
 ```bash

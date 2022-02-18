@@ -1,5 +1,5 @@
 //
-// Copyright 2021 IBM Corporation
+// Copyright 2022 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"reflect"
+	goruntime "runtime"
 	"time"
 
 	networkingv1 "k8s.io/api/networking/v1"
@@ -96,6 +97,7 @@ type reconcileLRFunctionType = func(*operatorv1alpha1.IBMLicenseServiceReporter)
 func (r *IBMLicenseServiceReporterReconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("Request", req)
 	reqLogger.Info("Reconciling IBMLicenseServiceReporter")
+	goruntime.GC()
 
 	var recResult reconcile.Result
 	var recErr error
