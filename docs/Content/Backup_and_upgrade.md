@@ -31,21 +31,21 @@ To upgrade to License Service 1.4.x, you must manually update the subscription c
 
 2\. Update the subscription channel by running the following command.
 
-    ```bash
-    licensingNamespace=ibm-common-services
-    subName=ibm-licensing-operator-app
-    kubectl patch subscription ${subName} -n ${licensingNamespace} --type=merge -p '{"spec": {"channel":"v3"}}'
-    subscription.operators.coreos.com/ibm-licensing-operator-app patched
-    ```
+```bash
+  licensingNamespace=ibm-common-services
+  subName=ibm-licensing-operator-app
+  kubectl patch subscription ${subName} -n ${licensingNamespace} --type=merge -p '{"spec": {"channel":"v3"}}'
+  subscription.operators.coreos.com/ibm-licensing-operator-app patched
+```
 
    **Note:** If you installed License Service in a custom namespace, change the value of `licensingNamespace` from the default `ibm-common-services` to your custom namespace.
 
 3\. Wait until the `ClusterServiceVersion` status changes to **Succeeded**. To check the status of `ClusterServiceVersion`, run the following command.
 
-    ```bash
-    csv_name=$(kubectl get subscription -n "${licensingNamespace}" ibm-licensing-operator-app -o jsonpath='{.status.currentCSV}')
-    kubectl get csv -n "${licensingNamespace}" "${csv_name}" -o jsonpath='{.status.phase}'
-    ```
+```bash
+csv_name=$(kubectl get subscription -n "${licensingNamespace}" ibm-licensing-operator-app -o jsonpath='{.status.currentCSV}')
+kubectl get csv -n "${licensingNamespace}" "${csv_name}" -o jsonpath='{.status.phase}'
+```
 
 After you update the subscription channel, License Service is automatically upgraded to version 1.4.x.
 
@@ -63,9 +63,9 @@ To upgrade to the latest version of License Service, you must manually update th
 2\. Update the `CatalogSource` by running the following command.
 
 ```bash
-    catalogSourceNamespace=openshift-marketplace
-    csName=opencloud-operators
-    kubectl patch catalogsource ${csName} -n ${catalogSourceNamespace} --type=merge -p '{"spec": {"image":"icr.io/cpopen/ibm-operator-catalog"}}'
+catalogSourceNamespace=openshift-marketplace
+csName=opencloud-operators
+kubectl patch catalogsource ${csName} -n ${catalogSourceNamespace} --type=merge -p '{"spec": {"image":"icr.io/cpopen/ibm-operator-catalog"}}'
 ```
 
    **Note:** Default `catalogSourceNamespace` on OpenShift is `openshift-marketplace`. If you are using Kubernetes change it to your `CatalogSource` namespace.
@@ -75,9 +75,9 @@ To upgrade to the latest version of License Service, you must manually update th
 3\. Wait until the `ClusterServiceVersion` status changes to **Succeeded**. To check the status of `ClusterServiceVersion`, run the following command.
 
 ```bash
-    licensingNamespace=ibm-common-services
-    csv_name=$(kubectl get subscription -n "${licensingNamespace}" ibm-licensing-operator-app -o jsonpath='{.status.currentCSV}')
-    kubectl get csv -n "${licensingNamespace}" "${csv_name}" -o jsonpath='{.status.phase}'
+licensingNamespace=ibm-common-services
+csv_name=$(kubectl get subscription -n "${licensingNamespace}" ibm-licensing-operator-app -o jsonpath='{.status.currentCSV}')
+kubectl get csv -n "${licensingNamespace}" "${csv_name}" -o jsonpath='{.status.phase}'
 ```
 
 After you update the `CatalogSource` image, License Service is automatically upgraded to the latest version. In the future, updates will be automatic.
