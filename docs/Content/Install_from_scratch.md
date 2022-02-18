@@ -82,7 +82,7 @@ spec:
   displayName: IBMCS Operators
   publisher: IBM
   sourceType: grpc
-  image: docker.io/ibmcom/ibm-common-service-catalog:latest
+  image: quay.io/opencloudio/ibm-common-service-catalog:3.6
   updateStrategy:
     registryPoll:
       interval: 45m
