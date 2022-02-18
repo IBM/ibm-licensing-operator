@@ -27,21 +27,15 @@ License Service is supported on Linux on Power (ppc64le), Linux on IBM Z and Lin
 
 ## Required resources
 
-By default, License Service is installed with the resource settings for medium environments on Linux® x86_64 with up to 500 pods and three Cloud Paks. License Service consists of two main components that require resources: the operator deployment and the application deployment. The following table shows the required resources for these components for the medium Linux® x86_64 environment:
+By default, License Service is installed with the resource settings for medium environments with up to 500 pods and three Cloud Paks. License Service consists of two main components that require resources: the operator deployment and the application deployment. The following table shows the required resources for these components for the medium environment:
 
-|CPU Request (m)| CPU Limit (m)|Memory Request (Mi)|Memory Limit (Mi)|
-|---|---|---|---|
-| 200 | 300| 430| 850|
-
- *_where m stands for Millicores, and Mi for Mebibytes_
-
-The required resources might differ for different platforms. The following table shows the required resources by platform for medium environments:
-
-|Platform|CPU Request (m)| CPU Limit (m)|Memory Request (Mi)|Memory limit  (Mi)|
+|Platform|CPU Request (m)|CPU Limit (m)|Memory Request (Mi)|Memory Limit (Mi)|
 |---|---|---|---|---|
 |Linux® x86_64| 200 | 300| 430| 850|
 |Linux® on Power® (ppc64le)|300| 400| 230| 543|
 |Linux® on IBM® Z and LinuxONE| 200| 300| 230| 350|
+
+ *_where m stands for Millicores, and Mi for Mebibytes_
 
 If your environment is smaller, or bigger than the default, you can change the limits and resources for the application deployment by editing the IBMLicensing instance. For more information, see [Configuration](Configuration.md#modifying-the-application-deployment-resources).
 
