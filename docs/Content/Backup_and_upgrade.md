@@ -24,7 +24,7 @@ Nonetheless, it is a good practice to generate an audit snapshot periodically fo
 
 ### Checking your current version
 
-To check yopur current version of License Service, run the following command: 
+To check your current version of License Service, run the following command: 
 
 ```console
 kubectl get clusterserviceversion -n ibm-common-services
