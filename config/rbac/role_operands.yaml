@@ -23,6 +23,7 @@ rules:
       - operator.ibm.com
     resources:
       - ibmlicensingmetadatas
+      - ibmlicensingdefinitions
     verbs:
       - get
       - list
