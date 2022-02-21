@@ -89,7 +89,7 @@ kubectl get csv -n "${licensingNamespace}" "${csv_name}" -o jsonpath='{.status.p
 
 After you update the `CatalogSource` image, License Service is automatically upgraded to the latest version. In the future, updates will be automatic.
 
-4\. To make sure that the upgrade was successful, check your current version of License Service. FOr more information, see [Checking your current version](#chcking-your-current-version).
+4\. To make sure that the upgrade was successful, check your current version of License Service. For more information, see [Checking your current version](#chcking-your-current-version).
 
 <b>Related links</b>
 
