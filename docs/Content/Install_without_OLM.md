@@ -1,4 +1,4 @@
-# Manual installation without the Operator Lifecycle Manager (OLM)
+# Manual installation without Operator Lifecycle Manager (OLM)
 
 Learn how to install License Service without the Operator Lifecycle Manager (OLM).
 
