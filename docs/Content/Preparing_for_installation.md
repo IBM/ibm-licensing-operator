@@ -16,8 +16,8 @@ License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_
 
 |Installation|Deployment scenario|
 |---|---|
-|<ul><li>With Operator Lifecycle Manager (OLM)</li></ul>|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](Automatic_installation.md)</li><li>[Manual installation on OpenShift Container Platform (OCP) version 4.6 or higher](Install_on_OCP.md)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](Install_from_scratch.md)</li><li>[Offline installation](Install_offline.md)</li></ul>|
-|<ul><li>Without Operator Lifecycle Manager (OLM)</li></ul>| <ul><li>[Offline installation](Install_offline.md)</li><li>[Manual installation without the Operator Lifecycle Manager (OLM)](Install_without_OLM.md)</li></ul>|
+|<ul><li>With Operator Lifecycle Manager (OLM)</li></ul>|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](Automatic_installation.md)</li><li>[Manual installation on OpenShift Container Platform (OCP) version 4.6 or later](Install_on_OCP.md)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](Install_from_scratch.md)</li><li>[Offline installation](Install_offline.md)</li></ul>|
+|<ul><li>Without Operator Lifecycle Manager (OLM)</li></ul>| <ul><li>[Offline installation](Install_offline.md)</li><li>[Manual installation without Operator Lifecycle Manager (OLM)](Install_without_OLM.md)</li></ul>|
 
 ## Required resources
 
