@@ -54,7 +54,7 @@ csv_name=$(kubectl get subscription -n "${licensingNamespace}" ibm-licensing-ope
 kubectl get csv -n "${licensingNamespace}" "${csv_name}" -o jsonpath='{.status.phase}'
 ```
 
-4.\ Update the location of the `CtalogSource` to complete the upgrade. For more information, see [Updatinge location of the CatalogSource ](#updating-the-location-of-the-catalogsource).
+4\. Update the location of the `CatalogSource` to complete the upgrade. For more information, see [Updating the location of the CatalogSource](#updating-the-location-of-the-catalogsource).
 
 ### Updating the location of the CatalogSource
 
