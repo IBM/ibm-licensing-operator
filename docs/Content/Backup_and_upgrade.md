@@ -15,8 +15,8 @@ Nonetheless, it is a good practice to generate an audit snapshot periodically fo
 
 |Environment |Current version|Upgrading to the latest version|
 |---|---|---|
-| Online| 1.3.x or earlier |1. [Update subscription channel.](#updating-the-subscription-channel)<br> 2. [Update the location of the CatalogSource. ](#updating-the-location-of-the-catalogsource)|
-| Online| 1.4.x - 1.10.x |[Update the location of the CatalogSource. ](#updating-the-location-of-the-catalogsource)|
+| Online| 1.3.x or earlier |1. [Update subscription channel.](#updating-the-subscription-channel)<br> 2. [Update the location of the CatalogSource.](#updating-the-location-of-the-catalogsource)|
+| Online| 1.4.x - 1.10.x |[Update the location of the CatalogSource.](#updating-the-location-of-the-catalogsource)|
 | Online| 1.11.x or later| License Service is automatically upgraded with each new operator release.|
 | Offline| Any | Uninstall License Service from the cluster and redeploy it.|
 
@@ -24,7 +24,7 @@ Nonetheless, it is a good practice to generate an audit snapshot periodically fo
 
 ### Checking your current version
 
-To check your current version of License Service, run the following command: 
+To check your current version of License Service, run the following command:
 
 ```console
 kubectl get clusterserviceversion -n ibm-common-services

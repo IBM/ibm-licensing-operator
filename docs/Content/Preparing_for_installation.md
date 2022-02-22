@@ -11,8 +11,7 @@
 License Service is supported on all Kubernetes-orchestrated clouds on Linux x86_64, Linux on Power (ppc64le), Linux on IBM Z and LinuxONE on the following platforms:
 - Red Hat OpenShift Container Platform 4.6 and later
 - Kubernetes 1.19 and later
--
-  **Note:** For OLM-based installation, Operator Lifecycle Manager (OLM) version 0.16.1 or later is supported.
+- **Note:** For OLM-based installation, Operator Lifecycle Manager (OLM) version 0.16.1 or later is supported.
 
 |Installation|Deployment scenario|
 |---|---|
