@@ -5,9 +5,9 @@
 
 You can use the `ibm-licensing-operator` to install License Service on any Kubernetes cluster. License Service collects information about license usage of IBM containerized products. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 
-**Note:** License Service is integrated into IBM Cloud Pak solutions. You do not have to deploy it to clusters where IBM Cloud Pak solutions are deployed. License Service should already be there and collect usage data for the IBM containerized products that are enabled for reporting.
+**Note:** License Service is integrated into IBM Cloud Paks. You do not have to deploy it to clusters where IBM Cloud Paks are deployed. License Service should already be there and collect usage data for the IBM containerized products that are enabled for reporting.
 
-Use the installation scenario that is outlined in this documentation to deploy License Service to a cluster where IBM Cloud Pak solutions are not deployed.
+Use the installation scenario that is outlined in this documentation to deploy License Service to a cluster where IBM Cloud Paks are not deployed.
 
 ## About License Service
 
@@ -25,9 +25,9 @@ License Service
 
 ## Using License Service for container licensing
 
-Currently, supported core-based metrics for container licensing are Processor Value Unit (PVU) and Virtual Processor Core (VPC). For core license metrics, you are obliged to use License Service and periodically generate an audit snapshots to fulfill container licensing requirements.
+Currently, supported core-based metrics for container licensing are Processor Value Unit (PVU) and Virtual Processor Core (VPC). For core license metrics, you are obliged to use License Service and periodically generate an audit snapshot to fulfill container licensing requirements.
 
-For more information about core and non-core metrics that are collected by License Service, see [Reported metrics](https://www.ibm.com/docs/en/cpfs?topic=operator-reported-metrics).
+For more information about core and noncore metrics that are collected by License Service, see [Reported metrics](https://www.ibm.com/docs/en/cpfs?topic=operator-reported-metrics).
 
 License Service collects data that is required for compliance and audit purposes. With License Service, you can retrieve an audit snapshot per cluster without any configuration.
 
@@ -55,10 +55,10 @@ For more information, see the following resources:
     - [Hyperthreading](Content/Preparing_for_installation.md#hyperthreading)
     - [Cluster permissions](Content/Preparing_for_installation.md#cluster-permissions)
 - [Installing License Service](Content/Installation_scenarios.md)
-    - [Automatically installing ibm-licensing-operator with a stand-alone IBM Containerized Software using Operator Lifecycle Manager (OLM)](Content/Automatic_installation.md)
-    - [Manually installing License Service on OCP 4.2+](Content/Install_on_OCP.md)
-    - [Manual installation without the Operator Lifecycle Manager (OLM)](Content/Install_without_OLM.md)
-    - [Manually installing License Service on Kubernetes from scratch with `kubectl`](Content/Install_from_scratch.md)
+    - [Automatic installation using Operator Lifecycle Manager (OLM)](Content/Automatic_installation.md)
+    - [Manual installation on Openshift Container Platform (OCP) 4.6 and later](Content/Install_on_OCP.md)
+    - [Manual installation without Operator Lifecycle Manager (OLM)](Content/Install_without_OLM.md)
+    - [Manual installation on Kubernetes from scratch with `kubectl`](Content/Install_from_scratch.md)
     - [Offline installation](Content/Install_offline.md)
 - [Configuration](Content/Configuration.md)
     - [Configuring ingress](Content/Configuration.md#configuring-ingress)
@@ -72,7 +72,6 @@ For more information, see the following resources:
     - [Tracking license usage in multicluster environment](Content/Retrieving_data.md#tracking-license-usage-in-multicluster-environment)
 - [Uninstalling License Service from a Kubernetes cluster](Content/Uninstalling.md)
 - [Backup and upgrade](Content/Backup_and_upgrade.md)
-    - [Upgrading to License service 1.4.x from an earlier version](Content/Upgrading_to_14x.md)
 - [Troubleshooting](Content/Troubleshooting.md)
     - [Verifying completeness of license usage data](Content/Troubleshooting.md#verifying-completeness-of-license-usage-data)
     - [License Service pods are crashing and License Service cannot run](Content/Troubleshooting.md#license-service-pods-are-crashing-and-license-service-cannot-run)

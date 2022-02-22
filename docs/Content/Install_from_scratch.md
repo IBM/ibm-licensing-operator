@@ -3,18 +3,19 @@
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+- [Verification](#verification)
 
 ## Prerequisites
 
 - Administrator permissions for the cluster
-- `kubectl` 1.16 or higher
+- `kubectl` 1.19 or higher
 - Linux or iOS
 
-Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources and cluster permissions.
+Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources, and cluster permissions.
 
 ## Installation
 
-This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter, which is not available without an IBM Cloud Pak on OpenShift Container Platform.
 
   **Note:** To install License Service on Windows, adjust the commands to fit the Windows standard.
 
@@ -34,38 +35,23 @@ b. Check if you have OLM installed. For example, run the following command.
 kubectl get crd clusterserviceversions.operators.coreos.com
 ```
 
-- If you get the following response, OLM might be installed.
+- If you get the following response, OLM is installed.
 
   ```{: .text .no-copy }
   NAME                                          CREATED AT
   clusterserviceversions.operators.coreos.com   2020-06-04T14:42:13Z
   ```
 
-  To make sure that OLM is installed, verify the `csv` with the following command:
-
-  ```bash
-  kubectl get csv --all-namespaces
-  ```
-
-  If you get the following response, OLM is installed and you can go to step 2:
-
-  ```{: .text .no-copy }
-  NAMESPACE               NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
-  olm                   packageserver                   Package Server           0.18.1                                    Succeeded
-  ```
-
-  **Note:** If you get `No resources found` in response that means that you do not have OLM installed. Continue with step 1c.
-
 - If you get the following response, OLM CRD is not installed. Continue with step 1c.
 
   `Error from server (NotFound): customresourcedefinitions.apiextensions.k8s.io "clusterserviceversions.operators.coreos.com" not found`
 
-c.  If you do not have OLM, download it from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases). Use following script to download and install OLM v13.0
+c.  If OLM is not installed, download it from [the OLM GitHub repository](https://github.com/operator-framework/operator-lifecycle-manager/releases). Use following script to download and install OLM v0.16.1
 
-**Note:** For versions newer than 13.0, the process might differ.
+**Note:** For versions newer than 0.16.1, the process might differ.
 
 ```bash
-olm_version=0.13.0
+olm_version=0.16.1
 curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/${olm_version}/install.sh | bash -s ${olm_version}
 ```
 
@@ -73,9 +59,7 @@ curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releas
 
 2\. **Create the CatalogSource**
 
-a. Make sure that GLOBAL_CATALOG_NAMESPACE has the global catalog namespace value and create `CatalogSource` to get operator bundles from `quay.io`.
-
-b. In order to get GLOBAL_CATALOG_NAMESPACE, check your `global catalog namespace` at OLM `packageserver` pod yaml somewhere in your cluster. For example, you can use this command:
+a. To get GLOBAL_CATALOG_NAMESPACE, check `global catalog namespace` in a yaml in a `packageserver` OLM pod that is somewhere in your cluster. You can, for example, use the following command:
 
 ```bash
 olm_namespace=$(kubectl get csv --all-namespaces -l olm.version -o jsonpath="{.items[?(@.metadata.name=='packageserver')].metadata.namespace}")
@@ -84,7 +68,16 @@ GLOBAL_CATALOG_NAMESPACE=$(kubectl get deployment --namespace="${olm_namespace}"
 echo ${GLOBAL_CATALOG_NAMESPACE}
 ```
 
-c. When you have the `global catalog namespace` set, you can create the CatalogSource by using the following command:
+If you get an empty response to the `echo` command, you can get global catalog namespace using the following command.
+
+**Note:** The following method should only be used for getting global catalog namespace if the previous method failed.
+
+```bash
+GLOBAL_CATALOG_NAMESPACE=$(kubectl get pod --all-namespaces -l app=olm-operator -o jsonpath="{.items[0].metadata.namespace}")
+echo ${GLOBAL_CATALOG_NAMESPACE}
+```
+
+b. Create the `CatalogSource` by using the following command:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -105,11 +98,13 @@ EOF
 ```
 
 <b>Check the results</b>
-- Check if a `CatalogSource` is created in the `$GLOBAL_CATALOG_NAMESPACE` namespace:
+- Run the following command to check if the `CatalogSource` is created in the `$GLOBAL_CATALOG_NAMESPACE` namespace:
 
 ```console
-$ kubectl get catalogsource -n $GLOBAL_CATALOG_NAMESPACE
+kubectl get catalogsource -n $GLOBAL_CATALOG_NAMESPACE
 ```
+
+The following is the sample output:
 
 ```{: .text .no-copy }
 NAME                           DISPLAY                        TYPE   PUBLISHER   AGE
@@ -117,16 +112,17 @@ opencloud-operators            IBMCS Operators                grpc   IBM        
 [...]
 ```
 
-- If everything goes well, you should see the following pods:
+- If everything goes well, you should see similar pod running. Run the following command to check if the pod is running:
 
 ```console
-$ kubectl get pod -n $GLOBAL_CATALOG_NAMESPACE
+kubectl get pod -n $GLOBAL_CATALOG_NAMESPACE
 ```
+
+The following is the sample output:
 
 ```{: .text .no-copy }
 NAME                                            READY   STATUS    RESTARTS   AGE
 opencloud-operators-66df4d97ff-4rhjj            1/1     Running   0          80s
-upstream-community-operators-7ffb6b674b-7qlvx   1/1     Running   0          80s
 [...]
 ```
 
@@ -147,14 +143,14 @@ b. Check if you have tha operator group in that namespace by running the followi
 kubectl get OperatorGroup -n ibm-common-services
 ```
 
-- If you get the following response, the operator group is found and you can go to step 4. Create a Subscription.
+- If you get the following response, the operator group was found, and you can go to step 4. Create a Subscription.
 
 ```{: .text .no-copy }
 NAME            AGE
 operatorgroup   39d
 ```
 
-- If you get the following result, the operator group is not found and you need to create it.
+- If you get the following response, the operator group was not found, and you need to create it.
 
 ```{: .text .no-copy }
 No resources found.
@@ -179,7 +175,7 @@ EOF
 4\. **Create a Subscription**
 A subscription is created for the operator and is responsible for upgrades of IBM Licensing Operator when needed.
 
-a. Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value.
+a. Make sure that the `GLOBAL_CATALOG_NAMESPACE` variable has the global catalog namespace value. The global catalog namespace was retrieved in step 2a.
 
 b. Create the **Subscription** using the following command:
 
@@ -200,11 +196,13 @@ EOF
 
 5\. **Verify Operator health**
 
-a. See if the IBM Licensing Operator is deployed by OLM from the `CatalogSource` with the following command.
+a. To check whether the IBM Licensing Operator is deployed by OLM from the `CatalogSource`, run the following command.
 
 ```console
-$ kubectl get clusterserviceversion -n ibm-common-services
+kubectl get clusterserviceversion -n ibm-common-services
 ```
+
+The following is the sample output:
 
 ```{: .text .no-copy }
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
@@ -230,7 +228,7 @@ Create an IBM Licensing instance.
 
 **Important:** The minimal setup requires applying this IBMLicensing instance. However, before applying the instance, get familiar with the entire configuration process.
 
-To create the the IBM Licensing instance, run the following command:
+To create the IBM Licensing instance, run the following command:
 
 ```yaml
 cat <<EOF | kubectl apply -f -
@@ -246,7 +244,11 @@ spec:
 EOF
 ```
 
-**Results:** Installation is complete and **License Service** is running in your cluster. To check if License Service components are properly installed, and perform extra configuration, see [Configuration](Configuration.md).
+**Results:** Installation is complete and **License Service** is running in your cluster.
+
+## Verification
+
+To check whether License Service components are properly installed and running, see [Checking License Service components](Configuration.md#checking-license-service-components).
 
 <b>Related links</b>
 
