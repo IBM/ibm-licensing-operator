@@ -6,11 +6,11 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
-    containerImage: quay.io/opencloudio/ibm-licensing-operator:1.13.0
+    containerImage: quay.io/opencloudio/ibm-licensing-operator:1.12.0
     createdAt: "2020-06-22T10:22:31Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to
       monitor the licensing usage of products.
-    olm.skipRange: '>=1.0.0 <1.13.0'
+    olm.skipRange: '>=1.0.0 <1.12.0'
     operators.operatorframework.io/builder: operator-sdk-v1.2.0
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com"]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
@@ -306,16 +306,16 @@ spec:
   provider:
     name: IBM
   relatedImages:
-  - image: quay.io/opencloudio/ibm-licensing-operator:1.13.0
+  - image: quay.io/opencloudio/ibm-licensing-operator:1.12.0
     name: IBM_LICENSING_OPERATOR_IMAGE
-  - image: quay.io/opencloudio/ibm-licensing:1.13.0
+  - image: quay.io/opencloudio/ibm-licensing:1.12.0
     name: IBM_LICENSING_IMAGE
-  - image: quay.io/opencloudio/ibm-license-service-reporter-ui:1.13.0
+  - image: quay.io/opencloudio/ibm-license-service-reporter-ui:1.12.0
     name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-  - image: quay.io/opencloudio/ibm-postgresql:1.13.0
+  - image: quay.io/opencloudio/ibm-postgresql:1.12.0
     name: IBM_POSTGRESQL_IMAGE
-  - image: quay.io/opencloudio/ibm-license-service-reporter:1.13.0
+  - image: quay.io/opencloudio/ibm-license-service-reporter:1.12.0
     name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-  - image: quay.io/opencloudio/ibm-licensing-usage:1.13.0
+  - image: quay.io/opencloudio/ibm-licensing-usage:1.12.0
     name: IBM_LICENSING_USAGE_IMAGE
   version: 0.0.0

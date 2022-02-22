@@ -13,19 +13,26 @@ Nonetheless, it is a good practice to generate an audit snapshot periodically fo
 
 ## Upgrade
 
-* For online environments, License Service is automatically upgraded with each new operator release.
-* For online environments, to upgrade to License Service version 1.4.x from an earlier version, you must manually update the subscription channel. For more information, see [Updating the subscription channels](#updating-the-subscription-channel).
-* For online environments, to upgrade from License Service version earlier than 1.11.0 to the latest version, you must manually update the `CatalogSource` location. For more information, see [Updating the CatalogSource image](#updating-thecatalogsource-image).
-* For online environments, to upgrade from License Service version 1.3.x or earlier, to the latest version first update the subscription channel, and next update the `CatalogSource`. For more information, see [Updating the subscription channels](#updating-the-subscription-channel) and [Updating the CatalogSource image](#updating-thecatalogsource-image).
-* For offline environments, to upgrade License Service to a new version, first uninstall License Service from the cluster and redeploy it.
+|Environment |Current version|Upgrading to the latest version|
+|---|---|---|
+| Online| 1.3.x or earlier |1. [Update subscription channel.](#updating-the-subscription-channel)<br> 2. [Update the location of the CatalogSource.](#updating-the-location-of-the-catalogsource)|
+| Online| 1.4.x - 1.10.x |[Update the location of the CatalogSource.](#updating-the-location-of-the-catalogsource)|
+| Online| 1.11.x or later| License Service is automatically upgraded with each new operator release.|
+| Offline| Any | Uninstall License Service from the cluster and redeploy it.|
 
-    **Note:** The license usage data is stored in the persistent cluster memory and should not be affected by reinstallation of License Service. However, it is a good practice to create an audit snapshot before reinstalling License Service as a precaution.
+**Note:** The license usage data is stored in the persistent cluster memory and should not be affected by reinstallation of License Service. However, it is a good practice to create an audit snapshot before reinstalling License Service as a precaution.
+
+### Checking your current version
+
+To check your current version of License Service, run the following command:
+
+```console
+kubectl get clusterserviceversion -n ibm-common-services
+```
 
 ### Updating the subscription channel
 
-Learn how to upgrade to License Service version 1.4.x from an earlier version.
-
-To upgrade to License Service 1.4.x, you must manually update the subscription channel. Complete the following actions to complete the upgrade.
+If you are upgrading from version 1.3.x or earlier, you must update the subscription channel first. Complete the following actions.
 
 1\. Log in to your cluster.
 
@@ -47,11 +54,11 @@ csv_name=$(kubectl get subscription -n "${licensingNamespace}" ibm-licensing-ope
 kubectl get csv -n "${licensingNamespace}" "${csv_name}" -o jsonpath='{.status.phase}'
 ```
 
-After you update the subscription channel, License Service is automatically upgraded to version 1.4.x.
+4\. Update the location of the `CatalogSource` to complete the upgrade. For more information, see [Updating the location of the CatalogSource](#updating-the-location-of-the-catalogsource).
 
-### Updating the CatalogSource image
+### Updating the location of the CatalogSource
 
-Learn how to upgrade from License Service version 1.10.x to the latest version.
+If you are upgrading from version 1.10.x or earlier, you must update the location of the `CatalogSource`.
 
 Starting from November 2021, IBM no longer publishes the catalog image updates to `docker.io` which was used by default in IBM License Service installation scripts and procedures that depended on `CatalogSource`.
 If you installed IBM License Service before December 2021, you must perform manual steps to update `CatalogSource` image and upgrade License Service version.
@@ -81,6 +88,8 @@ kubectl get csv -n "${licensingNamespace}" "${csv_name}" -o jsonpath='{.status.p
 ```
 
 After you update the `CatalogSource` image, License Service is automatically upgraded to the latest version. In the future, updates will be automatic.
+
+4\. To make sure that the upgrade was successful, check your current version of License Service. For more information, see [Checking your current version](#chcking-your-current-version).
 
 <b>Related links</b>
 
