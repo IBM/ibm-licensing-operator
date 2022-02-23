@@ -1,0 +1,13 @@
+apiVersion: operator.ibm.com/v1
+kind: IBMLicensingDefinition
+metadata:
+  name: ibmlicensingdefinition-sample
+spec:
+  action: modifyOriginal
+  condition:
+    metadata:
+      annotations:
+        someKey: someValue
+  scope: cluster
+  set:
+    someKey: someValue
