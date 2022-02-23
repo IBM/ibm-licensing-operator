@@ -5,6 +5,7 @@ You can use an automatic script to install License Service on the cluster, and a
 
 - [Supported configurations](#supported-configurations)
 - [Installation](#installation)
+- [Verification](#verification)
 
 ## Supported configurations
 
@@ -13,13 +14,13 @@ The script is supported on the following platforms:
 - Linux x86 architecture with or without Operator Lifecycle Manager (OLM)
 - Any other cluster that already has Operator Lifecycle Manager (OLM) installed
 
-Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources and cluster permissions.
+Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources, and cluster permissions.
 
 ## Installation
 
-The script installs License Service, creates an instance and validates the installation steps.
+The script installs License Service, creates an instance, and validates the installation steps.
 
-This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter, which is not available without an IBM Cloud Pak on Red Hat OpenShift Container Platform.
 
 1\. Download the script from the following location in the repository:
 [common/scripts/ibm_licensing_operator_install.sh](/common/scripts/ibm_licensing_operator_install.sh).
@@ -27,7 +28,11 @@ This procedure guides you through the installation of License Service. It does n
 2\. Run the script.
 
 **Results:**
-Installation is complete and **License Service** is running in your cluster. To check if License Service components are properly installed, and perform extra configuration, see [Configuration](Configuration.md).
+Installation is complete and **License Service** is running in your cluster.
+
+## Verification
+
+To check whether License Service components are properly installed and running, see [Checking License Service components](Configuration.md#checking-license-service-components).
 
 <b>Related links</b>
 
