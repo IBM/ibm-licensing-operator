@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
+    controller-gen.kubebuilder.io/version: v0.7.0
   creationTimestamp: null
   name: ibmlicensingdefinitions.operator.ibm.com
 spec:
@@ -19,7 +19,7 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: IBMLicensingMetadata is the schema for IBM License Service.
+        description: IBMLicensingDefinition is the schema for IBM License Service.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation

@@ -53,9 +53,9 @@ type IBMLicensingDefinitionStatus struct {
 
 //+kubebuilder:object:root=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// IBMLicensingMetadata is the schema for IBM License Service.
+// IBMLicensingDefinition is the schema for IBM License Service.
 // +operator-sdk:csv:customresourcedefinitions:displayName="IBM Licensing Definition"
-// +kubebuilder:resource:path=ibmlicensingmetadatas,scope=Namespaced
+// +kubebuilder:resource:path=ibmlicensingdefinitions,scope=Namespaced
 // +kubebuilder:subresource:status
 type IBMLicensingDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
