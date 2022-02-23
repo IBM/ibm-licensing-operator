@@ -196,7 +196,7 @@ handle_operator_group(){
     log "Error: Failed to get OperatorGroup at namespace $INSTALL_NAMESPACE"
     exit 26
   fi
-  if ! number_of_operatorgroups_in_install_namespace=$(log "${operatorgroups_in_install_namespace}" | wc -w); then
+  if ! number_of_operatorgroups_in_install_namespace=$(echo "${operatorgroups_in_install_namespace}" | wc -w); then
     log "Error: Failed to get number of OperatorGroups at namespace $INSTALL_NAMESPACE using 'wc -w' command"
     exit 27
   fi
