@@ -1,5 +1,5 @@
 //
-// Copyright 2021 IBM Corporation
+// Copyright 2022 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -174,7 +174,12 @@ type IBMLicensingSecurityContext struct {
 // IBMLicensingStatus defines the observed state of IBMLicensing
 type IBMLicensingStatus struct {
 	// The status of IBM License Service Pods.
-	LicensingPods []corev1.PodStatus `json:"licensingPods"`
+	LicensingPods []corev1.PodStatus         `json:"licensingPods,omitempty"`
+	Features      IBMLicensingFeaturesStatus `json:"features,omitempty"`
+}
+
+type IBMLicensingFeaturesStatus struct {
+	RHMPEnabled *bool `json:"rhmpEnabled,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -1,4 +1,4 @@
-# Manual installation without the Operator Lifecycle Manager (OLM)
+# Manual installation without Operator Lifecycle Manager (OLM)
 
 Learn how to install License Service without the Operator Lifecycle Manager (OLM).
 
@@ -7,6 +7,7 @@ Complete the following procedure to install License Service on a system that doe
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+- [Verification](#verification)
 
 ## Prerequisites
 
@@ -15,6 +16,8 @@ Complete the following procedure to install License Service on a system that doe
     - Has Docker and Kubernetes CLI installed.
     - Has internet access.
     - Has access to your cluster via Kubernetes config.
+
+Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources and cluster permissions.
 
 ## Installation
 
@@ -45,7 +48,7 @@ oc project ${licensing_namespace}
 3\. Use `git clone`.
 
 ```bash
-export operator_release_version=v1.8.0
+export operator_release_version=v1.13.0
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
@@ -75,6 +78,7 @@ fi
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingmetadatas.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingdefinitions.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
 kubectl apply -f config/rbac/role_operands.yaml
@@ -124,6 +128,10 @@ EOF
 **Results:**
 Give operator couple minutes to configure all needed components.
 Installation is complete and **License Service** is running in your cluster.
+
+## Verification
+
+To check whether License Service components are properly installed and running, see [Checking License Service components](Configuration.md#checking-license-service-components).
 
 <b>Related links</b>
 

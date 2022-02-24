@@ -1,5 +1,5 @@
 //
-// Copyright 2021 IBM Corporation
+// Copyright 2022 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	goruntime "runtime"
 	"time"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -103,6 +104,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 
 	reqLogger := r.Log.WithValues("ibmlicensing", req.NamespacedName)
 	reqLogger.Info("Reconciling IBMLicensing")
+	goruntime.GC()
 
 	if err := res.UpdateCacheClusterExtensions(r.Reader); err != nil {
 		reqLogger.Error(err, "Error during checking K8s API")
@@ -130,7 +132,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		reqLogger.Error(err, "Can not update version in CR")
 	}
 
-	err = instance.Spec.FillDefaultValues(res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled, r.OperatorNamespace)
+	err = instance.Spec.FillDefaultValues(reqLogger, res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled, r.OperatorNamespace)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -194,9 +196,21 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 		podStatuses = append(podStatuses, pod.Status)
 	}
 
-	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) {
+	var featuresStatuses operatorv1alpha1.IBMLicensingFeaturesStatus
+
+	var rhmpEnabled bool
+	if instance.Spec.RHMPEnabled == nil {
+		rhmpEnabled = res.RHMPEnabled
+	} else {
+		rhmpEnabled = *instance.Spec.RHMPEnabled
+	}
+
+	featuresStatuses.RHMPEnabled = &rhmpEnabled
+
+	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) || !reflect.DeepEqual(featuresStatuses, instance.Status.Features) {
 		reqLogger.Info("Updating IBMLicensing status")
 		instance.Status.LicensingPods = podStatuses
+		instance.Status.Features = featuresStatuses
 		err := r.Client.Status().Update(context.TODO(), instance)
 		if err != nil {
 			reqLogger.Info("Failed to update pod status, this does not affect License Service")

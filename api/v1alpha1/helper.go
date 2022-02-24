@@ -1,5 +1,5 @@
 //
-// Copyright 2021 IBM Corporation
+// Copyright 2022 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ func (spec *IBMLicenseServiceBaseSpec) IsVerbose() bool {
 	return spec.LogLevel == "VERBOSE"
 }
 
-func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool,
+func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool,
 	operatorNamespace string) error {
 	if spec.InstanceNamespace == "" {
 		spec.InstanceNamespace = operatorNamespace
@@ -139,6 +139,11 @@ func (spec *IBMLicensingSpec) FillDefaultValues(isOCP4CertManager bool, isRouteE
 	}
 	if spec.RHMPEnabled == nil {
 		spec.RHMPEnabled = &rhmpEnabled
+		if rhmpEnabled {
+			reqLogger.Info("RHMP reporting enabled automatically")
+		} else {
+			reqLogger.Info("RHMP wasn't detected")
+		}
 	}
 	if spec.APISecretToken == "" {
 		spec.APISecretToken = defaultLicensingTokenSecretName

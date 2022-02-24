@@ -15,7 +15,7 @@ metadata:
           "name": "instance"
         },
         "spec": {
-          "version": "1.12.0",
+          "version": "1.13.0",
           "apiSecretToken": "ibm-licensing-token",
           "datasource": "datacollector",
           "httpsEnable": true
@@ -32,7 +32,7 @@ metadata:
           "name": "instance"
         },
         "spec": {
-          "version": "1.12.0"
+          "version": "1.13.0"
         }
       },{
         "apiVersion": "operator.ibm.com/v1alpha1",
@@ -71,12 +71,12 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
-    containerImage: quay.io/opencloudio/ibm-licensing-operator:1.12.0
+    containerImage: quay.io/opencloudio/ibm-licensing-operator:1.13.0
     createdAt: "2020-06-22T10:22:31Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the licensing usage of products.
-    olm.skipRange: '>=1.0.0 <1.12.0'
-    operators.operatorframework.io/builder: operator-sdk-v1.11.0
-    operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com"]'
+    olm.skipRange: '>=1.0.0 <1.13.0'
+    operators.operatorframework.io/builder: operator-sdk-v1.17.0
+    operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com", "ibmlicensingdefinitions.operator.ibm.com"]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
@@ -86,7 +86,7 @@ metadata:
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: ibm-licensing-operator.v1.12.0
+  name: ibm-licensing-operator.v1.13.0
   namespace: ibm-common-services
 spec:
   apiservicedefinitions: {}
@@ -153,7 +153,7 @@ spec:
             displayName: Chargeback Enabled
             path: chargebackEnabled
             x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
+              - urn:alm:descriptor:com.tectonic.ui:checkbox
           - description: Chargeback data retention period in days. Default value is 62 days.
             displayName: Chargeback Retention Period in days
             path: chargebackRetentionPeriod
@@ -178,7 +178,7 @@ spec:
             displayName: HTTPS Enable
             path: httpsEnable
             x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
+              - urn:alm:descriptor:com.tectonic.ui:checkbox
           - description: Should Ingress be created to expose IBM Licensing Service API?
             displayName: Ingress Enabled
             path: ingressEnabled
@@ -218,12 +218,12 @@ spec:
             displayName: RHMP Enabled
             path: rhmpEnabled
             x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
+              - urn:alm:descriptor:com.tectonic.ui:hidden
           - description: Should Route be created to expose IBM Licensing Service API? (only on OpenShift cluster)
             displayName: Route Enabled
             path: routeEnabled
             x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
+              - urn:alm:descriptor:com.tectonic.ui:checkbox
           - description: If default SCC user ID fails, you can set runAsUser option to fix that
             displayName: Security Context
             path: securityContext
@@ -276,6 +276,9 @@ spec:
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:hidden
         version: v1alpha1
+      - kind: IBMLicensingDefinition
+        name: ibmlicensingdefinitions.operator.ibm.com
+        version: v1
       - description: 'IBMLicensingMetadata is the schema for IBM License Service. Thanks to IBMLicensingMetadata, you can track the license usage of Virtual Processor Core (VPC) metric by Pods that are managed by automation, for which licensing annotations are not defined at the time of deployment, such as the open source OpenLiberty. / For more information, see documentation: https://ibm.biz/icpfs39install. License: By installing this product you accept the license terms. For more information about the license, see https://ibm.biz/icpfs39license.'
         displayName: IBMLicensing Metadata
         kind: IBMLicensingMetadata
@@ -346,6 +349,7 @@ spec:
                 - operator.ibm.com
               resources:
                 - ibmlicensingmetadatas
+                - ibmlicensingdefinitions
               verbs:
                 - get
                 - list
@@ -375,6 +379,7 @@ spec:
                 - operator.ibm.com
               resources:
                 - ibmlicensingmetadatas
+                - ibmlicensingdefinitions
               verbs:
                 - get
                 - list
@@ -438,15 +443,15 @@ spec:
                       - ibm-licensing-operator
                     env:
                       - name: IBM_LICENSING_IMAGE
-                        value: quay.io/opencloudio/ibm-licensing:1.12.0
+                        value: quay.io/opencloudio/ibm-licensing:1.13.0
                       - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.12.0
+                        value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.13.0
                       - name: IBM_POSTGRESQL_IMAGE
-                        value: quay.io/opencloudio/ibm-postgresql:1.12.0
+                        value: quay.io/opencloudio/ibm-postgresql:1.13.0
                       - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-                        value: quay.io/opencloudio/ibm-license-service-reporter:1.12.0
+                        value: quay.io/opencloudio/ibm-license-service-reporter:1.13.0
                       - name: IBM_LICENSING_USAGE_IMAGE
-                        value: quay.io/opencloudio/ibm-licensing-usage:1.12.0
+                        value: quay.io/opencloudio/ibm-licensing-usage:1.13.0
                       - name: WATCH_NAMESPACE
                         valueFrom:
                           fieldRef:
@@ -461,7 +466,7 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: spec.serviceAccountName
-                    image: quay.io/opencloudio/ibm-licensing-operator:1.12.0
+                    image: quay.io/opencloudio/ibm-licensing-operator:1.13.0
                     imagePullPolicy: Always
                     name: ibm-licensing-operator
                     resources:
@@ -698,17 +703,17 @@ spec:
   provider:
     name: IBM
   relatedImages:
-    - image: quay.io/opencloudio/ibm-licensing-operator:1.12.0
+    - image: quay.io/opencloudio/ibm-licensing-operator:1.13.0
       name: IBM_LICENSING_OPERATOR_IMAGE
-    - image: quay.io/opencloudio/ibm-licensing:1.12.0
+    - image: quay.io/opencloudio/ibm-licensing:1.13.0
       name: IBM_LICENSING_IMAGE
-    - image: quay.io/opencloudio/ibm-license-service-reporter-ui:1.12.0
+    - image: quay.io/opencloudio/ibm-license-service-reporter-ui:1.13.0
       name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-    - image: quay.io/opencloudio/ibm-postgresql:1.12.0
+    - image: quay.io/opencloudio/ibm-postgresql:1.13.0
       name: IBM_POSTGRESQL_IMAGE
-    - image: quay.io/opencloudio/ibm-license-service-reporter:1.12.0
+    - image: quay.io/opencloudio/ibm-license-service-reporter:1.13.0
       name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-    - image: quay.io/opencloudio/ibm-licensing-usage:1.12.0
+    - image: quay.io/opencloudio/ibm-licensing-usage:1.13.0
       name: IBM_LICENSING_USAGE_IMAGE
-  version: 1.12.0
-  replaces: ibm-licensing-operator.v1.11.0
+  version: 1.13.0
+  replaces: ibm-licensing-operator.v1.12.0

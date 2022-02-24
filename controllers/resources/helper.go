@@ -1,5 +1,5 @@
 //
-// Copyright 2021 IBM Corporation
+// Copyright 2022 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import (
 	"os"
 	"reflect"
 	"time"
+
+	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 
 	networkingv1 "k8s.io/api/networking/v1"
 
@@ -329,6 +331,13 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 
 	listOpts := []c.ListOption{
 		c.InNamespace(namespace),
+	}
+
+	MeterDefinitionCRD := &rhmp.MeterDefinition{}
+	if err := client.List(context.TODO(), MeterDefinitionCRD, listOpts...); err == nil {
+		RHMPEnabled = true
+	} else {
+		RHMPEnabled = false
 	}
 
 	routeTestInstance := &routev1.Route{}

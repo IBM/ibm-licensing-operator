@@ -12,7 +12,7 @@ After you install License Service, you can configure License Service if needed.
 
 ## Configuring ingress
 
-You might want to configure ingress. Here is an <b>example</b> of how you can do it:
+You can configure ingress, for example, by completing the following steps:
 
 1\. Get the nginx ingress controller. You might get it, for example, from here: [https://kubernetes.github.io/ingress-nginx/deploy](https://kubernetes.github.io/ingress-nginx/deploy).
 
@@ -91,6 +91,31 @@ To retrieve your host, run the following command in IBM Cloud CLI:
 ibmcloud ks cluster get --cluster <cluster_name_or_id> | grep Ingress
 ```
 
+- Amazon Elastic Kubernetes Service (EKS)
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+  apiSecretToken: ibm-licensing-token
+  datasource: datacollector
+  httpsEnable: false
+  instanceNamespace: ibm-common-services
+  ingressEnabled: true
+  ingressOptions:
+    annotations:
+      "kubernetes.io/ingress.class": nginx
+      "nginx.ingress.kubernetes.io/rewrite-target": "/\$2"
+    path: /ibm-licensing-service-instance(/|$)(.*)
+    host: <your_host>
+EOF
+```
+
+To retrieve your host, please consult EKS documentation.
+
 For more information, see [Setting up Kubernetes Ingress](https://cloud.ibm.com/docs/containers?topic=containers-ingress-types) in IBM Cloud Docs.
 
 **Note:** For HTTPS, set `spec.httpsEnable` to `true`, and edit `ingressOptions`. Read more about the options here:
@@ -100,7 +125,7 @@ For more information, see [Setting up Kubernetes Ingress](https://cloud.ibm.com/
 
 ## Checking License Service components
 
-After you install **IBM License Service**, complete the following steps to check whether it works:
+After you install **IBM License Service**, complete the following steps to check whether License Service works properly:
 
 1\. To check if the pod is running, by running the following commands:
 
@@ -110,13 +135,15 @@ kubectl logs $podName -n ibm-common-services
 kubectl describe pod $podName -n ibm-common-services
 ```
 
-2\. Check Route or Ingress settings depending on your parameter settings, for example, using these commands.
+2\. Check Route or Ingress settings depending on your parameter settings, for example, using these commands:
 
 ```bash
 kubectl get ingress -n ibm-common-services -o yaml
 ```
 
 Then examine the status part of the output. It should include host, path, tls (if configured), and other networking information.
+
+3\. Run the License Service APIs, and make sure that you get results that reflect your environment's license usage. For more information, see [APIs for retrieving License Service data in IBM Documentation](https://www.ibm.com/docs/en/cpfs?topic=data-per-cluster-from-license-service).
 
 ## Using custom certificates
 
@@ -224,6 +251,8 @@ kubectl delete OperatorSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMES
 ## Modifying the application deployment resources
 
 You can modify the resources that are requested and limited by the Deployment for Application by editing the IBMLicensing instance.
+
+To learn what resources are required for License Service in your environment, see [Preparing for installation: Required resources](Preparing_for_installation.md#required-resources).
 
 1\. To modify the IBMLicensing instance, run the following command:
 

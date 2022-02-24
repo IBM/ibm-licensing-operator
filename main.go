@@ -1,5 +1,5 @@
 //
-// Copyright 2021 IBM Corporation
+// Copyright 2022 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,23 +23,28 @@ import (
 	"os"
 	r "runtime"
 
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	operatoribmcomv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
+	"github.com/ibm/ibm-licensing-operator/controllers"
 	"github.com/ibm/ibm-licensing-operator/version"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	operatoribmcomv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	"github.com/ibm/ibm-licensing-operator/controllers"
-	networkingv1 "k8s.io/api/networking/v1"
-
+	cache "github.com/IBM/controller-filtered-cache/filteredcache"
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
+
+	operatorv1 "github.com/ibm/ibm-licensing-operator/api/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -82,6 +87,8 @@ func init() {
 	utilruntime.Must(meterdefv1beta1.AddToScheme(scheme))
 
 	utilruntime.Must(odlm.AddToScheme(scheme))
+
+	utilruntime.Must(operatorv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -118,6 +125,18 @@ func main() {
 			"the manager will watch and manage resources in all namespaces")
 	}
 
+	gvkLabelMap := map[schema.GroupVersionKind]cache.Selector{
+		corev1.SchemeGroupVersion.WithKind("Secret"): {
+			LabelSelector: "release in (ibm-license-service-reporter, ibm-licensing-service)",
+		},
+		appsv1.SchemeGroupVersion.WithKind("Deployment"): {
+			LabelSelector: "release in (ibm-license-service-reporter, ibm-licensing-service)",
+		},
+		corev1.SchemeGroupVersion.WithKind("Pod"): {
+			LabelSelector: "release in (ibm-license-service-reporter, ibm-licensing-service)",
+		},
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
@@ -125,6 +144,7 @@ func main() {
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "e1f51baf.ibm.com",
 		Namespace:          watchNamespace,
+		NewCache:           cache.NewFilteredCacheBuilder(gvkLabelMap),
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

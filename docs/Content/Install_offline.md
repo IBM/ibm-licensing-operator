@@ -3,29 +3,32 @@
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+- [Verification](#verification)
 
 ## Prerequisites
 
 - A private Docker image registry where you can push the images using `Docker` and from where your cluster can pull images. For more information, see [Docker registry in Docker product documentation](https://docs.docker.com/registry/).
 - Complete the offline installation on a host that meets the following criteria:
-    - Has Linux or macOS operating system (or Windows with Linux Bash Shell for example from WSL).
+    - Has Linux or macOS operating system (or Windows with Linux Bash Shell, for example, from WSL).
     - Has Docker and Kubernetes CLI installed.
     - Has internet access.
     - Has access to your offline cluster via Kubernetes config.
 
+Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources, and cluster permissions.
+
 ## Installation
 
-This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter which is not available without an IBM Cloud Pak on OpenShift Container Platform.
+This procedure guides you through the installation of License Service. It does not cover the installation of License Service Reporter, which is not available without an IBM Cloud Pak on OpenShift Container Platform.
 
 1\. Clone the repository by using `git clone`. Run the following command:
 
 ```bash
-export operator_release_version=v1.8.0
+export operator_release_version=v1.13.0
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
 
-**Note:** If you cannot use `git clone`, just download the sources, unzip, and enter ibm-licensing-operator directory. [Sources](https://github.com/IBM/ibm-licensing-operator/archive/refs/heads/release-1.8.zip)
+**Note:** If you cannot use `git clone`, download the sources, extract, and enter ibm-licensing-operator directory. [Sources](https://github.com/IBM/ibm-licensing-operator/archive/refs/heads/release-1.13.zip)
 
 2\. Prepare Docker images.
 
@@ -87,6 +90,7 @@ kubectl create namespace ${licensing_namespace}
 ```
 
 c. If your cluster needs the access token to your private Docker registry, create the secret in the dedicated installation namespace:
+
 - For **LINUX** users:
 
 ```bash
@@ -122,6 +126,7 @@ fi
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingmetadatas.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingdefinitions.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
 kubectl apply -f config/rbac/role_operands.yaml
@@ -144,6 +149,7 @@ fi
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingmetadatas.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingdefinitions.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
 kubectl apply -f config/rbac/role_operands.yaml
@@ -205,6 +211,10 @@ spec:
 
 **Results:**
 Installation is complete and **License Service** is running in your cluster.
+
+## Verification
+
+To check whether License Service components are properly installed and running, see [Checking License Service components](Configuration.md#checking-license-service-components).
 
 <b>Related links</b>
 
