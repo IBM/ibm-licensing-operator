@@ -37,7 +37,7 @@ usage()
   log "[--no-secret-output | -n] - use this option to not show secret at the end of the script"
   log "[--namespace | -p] - change namespace where License Service will be installed"
   log "[--olm_version | -o] <version_number> - what version of OLM should be installed if it doesn't exist,"
-  log "by default olm_version=0.13.0"
+  log "by default olm_version=0.16.1"
   log "[--skip_olm_installation | -s] - skips installation of OLM, but olm global catalog namespace still needs to be found."
   log "[--olm_global_catalog_namespace | -c] <OLM global catalog namespace> - script will not try to find olm global catalog namespace when set."
   log "You can read more about OLM global catalog namespace here: https://github.com/operator-framework/operator-lifecycle-manager/blob/master/doc/install/install.md"
