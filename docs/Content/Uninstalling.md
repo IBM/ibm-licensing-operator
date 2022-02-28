@@ -1,6 +1,6 @@
-# Uninstalling License Service from a Kubernetes cluster
+# Uninstalling License Service
 
-Complete the following procedure to uninstall License Service from your Kubernetes cluster.
+Complete the following procedure to uninstall License Service.
 
 **Note:** The following procedure assumes that you have deployed IBM License Service in the `ibm-common-services` namespace.
 
