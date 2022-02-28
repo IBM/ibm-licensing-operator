@@ -70,7 +70,7 @@ For more information, see the following resources:
     - [Available APIs](Content/Retrieving_data.md#available-apis)
     - [Retrieving an audit snapshot](https://www.ibm.com/docs/en/cpfs?topic=service-apis-retrieving-license-data#auditSnapshot)
     - [Tracking license usage in multicluster environment](Content/Retrieving_data.md#tracking-license-usage-in-multicluster-environment)
-- [Uninstalling License Service from a Kubernetes cluster](Content/Uninstalling.md)
+- [Uninstalling License Service](Content/Uninstalling.md)
 - [Backup and upgrade](Content/Backup_and_upgrade.md)
 - [Troubleshooting](Content/Troubleshooting.md)
     - [Verifying completeness of license usage data](Content/Troubleshooting.md#verifying-completeness-of-license-usage-data)
