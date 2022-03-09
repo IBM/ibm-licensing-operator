@@ -1,4 +1,4 @@
-**IMPORTANT:** The current branch contains the operator and documentation for License Service version 1.12.x. Switch to another branch to view the content for other releases.
+**IMPORTANT:** The `master` branch contains the currently developed version of License Service and its content should not be used. Switch to another branch to view the content for the already-released version of License Service, for example `release-<version>` branch.
 
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
 
@@ -21,7 +21,7 @@ Red Hat OpenShift Container Platform 4.2 or newer installed on Linux x86_64, Lin
 
 ## Operator versions
 
-- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.2, 1.2.3, 1.3.1, 1.4.1, 1.5.0, 1.6.0, 1.7.0, 1.8.0, 1.9.0, 1.10.0, 1.11.0, 1.12.0
+- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.2, 1.2.3, 1.3.1, 1.4.1, 1.5.0, 1.6.0, 1.7.0, 1.8.0, 1.9.0, 1.10.0, 1.11.0, 1.12.0, 1.13.0
 
 ## Prerequisites
 
@@ -34,7 +34,7 @@ Before you install this operator, you need to first install the operator depende
 
 ## Documentation
 
-To install the operator with the IBM Cloud Pak foundational services Operator follow the the installation and configuration instructions within the IBM Documentation.
+To install the operator with the IBM Cloud Pak foundational services Operator follow the installation and configuration instructions within the IBM Documentation.
 
 - If you are using the operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak. For a list of IBM Cloud Paks, see [IBM Cloud Paks that use IBM Cloud Pak foundational services](http://ibm.biz/cpcs_cloudpaks).
 - If you are using the operator with an IBM Containerized Software as a part of IBM Cloud Pak foundational services, see the [Installer documentation](http://ibm.biz/cpcs_opinstall) in IBM Documentation.

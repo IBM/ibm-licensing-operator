@@ -43,6 +43,8 @@ import (
 
 	cache "github.com/IBM/controller-filtered-cache/filteredcache"
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
+
+	operatorv1 "github.com/ibm/ibm-licensing-operator/api/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -85,6 +87,8 @@ func init() {
 	utilruntime.Must(meterdefv1beta1.AddToScheme(scheme))
 
 	utilruntime.Must(odlm.AddToScheme(scheme))
+
+	utilruntime.Must(operatorv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 

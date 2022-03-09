@@ -23,12 +23,12 @@ This procedure guides you through the installation of License Service. It does n
 1\. Clone the repository by using `git clone`. Run the following command:
 
 ```bash
-export operator_release_version=v1.12.0
+export operator_release_version=v1.13.0
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
 
-**Note:** If you cannot use `git clone`, download the sources, extract, and enter ibm-licensing-operator directory. [Sources](https://github.com/IBM/ibm-licensing-operator/archive/refs/heads/release-1.12.zip)
+**Note:** If you cannot use `git clone`, download the sources, extract, and enter ibm-licensing-operator directory. [Sources](https://github.com/IBM/ibm-licensing-operator/archive/refs/heads/release-1.13.zip)
 
 2\. Prepare Docker images.
 
@@ -126,6 +126,7 @@ fi
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingmetadatas.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingdefinitions.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
 kubectl apply -f config/rbac/role_operands.yaml
@@ -148,6 +149,7 @@ fi
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingmetadatas.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingdefinitions.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
 kubectl apply -f config/rbac/role_operands.yaml

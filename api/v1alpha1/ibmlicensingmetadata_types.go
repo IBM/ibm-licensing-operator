@@ -45,6 +45,7 @@ type IBMLicensingMetadataStatus struct {
 // see https://ibm.biz/icpfs39license.
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ibmlicensingmetadatas,scope=Namespaced
+// +kubebuilder:deprecatedversion
 type IBMLicensingMetadata struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

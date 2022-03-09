@@ -48,7 +48,7 @@ oc project ${licensing_namespace}
 3\. Use `git clone`.
 
 ```bash
-export operator_release_version=v1.12.0
+export operator_release_version=v1.13.0
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
@@ -78,6 +78,7 @@ fi
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingmetadatas.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingdefinitions.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
 kubectl apply -f config/rbac/role_operands.yaml
