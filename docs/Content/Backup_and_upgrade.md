@@ -39,10 +39,9 @@ If you are upgrading from version 1.3.x or earlier, you must update the subscrip
 2\. Update the subscription channel by running the following command.
 
 ```bash
-  licensingNamespace=ibm-common-services
-  subName=ibm-licensing-operator-app
-  kubectl patch subscription ${subName} -n ${licensingNamespace} --type=merge -p '{"spec": {"channel":"v3"}}'
-  subscription.operators.coreos.com/ibm-licensing-operator-app patched
+licensingNamespace=ibm-common-services
+subName=ibm-licensing-operator-app
+kubectl patch subscription ${subName} -n ${licensingNamespace} --type=merge -p '{"spec": {"channel":"v3"}}'
 ```
 
    **Note:** If you installed License Service in a custom namespace, change the value of `licensingNamespace` from the default `ibm-common-services` to your custom namespace.
