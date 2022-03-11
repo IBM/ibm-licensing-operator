@@ -36,8 +36,8 @@ a.  Run the following command to prepare your Docker images:
 
 ```bash
 export my_docker_registry=<YOUR PRIVATE REGISTRY IMAGE PREFIX HERE; for example: "my.registry:5000" or "my.private.registry.example.com">
-export operator_version=$(git describe --tags `git rev-list --tags --max-count=1`)
-export operand_version=$(git describe --tags `git rev-list --tags --max-count=1`)
+export operator_version=$(git describe --tags `git rev-list --tags --max-count=1` | tr -d v)
+export operand_version=$(git describe --tags `git rev-list --tags --max-count=1` | tr -d v)
 ```
 
 b. Pull the required images with the following command:
