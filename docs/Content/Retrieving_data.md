@@ -1,6 +1,7 @@
 # Retrieving license usage data from the cluster
 
 - [Available APIs](#available-apis)
+- [Retrieving status page](#retrieving-status-page)
 - [Tracking license usage in multicluster environment](#tracking-license-usage-in-multicluster-environment)
 
 ## Available APIs
@@ -16,6 +17,21 @@ You can use a set of dedicated APIs to retrieve the following information:
 - Retrieving information about License Service health
 
 To learn how to use the APIs to retrieve data and generate an audit snapshot, see [APIs for retrieving License Service data in IBM Documentation](https://www.ibm.com/docs/en/cpfs?topic=data-per-cluster-from-license-service).
+
+## Retrieving status page
+
+Learn how to obtain the status page that contains the most important information about your deployments and their license usage. You can use this data for analysis or troubleshooting.
+
+This feature is available from IBM License Service version 1.4.0.
+
+The status page is an html page that summarizes the most important information about your deployments on the cluster. The status page always shows the information that are collected and valid at the moment of page retrieval.
+
+To retrieve the status page, complete the following actions:
+1. REPLACE
+2. Get the authentication token.
+3. Open the License Service URL in your browser.
+4. Select the status page.
+5. Provide your authentication token.
 
 ## Tracking license usage in multicluster environment
 
