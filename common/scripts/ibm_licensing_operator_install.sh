@@ -55,11 +55,6 @@ else
   }
 fi
 
-verify_command_line_processing(){
-  # Test code to verify command line processing
-  verbose_output_command log "olm version is ${olm_version}"
-}
-
 verify_kubectl(){
   if ! verbose_output_command kubectl version; then
     log "Error: kubectl command does not seems to work"
@@ -87,7 +82,8 @@ install_olm(){
     verbose_output_command log "Checking if CSV CRD exists"
     if ! verbose_output_command kubectl get crd clusterserviceversions.operators.coreos.com -o name; then
       log "CSV CRD does not exists, installing OLM with version ${olm_version}"
-      if ! curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/"${olm_version}"/install.sh | bash -s "${olm_version}"; then
+      set -o pipefail
+      if ! curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/"${olm_version}"/install.sh | verbose_add_date bash -s "${olm_version}"; then
         log "Error: Failed to install OLM"
         log "You can try to install OLM from here https://github.com/operator-framework/operator-lifecycle-manager/releases and continue installation while skipping OLM part"
         exit 5
@@ -106,7 +102,8 @@ install_olm(){
         log "Looking for olm operator pod namespace"
         if ! olm_global_catalog_namespace=$(kubectl get pod --all-namespaces -l app=olm-operator -o jsonpath="{.items[0].metadata.namespace}") || [ "${olm_global_catalog_namespace}" == "" ]; then
           log "Could not find olm pod in the cluster, installing olm with version ${olm_version}"
-          if ! curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/"${olm_version}"/install.sh | bash -s "${olm_version}"; then
+          set -o pipefail
+          if ! curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/"${olm_version}"/install.sh | verbose_add_date bash -s "${olm_version}"; then
             log "Error: Failed to install OLM"
             log "You can try to install OLM from here https://github.com/operator-framework/operator-lifecycle-manager/releases and continue installation while skipping OLM part"
             exit 24
@@ -173,18 +170,20 @@ EOF
     verbose_output_command log "opencloud-operators Catalog Source already exists"
   fi
   log "Waiting for opencloud Catalog Source deployment to be ready"
-  retries=50
-  until [[ $retries == 0 || $new_cs_state == "READY" ]]; do
-    new_cs_state=$(kubectl get catalogsource -n "${olm_global_catalog_namespace}" opencloud-operators -o jsonpath='{.status.connectionState.lastObservedState}' 2>/dev/null || log "Waiting for Catalog Source to appear")
+  retries=30
+  tries_left=$retries
+  retry_interval=2
+  until [[ $tries_left == 0 || $new_cs_state == "READY" ]]; do
+    new_cs_state=$(kubectl get catalogsource -n "${olm_global_catalog_namespace}" opencloud-operators -o jsonpath='{.status.connectionState.lastObservedState}' 2>/dev/null || echo "Waiting for Catalog Source to appear")
     if [[ $new_cs_state != "$cs_state" ]]; then
       cs_state=$new_cs_state
       log "opencloud Catalog Source state: $cs_state"
     fi
-    sleep 1
-    retries=$((retries - 1))
+    sleep ${retry_interval}
+    tries_left=$((tries_left - 1))
   done
-  if [ $retries == 0 ]; then
-      log "Error: CatalogSource \"opencloud-operators\" failed to reach state READY in 50 retries"
+  if [ $tries_left == 0 ]; then
+      log "Error: CatalogSource \"opencloud-operators\" failed to reach state READY in ${retries} retries with sleeps for ${retry_interval} seconds"
       exit 13
   fi
   log "opencloud Catalog Source initialized"
@@ -266,13 +265,13 @@ handle_subscription(){
       no_csv_name_in_sub_count=$((no_csv_name_in_sub_count + 1))
       if [ $no_csv_name_in_sub_count -gt 9 ]; then
         no_csv_name_in_sub_count=0
-        verbose_output_command "No CSV name in Subscription, deleting Subscription and creating it again"
+        verbose_output_command log "No CSV name in Subscription, deleting Subscription and creating it again"
         kubectl delete sub ibm-licensing-operator-app -n "${INSTALL_NAMESPACE}"
         sleep 5
         create_subscription
       fi
     else
-      new_csv_phase=$(kubectl get csv -n "${INSTALL_NAMESPACE}" "${csv_name}" -o jsonpath='{.status.phase}' 2>/dev/null || log "Waiting for CSV to appear")
+      new_csv_phase=$(kubectl get csv -n "${INSTALL_NAMESPACE}" "${csv_name}" -o jsonpath='{.status.phase}' 2>/dev/null || echo "Waiting for CSV to appear")
       if [[ $new_csv_phase != "$csv_phase" ]]; then
         csv_phase=$new_csv_phase
         log "$csv_name phase: $csv_phase"
@@ -317,7 +316,7 @@ EOF
   log "Checking IBMLicensing instance status"
   retries=36
   until [[ $retries == 0 || $new_ibmlicensing_phase == Running* ]]; do
-    new_ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null || log "Waiting for IBMLicensing pod to appear")
+    new_ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicensing pod to appear")
     if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
       ibmlicensing_phase=$new_ibmlicensing_phase
       log "IBMLicensing Pod phase: $ibmlicensing_phase"
@@ -383,6 +382,15 @@ log(){
   echo "$@"
 }
 
+verbose_add_date(){
+  if [ "$verbose" = "1" ]; then
+    set -o pipefail
+    "$@" | while read -r line; do echo "$(date -u) : $line" ; done
+  else
+    "$@"
+  fi
+}
+
 ##### Parse arguments
 
 verbose=
@@ -429,7 +437,6 @@ done
 
 ##### Main
 
-verify_command_line_processing
 verify_kubectl
 check_ls_exists
 if [ "$skip_to_instance_check" != "1" ]; then
