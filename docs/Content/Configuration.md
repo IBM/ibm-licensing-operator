@@ -32,7 +32,7 @@ spec:
   ingressEnabled: true
   ingressOptions:
     annotations:
-      "nginx.ingress.kubernetes.io/rewrite-target": "/\$2"
+      "nginx.ingress.kubernetes.io/rewrite-target": "/\$2" # <- if you copy it into yaml file, then use "/$2"
     path: /ibm-licensing-service-instance(/|$)(.*)
 EOF
 ```
@@ -64,6 +64,21 @@ EOF
 
 - IBM Cloud Kubernetes Services (IKS) on IBM Cloud
 
+First get your cluster name:
+
+```yaml
+cluster=<your iks cluster name from ibmcloud>
+```
+
+Then get the subdomain for your cluster (or just fill subdomain variable if you know your subdomain):
+
+```yaml
+ibmcloud ks cluster get --cluster $cluster
+subdomain=$(ibmcloud ks cluster get --cluster $cluster | grep "Ingress Sub" | awk '{print $3}')
+```
+
+Then apply the instance:
+
 ```yaml
 cat <<EOF | kubectl apply -f -
 apiVersion: operator.ibm.com/v1alpha1
@@ -78,17 +93,11 @@ spec:
   ingressEnabled: true
   ingressOptions:
     annotations:
-      kubernetes.io/ingress.class: "public-iks-k8s-nginx"
-      "nginx.ingress.kubernetes.io/rewrite-target": "/\$2"
+      "nginx.ingress.kubernetes.io/rewrite-target": "/\$2" # <- if you copy it into yaml file, then use "/$2"
+      "kubernetes.io/ingress.class": "public-iks-k8s-nginx"
+    host: license-service.$subdomain
     path: /ibm-licensing-service-instance(/|$)(.*)
-    host: <your_host>
 EOF
-```
-
-To retrieve your host, run the following command in IBM Cloud CLI:
-
-```bash
-ibmcloud ks cluster get --cluster <cluster_name_or_id> | grep Ingress
 ```
 
 - Amazon Elastic Kubernetes Service (EKS)
@@ -108,7 +117,7 @@ spec:
   ingressOptions:
     annotations:
       "kubernetes.io/ingress.class": nginx
-      "nginx.ingress.kubernetes.io/rewrite-target": "/\$2"
+      "nginx.ingress.kubernetes.io/rewrite-target": "/\$2" # <- if you copy it into yaml file, then use "/$2"
     path: /ibm-licensing-service-instance(/|$)(.*)
     host: <your_host>
 EOF
