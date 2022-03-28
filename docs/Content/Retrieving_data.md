@@ -27,15 +27,15 @@ This feature is available from IBM License Service version 1.4.0.
 The status page is an html page that summarizes the most important information about your deployments on the cluster. The status page always shows the information that are collected and valid at the moment of page retrieval.
 
 To retrieve the status page, complete the following actions:
-1. Obtain the License Service URL.
+1\. Obtain the License Service URL.
 
-  - For Openshift: [Obtain a License Service URL from the route](https://www.ibm.com/docs/en/cpfs?topic=pcfls-apis#ls_url)
-  - For Kubernetes: The URL depands on ingress configuration. For more information, see [Configuring ingress](Configuration.md#configuring-ingress)
+- For Openshift: [Obtain a License Service URL from the route](https://www.ibm.com/docs/en/cpfs?topic=pcfls-apis#ls_url)
+- For Kubernetes: The URL depands on ingress configuration. For more information, see [Configuring ingress](Configuration.md#configuring-ingress)
 
-2. Get the authentication token. For more information, see [API authentication for License Service](https://www.ibm.com/docs/en/cpfs?topic=service-api-authentication).
-3. Open the License Service URL in your browser.
-4. Select the status page.
-5. Provide your authentication token.
+2\. Get the authentication token. For more information, see [API authentication for License Service](https://www.ibm.com/docs/en/cpfs?topic=service-api-authentication).
+3\. Open the License Service URL in your browser.
+4\. Select the status page.
+5\. Provide your authentication token.
 
 For more information, see [Obtaining status page](https://www.ibm.com/docs/en/cpfs?topic=service-obtaining-status-page).
 
