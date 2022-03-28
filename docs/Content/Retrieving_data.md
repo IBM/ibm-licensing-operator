@@ -32,7 +32,7 @@ To retrieve the status page, complete the following actions:
   - For Openshift: [Obtain a License Service URL from the route](https://www.ibm.com/docs/en/cpfs?topic=pcfls-apis#ls_url)
   - For Kubernetes: The URL depands on ingress configuration. For more information, see [Configuring ingress](Configuration.md#configuring-ingress)
 
-2. Get the authentication token.
+2. Get the authentication token. For more information, see [API authentication for License Service](https://www.ibm.com/docs/en/cpfs?topic=service-api-authentication).
 3. Open the License Service URL in your browser.
 4. Select the status page.
 5. Provide your authentication token.
