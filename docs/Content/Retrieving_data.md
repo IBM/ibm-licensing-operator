@@ -27,6 +27,7 @@ This feature is available from IBM License Service version 1.4.0.
 The status page is an html page that summarizes the most important information about your deployments on the cluster. The status page always shows the information that are collected and valid at the moment of page retrieval.
 
 To retrieve the status page, complete the following actions:
+
 1\. Obtain the License Service URL.
 
 - For Openshift: [Obtain a License Service URL from the route](https://www.ibm.com/docs/en/cpfs?topic=pcfls-apis#ls_url)

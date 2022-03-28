@@ -71,6 +71,7 @@ For more information, see the following resources:
 - [Retrieving license usage data from the cluster](Content/Retrieving_data.md)
     - [Available APIs](Content/Retrieving_data.md#available-apis)
     - [Retrieving an audit snapshot](https://www.ibm.com/docs/en/cpfs?topic=pcfls-apis#auditSnapshot)
+    - [Obtaining a status page](Content/Retrieving_data.md#obtaining-a-status-page)
     - [Tracking license usage in multicluster environment](Content/Retrieving_data.md#tracking-license-usage-in-multicluster-environment)
 - [Troubleshooting](Content/Troubleshooting.md)
     - [Verifying completeness of license usage data](Content/Troubleshooting.md#verifying-completeness-of-license-usage-data)
