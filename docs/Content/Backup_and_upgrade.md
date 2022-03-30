@@ -30,6 +30,8 @@ To check your current version of License Service, run the following command:
 kubectl get clusterserviceversion -n ibm-common-services
 ```
 
+This method is applicable only for online installations.
+
 ### Updating the subscription channel
 
 If you are upgrading from version 1.3.x or earlier, you must update the subscription channel first. Complete the following actions.
