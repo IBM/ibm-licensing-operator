@@ -90,6 +90,9 @@ Delete the custom resource definition with the following command:
 
 ```bash
 kubectl delete CustomResourceDefinition ibmlicensings.operator.ibm.com
+kubectl delete CustomResourceDefinition ibmlicenseservicereporters.operator.ibm.com
+kubectl delete CustomResourceDefinition ibmlicensingdefinitions.operator.ibm.com
+kubectl delete CustomResourceDefinition ibmlicensingmetadatas.operator.ibm.com
 ```
 
 4\. Delete Operator Group.
@@ -146,10 +149,18 @@ kubectl delete deployment ibm-licensing-operator -n ${licensingNamespace}
 licensingNamespace=ibm-common-services
 # delete rbac for operand:
 kubectl delete RoleBinding ibm-license-service -n ${licensingNamespace}
+kubectl delete RoleBinding ibm-license-service-restricted -n ${licensingNamespace}
 kubectl delete ClusterRoleBinding ibm-license-service
+kubectl delete ClusterRoleBinding ibm-license-service-restricted
+kubectl delete ClusterRoleBinding ibm-licensing-default-reader
 kubectl delete ServiceAccount ibm-license-service -n ${licensingNamespace}
+kubectl delete ServiceAccount ibm-license-service-restricted -n ${licensingNamespace}
+kubectl delete ServiceAccount ibm-licensing-default-reader -n ${licensingNamespace}
 kubectl delete Role ibm-license-service -n ${licensingNamespace}
+kubectl delete Role ibm-license-service-restricted -n ${licensingNamespace}
 kubectl delete ClusterRole ibm-license-service
+kubectl delete ClusterRole ibm-license-service-restricted
+kubectl delete ClusterRole ibm-licensing-default-reader
 # delete rbac for operator:
 kubectl delete RoleBinding ibm-licensing-operator -n ${licensingNamespace}
 kubectl delete ClusterRoleBinding ibm-licensing-operator
@@ -158,7 +169,18 @@ kubectl delete Role ibm-licensing-operator -n ${licensingNamespace}
 kubectl delete ClusterRole ibm-licensing-operator
 ```
 
-3\. Remove the remaining License Service elements.
+3\. Delete Custom Resource Definition (CRD).
+
+Delete the custom resource definition with the following command:
+
+```bash
+kubectl delete CustomResourceDefinition ibmlicensings.operator.ibm.com
+kubectl delete CustomResourceDefinition ibmlicenseservicereporters.operator.ibm.com
+kubectl delete CustomResourceDefinition ibmlicensingdefinitions.operator.ibm.com
+kubectl delete CustomResourceDefinition ibmlicensingmetadatas.operator.ibm.com
+```
+
+4\. Remove the remaining License Service elements.
 
 - If you pushed the IBM Licensing Docker images to your private registry, delete the images directly from that registry.
 
