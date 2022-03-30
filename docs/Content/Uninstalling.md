@@ -11,12 +11,12 @@ If you plan to reinstall License Service, the license usage data is stored in th
 
 Complete the following steps to uninstall License Service in online and offline environments.
 
-- [Step 1: Deleting the IBM Licensing resource](#step-1-deleting-the-ibm-licensing-resource)
-- [Step 2: Uninstalling License Service](#step-2-uninstalling-license-service)
+- [Step 1: Deleting the IBM Licensing instance](#step-1-deleting-the-ibm-licensing-instance)
+- [Step 2: Deleting the remaining License Service resources](#step-2-uninstalling-license-service)
     - [Online uninstallation](#online-uninstallation)
     - [Offline uninstallation](#offline-uninstallation)
 
-## Step 1: Deleting the IBM Licensing resource
+## Step 1: Deleting the IBM Licensing instance
 
 Delete the `IBMLicensing custom` resource.
 
@@ -39,7 +39,7 @@ instanceName=`kubectl get ibmlicensing -n ${licensingNamespace} -o jsonpath="{ra
 kubectl delete ibmlicensing ${instanceName} -n ${licensingNamespace}
 ```
 
-## Step 2: Uninstalling License Service
+## Step 2: Deleting the remaining License Service resources
 
 Select the procedure for your environment:
 
