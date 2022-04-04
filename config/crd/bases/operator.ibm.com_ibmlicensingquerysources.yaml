@@ -1,0 +1,89 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.7.0
+  creationTimestamp: null
+  name: ibmlicensingquerysources.operator.ibm.com
+spec:
+  group: operator.ibm.com
+  names:
+    kind: IBMLicensingQuerySource
+    listKind: IBMLicensingQuerySourceList
+    plural: ibmlicensingquerysources
+    singular: ibmlicensingquerysource
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: IBMLicensingQuerySource is the schema for IBM License Service.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: IBMLicensingQuerySourceSpec defines the desired state of
+              IBMLicensingQuerySource
+            properties:
+              aggregationPolicy:
+                description: Policy on how should newly queried data be aggregated
+                  to previous data (defaults to MAX)
+                enum:
+                - MAX
+                - ADD
+                type: string
+              cloudpakId:
+                type: string
+              cloudpakMetric:
+                type: string
+              cloudpakName:
+                type: string
+              productCloudpakRatio:
+                description: 1:1 ratio will be default one
+                type: string
+              productId:
+                type: string
+              productMetric:
+                type: string
+              productName:
+                type: string
+              query:
+                description: What query should be send to prometheuses to get the
+                  licensing usage
+                type: string
+            required:
+            - cloudpakId
+            - cloudpakMetric
+            - cloudpakName
+            - productId
+            - productMetric
+            - productName
+            - query
+            type: object
+          status:
+            description: IBMLicensingQuerySourceStatus defines the observed state
+              of IBMLicensingQuerySource
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

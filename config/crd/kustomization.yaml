@@ -6,6 +6,7 @@ resources:
 - bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 - bases/operator.ibm.com_ibmlicensingmetadatas.yaml
 - bases/operator.ibm.com_ibmlicensingdefinitions.yaml
+- bases/operator.ibm.com_ibmlicensingquerysources.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 # the following config is for teaching kustomize how to do kustomization for CRDs.

@@ -1,0 +1,14 @@
+apiVersion: operator.ibm.com/v1
+kind: IBMLicensingDefinition
+metadata:
+  name: ibmlicensingquerysource-sample
+spec:
+  aggregationPolicy: MAX
+  query: "some_prometheus_query{}"
+  cloudpakId: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  cloudpakName: "Some Cloudpak Name"
+  cloudpakMetric: VIRTUAL_PROCESSOR_CORE
+  productId: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  productName: "Some Product Name"
+  productMetric: SOME_METRIC_THAT_QUERY_CALCULATES
+  productCloudpakRatio: 1:1
