@@ -46,32 +46,18 @@ spec:
                 - MAX
                 - ADD
                 type: string
-              cloudpakId:
-                type: string
-              cloudpakMetric:
-                type: string
-              cloudpakName:
-                type: string
-              productCloudpakRatio:
-                description: 1:1 ratio will be default one
-                type: string
-              productId:
-                type: string
-              productMetric:
-                type: string
-              productName:
-                type: string
+              annotations:
+                additionalProperties:
+                  type: string
+                description: Product and cloudpak annotations mapping the query to
+                  licensing usage
+                type: object
               query:
                 description: What query should be send to prometheuses to get the
                   licensing usage
                 type: string
             required:
-            - cloudpakId
-            - cloudpakMetric
-            - cloudpakName
-            - productId
-            - productMetric
-            - productName
+            - annotations
             - query
             type: object
           status:

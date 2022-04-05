@@ -28,16 +28,8 @@ type IBMLicensingQuerySourceSpec struct {
 	// What query should be send to prometheuses to get the licensing usage
 	Query string `json:"query"`
 
-	CloudpakID     string `json:"cloudpakId"`
-	CloudpakName   string `json:"cloudpakName"`
-	CloudpakMetric string `json:"cloudpakMetric"`
-
-	ProductID     string `json:"productId"`
-	ProductName   string `json:"productName"`
-	ProductMetric string `json:"productMetric"`
-
-	// 1:1 ratio will be default one
-	ProductCloudpakRatio string `json:"productCloudpakRatio,omitempty"`
+	// Product and cloudpak annotations mapping the query to licensing usage
+	Annotations map[string]string `json:"annotations"`
 }
 
 // IBMLicensingQuerySourceStatus defines the observed state of IBMLicensingQuerySource
