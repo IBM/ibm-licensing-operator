@@ -86,5 +86,3 @@ For the overview and documentation, see [License Service deployment without an I
   - [Preparing resources for offline installation without git](docs/Troubleshooting.md#prepareing-resources-for-offline-installation-without-git)
 --->
 
-
-
