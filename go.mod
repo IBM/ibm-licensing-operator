@@ -59,10 +59,11 @@ require (
 	go.uber.org/multierr v1.5.0 // indirect
 	go.uber.org/zap v1.14.1 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
-	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
-	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f // indirect
-	golang.org/x/text v0.3.3 // indirect
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
+	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.0.1 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
@@ -81,5 +82,7 @@ require (
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // Required by OLM
 	github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
+	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20220408190544-5352b0902921
+	golang.org/x/net => golang.org/x/net v0.0.0-20220407224826-aac1ed45d8e3
 	k8s.io/client-go => k8s.io/client-go v0.18.4 // Required by prometheus-operator
 )
