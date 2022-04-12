@@ -1,10 +1,9 @@
 # Troubleshooting
 
-- [Troubleshooting](#troubleshooting)
-  - [Verifying completeness of license usage data](#verifying-completeness-of-license-usage-data)
-  - [Enabling additional information in logs for troubleshooting purposes](#enabling-additional-information-in-logs-for-troubleshooting-purposes)
-  - [License Service pods are crashing and License Service cannot run](#license-service-pods-are-crashing-and-license-service-cannot-run)
-  - [License Service API is unavailable with 503 Service Unavailable error](#license-service-api-is-unavailable-with-503-service-unavailable-error)
+- [Verifying completeness of license usage data](#verifying-completeness-of-license-usage-data)
+- [Enabling additional information in logs for troubleshooting purposes](#enabling-additional-information-in-logs-for-troubleshooting-purposes)
+- [License Service pods are crashing and License Service cannot run](#license-service-pods-are-crashing-and-license-service-cannot-run)
+- [License Service API is unavailable with 503 Service Unavailable error](#license-service-api-is-unavailable-with-503-service-unavailable-error)
 
 ## Verifying completeness of license usage data
 
@@ -33,8 +32,8 @@ By default, the License Service instance pod logs contain only the basic informa
 
   The available `logLevel` options:
 
-  - `DEBUG` - This option enables all debug information in logs.
-  - `VERBOSE` - This option extends the logs with information about license calculation and API calls.
+- `DEBUG` - This option enables all debug information in logs.
+- `VERBOSE` - This option extends the logs with information about license calculation and API calls.
 
 ## License Service pods are crashing and License Service cannot run
 

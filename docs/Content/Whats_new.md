@@ -43,7 +43,6 @@ No major updates.
 
 ### License Service version 1.2.x updates
 
-
 - You can retrieve information about License Service version and health by using the new APIs.
 
 ### License service version 1.1.0 (installer version 3.4.0)

@@ -48,6 +48,7 @@ For more information, see the following resources:
 - Plan your storage to contain regular audit snapshots. The size of an audit snapshot .zip package might vary and depends on the number of products and range of the reporting period. On average, the size of the package for a small environment is around 10 KB, and for medium and large environments - around 100 KB.
 
 ## Documentation
+
 - [What's New](Content/Whats_new.md)
 - [Preparing for installation](Content/Preparing_for_installation.md)
     - [Supported platforms](Content/Preparing_for_installation.md#supported-platforms)
