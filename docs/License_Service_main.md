@@ -48,7 +48,7 @@ For more information, see the following resources:
 - Plan your storage to contain regular audit snapshots. The size of an audit snapshot .zip package might vary and depends on the number of products and range of the reporting period. On average, the size of the package for a small environment is around 10 KB, and for medium and large environments - around 100 KB.
 
 ## Documentation
-
+- [What's New](Content/Whats_new.md)
 - [Preparing for installation](Content/Preparing_for_installation.md)
     - [Supported platforms](Content/Preparing_for_installation.md#supported-platforms)
     - [Required resources](Content/Preparing_for_installation.md#required-resources)
@@ -73,6 +73,7 @@ For more information, see the following resources:
     - [Retrieving an audit snapshot](https://www.ibm.com/docs/en/cpfs?topic=pcfls-apis#auditSnapshot)
     - [Obtaining a status page](Content/Retrieving_data.md#obtaining-a-status-page)
     - [Tracking license usage in multicluster environment](Content/Retrieving_data.md#tracking-license-usage-in-multicluster-environment)
+- [Enabling optional features](Content/Optional_features.md)
 - [Troubleshooting](Content/Troubleshooting.md)
     - [Verifying completeness of license usage data](Content/Troubleshooting.md#verifying-completeness-of-license-usage-data)
     - [License Service pods are crashing and License Service cannot run](Content/Troubleshooting.md#license-service-pods-are-crashing-and-license-service-cannot-run)
