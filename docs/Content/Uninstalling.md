@@ -11,7 +11,6 @@ If you plan to reinstall License Service, the license usage data is stored in th
 
 Complete the following steps to uninstall License Service in online and offline environments.
 
-
 - [Step 1: Deleting the IBM Licensing instance](#step-1-deleting-the-ibm-licensing-instance)
 - [Step 2: Deleting the remaining License Service resources](#step-2-deleting-the-remaining-license-service-resources)
   - [Online uninstallation](#online-uninstallation)

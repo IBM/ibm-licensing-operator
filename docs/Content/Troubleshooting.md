@@ -9,7 +9,6 @@
 
 You can verify if License Service is properly deployed and whether it collects the complete license usage data. For more information, see [Verifying completeness of license usage data and troubleshooting](https://www.ibm.com/docs/en/cpfs?topic=operator-verifying-completeness-license-usage-data-troubleshooting).
 
-
 ## Enabling additional information in logs for troubleshooting purposes
 
 By default, the License Service instance pod logs contain only the basic information about the service. You can enable additional information in logs for troubleshooting purposes by updating the `IBMLicensing` instance.
