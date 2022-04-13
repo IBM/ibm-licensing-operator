@@ -205,8 +205,8 @@ kubectl get clusterserviceversion -n ibm-common-services
 The following is the sample output:
 
 ```{: .text .no-copy }
-NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.14.0   IBM Licensing   1.14.0     ibm-licensing-operator.v1.12.0   Succeeded
+NAME                             DISPLAY                 VERSION   REPLACES                        PHASE
+ibm-licensing-operator.v1.15.0   IBM Licensing           1.15.0    ibm-licensing-operator.v1.14.0  Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.

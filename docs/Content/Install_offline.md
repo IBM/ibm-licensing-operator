@@ -23,12 +23,12 @@ This procedure guides you through the installation of License Service. It does n
 1\. Clone the repository by using `git clone`. Run the following command:
 
 ```bash
-export operator_release_version=v1.14.0
+export operator_release_version=v1.15.0
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
 
-**Note:** If you cannot use `git clone`, download the sources, extract, and enter ibm-licensing-operator directory. [Sources](https://github.com/IBM/ibm-licensing-operator/archive/refs/heads/release-1.14.zip)
+**Note:** If you cannot use `git clone`, download the sources, extract, and enter ibm-licensing-operator directory. [Sources](https://github.com/IBM/ibm-licensing-operator/archive/refs/heads/release-1.15.zip)
 
 2\. Prepare Docker images.
 
