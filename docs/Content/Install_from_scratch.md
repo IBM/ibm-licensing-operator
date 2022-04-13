@@ -131,7 +131,7 @@ opencloud-operators-66df4d97ff-4rhjj            1/1     Running   0          80s
 An `OperatorGroup` is used to denote which namespaces your Operator should watch.
 It must exist in the namespace where your operator is deployed, for example, `ibm-common-services`.
 
-a. Create a namespace for IBM Licensing Operator with the following command.
+a. Create a namespace for IBM Licensing with the following command.
 
 ```bash
 kubectl create namespace ibm-common-services
@@ -173,7 +173,7 @@ EOF
 ```
 
 4\. **Create a Subscription**
-A subscription is created for the operator and is responsible for upgrades of IBM Licensing Operator when needed.
+A subscription is created for the operator and is responsible for upgrades of IBM Licensing when needed.
 
 a. Make sure that the `GLOBAL_CATALOG_NAMESPACE` variable has the global catalog namespace value. The global catalog namespace was retrieved in step 2a.
 
@@ -196,7 +196,7 @@ EOF
 
 5\. **Verify Operator health**
 
-a. To check whether the IBM Licensing Operator is deployed by OLM from the `CatalogSource`, run the following command.
+a. To check whether the IBM Licensing is deployed by OLM from the `CatalogSource`, run the following command.
 
 ```console
 kubectl get clusterserviceversion -n ibm-common-services
@@ -206,7 +206,7 @@ The following is the sample output:
 
 ```{: .text .no-copy }
 NAME                            DISPLAY                  VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.14.0   IBM Licensing Operator   1.14.0     ibm-licensing-operator.v1.12.0   Succeeded
+ibm-licensing-operator.v1.14.0   IBM Licensing   1.14.0     ibm-licensing-operator.v1.12.0   Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
