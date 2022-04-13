@@ -59,13 +59,13 @@ d. Enter **ibm-common-services** as a name and click **Create**.
 
 ![Create Project](/images/create-project-2.png)
 
-3\. **Install IBM Licensing Operator package in OperatorHub**
+3\. **Install IBM Licensing package in OperatorHub**
 
-a. Go to **OperatorHub** and search for **IBM Licensing Operator**.
+a. Go to **OperatorHub** and search for **IBM Licensing** operator.
 
    **Note:** It might take a few minutes for the operator to show up. If, after a while, the operator will not show up, there might be an issue with the CatalogSource.
 
-b. Select **IBM Licensing Operator** and click **Install**.
+b. Select **IBM Licensing** and click **Install**.
 
 ![Operator Hub IBM Licensing](/images/operator-hub-licensing.png)
 
@@ -79,7 +79,7 @@ f. Click **Install**.
 
 4\. **Verify that the installation is successful**
 
-To check whether the installation is successful, wait for about 1 minute, and go to **Installed operators**. You should see IBM Licensing Operator with the **Succeeded** status.
+To check whether the installation is successful, wait for about 1 minute, and go to **Installed operators**. You should see IBM Licensing with the **Succeeded** status.
 
 ![IBM Licensing Installed](/images/installed.png)
 
@@ -91,7 +91,7 @@ Create an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
-1\. Log in to the Openshift console and go to **Installed Operators** > **IBM Licensing Operator** > **IBM License Service** tab > **Create IBMLicensing**.
+1\. Log in to the Openshift console and go to **Installed Operators** > **IBM Licensing** > **IBM License Service** tab > **Create IBMLicensing**.
 
 ![OCP click Create IBM Licensing](/images/ocp_create_instance.png)
 
