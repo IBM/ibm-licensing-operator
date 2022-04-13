@@ -100,7 +100,7 @@ kubectl delete CustomResourceDefinition ibmlicensingmetadatas.operator.ibm.com
 4\. Delete Operator Group.
 
 **Note:** If you have other subscriptions that are tied with that operatorGroup do not delete it.
-IBM Licensing Operator is now uninstalled.You can also clean up the operatorgroup that you created for subscription by using the following command:
+IBM Licensing is now uninstalled.You can also clean up the operatorgroup that you created for subscription by using the following command:
 
 ```bash
 licensingNamespace=ibm-common-services
