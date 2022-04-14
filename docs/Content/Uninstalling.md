@@ -12,7 +12,7 @@ If you plan to reinstall License Service, the license usage data is stored in th
 Complete the following steps to uninstall License Service in online and offline environments.
 
 - [Step 1: Deleting the IBM Licensing instance](#step-1-deleting-the-ibm-licensing-instance)
-- [Step 2: Deleting the remaining License Service resources](#step-2-uninstalling-license-service)
+- [Step 2: Deleting the remaining License Service resources](#step-2-deleting-the-remaining-license-service-resources)
     - [Online uninstallation](#online-uninstallation)
     - [Offline uninstallation](#offline-uninstallation)
 
@@ -40,6 +40,8 @@ kubectl delete ibmlicensing ${instanceName} -n ${licensingNamespace}
 ```
 
 ## Step 2: Deleting the remaining License Service resources
+
+**Note:** If you have an earlier version of License Service, some resources that are listed might not be present.
 
 Select the procedure for your environment:
 
@@ -98,7 +100,7 @@ kubectl delete CustomResourceDefinition ibmlicensingmetadatas.operator.ibm.com
 4\. Delete Operator Group.
 
 **Note:** If you have other subscriptions that are tied with that operatorGroup do not delete it.
-IBM Licensing Operator is now uninstalled.You can also clean up the operatorgroup that you created for subscription by using the following command:
+IBM Licensing is now uninstalled.You can also clean up the operatorgroup that you created for subscription by using the following command:
 
 ```bash
 licensingNamespace=ibm-common-services
@@ -119,19 +121,7 @@ kubectl delete CatalogSource ${opencloudioSourceName} -n ${GLOBAL_CATALOG_NAMESP
 
 6\. Uninstall OLM.
 
-**Note:** Do not uninstall OLM if it is used elsewhere, so if you want to use any other operators or when you have OCP cluster.
-
-Uninstall OLM with the following command:
-
-```bash
-# Make sure GLOBAL_CATALOG_NAMESPACE has global catalog namespace value
-kubectl delete crd clusterserviceversions.operators.coreos.com \
-installplans.operators.coreos.com \
-subscriptions.operators.coreos.com \
-catalogsources.operators.coreos.com \
-operatorgroups.operators.coreos.com
-kubectl delete namespace ${GLOBAL_CATALOG_NAMESPACE}
-```
+For more information, see [Uninstall in OLM documentation](https://github.com/operator-framework/operator-lifecycle-manager/blob/master/doc/install/install.md#uninstall).
 
 ### Offline uninstallation
 
