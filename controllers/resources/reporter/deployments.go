@@ -78,7 +78,7 @@ func GetDeployment(instance *operatorv1alpha1.IBMLicenseServiceReporter) *appsv1
 									{
 										MatchExpressions: []corev1.NodeSelectorRequirement{
 											{
-												Key:      "beta.kubernetes.io/arch",
+												Key:      "kubernetes.io/arch",
 												Operator: corev1.NodeSelectorOpIn,
 												Values:   []string{"amd64"},
 											},
