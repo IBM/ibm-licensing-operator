@@ -56,10 +56,10 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.17.0 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
-	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
-	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
@@ -81,3 +81,7 @@ require (
 replace k8s.io/client-go => k8s.io/client-go v0.19.4
 
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
+
+replace golang.org/x/crypto => golang.org/x/crypto v0.0.0-20220408190544-5352b0902921
+
+replace golang.org/x/net => golang.org/x/net v0.0.0-20220407224826-aac1ed45d8e3
