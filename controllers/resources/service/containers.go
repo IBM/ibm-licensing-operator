@@ -102,6 +102,19 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "false",
 		})
 	}
+	if spec.IsPrometheusQuerySourceEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "PROMETHEUS_QUERY_SOURCE_ENABLED",
+			Value: "true",
+		})
+		url := spec.GetPrometheusQuerySourceURL()
+		if url != "" {
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name:  "thanos_url",
+				Value: url,
+			})
+		}
+	}
 	if spec.Sender != nil {
 
 		if spec.Sender.ClusterID != "" {

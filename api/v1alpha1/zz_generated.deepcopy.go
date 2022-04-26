@@ -73,6 +73,11 @@ func (in *Features) DeepCopyInto(out *Features) {
 		*out = new(features.Auth)
 		**out = **in
 	}
+	if in.PrometheusQuerySource != nil {
+		in, out := &in.PrometheusQuerySource, &out.PrometheusQuerySource
+		*out = new(features.PrometheusQuerySource)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.NamespaceScopeEnabled != nil {
 		in, out := &in.NamespaceScopeEnabled, &out.NamespaceScopeEnabled
 		*out = new(bool)

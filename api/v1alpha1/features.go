@@ -22,11 +22,19 @@ import (
 
 type Features struct {
 	// Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading (SMT) enabled
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Hyper Threading",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
 	HyperThreading *features.HyperThreading `json:"hyperThreading,omitempty"`
 
+	// Authorization settings.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Auth",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
+	// +optional
 	Auth *features.Auth `json:"auth,omitempty"`
+
+	// Change prometheus query source settings.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Prometheus query source settings",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
+	// +optional
+	PrometheusQuerySource *features.PrometheusQuerySource `json:"prometheusQuerySource,omitempty"`
 
 	// Special terms, must be granted by IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Namespace scope enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
@@ -51,6 +59,23 @@ func (spec *IBMLicensingSpec) IsURLBasedAuthEnabled() bool {
 		return false
 	}
 	return true
+}
+
+func (spec *IBMLicensingSpec) IsPrometheusQuerySourceEnabled() bool {
+	// return false only and only if the value is set to false
+	if spec.HaveFeatures() && spec.Features.PrometheusQuerySource != nil &&
+		spec.Features.PrometheusQuerySource.Enabled != nil &&
+		!*spec.Features.PrometheusQuerySource.Enabled {
+		return false
+	}
+	return true
+}
+
+func (spec *IBMLicensingSpec) GetPrometheusQuerySourceURL() string {
+	if spec.HaveFeatures() && spec.Features.PrometheusQuerySource != nil {
+		return spec.Features.PrometheusQuerySource.URL
+	}
+	return ""
 }
 
 func (spec *IBMLicensingSpec) GetHyperThreadingThreadsPerCoreOrNil() *int {
