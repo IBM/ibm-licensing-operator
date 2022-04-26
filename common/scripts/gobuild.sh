@@ -46,6 +46,10 @@ if [[ "${STATIC}" !=  "1" ]];then
     LDFLAGS=""
 fi
 
+echo "go version:"
+${GOBINARY} version
+
+
 time GOOS=${BUILD_GOOS} GOARCH=${BUILD_GOARCH} ${GOBINARY} build \
         ${V} "${GOBUILDFLAGS_ARRAY[@]}" ${GCFLAGS:+-gcflags "${GCFLAGS}"} \
         -o "${OUT}" \
