@@ -46,7 +46,7 @@ if [[ "${STATIC}" !=  "1" ]];then
     LDFLAGS=""
 fi
 
-echo "go version:"
+echo "****************************"
 ${GOBINARY} version
 
 
