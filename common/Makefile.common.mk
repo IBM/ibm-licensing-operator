@@ -61,6 +61,7 @@ lint-copyright-banner:
 		${XARGS} common/scripts/lint_copyright_banner.sh
 
 lint-go:
+	@golangci-lint --version
 	@${FINDFILES} -name '*.go' \( ! \( -name '*.gen.go' -o -name '*.pb.go' -o -name '*_generated.deepcopy.go' \) \) -print0 | ${XARGS} common/scripts/lint_go.sh
 
 lint-markdown:
