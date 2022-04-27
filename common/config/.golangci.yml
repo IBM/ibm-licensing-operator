@@ -21,6 +21,7 @@ run:
   skip-files:
     - ".*\\.pb\\.go"
     - ".*\\.gen\\.go"
+    - ".*\\_test\\.go"
 
 linters:
   # please, do not use `enable-all`: it's deprecated and will be removed soon.
