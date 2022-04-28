@@ -182,9 +182,9 @@ export my_docker_registry=<YOUR REGISTRY IMAGE PREFIX HERE e.g.: "my.registry:50
 export operator_version=$(git describe --tags `git rev-list --tags --max-count=1` | tr -d v)
 export operand_version=$(git describe --tags `git rev-list --tags --max-count=1` | tr -d v)
 # remove images
-docker rmi quay.io/opencloudio/ibm-licensing-operator:${operator_version}
+docker rmi icr.io/cpopen/ibm-licensing-operator:${operator_version}
 docker rmi ${my_docker_registry}/ibm-licensing-operator:${operator_version}
-docker rmi quay.io/opencloudio/ibm-licensing:${operand_version}
+docker rmi icr.io/cpopen/cpfs/ibm-licensing:${operand_version}
 docker rmi ${my_docker_registry}/ibm-licensing:${operand_version}
 # you might want to check if you don't have other images and delete them as well:
 docker images | grep ibm-licensing

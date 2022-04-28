@@ -40,21 +40,21 @@ spec:
       hostPID: false
       containers:
         - name: ibm-licensing-operator
-          image: quay.io/opencloudio/ibm-licensing-operator:latest
+          image: icr.io/cpopen/ibm-licensing-operator:latest
           command:
             - ibm-licensing-operator
           imagePullPolicy: Always
           env:
             - name: IBM_LICENSING_IMAGE
-              value: quay.io/opencloudio/ibm-licensing:1.5.0
+              value: icr.io/cpopen/cpfs/ibm-licensing:1.5.0
             - name: IBM_LICENSING_USAGE_IMAGE
-              value: quay.io/opencloudio/ibm-licensing-usage:1.5.0
+              value: icr.io/cpopen/cpfs/ibm-licensing-usage:1.5.0
             - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-              value: quay.io/opencloudio/ibm-license-service-reporter-ui:1.5.0
+              value: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.5.0
             - name: IBM_POSTGRESQL_IMAGE
-              value: quay.io/opencloudio/ibm-postgresql:12.0.5
+              value: icr.io/cpopen/cpfs/ibm-postgresql:12.0.5
             - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-              value: quay.io/opencloudio/ibm-license-service-reporter:1.5.0
+              value: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.5.0
             - name: WATCH_NAMESPACE
               value: ibm-common-services
             - name: POD_NAME
