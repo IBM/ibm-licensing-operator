@@ -43,8 +43,8 @@ export operand_version=$(git describe --tags `git rev-list --tags --max-count=1`
 b. Pull the required images with the following command:
 
 ```bash
-docker pull quay.io/opencloudio/ibm-licensing-operator:${operator_version}
-docker pull quay.io/opencloudio/ibm-licensing:${operand_version}
+docker pull icr.io/cpopen/ibm-licensing-operator:${operator_version}
+docker pull icr.io/cpopen/cpfs/ibm-licensing:${operand_version}
 ```
 
 c. Before pushing the images to your private registry, make sure that you are logged in. Use the following command:
@@ -56,10 +56,10 @@ docker login ${my_docker_registry}
 d. Tag the images with your registry prefix and push with the following commands:
 
 ```bash
-docker tag quay.io/opencloudio/ibm-licensing-operator:${operator_version} ${my_docker_registry}/ibm-licensing-operator:${operator_version}
+docker tag icr.io/cpopen/ibm-licensing-operator:${operator_version} ${my_docker_registry}/ibm-licensing-operator:${operator_version}
 docker push ${my_docker_registry}/ibm-licensing-operator:${operator_version}
 
-docker tag quay.io/opencloudio/ibm-licensing:${operand_version} ${my_docker_registry}/ibm-licensing:${operand_version}
+docker tag icr.io/cpopen/cpfs/ibm-licensing:${operand_version} ${my_docker_registry}/ibm-licensing:${operand_version}
 docker push ${my_docker_registry}/ibm-licensing:${operand_version}
 ```
 
