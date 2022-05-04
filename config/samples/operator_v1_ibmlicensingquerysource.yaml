@@ -1,5 +1,5 @@
 apiVersion: operator.ibm.com/v1
-kind: IBMLicensingDefinition
+kind: IBMLicensingQuerySource
 metadata:
   name: ibmlicensingquerysource-sample
 spec:
