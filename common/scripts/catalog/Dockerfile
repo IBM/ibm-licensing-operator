@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine AS operator-registry
+FROM golang:latest AS operator-registry
 
 RUN apk --no-cache add \
         bash \
