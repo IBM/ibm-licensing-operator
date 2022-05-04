@@ -24,6 +24,7 @@ rules:
     resources:
       - ibmlicensingmetadatas
       - ibmlicensingdefinitions
+      - ibmlicensingquerysources
     verbs:
       - get
       - list
@@ -89,6 +90,7 @@ rules:
     resources:
       - ibmlicensingmetadatas
       - ibmlicensingdefinitions
+      - ibmlicensingquerysources
     verbs:
       - get
       - list

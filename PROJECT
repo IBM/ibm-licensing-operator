@@ -20,4 +20,7 @@ resources:
 - group: operator
   kind: IBMLicensingDefinition
   version: v1
+- group: operator
+  kind: IBMLicensingQuerySource
+  version: v1
 version: "3"

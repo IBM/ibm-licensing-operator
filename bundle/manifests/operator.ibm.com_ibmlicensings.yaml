@@ -71,6 +71,7 @@ spec:
                 description: Set additional features under this field
                 properties:
                   auth:
+                    description: Authorization settings.
                     properties:
                       urlBasedEnabled:
                         description: Enable URL based Auth
@@ -97,6 +98,18 @@ spec:
                   nssEnabled:
                     description: Special terms, must be granted by IBM Pricing.
                     type: boolean
+                  prometheusQuerySource:
+                    description: Change prometheus query source settings.
+                    properties:
+                      enabled:
+                        description: Should this function be enabled (by default it
+                          is).
+                        type: boolean
+                      url:
+                        description: What url to use for prometheus API (by default
+                          use OCP Thanos Querier).
+                        type: string
+                    type: object
                 type: object
               httpsCertsSource:
                 description: 'options: self-signed or custom'

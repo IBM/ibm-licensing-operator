@@ -13,7 +13,7 @@ metadata:
     olm.skipRange: '>=1.0.0 <1.15.0'
     operators.operatorframework.io/builder: operator-sdk-v1.2.0
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com",
-      "ibmlicensingdefinitions.operator.ibm.com"]'
+      "ibmlicensingdefinitions.operator.ibm.com", "ibmlicensingquerysources.operator.ibm.com"]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
