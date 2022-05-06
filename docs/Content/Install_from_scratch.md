@@ -244,9 +244,7 @@ spec:
 EOF
 ```
 
-**What's Next:** 
-
-- Installation is is complete at this point and **License Service** is running in your cluster. You can verify the installation.
+**Results:** Installation is complete and **License Service** is running in your cluster.
 
 ## Verification
 
