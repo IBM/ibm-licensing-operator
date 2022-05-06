@@ -14,7 +14,9 @@ After you install License Service, you can configure License Service if needed.
 
 You can configure ingress, for example, by completing the following steps:
 
-1\. Get the nginx ingress controller. You might get it, for example, from here: [https://kubernetes.github.io/ingress-nginx/deploy](https://kubernetes.github.io/ingress-nginx/deploy).
+1\. Get the nginx ingress controller. You might get it, for example, from [https://kubernetes.github.io/ingress-nginx/deploy](https://kubernetes.github.io/ingress-nginx/deploy).
+
+**Note:** If you already have ingress controller on the cluster, you do not need to get another one.
 
 2\. Apply this IBMLicensing instance to your cluster:
 
@@ -28,7 +30,6 @@ spec:
   apiSecretToken: ibm-licensing-token
   datasource: datacollector
   httpsEnable: false
-  instanceNamespace: ibm-common-services
   ingressEnabled: true
   ingressOptions:
     annotations:
@@ -53,7 +54,6 @@ spec:
   apiSecretToken: ibm-licensing-token
   datasource: datacollector
   httpsEnable: false
-  instanceNamespace: ibm-common-services
   ingressEnabled: true
   ingressOptions:
     annotations:
@@ -70,11 +70,10 @@ First get your cluster name:
 cluster=<your iks cluster name from ibmcloud>
 ```
 
-Then get the subdomain for your cluster (or just fill subdomain variable if you know your subdomain):
+Then, get the subdomain for your cluster (or just fill subdomain variable if you know your subdomain):
 
 ```yaml
-ibmcloud ks cluster get --cluster $cluster
-subdomain=$(ibmcloud ks cluster get --cluster $cluster | grep "Ingress Sub" | awk '{print $3}')
+subdomain=$(ibmcloud ks cluster get --cluster <cluster name or cluster id> | grep "Ingress Sub" | awk '{print $3}')
 ```
 
 Then apply the instance:
@@ -89,13 +88,12 @@ spec:
   apiSecretToken: ibm-licensing-token
   datasource: datacollector
   httpsEnable: false
-  instanceNamespace: ibm-common-services
   ingressEnabled: true
   ingressOptions:
     annotations:
       "nginx.ingress.kubernetes.io/rewrite-target": "/\$2" # <- if you copy it into yaml file, then use "/$2"
       "kubernetes.io/ingress.class": "public-iks-k8s-nginx"
-    host: license-service.$subdomain
+    host: $subdomain
     path: /ibm-licensing-service-instance(/|$)(.*)
 EOF
 ```
@@ -112,7 +110,6 @@ spec:
   apiSecretToken: ibm-licensing-token
   datasource: datacollector
   httpsEnable: false
-  instanceNamespace: ibm-common-services
   ingressEnabled: true
   ingressOptions:
     annotations:
@@ -123,7 +120,13 @@ spec:
 EOF
 ```
 
-To retrieve your host, please consult EKS documentation.
+To retrieve your host, consult EKS documentation.
+
+Then, get the subdomain for your cluster (or just fill subdomain variable if you know your subdomain):
+
+```yaml
+subdomain=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+```
 
 For more information, see [Setting up Kubernetes Ingress](https://cloud.ibm.com/docs/containers?topic=containers-ingress-types) in IBM Cloud Docs.
 
