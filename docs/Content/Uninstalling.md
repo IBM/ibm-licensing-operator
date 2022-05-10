@@ -41,7 +41,7 @@ kubectl delete ibmlicensing ${instanceName} -n ${licensingNamespace}
 
 ## Step 2: Deleting the remaining License Service resources
 
-**Note:** The number and type of resources that are created on a cluster depand on a version and License Service installation method. Because of that, some resources that are listed might not be present.
+**Note:** The number and type of resources that are created on a cluster depend on a version and License Service installation method. Because of that, some resources that are listed might not be present.
 
 Select the procedure for your environment:
 
