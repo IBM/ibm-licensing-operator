@@ -29,7 +29,7 @@ This procedure guides you through the installation of License Service. It does n
 
 **What's Next:**
 
-- If you are installing License Service on IBM Cloud Kubernetes Services (IKS) or Amazon Elastic Kubernetes Service (EKS), as the following step you need to configure ingress. For more information, see [Configuring ingress](Configuration.md##configuring-ingress). After yu do, verify the installation.
+- If you are installing License Service on IBM Cloud Kubernetes Services (IKS) or Amazon Elastic Kubernetes Service (EKS), as the following step you need to configure ingress. For more information, see [Configuring ingress](Configuration.md##configuring-ingress). After you do, verify the installation.
 
 - If you are installing License Service on OCP, the installation is is complete at this point and **License Service** is running in your cluster. You can verify the installation.
 
