@@ -147,12 +147,19 @@ kubectl logs $podName -n ibm-common-services
 kubectl describe pod $podName -n ibm-common-services
 ```
 
-2\. Check Route or Ingress settings depending on your parameter settings, for example, using these commands:
+2\. Check Route or Ingress settings depending on your parameter settings, for example, using these commands.
+
+- To check Ingres, run the following command:
 
 ```bash
 kubectl get ingress -n ibm-common-services -o yaml
 ```
 
+- To check Route, run the following command:
+
+```bash
+kubectl get route -n ibm-common-services -o yaml
+```
 Then examine the status part of the output. It should include host, path, tls (if configured), and other networking information.
 
 3\. Run the License Service APIs, and make sure that you get results that reflect your environment's license usage. For more information, see [APIs for retrieving License Service data in IBM Documentation](https://www.ibm.com/docs/en/cpfs?topic=data-per-cluster-from-license-service).
