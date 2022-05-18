@@ -1,0 +1,105 @@
+#
+# Copyright 2022 IBM Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http:#www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: CI
+
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch: {}
+    
+jobs:
+
+  detect-docs-only-changes:
+    runs-on: ubuntu-18.04
+    outputs:
+      should_skip: ${{ steps.detect-docs-only-changes.outputs.should_skip }}
+    steps:
+      - name: Detect Documentation-only Changes
+        id: ddoc
+        uses: fkirc/skip-duplicate-actions@v4
+        with:
+          skip_after_successful_duplicate: 'true'
+          paths_ignore: '["docs/**", "**.md", "**.png", "**.jpg"]'
+          do_not_skip: '["workflow_dispatch", "schedule", "push", "pull_request"]'
+          concurrent_skipping: 'never'
+
+  check:
+    name: Check
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Setup Go 1.x 
+        uses: actions/setup-go@v3
+        with:
+          go-version: ^1.17
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Find the Go Build Cache
+        id: go
+        run: echo "::set-output name=cache::$(go env GOCACHE)"
+
+      - name: Cache the Go Build Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.go.outputs.cache }}
+          key: ${{ runner.os }}-build-check-diff-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-build-check-diff-
+
+      - name: Cache Go Dependencies
+        uses: actions/cache@v3
+        with:
+          path: .work/pkg
+          key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-pkg-
+
+      - name: Check
+        run: make check
+
+  build:
+    needs: detect-docs-only-changes
+    if: needs.detect-docs-only-changes.outputs.should_skip != 'true'
+    name: Build
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Setup Go 1.x 
+        uses: actions/setup-go@v3
+        with:
+          go-version: ^1.17
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Find the Go Build Cache
+        id: go
+        run: echo "::set-output name=cache::$(go env GOCACHE)"
+
+      - name: Cache the Go Build Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.go.outputs.cache }}
+          key: ${{ runner.os }}-build-check-diff-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-build-check-diff-
+
+      - name: Cache Go Dependencies
+        uses: actions/cache@v3
+        with:
+          path: .work/pkg
+          key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-pkg-
+
+      - name: Build
+        run: make build
