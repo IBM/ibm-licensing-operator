@@ -22,7 +22,6 @@ on:
   push:
       branches:
         - master
-        - development
 jobs:
 
   scorecard:

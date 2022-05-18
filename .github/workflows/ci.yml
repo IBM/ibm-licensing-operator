@@ -16,7 +16,11 @@
 name: CI
 
 on:
-  push: {}
+  push: 
+    branches: 
+      - master 
+      - latest
+      - release-*
   pull_request: {}
   workflow_dispatch: {}
     
@@ -33,7 +37,7 @@ jobs:
         with:
           skip_after_successful_duplicate: 'true'
           paths_ignore: '["docs/**", "**.md", "**.png", "**.jpg"]'
-          do_not_skip: '["workflow_dispatch", "schedule", "push"]'
+          do_not_skip: '["workflow_dispatch", "schedule", "push", "pull_request"]'
           concurrent_skipping: 'never'
 
   check:
@@ -67,7 +71,10 @@ jobs:
           restore-keys: ${{ runner.os }}-pkg-
 
       - name: Check
-        run: make check
+        run: |
+          wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.1.0/hadolint-Linux-x86_64
+          chmod +x /bin/hadolint
+          make check
 
   build:
     needs: detect-docs-only-changes
