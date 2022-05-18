@@ -72,8 +72,8 @@ jobs:
 
       - name: Check
         run: |
-          wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.1.0/hadolint-Linux-x86_64
-          chmod +x /bin/hadolint
+          sudo wget -O /usr/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.1.0/hadolint-Linux-x86_64
+          sudo chmod +x /usr/bin/hadolint
           make check
 
   build:
