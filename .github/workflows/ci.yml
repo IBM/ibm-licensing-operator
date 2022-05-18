@@ -33,7 +33,7 @@ jobs:
         with:
           skip_after_successful_duplicate: 'true'
           paths_ignore: '["docs/**", "**.md", "**.png", "**.jpg"]'
-          do_not_skip: '["workflow_dispatch", "schedule", "push", "pull_request"]'
+          do_not_skip: '["workflow_dispatch", "schedule", "push"]'
           concurrent_skipping: 'never'
 
   check:
