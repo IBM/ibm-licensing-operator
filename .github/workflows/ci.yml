@@ -70,13 +70,21 @@ jobs:
           key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-pkg-
 
+      - name: Set up Ruby 2.6
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: 2.6.x
+
       - name: Check
         run: |
           sudo wget -O /usr/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.1.0/hadolint-Linux-x86_64
           sudo chmod +x /usr/bin/hadolint
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.46.2
           sudo snap install mdl
+          gem install awesome_bot
           make check
+
+
 
   build:
     needs: detect-docs-only-changes
