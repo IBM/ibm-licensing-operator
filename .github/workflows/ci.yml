@@ -29,7 +29,7 @@ jobs:
     steps:
       - name: Detect Documentation-only Changes
         id: ddoc
-        uses: fkirc/skip-duplicate-actions@v4
+        uses: fkirc/skip-duplicate-actions@v4.0.0
         with:
           skip_after_successful_duplicate: 'true'
           paths_ignore: '["docs/**", "**.md", "**.png", "**.jpg"]'
