@@ -8,7 +8,8 @@ rules:
   document-end: disable
   document-start: disable
   empty-lines: disable
-  empty-values: enable
+  empty-values:
+    level: warning
   hyphens: enable
   indentation: disable
   key-duplicates: enable
