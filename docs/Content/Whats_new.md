@@ -1,6 +1,10 @@
 
 # What's New in License Service
 
+## License Service version 1.15.x
+
+- License Service is enabled to report product metrics that come from Prometheus queries.
+
 ## License Service version 1.14.x and 1.13.x updates
 
 No major updates.

@@ -16,7 +16,7 @@ Nonetheless, it is a good practice to generate an audit snapshot periodically fo
 |Environment |Current version|Upgrading to the latest version|
 |---|---|---|
 | Online| 1.3.x or earlier |1. [Update subscription channel.](#updating-the-subscription-channel)<br> 2. [Update the location of the CatalogSource.](#updating-the-location-of-the-catalogsource)|
-| Online| 1.4.x - 1.10.x |[Update the location of the CatalogSource.](#updating-the-location-of-the-catalogsource)|
+| Online| 1.4.x - 1.11.x |[Update the location of the CatalogSource.](#updating-the-location-of-the-catalogsource)|
 | Online| 1.11.x or later| License Service is automatically upgraded with each new operator release.|
 | Offline| Any | Uninstall License Service from the cluster and redeploy it.|
 
@@ -59,7 +59,7 @@ kubectl get csv -n "${licensingNamespace}" "${csv_name}" -o jsonpath='{.status.p
 
 ### Updating the location of the CatalogSource
 
-If you are upgrading from version 1.10.x or earlier, you must update the location of the `CatalogSource`.
+If you are upgrading from version 1.11.x or earlier, you must update the location of the `CatalogSource`.
 
 Starting from November 2021, IBM no longer publishes the catalog image updates to `docker.io` which was used by default in IBM License Service installation scripts and procedures that depended on `CatalogSource`.
 If you installed IBM License Service before December 2021, you must perform manual steps to update `CatalogSource` image and upgrade License Service version.
