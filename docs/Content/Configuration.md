@@ -160,6 +160,7 @@ kubectl get ingress -n ibm-common-services -o yaml
 ```bash
 kubectl get route -n ibm-common-services -o yaml
 ```
+
 Then examine the status part of the output. It should include host, path, tls (if configured), and other networking information.
 
 3\. Run the License Service APIs, and make sure that you get results that reflect your environment's license usage. For more information, see [APIs for retrieving License Service data in IBM Documentation](https://www.ibm.com/docs/en/cpfs?topic=data-per-cluster-from-license-service).
