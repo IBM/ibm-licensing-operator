@@ -409,6 +409,7 @@ spec:
                 - /health
                 - /status
                 - /services
+                - /services_adoption
               verbs:
                 - get
           serviceAccountName: ibm-licensing-default-reader
