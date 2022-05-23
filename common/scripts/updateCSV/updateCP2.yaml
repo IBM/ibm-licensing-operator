@@ -1,3 +1,3 @@
 - command: update
   path: spec.install.spec.clusterPermissions[2].rules
-  value:
+  value: {}
