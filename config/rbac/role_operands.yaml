@@ -53,6 +53,7 @@ rules:
       - "/health"
       - "/status"
       - "/services"
+      - "/services_adoption"
     verbs:
       - "get"
 ---
