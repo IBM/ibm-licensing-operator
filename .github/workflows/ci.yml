@@ -48,19 +48,11 @@ jobs:
       volumes:
         - my_volume:/home/my_volume
     steps:
-      - name: Update git
-        run: |
-          add-apt-repository ppa:git-core/ppa -y
-          apt-get update
-          apt-get install git -y
-
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Check
         run: make check
-          git config --global --add safe.directory /__w/ibm-licensing-operator/ibm-licensing-operator
-          
           
   build:
     needs: detect-docs-only-changes
