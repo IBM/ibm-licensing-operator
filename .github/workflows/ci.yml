@@ -50,9 +50,9 @@ jobs:
     steps:
       - name: Update git
         run: |
-          sudo add-apt-repository ppa:git-core/ppa -y
-          sudo apt-get update
-          sudo apt-get install git -y
+          add-apt-repository ppa:git-core/ppa -y
+          apt-get update
+          apt-get install git -y
 
       - name: Checkout
         uses: actions/checkout@v3
