@@ -52,7 +52,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Check
-        run: make check
+        run: |
+          cd /__w/ibm-licensing-operator/ibm-licensing-operator
+          make check
           
   build:
     needs: detect-docs-only-changes
