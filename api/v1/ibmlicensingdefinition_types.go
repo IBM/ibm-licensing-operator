@@ -22,6 +22,8 @@ import (
 type IBMLicensingDefinitionConditionMetadata struct {
 	// List of annotations used for matching pod
 	Annotations map[string]string `json:"annotations,omitempty"`
+	// List of labels used for matching pod
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 type IBMLicensingDefinitionCondition struct {
