@@ -21,8 +21,8 @@ on:
       - master 
       - latest
       - release-*
-  pull_request: {}
-  workflow_dispatch: {}
+  pull_request:
+  workflow_dispatch:
     
 jobs:
 
@@ -43,49 +43,47 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-18.04
+    container: quay.io/multicloudlab/build-tool:v20220414-4b40fdbb8
     steps:
-      - name: Setup Go 1.x 
-        uses: actions/setup-go@v3
-        with:
-          go-version: ^1.17
+      # - name: Setup Go 1.x 
+      #   uses: actions/setup-go@v3
+      #   with:
+      #     go-version: ^1.17
 
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Find the Go Build Cache
-        id: go
-        run: echo "::set-output name=cache::$(go env GOCACHE)"
+      # - name: Find the Go Build Cache
+      #   id: go
+      #   run: echo "::set-output name=cache::$(go env GOCACHE)"
 
-      - name: Cache the Go Build Cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.go.outputs.cache }}
-          key: ${{ runner.os }}-build-check-diff-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-build-check-diff-
+      # - name: Cache the Go Build Cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ${{ steps.go.outputs.cache }}
+      #     key: ${{ runner.os }}-build-check-diff-${{ hashFiles('**/go.sum') }}
+      #     restore-keys: ${{ runner.os }}-build-check-diff-
 
-      - name: Cache Go Dependencies
-        uses: actions/cache@v3
-        with:
-          path: .work/pkg
-          key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-pkg-
+      # - name: Cache Go Dependencies
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: .work/pkg
+      #     key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
+      #     restore-keys: ${{ runner.os }}-pkg-
 
-      - name: Set up Ruby 2.6
-        uses: actions/setup-ruby@v1
-        with:
-          ruby-version: 2.6.x
+      # - name: Set up Ruby 2.6
+      #   uses: actions/setup-ruby@v1
+      #   with:
+      #     ruby-version: 2.6.x
 
       - name: Check
-        run: |
-          sudo wget -O /usr/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.1.0/hadolint-Linux-x86_64
-          sudo chmod +x /usr/bin/hadolint
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.46.2
-          sudo snap install mdl
-          gem install awesome_bot
-          make check
-
-
-
+        run: make check
+          # sudo wget -O /usr/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v2.1.0/hadolint-Linux-x86_64
+          # sudo chmod +x /usr/bin/hadolint
+          # curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.46.2
+          # sudo snap install mdl
+          # gem install awesome_bot
+          
   build:
     needs: detect-docs-only-changes
     if: needs.detect-docs-only-changes.outputs.should_skip != 'true'
