@@ -54,6 +54,11 @@ spec:
                           type: string
                         description: List of annotations used for matching pod
                         type: object
+                      labels:
+                        additionalProperties:
+                          type: string
+                        description: List of labels used for matching pod
+                        type: object
                     type: object
                 type: object
               scope:

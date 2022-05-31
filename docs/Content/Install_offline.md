@@ -165,7 +165,9 @@ kubectl apply -f config/manager/manager.yaml
 You have created the **Operator** for **IBM Licensing Service**. The **Operator** is only responsible for watching over the configuration and managing resources used by **IBM Licensing Service**.
 
 **What's Next:**
-Create the IBM Licensing instance.
+
+- If you are installing License Service on IBM Cloud Kubernetes Services (IKS) or Amazon Elastic Kubernetes Service (EKS), as the following step you need to configure ingress. For more information, see [Configuring ingress](Configuration.md#configuring-ingress). After you do, verify the installation. You do not need to configure IBM Licensing instance.
+- If you are installing on OCP, create an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
