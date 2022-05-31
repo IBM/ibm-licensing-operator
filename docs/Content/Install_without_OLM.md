@@ -48,7 +48,7 @@ oc project ${licensing_namespace}
 3\. Use `git clone`.
 
 ```bash
-export operator_release_version=v1.15.0
+export operator_release_version=v1.16.0
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
@@ -107,7 +107,9 @@ kubectl apply -f config/manager/manager.yaml
 You have created the **Operator** for **IBM Licensing Service**. The **Operator** is only responsible for watching over the configuration and managing resources used by **IBM Licensing Service**.
 
 **What's Next:**
-Create an IBM Licensing instance.
+
+- If you are installing License Service on IBM Cloud Kubernetes Services (IKS) or Amazon Elastic Kubernetes Service (EKS), as the following step you need to configure ingress. For more information, see [Configuring ingress](Configuration.md#configuring-ingress). After you do, verify the installation. You do not need to configure IBM Licensing instance.
+- If you are installing on OCP, create an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
@@ -126,9 +128,9 @@ spec:
 EOF
 ```
 
-**Results:**
-Give operator couple minutes to configure all needed components.
-Installation is complete and **License Service** is running in your cluster.
+**What's Next:**
+
+The installation is complete at this point and **License Service** is running in your cluster. You can verify the installation.
 
 ## Verification
 

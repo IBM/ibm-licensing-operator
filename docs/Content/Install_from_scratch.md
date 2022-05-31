@@ -206,7 +206,7 @@ The following is the sample output:
 
 ```{: .text .no-copy }
 NAME                             DISPLAY                 VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.15.0   IBM Licensing           1.15.0    ibm-licensing-operator.v1.14.0  Succeeded
+ibm-licensing-operator.v1.16.0   IBM Licensing           1.16.0    ibm-licensing-operator.v1.14.0  Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
@@ -222,7 +222,9 @@ kubectl get deployment -n ibm-common-services | grep ibm-licensing-operator
 You have created the **Operator** for **IBM Licensing Service**. The **Operator** is only responsible for watching over the configuration and managing resources used by **IBM Licensing Service**.
 
 **What's Next:**
-Create an IBM Licensing instance.
+
+- If you are installing License Service on IBM Cloud Kubernetes Services (IKS) or Amazon Elastic Kubernetes Service (EKS), as the following step you need to configure ingress. For more information, see [Configuring ingress](Configuration.md#configuring-ingress). After you do, verify the installation. You do not need to configure IBM Licensing instance.
+- If you are installing on OCP, create an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 

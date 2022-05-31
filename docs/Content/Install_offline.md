@@ -23,7 +23,7 @@ This procedure guides you through the installation of License Service. It does n
 1\. Clone the repository by using `git clone`. Run the following command:
 
 ```bash
-export operator_release_version=v1.15.0
+export operator_release_version=v1.16.0
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
@@ -128,7 +128,7 @@ kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingmetadatas.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingdefinitions.yaml
-kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingquerysource.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingquerysources.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
 kubectl apply -f config/rbac/role_operands.yaml
@@ -153,7 +153,7 @@ kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingmetadatas.yaml
 kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingdefinitions.yaml
-kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingquerysource.yaml
+kubectl apply -f config/crd/bases/operator.ibm.com_ibmlicensingquerysources.yaml
 # add RBAC:
 kubectl apply -f config/rbac/role.yaml
 kubectl apply -f config/rbac/role_operands.yaml
@@ -167,7 +167,9 @@ kubectl apply -f config/manager/manager.yaml
 You have created the **Operator** for **IBM Licensing Service**. The **Operator** is only responsible for watching over the configuration and managing resources used by **IBM Licensing Service**.
 
 **What's Next:**
-Create the IBM Licensing instance.
+
+- If you are installing License Service on IBM Cloud Kubernetes Services (IKS) or Amazon Elastic Kubernetes Service (EKS), as the following step you need to configure ingress. For more information, see [Configuring ingress](Configuration.md#configuring-ingress). After you do, verify the installation. You do not need to configure IBM Licensing instance.
+- If you are installing on OCP, create an IBM Licensing instance.
 
 ## Creating an IBM Licensing instance
 
