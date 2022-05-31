@@ -45,8 +45,6 @@ jobs:
     runs-on: ubuntu-18.04
     container: 
       image: quay.io/multicloudlab/check-tool:v20220414-4b40fdbb8
-      volumes:
-        - my_volume:/home/my_volume
     steps:
       - name: Checkout
         uses: actions/checkout@v3
