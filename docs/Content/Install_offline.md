@@ -117,7 +117,8 @@ e. Apply RBAC roles, CRD and `operator.yaml`:
 
 ```bash
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
-sed -i 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
+sed -i 's/icr\.io\/cpopen\/cpfs/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
+sed -i 's/icr\.io\/cpopen/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
 sed -i "s/annotations\['olm.targetNamespaces'\]/namespace/g" config/manager/manager.yaml
 if [ "${licensing_namespace}" != "" ] && [ "${licensing_namespace}" != "ibm-common-services" ]; then
   sed -i 's|ibm-common-services|'"${licensing_namespace}"'|g' config/rbac/*.yaml
@@ -141,7 +142,8 @@ kubectl apply -f config/manager/manager.yaml
 
 ```bash
 ESCAPED_REPLACE=$(echo ${my_docker_registry} | sed -e 's/[\/&]/\\&/g')
-sed -i "" 's/quay\.io\/opencloudio/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
+sed -i "" 's/icr\.io\/cpopen\/cpfs/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
+sed -i "" 's/icr\.io\/cpopen/'"${ESCAPED_REPLACE}"'/g' config/manager/manager.yaml
 sed -i "" "s/annotations\['olm.targetNamespaces'\]/namespace/g" config/manager/manager.yaml
 if [ "${licensing_namespace}" != "" ] && [ "${licensing_namespace}" != "ibm-common-services" ]; then
   sed -i "" 's|ibm-common-services|'"${licensing_namespace}"'|g' config/rbac/*.yaml
