@@ -15,14 +15,13 @@
 name: kind
 
 on:
-  workflow_dispatch:
-  pull_request:
+  workflow_dispatch: {}
+  pull_request: {}
   schedule:
     - cron: "0 0 * * *"    
   push:
       branches:
         - master
-        - development
 jobs:
 
   scorecard:
