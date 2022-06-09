@@ -3,9 +3,7 @@
 
 ## License Service version 1.16.x
 
-- For the products that have three-layer reporting structure that includes services that are grouped under bundled products, and are enabled for reporting, such as IBM Cloud Pak for Data, you can view the contribution of these services with License Service. Use the `/services` API to see how services contribute to the usage of the bundled products. For more information, see [Retrieving contribution of services](../license-service/1.x.x/APIs.md#services).
-
-- You can track the license usage of IBM Software that is deployed on AWS ECS Fargate. For more information, see [Tracking license usage on AWS ECS Fargate](../license-service/1.x.x/fargate.md).
+- For the products that have three-layer reporting structure that includes services that are grouped under bundled products, and are enabled for reporting, such as IBM Cloud Pak for Data, you can view the contribution of these services with License Service. Use the `/services` API to see how services contribute to the usage of the bundled products. 
 
 ## License Service version 1.15.x
 

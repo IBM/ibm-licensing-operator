@@ -10,11 +10,15 @@ License Service collects and measures information about license usage of your IB
 
 You can use a set of dedicated APIs to retrieve the following information:
 
-- Retrieving an audit snapshot for the cluster
-- Retrieving license usage of products on a cluster level and retrieving license usage of product deployed in user-defined groups (chargeback)
-- Retrieving license usage of bundled products on the cluster level
-- Retrieving information about License Service version
-- Retrieving information about License Service health
+
+|API|Decription|
+|---|---|
+|Retrieving an audit snapshot|Retrieve an audit snapshot that is needed to fulfill the requirements of Container Licensing rules.|
+|Retrieving license usage of products on a cluster level and retrieving license usage of product deployed in user-defined groups|Retrieve the list of products that are deployed on the cluster with their license usage. Use this API to integrate with external tools to monitor you license usage.|
+|Retrieving license usage of bundled products|Retrieve the list of bundled products that are deployed on the cluster with their license usage. Use this API to integrate with external tools to monitor you license usage.|
+|Retrieving contribution of services|Retrieve the contribution of services in the overall license usage of your bundled products. This information is additional and applies only to limited number of enabled products.|
+|Retrieving information about License Service version|Retrieve information about License Service version for troubleshooting or upgrade purposes.|
+|Retrieving information about License Service health|Retrieve information about License Service health to identify problems.|
 
 To learn how to use the APIs to retrieve data and generate an audit snapshot, see [APIs for retrieving License Service data in IBM Documentation](https://www.ibm.com/docs/en/cpfs?topic=data-per-cluster-from-license-service).
 
