@@ -95,6 +95,7 @@ kubectl delete CustomResourceDefinition ibmlicensings.operator.ibm.com
 kubectl delete CustomResourceDefinition ibmlicenseservicereporters.operator.ibm.com
 kubectl delete CustomResourceDefinition ibmlicensingdefinitions.operator.ibm.com
 kubectl delete CustomResourceDefinition ibmlicensingmetadatas.operator.ibm.com
+kubectl delete CustomResourceDefinition ibmlicensingquerysources.operator.ibm.com
 ```
 
 4\. Delete Operator Group.
@@ -168,6 +169,7 @@ kubectl delete CustomResourceDefinition ibmlicensings.operator.ibm.com
 kubectl delete CustomResourceDefinition ibmlicenseservicereporters.operator.ibm.com
 kubectl delete CustomResourceDefinition ibmlicensingdefinitions.operator.ibm.com
 kubectl delete CustomResourceDefinition ibmlicensingmetadatas.operator.ibm.com
+kubectl delete CustomResourceDefinition ibmlicensingquerysources.operator.ibm.com
 ```
 
 4\. Remove the remaining License Service elements.
