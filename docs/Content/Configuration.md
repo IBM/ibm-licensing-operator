@@ -100,6 +100,14 @@ EOF
 
 - Amazon Elastic Kubernetes Service (EKS)
 
+To retrieve your host, consult EKS documentation.
+
+Then, get the subdomain for your cluster (or just fill subdomain variable if you know your subdomain):
+
+```yaml
+subdomain=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+```
+
 ```yaml
 cat <<EOF | kubectl apply -f -
 apiVersion: operator.ibm.com/v1alpha1
@@ -116,16 +124,8 @@ spec:
       "kubernetes.io/ingress.class": nginx
       "nginx.ingress.kubernetes.io/rewrite-target": "/\$2" # <- if you copy it into yaml file, then use "/$2"
     path: /ibm-licensing-service-instance(/|$)(.*)
-    host: <your_host>
+    host: $subdomain
 EOF
-```
-
-To retrieve your host, consult EKS documentation.
-
-Then, get the subdomain for your cluster (or just fill subdomain variable if you know your subdomain):
-
-```yaml
-subdomain=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 ```
 
 For more information, see [Setting up Kubernetes Ingress](https://cloud.ibm.com/docs/containers?topic=containers-ingress-types) in IBM Cloud Docs.
