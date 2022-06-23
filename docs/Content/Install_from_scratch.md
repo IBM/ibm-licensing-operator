@@ -206,7 +206,7 @@ The following is the sample output:
 
 ```{: .text .no-copy }
 NAME                             DISPLAY                 VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.16.0   IBM Licensing           1.16.0    ibm-licensing-operator.v1.14.0  Succeeded
+ibm-licensing-operator.v1.16.1   IBM Licensing           1.16.1    ibm-licensing-operator.v1.14.0  Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
