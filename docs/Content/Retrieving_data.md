@@ -10,7 +10,6 @@ License Service collects and measures information about license usage of your IB
 
 You can use a set of dedicated APIs to retrieve the following information:
 
-
 |API|Decription|
 |---|---|
 |Retrieving an audit snapshot|Retrieve an audit snapshot that is needed to fulfill the requirements of Container Licensing rules.|
