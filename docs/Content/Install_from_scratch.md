@@ -51,7 +51,7 @@ c.  If OLM is not installed, download it from [the OLM GitHub repository](https:
 **Note:** For versions newer than 0.16.1, the process might differ.
 
 ```bash
-olm_version=0.16.1
+olm_version=0.17.1
 curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/${olm_version}/install.sh | bash -s ${olm_version}
 ```
 

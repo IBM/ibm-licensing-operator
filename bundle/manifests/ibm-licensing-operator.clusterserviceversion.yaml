@@ -15,7 +15,7 @@ metadata:
           "name": "instance"
         },
         "spec": {
-          "version": "1.16.0",
+          "version": "1.17.0",
           "apiSecretToken": "ibm-licensing-token",
           "datasource": "datacollector",
           "httpsEnable": true
@@ -32,7 +32,7 @@ metadata:
           "name": "instance"
         },
         "spec": {
-          "version": "1.16.0"
+          "version": "1.17.0"
         }
       },{
         "apiVersion": "operator.ibm.com/v1alpha1",
@@ -71,10 +71,10 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
-    containerImage: icr.io/cpopen/ibm-licensing-operator:1.16.0
+    containerImage: icr.io/cpopen/ibm-licensing-operator:1.17.0
     createdAt: "2020-06-22T10:22:31Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the licensing usage of products.
-    olm.skipRange: '>=1.0.0 <1.16.0'
+    olm.skipRange: '>=1.0.0 <1.17.0'
     operators.operatorframework.io/builder: operator-sdk-v1.17.0
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com", "ibmlicensingdefinitions.operator.ibm.com", "ibmlicensingquerysources.operator.ibm.com"]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
@@ -86,7 +86,7 @@ metadata:
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: ibm-licensing-operator.v1.16.0
+  name: ibm-licensing-operator.v1.17.0
   namespace: ibm-common-services
 spec:
   apiservicedefinitions: {}
@@ -448,15 +448,15 @@ spec:
                       - ibm-licensing-operator
                     env:
                       - name: IBM_LICENSING_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-licensing:1.16.0
+                        value: icr.io/cpopen/cpfs/ibm-licensing:1.17.0
                       - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.16.0
+                        value: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.17.0
                       - name: IBM_POSTGRESQL_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-postgresql:1.16.0
+                        value: icr.io/cpopen/cpfs/ibm-postgresql:1.17.0
                       - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.16.0
+                        value: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.17.0
                       - name: IBM_LICENSING_USAGE_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-licensing-usage:1.16.0
+                        value: icr.io/cpopen/cpfs/ibm-licensing-usage:1.17.0
                       - name: WATCH_NAMESPACE
                         valueFrom:
                           fieldRef:
@@ -471,7 +471,7 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: spec.serviceAccountName
-                    image: icr.io/cpopen/ibm-licensing-operator:1.16.0
+                    image: icr.io/cpopen/ibm-licensing-operator:1.17.0
                     imagePullPolicy: Always
                     name: ibm-licensing-operator
                     resources:
@@ -708,17 +708,17 @@ spec:
   provider:
     name: IBM
   relatedImages:
-    - image: icr.io/cpopen/ibm-licensing-operator:1.16.0
+    - image: icr.io/cpopen/ibm-licensing-operator:1.17.0
       name: IBM_LICENSING_OPERATOR_IMAGE
-    - image: icr.io/cpopen/cpfs/ibm-licensing:1.16.0
+    - image: icr.io/cpopen/cpfs/ibm-licensing:1.17.0
       name: IBM_LICENSING_IMAGE
-    - image: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.16.0
+    - image: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.17.0
       name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-    - image: icr.io/cpopen/cpfs/ibm-postgresql:1.16.0
+    - image: icr.io/cpopen/cpfs/ibm-postgresql:1.17.0
       name: IBM_POSTGRESQL_IMAGE
-    - image: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.16.0
+    - image: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.17.0
       name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-    - image: icr.io/cpopen/cpfs/ibm-licensing-usage:1.16.0
+    - image: icr.io/cpopen/cpfs/ibm-licensing-usage:1.17.0
       name: IBM_LICENSING_USAGE_IMAGE
-  version: 1.16.0
-  replaces: ibm-licensing-operator.v1.15.0
+  version: 1.17.0
+  replaces: ibm-licensing-operator.v1.16.0
