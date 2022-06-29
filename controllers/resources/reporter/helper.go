@@ -85,18 +85,6 @@ func LabelsForPod(instance *operatorv1alpha1.IBMLicenseServiceReporter) map[stri
 	return podLabels
 }
 
-func getDatabaseEnvFromSourceVariables() []corev1.EnvFromSource {
-	return []corev1.EnvFromSource{
-		{
-			SecretRef: &corev1.SecretEnvSource{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: DatabaseConfigSecretName,
-				},
-			},
-		},
-	}
-}
-
 func getReciverEnvVariables(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []corev1.EnvVar {
 	environmentVariables := []corev1.EnvVar{
 		{
