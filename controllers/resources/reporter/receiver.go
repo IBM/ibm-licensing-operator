@@ -58,7 +58,6 @@ func getReceiverProbeHandler() corev1.Handler {
 func GetReceiverContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
 	container := resources.GetContainerBase(instance.Spec.ReceiverContainer)
 	container.Env = getReciverEnvVariables(instance.Spec)
-	container.EnvFrom = getDatabaseEnvFromSourceVariables()
 	container.VolumeMounts = getVolumeMounts(instance.Spec)
 	container.Name = ReceiverContainerName
 	container.Ports = []corev1.ContainerPort{

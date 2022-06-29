@@ -24,7 +24,7 @@ import (
 
 const APISecretTokenVolumeName = "api-token"
 const LicenseReporterHTTPSCertsVolumeName = "license-reporter-https-certs"
-
+const DatabaseCredentialsVolumeName = "db-config"
 const persistentVolumeClaimVolumeName = "data"
 
 func getVolumeMounts(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []corev1.VolumeMount {
@@ -32,6 +32,11 @@ func getVolumeMounts(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []core
 		{
 			Name:      APISecretTokenVolumeName,
 			MountPath: "/opt/ibm/licensing",
+			ReadOnly:  true,
+		},
+		{
+			Name:      DatabaseCredentialsVolumeName,
+			MountPath: "/opt/ibm/licensing/" + DatabaseConfigSecretName,
 			ReadOnly:  true,
 		},
 	}
@@ -53,6 +58,11 @@ func getDatabaseVolumeMounts() []corev1.VolumeMount {
 			Name:      persistentVolumeClaimVolumeName,
 			MountPath: DatabaseMountPoint,
 		},
+		{
+			Name:      DatabaseCredentialsVolumeName,
+			MountPath: "/opt/ibm/licensing/" + DatabaseConfigSecretName,
+			ReadOnly:  true,
+		},
 	}
 }
 
@@ -73,6 +83,15 @@ func getLicenseServiceReporterVolumes(spec operatorv1alpha1.IBMLicenseServiceRep
 			VolumeSource: corev1.VolumeSource{
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 					ClaimName: PersistenceVolumeClaimName,
+				},
+			},
+		},
+		{
+			Name: DatabaseCredentialsVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName:  DatabaseConfigSecretName,
+					DefaultMode: &resources.DefaultSecretMode,
 				},
 			},
 		},
