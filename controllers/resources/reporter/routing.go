@@ -24,6 +24,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+func annotationsForReporterRoute() map[string]string {
+	return map[string]string{"haproxy.router.openshift.io/timeout": "90s"}
+}
+
 func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *routev1.Route {
 
 	var tls *routev1.TLSConfig
@@ -40,9 +44,10 @@ func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *rou
 
 	return &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      LicenseReporterResourceBase,
-			Namespace: instance.GetNamespace(),
-			Labels:    LabelsForMeta(instance),
+			Name:        LicenseReporterResourceBase,
+			Namespace:   instance.GetNamespace(),
+			Labels:      LabelsForMeta(instance),
+			Annotations: annotationsForReporterRoute(),
 		},
 		Spec: routev1.RouteSpec{
 			To: routev1.RouteTargetReference{
