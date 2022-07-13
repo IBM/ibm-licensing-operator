@@ -23,6 +23,7 @@ import (
 )
 
 // IBMLicenseServiceReporterSpec defines the desired state of IBMLicenseServiceReporter
+// +kubebuilder:pruning:PreserveUnknownFields
 type IBMLicenseServiceReporterSpec struct {
 	// Environment variable setting
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Environment variable setting",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"

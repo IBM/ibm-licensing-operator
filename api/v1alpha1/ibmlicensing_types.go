@@ -57,6 +57,7 @@ type IBMLicensingRouteOptions struct {
 }
 
 // IBMLicensingSpec defines the desired state of IBMLicensing
+// +kubebuilder:pruning:PreserveUnknownFields
 type IBMLicensingSpec struct {
 
 	// Environment variable setting
