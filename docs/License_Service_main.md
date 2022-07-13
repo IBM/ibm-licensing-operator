@@ -55,6 +55,7 @@ For more information, see the following resources:
     - [Required resources](Content/Preparing_for_installation.md#required-resources)
     - [Hyperthreading](Content/Preparing_for_installation.md#hyperthreading)
     - [Cluster permissions](Content/Preparing_for_installation.md#cluster-permissions)
+    - [Pod security policy for VMware Tanzu Kubernetes Grid](Content/Preparing_for_installation.md#pod-security-policy-for-vmware-tanzu-kubernetes-grid)
 - [Installing License Service](Content/Installation_scenarios.md)
     - [Automatic installation using Operator Lifecycle Manager (OLM)](Content/Automatic_installation.md)
     - [Manual installation on Openshift Container Platform (OCP) 4.6 and later](Content/Install_on_OCP.md)
