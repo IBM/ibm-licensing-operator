@@ -535,7 +535,7 @@ catalogsource: opm
 	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_$(LOCAL_ARCH)"
 	chmod +x ./yq
-	# ./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.`replaces'
+	# ./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${REGISTRY}/${IMG}:${CSV_VERSION}"
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value'  "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value'  "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"
