@@ -721,4 +721,3 @@ spec:
     - image: icr.io/cpopen/cpfs/ibm-licensing-usage:1.17.0
       name: IBM_LICENSING_USAGE_IMAGE
   version: 1.17.0
-  replaces: ibm-licensing-operator.v1.16.0
