@@ -26,6 +26,7 @@ type IBMLicensingMetadataCondition struct {
 }
 
 // IBMLicensingMetadataSpec defines the desired state of IBMLicensingMetadata
+// +kubebuilder:pruning:PreserveUnknownFields
 type IBMLicensingMetadataSpec struct {
 	Condition IBMLicensingMetadataCondition `json:"condition"`
 	// List of annotations that matched pod would be extended

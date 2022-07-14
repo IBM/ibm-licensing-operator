@@ -31,6 +31,7 @@ type IBMLicensingDefinitionCondition struct {
 }
 
 // IBMLicensingDefinitionSpec defines the desired state of IBMLicensingDefinition
+// +kubebuilder:pruning:PreserveUnknownFields
 type IBMLicensingDefinitionSpec struct {
 	// Action of Custom Resource
 	// +kubebuilder:validation:Enum=modifyOriginal;cloneModify

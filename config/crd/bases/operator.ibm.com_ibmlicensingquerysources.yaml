@@ -58,6 +58,7 @@ spec:
             - annotations
             - query
             type: object
+            x-kubernetes-preserve-unknown-fields: true
           status:
             description: IBMLicensingQuerySourceStatus defines the observed state
               of IBMLicensingQuerySource
