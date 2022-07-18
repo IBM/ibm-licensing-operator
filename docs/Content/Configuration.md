@@ -132,7 +132,7 @@ EOF
 
 Before you retrieve the IP, check your current network configuration.
 
-To get the load balancer IP, and set it as a variable, run the following command: 
+To get the load balancer IP, and set it as a variable, run the following command:
 
 ```yaml
 loadBalancerIP=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
