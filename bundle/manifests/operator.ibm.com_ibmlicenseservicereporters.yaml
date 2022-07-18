@@ -291,6 +291,7 @@ spec:
                 description: Version
                 type: string
             type: object
+            x-kubernetes-preserve-unknown-fields: true
           status:
             description: IBMLicenseServiceReporterStatus defines the observed state
               of IBMLicenseServiceReporter
