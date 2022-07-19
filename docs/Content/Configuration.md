@@ -128,6 +128,38 @@ Then, get the subdomain for your cluster (or just fill subdomain variable if you
 subdomain=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 ```
 
+- VMware Tanzu Kubernetes Grid
+
+Before you retrieve the IP, check your current network configuration.
+
+To get the load balancer IP, and set it as a variable, run the following command:
+
+```yaml
+loadBalancerIP=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+```
+
+Then, apply the instance:
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  name: instance
+spec:
+  apiSecretToken: ibm-licensing-token
+  datasource: datacollector
+  httpsEnable: false
+  ingressEnabled: true
+  ingressOptions:
+    annotations:
+      "kubernetes.io/ingress.class": nginx
+      "nginx.ingress.kubernetes.io/rewrite-target": "/\$2" # <- if you copy it into yaml file, then use "/$2"
+    path: /ibm-licensing-service-instance(/|$)(.*)
+    host: $loadBalancerIP
+EOF
+```
+
 For more information, see [Setting up Kubernetes Ingress](https://cloud.ibm.com/docs/containers?topic=containers-ingress-types) in IBM Cloud Docs.
 
 **Note:** For HTTPS, set `spec.httpsEnable` to `true`, and edit `ingressOptions`. Read more about the options here:
