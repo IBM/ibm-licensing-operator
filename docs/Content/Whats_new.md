@@ -1,6 +1,10 @@
 
 # What's New in License Service
 
+## License Service version 1.16.1
+
+- Certification of License Service on VMware Tanzu Kubernetes Grid.
+
 ## License Service version 1.16.x
 
 - For the products that have three-layer reporting structure that includes services that are grouped under bundled products, and are enabled for reporting, such as IBM Cloud Pak for Data, you can view the contribution of these services with License Service. Use the `/services` API to see how services contribute to the usage of the bundled products.
@@ -31,7 +35,7 @@ No major updates.
 
 - License Service can report open source products that are  managed and supported by IBM, for example, WebSphere Liberty that is managed through IBM Cloud Foundry Migration Runtime (CFMR).
 
-## License Service version 1.16.x updates
+## License Service version 1.6.x updates
 
 No major updates.
 

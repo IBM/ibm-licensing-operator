@@ -5,6 +5,7 @@
 - [Required resources](#required-resources)
 - [Hyperthreading](#hyperthreading)
 - [Cluster permissions](#cluster-permissions)
+- [Pod security policy for VMware Tanzu Kubernetes Grid](#pod-security-policy-for-vmware-tanzu-kubernetes-grid)
 
 ## Supported platforms
 
@@ -61,6 +62,24 @@ The IBM License Service operator requires certain cluster-level permissions to p
 |" "|pods </br> namespaces </br> nodes|Get </br> List|The cluster permissions for the `ibm-license-service` service account are **read-only access** permissions that are required to properly discover the running {{site.data.keyword.IBM_notm}} applications to report license usage of the Virtual Processor Core (VPC) and Processor Value Unit (PVU) metrics.|
 |operator.openshift.io|servicecas|List|These permissions are required to generate the TLS certificate for License Service. |
 |operator.ibm.com| ibmlicensings </br> ibmlicenseservicereporters </br> ibmlicensings/status </br> ibmlicenseservicereporters/status </br> ibmlicensings/finalizers </br> ibmlicenseservicereporters/finalizers|Create </br> Delete </br> Get </br> List </br> Patch </br> Update </br> Watch| The cluster permissions for the `ibm-licensing-operator` service account are required to properly manage the status of the IBM License Service operator.|
+
+## Pod security policy for VMware Tanzu Kubernetes Grid
+
+Before you deploy License Service on VMware Tanzu Kubernetes Grid, you need the ClusterRoleBinding to run a privileged set of workloads.
+
+To check if you have the proper policy in place, run the following command:
+
+```bash
+kubectl get clusterrolebinding default-tkg-admin-privileged-binding
+```
+
+If you do not have the proper policy in place, you can apply it, for example, by running the following command:
+
+```bash
+kubectl create clusterrolebinding default-tkg-admin-privileged-binding --clusterrole=psp:vmware-system-privileged --group=system:authenticated
+```
+
+For more information, see [Using Pod Security Policies with Tanzu Kubernetes Clusters](https://docs.vmware.com/en/VMware-vSphere/7.0/vmware-vsphere-with-tanzu/GUID-CD033D1D-BAD2-41C4-A46F-647A560BAEAB.html#GUID-CD033D1D-BAD2-41C4-A46F-647A560BAEAB) and [Example Role Bindings for Pod Security Policy](https://docs.vmware.com/en/VMware-vSphere/7.0/vmware-vsphere-with-tanzu/GUID-4CCDBB85-2770-4FB8-BF0E-5146B45C9543.html) in VMware documentation.
 
 <b>Related links</b>
 
