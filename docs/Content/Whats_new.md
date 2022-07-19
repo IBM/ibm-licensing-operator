@@ -1,7 +1,7 @@
 
 # What's New in License Service
 
-## License Service version 1.17.x
+## License Service version 1.16.1
 
 - Certification of License Service on VMware Tanzu Kubernetes Grid.
 
