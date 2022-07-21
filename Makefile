@@ -422,9 +422,9 @@ ifeq (, $(shell which opm))
 	set -e ;\
 	OPM_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$OPM_GEN_TMP_DIR ;\
-	git clone  --branch v1.16.2  https://github.com/operator-framework/operator-registry.git ;\
+	git clone  --branch v1.16.1  https://github.com/operator-framework/operator-registry.git ;\
 	cd ./operator-registry ; \
-	git checkout v1.16.2;\
+	git checkout v1.16.1;\
 	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=eb9fff53' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=v1.16.2' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2021-03-30T13:32:56Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
 	cp ./bin/opm ~/ ; \
 	rm -rf $$OPM_GEN_TMP_DIR ;\
