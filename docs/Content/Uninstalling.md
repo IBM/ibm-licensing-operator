@@ -9,12 +9,22 @@ Complete the following procedure to uninstall License Service.
 Before uninstalling License Service, create an audit snapshot to record your license usage until the uninstallation for audit purposes.
 If you plan to reinstall License Service, the license usage data is stored in the persistent cluster memory and should not be affected by reinstallation. However, it is still a good practice to create an audit snapshot before reinstalling License Service as a precaution.
 
-Complete the following steps to uninstall License Service in online and offline environments.
+Uninstallation path is linked to the installation method. The following table shows how to uninstall License Service depanding on the deployment scenario that was used for installation.
+
+|Uninstallation path| Deployment scenario |
+|---|---|
+|Follow **online uninstallation** steps|<ul><li>[Automatic installation using Operator Lifecycle Manager (OLM)](Automatic_installation.md)</li><li>[Manual installation on OpenShift Container Platform (OCP) version 4.6 or later](Install_on_OCP.md)</li><li>[Manual installation on Kubernetes from scratch with `kubectl`](Install_from_scratch.md)</li></ul>|
+|Follow **offline uninstallation** steps|<ul><li>[Offline installation](Install_offline.md)</li><li>[Manual installation without Operator Lifecycle Manager (OLM)](Install_without_OLM.md)</li></ul>|
+
+Complete the following steps to uninstall License Service.
 
 - [Step 1: Deleting the IBM Licensing instance](#step-1-deleting-the-ibm-licensing-instance)
 - [Step 2: Deleting the remaining License Service resources](#step-2-deleting-the-remaining-license-service-resources)
     - [Online uninstallation](#online-uninstallation)
     - [Offline uninstallation](#offline-uninstallation)
+- [Step 3: Verifying uninstallation](#step-3-verifying-uninstallation)
+    - [Online](#online)
+    - [Offline](#offline)
 
 ## Step 1: Deleting the IBM Licensing instance
 
@@ -95,6 +105,7 @@ kubectl delete CustomResourceDefinition ibmlicensings.operator.ibm.com
 kubectl delete CustomResourceDefinition ibmlicenseservicereporters.operator.ibm.com
 kubectl delete CustomResourceDefinition ibmlicensingdefinitions.operator.ibm.com
 kubectl delete CustomResourceDefinition ibmlicensingmetadatas.operator.ibm.com
+kubectl delete CustomResourceDefinition ibmlicensingquerysources.operator.ibm.com
 ```
 
 4\. Delete Operator Group.
@@ -168,6 +179,7 @@ kubectl delete CustomResourceDefinition ibmlicensings.operator.ibm.com
 kubectl delete CustomResourceDefinition ibmlicenseservicereporters.operator.ibm.com
 kubectl delete CustomResourceDefinition ibmlicensingdefinitions.operator.ibm.com
 kubectl delete CustomResourceDefinition ibmlicensingmetadatas.operator.ibm.com
+kubectl delete CustomResourceDefinition ibmlicensingquerysources.operator.ibm.com
 ```
 
 4\. Remove the remaining License Service elements.
@@ -197,3 +209,105 @@ docker images | grep ibm-licensing
 <b>Related links</b>
 
 - [Go back to home page](../License_Service_main.md#documentation)
+
+## Step 3: Verifying uninstallation
+
+To verify that License Service is fully uninstalled, complete the following steps:
+
+### Online
+
+1\. Verify whether the License Service Catalog Source is deleted.
+
+**Note:** If you have other services that use the `opencloudio` Catalog Source, do not delete it.
+
+```bash
+kubectl get CatalogSource -A | grep opencloud-operators
+```
+
+As a response you should get an empty list.
+
+2\. Verify whether the License Service Operator Group is deleted.
+
+**Note:** If you have other subscriptions that are tied with this Operator Group, do not delete it.
+
+```bash
+licensingNamespace=ibm-common-services
+operatorGroupName=operatorgroup
+kubectl get OperatorGroup ${operatorGroupName} -n ${licensingNamespace}
+```
+
+As a response you should get an empty list.
+
+3\. Verify whether the Custom Resource Definitions (CRDs) are deleted.
+
+```bash
+kubectl get CustomResourceDefinition | grep ibmlicens
+```
+
+As a response you should get an empty list.
+
+4\.. Verify whether the Cluster Service Versions are deleted.
+
+```bash
+kubectl get clusterserviceversion -A | grep ibm-licensing-operator
+```
+
+As a response you should get an empty list.
+
+5\. Verify whether the Subscription is deleted.
+
+```bash
+kubectl get subscription -A | grep ibm-licensing-operator
+```
+
+As a response you should get an empty list.
+
+6\. Verify whether role-based access controls (RBAC) are deleted.
+
+```bash
+kubectl get ClusterRole | grep ibm-licens
+kubectl get ClusterRoleBinding | grep ibm-licens
+kubectl get Role -A | grep ibm-licens
+kubectl get RoleBinding -A | grep ibm-licens
+kubectl get ServiceAccount -A | grep ibm-licens
+```
+
+As a response you should get an empty list.
+
+7\. Verify whether License Service deployments are deleted.
+
+```bash
+kubectl get Deployment -A | grep ibm-licens
+```
+
+As a response you should get an empty list.
+
+### Offline
+
+1\. Verify whether the Custom Resource Definitions (CRDs) are deleted.
+
+```bash
+kubectl get CustomResourceDefinition | grep ibmlicens
+```
+
+As a response you should get an empty list.
+
+2\. Verify whether role-based access controls (RBAC) are deleted.
+
+```bash
+kubectl get ClusterRole | grep ibm-licens
+kubectl get ClusterRoleBinding | grep ibm-licens
+kubectl get Role -A | grep ibm-licens
+kubectl get RoleBinding -A | grep ibm-licens
+kubectl get ServiceAccount -A | grep ibm-licens
+```
+
+As a response you should get an empty list.
+
+3\. Verify whether License Service deployments are deleted.
+
+```bash
+kubectl get Deployment -A | grep ibm-licens
+```
+
+As a response you should get an empty list.
