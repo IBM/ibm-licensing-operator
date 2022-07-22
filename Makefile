@@ -15,7 +15,7 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.16.1
+CSV_VERSION ?= 1.16.2
 CSV_VERSION_DEVELOPMENT ?= development
 OLD_CSV_VERSION ?= 1.16.0
 
