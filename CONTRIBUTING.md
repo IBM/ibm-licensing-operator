@@ -3,12 +3,13 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Contributing guidelines](#contributing-guidelines)
-    - [Developer Certificate of Origin](#developer-certificate-of-origin)
-    - [Contributing A Patch](#contributing-a-patch)
-    - [Issue and Pull Request Management](#issue-and-pull-request-management)
-    - [Linting prerequisite](#linting-prerequisite)
-    - [Pre-check before submitting a PR](#pre-check-before-submitting-a-pr)
-    - [Build images](#build-images)
+  - [Developer Certificate of Origin](#developer-certificate-of-origin)
+  - [Contributing A Patch](#contributing-a-patch)
+  - [Issue and Pull Request Management](#issue-and-pull-request-management)
+  - [Linting prerequisite](#linting-prerequisite)
+  - [Pre-check before submitting a PR](#pre-check-before-submitting-a-pr)
+  - [Build images](#build-images)
+  - [Version bump](#version-bump)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 

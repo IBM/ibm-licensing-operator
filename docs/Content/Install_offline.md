@@ -1,9 +1,10 @@
 # Offline installation
 
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
-- [Verification](#verification)
+- [Offline installation](#offline-installation)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+  - [Verification](#verification)
 
 ## Prerequisites
 
@@ -23,7 +24,7 @@ This procedure guides you through the installation of License Service. It does n
 1\. Clone the repository by using `git clone`. Run the following command:
 
 ```bash
-export operator_release_version=v1.17.0
+export operator_release_version=v1.18.0
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```
