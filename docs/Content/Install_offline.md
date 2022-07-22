@@ -1,19 +1,19 @@
 # Offline installation
 
 - [Offline installation](#offline-installation)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
-  - [Verification](#verification)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+- [Verification](#verification)
 
 ## Prerequisites
 
 - A private Docker image registry where you can push the images using `Docker` and from where your cluster can pull images. For more information, see [Docker registry in Docker product documentation](https://docs.docker.com/registry/).
 - Complete the offline installation on a host that meets the following criteria:
-    - Has Linux or macOS operating system (or Windows with Linux Bash Shell, for example, from WSL).
-    - Has Docker and Kubernetes CLI installed.
-    - Has internet access.
-    - Has access to your offline cluster via Kubernetes config.
+  - Has Linux or macOS operating system (or Windows with Linux Bash Shell, for example, from WSL).
+  - Has Docker and Kubernetes CLI installed.
+  - Has internet access.
+  - Has access to your offline cluster via Kubernetes config.
 
 Before installation, see [Preparing for installation](Preparing_for_installation.md) to check the supported platforms, required resources, and cluster permissions.
 

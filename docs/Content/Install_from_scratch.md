@@ -1,10 +1,10 @@
 # Manual installation on Kubernetes from scratch with `kubectl`
 
 - [Manual installation on Kubernetes from scratch with `kubectl`](#manual-installation-on-kubernetes-from-scratch-with-kubectl)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
-  - [Verification](#verification)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+- [Verification](#verification)
 
 ## Prerequisites
 
