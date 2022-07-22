@@ -4,11 +4,10 @@ Learn how to install License Service without the Operator Lifecycle Manager (OLM
 
 Complete the following procedure to install License Service on a system that does not have the Operator Lifecycle Manager (OLM) deployed.
 
-- [Manual installation without Operator Lifecycle Manager (OLM)](#manual-installation-without-operator-lifecycle-manager-olm)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
-  - [Verification](#verification)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+- [Verification](#verification)
 
 ## Prerequisites
 
@@ -49,7 +48,7 @@ oc project ${licensing_namespace}
 3\. Use `git clone`.
 
 ```bash
-export operator_release_version=v1.18.0
+export operator_release_version=v1.17.0
 git clone -b ${operator_release_version} https://github.com/IBM/ibm-licensing-operator.git
 cd ibm-licensing-operator/
 ```

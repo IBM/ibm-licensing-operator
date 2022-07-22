@@ -15,9 +15,9 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.18.0
+CSV_VERSION ?= 1.17.0
 CSV_VERSION_DEVELOPMENT ?= development
-OLD_CSV_VERSION ?= 1.17.0
+OLD_CSV_VERSION ?= 1.16.0
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -425,7 +425,7 @@ ifeq (, $(shell which opm))
 	git clone  --branch v1.16.1  https://github.com/operator-framework/operator-registry.git ;\
 	cd ./operator-registry ; \
 	git checkout v1.16.1;\
-	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=eb9fff53' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=v1.18.0' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2021-03-30T13:32:56Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
+	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=eb9fff53' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=v1.17.0' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2021-03-30T13:32:56Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
 	cp ./bin/opm ~/ ; \
 	rm -rf $$OPM_GEN_TMP_DIR ;\
 	}

@@ -1,10 +1,9 @@
 # Manual installation on Kubernetes from scratch with `kubectl`
 
-- [Manual installation on Kubernetes from scratch with `kubectl`](#manual-installation-on-kubernetes-from-scratch-with-kubectl)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
-  - [Verification](#verification)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Creating an IBM Licensing instance](#creating-an-ibm-licensing-instance)
+- [Verification](#verification)
 
 ## Prerequisites
 
@@ -207,7 +206,7 @@ The following is the sample output:
 
 ```{: .text .no-copy }
 NAME                             DISPLAY                 VERSION   REPLACES                        PHASE
-ibm-licensing-operator.v1.18.0   IBM Licensing           1.18.0    ibm-licensing-operator.v1.17.0  Succeeded
+ibm-licensing-operator.v1.16.0   IBM Licensing           1.16.0    ibm-licensing-operator.v1.15.0  Succeeded
 ```
 
 **Note:** The above command assumes that you have created the Subscription in the `ibm-common-services` namespace.
