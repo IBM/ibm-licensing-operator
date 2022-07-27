@@ -315,21 +315,23 @@ EOF
   fi
   log "Checking IBMLicensing instance status"
   retries=36
-  until [[ $retries == 0 || $new_ibmlicensing_phase == Running* ]]; do
-    new_ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null || echo "Waiting for IBMLicensing pod to appear")
-    if [[ $new_ibmlicensing_phase != "$ibmlicensing_phase" ]]; then
-      ibmlicensing_phase=$new_ibmlicensing_phase
-      log "IBMLicensing Pod phase: $ibmlicensing_phase"
-      if [ "$ibmlicensing_phase" == "Failed" ] ; then
-        log "Error: Problem during installation of IBMLicensing, try running script again when fixed, check README for post installation section and troubleshooting"
-        exit 20
-      fi
+  until [[ $retries == 0 || "$ibmlicensing_phase" == "Running" ]]; do
+    if [[ "$retries" != 36 ]]; then
+      sleep 10
     fi
-    sleep 10
     retries=$((retries - 1))
+    ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null)
+    if [ "$ibmlicensing_phase" == "Failed" ] ; then
+      log "Error: Problem during installation of IBMLicensing, try running script again when fixed, check README for post installation section and troubleshooting"
+      exit 20
+    elif [[ "$ibmlicensing_phase" == "" ]]; then
+      echo "Waiting for IBMLicensing pod to appear"
+    else
+      log "IBMLicensing Pod phase: $ibmlicensing_phase"
+    fi
   done
   if [ $retries == 0 ]; then
-    log "Error: IBMLicensing instance pod failed to reach phase Running"
+    log "Error: IBMLicensing instance pod failed to reach phase Running. Check ibm-licensing-operator pod logs. See README for post installation section and troubleshooting"
     exit 21
   fi
 }
