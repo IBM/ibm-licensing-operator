@@ -564,7 +564,7 @@ catalogsource: opm
 ifneq (${DEVOPS_STREAM},)
 	docker tag ${REGISTRY}/${BUNDLE_IMG} ${REGISTRY}/${DEVOPS_BUNDLE_IMG}
 	docker push ${REGISTRY}/${DEVOPS_BUNDLE_IMG}
-	docker tag ${REGISTRY}/${CATALOG_IMG} ${REGISTRY}/${DEVOPS_CATALOG_IMG}
+	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${DEVOPS_BUNDLE_IMG} --tag ${REGISTRY}/${DEVOPS_CATALOG_IMG}
 	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
 endif
 
