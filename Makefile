@@ -561,12 +561,12 @@ catalogsource: opm
 	docker push ${REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
 	docker push ${REGISTRY}/${CATALOG_IMG}
-	ifdef ${DEVOPS_STREAM}
-		docker tag ${REGISTRY}/${BUNDLE_IMG} ${REGISTRY}/${DEVOPS_BUNDLE_IMG}
-		docker push ${REGISTRY}/${DEVOPS_BUNDLE_IMG}
-		docker tag ${REGISTRY}/${CATALOG_IMG} ${REGISTRY}/${DEVOPS_CATALOG_IMG}
-		docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
-	endif
+ifneq (${DEVOPS_STREAM},)
+	docker tag ${REGISTRY}/${BUNDLE_IMG} ${REGISTRY}/${DEVOPS_BUNDLE_IMG}
+	docker push ${REGISTRY}/${DEVOPS_BUNDLE_IMG}
+	docker tag ${REGISTRY}/${CATALOG_IMG} ${REGISTRY}/${DEVOPS_CATALOG_IMG}
+	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
+endif
 
 
 catalogsource-development: opm
