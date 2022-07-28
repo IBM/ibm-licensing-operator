@@ -145,7 +145,6 @@ else ifeq ($(GIT_BRANCH),release-future)
 	DEVOPS_STREAM="future"
 endif
 
-DEVOPS_BUNDLE_IMG ?= $(IMAGE_BUNDLE_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 
 $(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "VCS_URL=$(GIT_REMOTE_URL)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
@@ -562,9 +561,7 @@ catalogsource: opm
 	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
 	docker push ${REGISTRY}/${CATALOG_IMG}
 ifneq (${DEVOPS_STREAM},)
-	docker tag ${REGISTRY}/${BUNDLE_IMG} ${REGISTRY}/${DEVOPS_BUNDLE_IMG}
-	docker push ${REGISTRY}/${DEVOPS_BUNDLE_IMG}
-	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${DEVOPS_BUNDLE_IMG} --tag ${REGISTRY}/${DEVOPS_CATALOG_IMG}
+	docker tag ${REGISTRY}/${CATALOG_IMG} ${REGISTRY}/${DEVOPS_CATALOG_IMG}
 	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
 endif
 
