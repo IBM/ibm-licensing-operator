@@ -135,7 +135,7 @@ BUNDLE_IMG ?= $(IMAGE_BUNDLE_NAME)-$(LOCAL_ARCH):$(VERSION)
 CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
 
 # Idnetify stream based in current git branch
-GIT_BRANCH=$(shell git branch --show-current)
+GIT_BRANCH=${PULL_BASE_REF}
 DEVOPS_STREAM :=
 ifeq ($(GIT_BRANCH),master) 
 	DEVOPS_STREAM="cd"
