@@ -64,16 +64,16 @@ EOF
 
 - IBM Cloud Kubernetes Services (IKS) on IBM Cloud
 
-First get your cluster name:
+First, get your cluster name or id:
 
 ```yaml
-cluster=<your iks cluster name from ibmcloud>
+cluster=<your iks cluster name or id from ibmcloud>
 ```
 
 Then, get the subdomain for your cluster (or just fill subdomain variable if you know your subdomain):
 
 ```yaml
-subdomain=$(ibmcloud ks cluster get --cluster <cluster name or cluster id> | grep "Ingress Sub" | awk '{print $3}')
+subdomain=$(ibmcloud ks cluster get --cluster $cluster | grep "Ingress Sub" | awk '{print $3}')
 ```
 
 Then apply the instance:
