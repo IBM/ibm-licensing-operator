@@ -15,9 +15,9 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.17.0
+CSV_VERSION ?= 1.18.0
 CSV_VERSION_DEVELOPMENT ?= development
-OLD_CSV_VERSION ?= 1.16.0
+OLD_CSV_VERSION ?= 1.17.0
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -133,6 +133,19 @@ GIT_REMOTE_URL = $(shell git config --get remote.origin.url)
 
 BUNDLE_IMG ?= $(IMAGE_BUNDLE_NAME)-$(LOCAL_ARCH):$(VERSION)
 CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
+
+# Idnetify stream based in current git branch
+GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+DEVOPS_STREAM :=
+ifeq ($(GIT_BRANCH),master) 
+	DEVOPS_STREAM="cd"
+else ifeq ($(GIT_BRANCH),release-ltsr)
+	DEVOPS_STREAM="ltsr"
+else ifeq ($(GIT_BRANCH),release-future)
+	DEVOPS_STREAM="future"
+endif
+
+DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 
 $(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "VCS_URL=$(GIT_REMOTE_URL)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
 
@@ -425,7 +438,7 @@ ifeq (, $(shell which opm))
 	git clone  --branch v1.16.1  https://github.com/operator-framework/operator-registry.git ;\
 	cd ./operator-registry ; \
 	git checkout v1.16.1;\
-	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=eb9fff53' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=v1.17.0' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2021-03-30T13:32:56Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
+	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=eb9fff53' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=v1.16.0' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2021-03-30T13:32:56Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
 	cp ./bin/opm ~/ ; \
 	rm -rf $$OPM_GEN_TMP_DIR ;\
 	}
@@ -546,7 +559,12 @@ catalogsource: opm
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
 	docker push ${REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
-	docker push  ${REGISTRY}/${CATALOG_IMG}
+	docker push ${REGISTRY}/${CATALOG_IMG}
+ifneq (${DEVOPS_STREAM},)
+	docker tag ${REGISTRY}/${CATALOG_IMG} ${REGISTRY}/${DEVOPS_CATALOG_IMG}
+	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
+endif
+
 
 catalogsource-development: opm
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
