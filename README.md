@@ -1,4 +1,4 @@
-**IMPORTANT:** The `master` branch contains the currently developed version of License Service and its content should not be used. Switch to another branch to view the content for the already-released version of License Service, for example `release-<version>` branch.
+**IMPORTANT:** This branch contains the latest LTSR version of License Service. Switch to another branch to view the content for another version of License Service, for example `release-<version>` branch.
 
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
 
@@ -47,15 +47,15 @@ For more information about the OpenShift Container Platform Security Context Con
 
 # ibm-licensing-operator for deploying License Service without an IBM Cloud Pak
 
-<!--- This documentation is linked under the following short link: https://ibm.biz/license_service4containers. If content is moved update the link through the: Hybrid Cloud ID Team
---->
-
 <b>Scenario: Learn how to deploy License Service on Kubernetes clusters without an IBM CLoud Pak</b>
 
 You can use the `ibm-licensing-operator` to install License Service on any Kubernetes cluster without an IBM Cloud Pak. License Service collects information about license usage of IBM Containerized Products. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 
 ## Product documentation
 
-For the overview and documentation, see [License Service deployment without an IBM Cloud Pak](docs/License_Service_main.md).
+For the overview and documentation, see [License Service deployment without an IBM Cloud  for IBM stand-alone IBM Cntainerized Software]([docs/License_Service_main.md](https://ibm.biz/license_service4containers)).
+
+<!--- The short link: https://ibm.biz/license_service4containers contains documentation for License Service stand-alond intended for IBM stand alone COntainerized Software. To have this link updated contact the Foundational services ID team, manager: Dan Hawkins.
+--->
 
 **Note:** License Service Reporter, which is an extension of License Service that aggregates the license usage data from multiple clusters, is not available without an IBM Cloud Pak on OpenShift Container Platform. License Service Reporter is only available as a part of an IBM Cloud Pak on OpenShift Container Platform (included in IBM Cloud Pak foundational services).
