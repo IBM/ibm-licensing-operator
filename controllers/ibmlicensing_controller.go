@@ -298,9 +298,6 @@ func (r *IBMLicensingReconciler) reconcileServices(instance *operatorv1alpha1.IB
 }
 
 func (r *IBMLicensingReconciler) reconcileServiceMonitor(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	if !instance.Spec.IsRHMPEnabled() {
-		return reconcile.Result{}, nil
-	}
 	reqLogger := r.Log.WithValues("reconcileServiceMonitor", "Entry", "instance.GetName()", instance.GetName())
 	expectedServiceMonitor := service.GetServiceMonitor(instance)
 	owner := service.GetPrometheusService(instance)
@@ -319,9 +316,6 @@ func (r *IBMLicensingReconciler) reconcileServiceMonitor(instance *operatorv1alp
 }
 
 func (r *IBMLicensingReconciler) reconcileNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	if !instance.Spec.IsRHMPEnabled() {
-		return reconcile.Result{}, nil
-	}
 	reqLogger := r.Log.WithValues("reconcileNetworkPolicy", "Entry", "instance.GetName()", instance.GetName())
 	expected := service.GetNetworkPolicy(instance)
 	owner := service.GetPrometheusService(instance)
