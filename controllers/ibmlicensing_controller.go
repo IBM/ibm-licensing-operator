@@ -153,7 +153,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		r.reconcileMeterDefinition,
 	}
 
-	if instance.Spec.IsRHMPEnabled() || instance.Spec.IsAlertingEnabled() {
+	if instance.Spec.IsPrometheusServiceNeeded() {
 		reconcileFunctions = append(reconcileFunctions, r.reconcileServiceMonitor, r.reconcileNetworkPolicy)
 	}
 
@@ -585,6 +585,11 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 		r.Log.Info("RHMP is enabled")
 	} else {
 		r.Log.Info("RHMP is disabled")
+	}
+	if instance.Spec.IsAlertingEnabled() {
+		r.Log.Info("Alerting is enabled")
+	} else {
+		r.Log.Info("Alerting is disabled")
 	}
 	if instance.Spec.UsageEnabled {
 		r.Log.Info("Usage container is enabled")

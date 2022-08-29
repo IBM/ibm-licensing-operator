@@ -186,6 +186,10 @@ func (spec *IBMLicensingSpec) IsRHMPEnabled() bool {
 	return spec.RHMPEnabled != nil && *spec.RHMPEnabled
 }
 
+func (spec *IBMLicensingSpec) IsPrometheusServiceNeeded() bool {
+	return spec.IsRHMPEnabled() || spec.IsAlertingEnabled()
+}
+
 func (spec *IBMLicensingSpec) IsChargebackEnabled() bool {
 	if spec.IsRHMPEnabled() {
 		return true

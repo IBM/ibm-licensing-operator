@@ -42,7 +42,7 @@ func GetServices(instance *operatorv1alpha1.IBMLicensing) (expected []*corev1.Se
 	expected = append(expected, GetLicensingService(instance))
 
 	prometheusService := GetPrometheusService(instance)
-	if instance.Spec.IsRHMPEnabled() {
+	if instance.Spec.IsPrometheusServiceNeeded() {
 		expected = append(expected, prometheusService)
 	} else {
 		notExpected = append(notExpected, prometheusService)
