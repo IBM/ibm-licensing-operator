@@ -177,12 +177,11 @@ work: $(GOBIN)
 
 ##@ Development
 
-code-dev: ## Run the default dev commands which are the go tidy, fmt, vet then execute the $ make code-gen
+code-dev: ## Run the default dev commands which are the go tidy, fmt, vet then execute the $ make check
 	@echo Running the common required commands for developments purposes
 	- make code-tidy
 	- make code-fmt
 	- make code-vet
-	- make code-gen
 	@echo Running the common required commands for code delivery
 	make check
 
