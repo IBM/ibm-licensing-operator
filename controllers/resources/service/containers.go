@@ -71,6 +71,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "true",
 		})
 	}
+	if spec.IsAlertingEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "enable.alerting",
+			Value: "true",
+		})
+	}
 	if spec.IsChargebackEnabled() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "ENABLE_CHARGEBACK",

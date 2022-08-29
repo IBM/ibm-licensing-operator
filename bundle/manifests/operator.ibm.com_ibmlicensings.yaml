@@ -70,6 +70,14 @@ spec:
               features:
                 description: Set additional features under this field
                 properties:
+                  alerting:
+                    description: Change alerting settings.
+                    properties:
+                      enabled:
+                        description: Should this function be enabled (by default it
+                          is).
+                        type: boolean
+                    type: object
                   auth:
                     description: Authorization settings.
                     properties:

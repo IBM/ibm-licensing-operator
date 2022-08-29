@@ -153,7 +153,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		r.reconcileMeterDefinition,
 	}
 
-	if instance.Spec.IsRHMPEnabled() {
+	if instance.Spec.IsRHMPEnabled() || instance.Spec.IsAlertingEnabled() {
 		reconcileFunctions = append(reconcileFunctions, r.reconcileServiceMonitor, r.reconcileNetworkPolicy)
 	}
 
