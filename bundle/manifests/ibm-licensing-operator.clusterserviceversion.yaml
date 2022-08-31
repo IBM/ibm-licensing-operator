@@ -342,6 +342,13 @@ spec:
                 - get
                 - list
             - apiGroups:
+                - apps
+              resources:
+                - deployments
+              verbs:
+                - get
+                - list
+            - apiGroups:
                 - metrics.k8s.io
               resources:
                 - pods
@@ -678,6 +685,13 @@ spec:
                 - ""
               resources:
                 - pods
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - apps
+              resources:
+                - deployments
               verbs:
                 - get
                 - list
