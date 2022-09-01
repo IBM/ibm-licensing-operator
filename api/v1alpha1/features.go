@@ -17,7 +17,7 @@
 package v1alpha1
 
 import (
-	"github.com/ibm/ibm-licensing-operator/api/v1alpha1/features"
+	"github.com/IBM/ibm-licensing-operator/api/v1alpha1/features"
 )
 
 type Features struct {

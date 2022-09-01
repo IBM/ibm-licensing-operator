@@ -1,4 +1,4 @@
-module github.com/ibm/ibm-licensing-operator
+module github.com/IBM/ibm-licensing-operator
 
 go 1.17
 
