@@ -24,9 +24,9 @@ import (
 	r "runtime"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	operatoribmcomv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	"github.com/ibm/ibm-licensing-operator/controllers"
-	"github.com/ibm/ibm-licensing-operator/version"
+	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"github.com/IBM/ibm-licensing-operator/controllers"
+	"github.com/IBM/ibm-licensing-operator/version"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
@@ -44,7 +44,7 @@ import (
 	cache "github.com/IBM/controller-filtered-cache/filteredcache"
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 
-	operatorv1 "github.com/ibm/ibm-licensing-operator/api/v1"
+	operatorv1 "github.com/IBM/ibm-licensing-operator/api/v1"
 	// +kubebuilder:scaffold:imports
 )
 

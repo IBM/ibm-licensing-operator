@@ -27,9 +27,9 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 
 	"github.com/go-logr/logr"
-	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	res "github.com/ibm/ibm-licensing-operator/controllers/resources"
-	"github.com/ibm/ibm-licensing-operator/controllers/resources/reporter"
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources/reporter"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"

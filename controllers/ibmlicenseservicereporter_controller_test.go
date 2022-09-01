@@ -20,7 +20,7 @@ import (
 	"context"
 	"testing"
 
-	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"

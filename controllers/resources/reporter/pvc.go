@@ -17,7 +17,7 @@
 package reporter
 
 import (
-	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
