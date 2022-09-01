@@ -21,9 +21,10 @@ import (
 
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 
-	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )
 
 func getReporterUIEnvironmentVariables(instance *operatorv1alpha1.IBMLicenseServiceReporter) []corev1.EnvVar {

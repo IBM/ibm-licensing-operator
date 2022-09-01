@@ -27,9 +27,6 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 
 	"github.com/go-logr/logr"
-	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
-	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
-	"github.com/IBM/ibm-licensing-operator/controllers/resources/reporter"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -41,6 +38,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources/reporter"
 
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )

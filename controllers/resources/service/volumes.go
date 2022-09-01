@@ -17,9 +17,10 @@
 package service
 
 import (
+	corev1 "k8s.io/api/core/v1"
+
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
-	corev1 "k8s.io/api/core/v1"
 )
 
 const APISecretTokenVolumeName = "api-token"

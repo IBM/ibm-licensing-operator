@@ -17,10 +17,11 @@
 package reporter
 
 import (
-	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )
 
 func GetServiceAccountName(instance *operatorv1alpha1.IBMLicenseServiceReporter) string {

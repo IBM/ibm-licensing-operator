@@ -25,9 +25,6 @@ import (
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
-	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
-	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
-	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
 	routev1 "github.com/openshift/api/route/v1"
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -41,6 +38,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
 )
 
 type reconcileLSFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)

@@ -19,10 +19,11 @@ package service
 import (
 	"time"
 
-	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	rhmpcommon "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/common"
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )
 
 func GetMeterDefinitionList(instance *operatorv1alpha1.IBMLicensing) []*rhmp.MeterDefinition {

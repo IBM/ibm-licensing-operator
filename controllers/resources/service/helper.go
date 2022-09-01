@@ -19,9 +19,10 @@ package service
 import (
 	"context"
 
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/version"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const LicensingResourceBase = "ibm-licensing-service"

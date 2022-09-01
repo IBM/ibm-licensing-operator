@@ -17,11 +17,12 @@
 package service
 
 import (
-	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
-	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 	routev1 "github.com/openshift/api/route/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
 func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing) *routev1.Route {
