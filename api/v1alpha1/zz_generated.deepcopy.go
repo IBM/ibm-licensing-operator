@@ -37,7 +37,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/ibm/ibm-licensing-operator/api/v1alpha1/features"
+	"github.com/IBM/ibm-licensing-operator/api/v1alpha1/features"
 	v1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"

@@ -34,7 +34,6 @@ import (
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
-	"github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -44,6 +43,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	"github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )
 
 // cannot set to const due to k8s struct needing pointers to primitive types
