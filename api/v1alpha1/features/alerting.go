@@ -18,7 +18,7 @@ package features
 
 // +k8s:deepcopy-gen=true
 type Alerting struct {
-	// Should this function be enabled (by default it is).
+	// Should this function be enabled.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	Enabled *bool `json:"enabled,omitempty"`
