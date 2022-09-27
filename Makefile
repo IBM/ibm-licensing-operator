@@ -181,6 +181,7 @@ code-dev: ## Run the default dev commands which are the go tidy, fmt, vet then e
 	@echo Running the common required commands for developments purposes
 	- make code-tidy
 	- make code-fmt
+	- make fmt
 	- make code-vet
 	@echo Running the common required commands for code delivery
 	make check
