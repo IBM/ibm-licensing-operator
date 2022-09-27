@@ -31,6 +31,21 @@ const ReporterSecretTokenKeyName = "token"
 
 const URLConfigMapKey = "url"
 
+//goland:noinspection GoNameStartsWithPackageName
+const ServiceAccountSecretAnnotationKey = "kubernetes.io/service-account.name"
+
+func GetServiceAccountSecret(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
+	expectedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        ServiceAccountSecretName,
+			Namespace:   instance.Spec.InstanceNamespace,
+			Annotations: map[string]string{ServiceAccountSecretAnnotationKey: GetServiceAccountName(instance)},
+		},
+		Type: corev1.SecretTypeServiceAccountToken,
+	}
+	return expectedSecret, nil
+}
+
 func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
 	return resources.GetSecretToken(instance.Spec.APISecretToken, instance.Spec.InstanceNamespace, APISecretTokenKeyName, LabelsForMeta(instance))
 }

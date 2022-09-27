@@ -30,6 +30,10 @@ func GetServiceMonitorName() string {
 }
 
 func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.ServiceMonitor {
+	var interval = "3h"
+	if instance.Spec.IsAlertingEnabled() {
+		interval = "5m"
+	}
 	return &monitoringv1.ServiceMonitor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetServiceMonitorName(),
@@ -49,7 +53,7 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.Se
 					Scheme:         getScheme(instance),
 					TargetPort:     &prometheusTargetPort,
 					TLSConfig:      getTLSConfig(instance),
-					Interval:       "3h",
+					Interval:       interval,
 					RelabelConfigs: getRelabelConfigs(instance),
 				},
 			},
@@ -72,9 +76,9 @@ func getTLSConfig(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConf
 	if instance.Spec.HTTPSEnable {
 		return &monitoringv1.TLSConfig{
 			CA: monitoringv1.SecretOrConfigMap{
-				ConfigMap: &corev1.ConfigMapKeySelector{
+				Secret: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{
-						Name: "ibm-cs-operator-webhook-ca",
+						Name: ServiceAccountSecretName,
 					},
 					Key: "service-ca.crt",
 				},
