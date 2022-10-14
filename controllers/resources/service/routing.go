@@ -17,6 +17,8 @@
 package service
 
 import (
+	"regexp"
+
 	routev1 "github.com/openshift/api/route/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,11 +29,18 @@ import (
 
 func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, data map[string][]byte) *routev1.Route {
 	var tls *routev1.TLSConfig
+
+	certChain := string(data["tls.crt"])
+	key := string(data["tls.key"])
+	re := regexp.MustCompile("(?s)-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----")
+	certs := re.FindAllString(certChain, -1)
+
 	defaultRouteTLS := &routev1.TLSConfig{
 		Termination:                   routev1.TLSTerminationReencrypt,
 		InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
-		Key:                           string(data["tls.key"]),
-		Certificate:                   string(data["tls.crt"]),
+		Key:                           key,
+		Certificate:                   certs[0],
+		CACertificate:                 certs[1],
 	}
 	if instance.Spec.RouteOptions != nil {
 		if instance.Spec.RouteOptions.TLS == nil {
