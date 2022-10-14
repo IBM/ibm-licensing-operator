@@ -25,11 +25,13 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
-func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing) *routev1.Route {
+func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, data map[string][]byte) *routev1.Route {
 	var tls *routev1.TLSConfig
 	defaultRouteTLS := &routev1.TLSConfig{
-		Termination:                   routev1.TLSTerminationPassthrough,
+		Termination:                   routev1.TLSTerminationReencrypt,
 		InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
+		Key:                           string(data["tls.key"]),
+		Certificate:                   string(data["tls.crt"]),
 	}
 	if instance.Spec.RouteOptions != nil {
 		if instance.Spec.RouteOptions.TLS == nil {

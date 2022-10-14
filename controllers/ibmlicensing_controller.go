@@ -364,7 +364,14 @@ func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.
 
 func (r *IBMLicensingReconciler) reconcileRoute(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
-		expectedRoute := service.GetLicensingRoute(instance)
+		ocpExternalCertSecret := &corev1.Secret{}
+		namespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceOCPCertName}
+		if err := r.Client.Get(context.TODO(), namespacedName, ocpExternalCertSecret); err != nil {
+			// TODO
+			return reconcile.Result{}, nil
+		}
+
+		expectedRoute := service.GetLicensingRoute(instance, ocpExternalCertSecret.Data)
 		foundRoute := &routev1.Route{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
 		if err != nil || reconcileResult.Requeue {
