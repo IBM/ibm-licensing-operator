@@ -389,7 +389,9 @@ func CompareRoutes(reqLogger logr.Logger, expectedRoute, foundRoute *routev1.Rou
 			"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
 	} else if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS != nil &&
 		(foundRoute.Spec.TLS.Termination != expectedRoute.Spec.TLS.Termination ||
-			foundRoute.Spec.TLS.InsecureEdgeTerminationPolicy != expectedRoute.Spec.TLS.InsecureEdgeTerminationPolicy) {
+			foundRoute.Spec.TLS.InsecureEdgeTerminationPolicy != expectedRoute.Spec.TLS.InsecureEdgeTerminationPolicy ||
+			foundRoute.Spec.TLS.CACertificate != expectedRoute.Spec.TLS.CACertificate ||
+			foundRoute.Spec.TLS.Certificate != expectedRoute.Spec.TLS.Certificate) {
 		reqLogger.Info("Expected Route has different TLS options than Found Route",
 			"old", fmt.Sprintf("%v", foundRoute.Spec.TLS),
 			"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))

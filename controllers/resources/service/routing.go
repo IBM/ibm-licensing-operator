@@ -27,20 +27,30 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
-func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, data map[string][]byte) *routev1.Route {
+func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing,
+	externalCertData map[string][]byte,
+	internalCertData map[string][]byte) (*routev1.Route, error) {
+
 	var tls *routev1.TLSConfig
 
-	certChain := string(data["tls.crt"])
-	key := string(data["tls.key"])
+	certChain := string(externalCertData["tls.crt"])
+	key := string(externalCertData["tls.key"])
 	re := regexp.MustCompile("(?s)-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----")
-	certs := re.FindAllString(certChain, -1)
+	externalCerts := re.FindAllString(certChain, -1)
+
+	cert := externalCerts[0]
+	caCert := ""
+
+	if len(externalCerts) == 2 {
+		caCert = externalCerts[1]
+	}
 
 	defaultRouteTLS := &routev1.TLSConfig{
 		Termination:                   routev1.TLSTerminationReencrypt,
 		InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
 		Key:                           key,
-		Certificate:                   certs[0],
-		CACertificate:                 certs[1],
+		Certificate:                   cert,
+		CACertificate:                 caCert,
 	}
 	if instance.Spec.RouteOptions != nil {
 		if instance.Spec.RouteOptions.TLS == nil {
@@ -70,7 +80,7 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, data map[string]
 			},
 			TLS: tls,
 		},
-	}
+	}, nil
 }
 
 func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.Ingress {
