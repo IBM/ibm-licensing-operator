@@ -405,15 +405,16 @@ func (r *IBMLicensingReconciler) reconcileRoute(instance *operatorv1alpha1.IBMLi
 }
 
 func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	expectedIngress := service.GetLicensingIngress(instance)
+	foundIngress := &networkingv1.Ingress{}
+
 	if instance.Spec.IsIngressEnabled() {
-		expectedIngress := service.GetLicensingIngress(instance)
-		foundIngress := &networkingv1.Ingress{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedIngress, foundIngress)
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
 		}
-		reqLogger := r.Log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
 		possibleUpdateNeeded := true
+		reqLogger := r.Log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
 		if foundIngress.ObjectMeta.Name != expectedIngress.ObjectMeta.Name {
 			reqLogger.Info("Names not equal", "old", foundIngress.ObjectMeta.Name, "new", expectedIngress.ObjectMeta.Name)
 		} else if !reflect.DeepEqual(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
@@ -433,6 +434,11 @@ func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBM
 		}
 		if possibleUpdateNeeded {
 			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
+		}
+	} else {
+		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
+		if err != nil || reconcileResult.Requeue {
+			return reconcileResult, err
 		}
 	}
 	return reconcile.Result{}, nil
