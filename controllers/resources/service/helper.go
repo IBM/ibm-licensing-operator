@@ -34,7 +34,8 @@ const LicensingServiceAccount = "ibm-license-service"
 const LicensingServiceAccountRestricted = "ibm-license-service-restricted"
 const UsageServiceName = "ibm-licensing-service-usage"
 const PrometheusServiceName = "ibm-licensing-service-prometheus"
-const PrometheusServiceMonitor = "ibm-licensing-service-service-monitor"
+const PrometheusRHMPServiceMonitor = "ibm-licensing-service-service-monitor"
+const PrometheusAlertingServiceMonitor = "ibm-licensing-service-service-monitor-alerting"
 
 const LicensingServiceAppLabel = "ibm-licensing-service-instance"
 

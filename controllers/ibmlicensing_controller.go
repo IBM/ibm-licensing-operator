@@ -146,7 +146,6 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	reconcileFunctions := []interface{}{
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
-		r.reconcileServiceAccountToken,
 		r.reconcileConfigMaps,
 		r.reconcileServices,
 		r.reconcileDeployment,
@@ -156,7 +155,16 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	}
 
 	if instance.Spec.IsPrometheusServiceNeeded() {
-		reconcileFunctions = append(reconcileFunctions, r.reconcileServiceMonitor, r.reconcileNetworkPolicy)
+		reconcileFunctions = append(reconcileFunctions, r.reconcileNetworkPolicy)
+	}
+
+	if instance.Spec.IsRHMPEnabled() {
+		reconcileFunctions = append(reconcileFunctions, r.reconcileRHMPServiceMonitor)
+	}
+
+	if instance.Spec.IsAlertingEnabled() {
+		reconcileFunctions = append(reconcileFunctions, r.reconcileServiceAccountToken)
+		reconcileFunctions = append(reconcileFunctions, r.reconcileAlertingServiceMonitor)
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
@@ -329,9 +337,19 @@ func (r *IBMLicensingReconciler) reconcileServices(instance *operatorv1alpha1.IB
 	return result, err
 }
 
-func (r *IBMLicensingReconciler) reconcileServiceMonitor(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	reqLogger := r.Log.WithValues("reconcileServiceMonitor", "Entry", "instance.GetName()", instance.GetName())
-	expectedServiceMonitor := service.GetServiceMonitor(instance)
+func (r *IBMLicensingReconciler) reconcileRHMPServiceMonitor(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	return r.reconcileServiceMonitor(instance, service.GetRHMPServiceMonitor(instance))
+}
+
+func (r *IBMLicensingReconciler) reconcileAlertingServiceMonitor(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	return r.reconcileServiceMonitor(instance, service.GetAlertingServiceMonitor(instance))
+}
+
+func (r *IBMLicensingReconciler) reconcileServiceMonitor(instance *operatorv1alpha1.IBMLicensing,
+	expectedServiceMonitor *monitoringv1.ServiceMonitor) (reconcile.Result, error) {
+
+	reqLogger := r.Log.WithValues("reconcileServiceMonitor", "Entry", "instance.GetName()", instance.GetName(),
+		"expectedServiceMonitor.GetName()", expectedServiceMonitor.GetName())
 	owner := service.GetPrometheusService(instance)
 	result, err := res.UpdateOwner(&reqLogger, r.Client, owner)
 	if err != nil || result.Requeue {
@@ -545,7 +563,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
 
 	resType := reflect.TypeOf(expectedRes)
-	reqLogger := r.Log.WithValues(resType.String(), "Entry", "instance.GetName()", instance.GetName())
+	reqLogger := r.Log.WithValues(resType.String(), "Entry", "instance.GetName()", instance.GetName(), "expectedRes.getName()", expectedRes.GetName())
 
 	// expectedRes already set before and passed via parameter
 	err := controllerutil.SetControllerReference(controller, expectedRes, r.Scheme)

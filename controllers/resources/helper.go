@@ -255,6 +255,10 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 			return updateResource()
 		}
 	}
+	result, done, err := checkMetricRelabelConfigs(reqLogger, expectedEndpoint, foundEndpoint, updateResource, found)
+	if done {
+		return result, err
+	}
 	if expectedEndpoint.TLSConfig != nil {
 		if foundEndpoint.TLSConfig == nil ||
 			!reflect.DeepEqual(expectedEndpoint.TLSConfig, foundEndpoint.TLSConfig) {
@@ -269,6 +273,47 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 		return updateResource()
 	}
 	return reconcile.Result{}, nil
+}
+
+func checkMetricRelabelConfigs(reqLogger *logr.Logger, expectedEndpoint monitoringv1.Endpoint, foundEndpoint monitoringv1.Endpoint,
+	updateResource func() (reconcile.Result, error), found *monitoringv1.ServiceMonitor) (reconcile.Result, bool, error) {
+	if expectedEndpoint.MetricRelabelConfigs != nil {
+		if foundEndpoint.MetricRelabelConfigs == nil ||
+			len(expectedEndpoint.MetricRelabelConfigs) != len(foundEndpoint.MetricRelabelConfigs) {
+			result, err := updateResource()
+			return result, true, err
+		}
+		// we assume only one relabeling, if changed in expected service monitor then modify this method as well
+		if len(expectedEndpoint.MetricRelabelConfigs) != 1 {
+			err := errors.New("expected service monitor metric relabeling error")
+			(*reqLogger).Error(
+				err, "Expected service monitor should have 1 metric relabeling, change this function otherwise.",
+				"Namespace", found.GetNamespace(), "Name", found.GetName())
+			return reconcile.Result{}, true, err
+		}
+		expectedRelabeling := expectedEndpoint.MetricRelabelConfigs[0]
+		foundRelabeling := foundEndpoint.MetricRelabelConfigs[0]
+		if len(expectedRelabeling.SourceLabels) != 1 {
+			err := errors.New("expected service monitor metric relabeling error")
+			(*reqLogger).Error(
+				err, "Expected service monitor should have 1 metric relabeling source label, change this function otherwise.",
+				"Namespace", found.GetNamespace(), "Name", found.GetName())
+			return reconcile.Result{}, true, err
+		}
+		if expectedRelabeling.Action != foundRelabeling.Action ||
+			expectedRelabeling.Regex != foundRelabeling.Regex ||
+			len(expectedRelabeling.SourceLabels) != len(foundRelabeling.SourceLabels) ||
+			expectedRelabeling.SourceLabels[0] != foundRelabeling.SourceLabels[0] {
+			result, err := updateResource()
+			return result, true, err
+		}
+	} else {
+		if foundEndpoint.MetricRelabelConfigs != nil {
+			result, err := updateResource()
+			return result, true, err
+		}
+	}
+	return reconcile.Result{}, false, nil
 }
 
 func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource ResourceObject) (reconcile.Result, error) {

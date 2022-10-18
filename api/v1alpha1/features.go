@@ -67,7 +67,13 @@ func (spec *IBMLicensingSpec) IsURLBasedAuthEnabled() bool {
 }
 
 func (spec *IBMLicensingSpec) IsAlertingEnabled() bool {
-	return spec.HaveFeatures() && spec.Features.Alerting != nil && *spec.Features.Alerting.Enabled
+	// return false only and only if the value is set to false
+	if spec.HaveFeatures() && spec.Features.Alerting != nil &&
+		spec.Features.Alerting.Enabled != nil &&
+		!*spec.Features.Alerting.Enabled {
+		return false
+	}
+	return true
 }
 
 func (spec *IBMLicensingSpec) IsPrometheusQuerySourceEnabled() bool {
