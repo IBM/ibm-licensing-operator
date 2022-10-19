@@ -22,9 +22,18 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"net"
 	"os"
+	"regexp"
+
 	"reflect"
 	"time"
+
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
+	mathRand "math/rand"
 
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 
@@ -399,4 +408,79 @@ func CompareRoutes(reqLogger logr.Logger, expectedRoute, foundRoute *routev1.Rou
 		areEqual = true
 	}
 	return areEqual
+}
+
+func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, ip []net.IP, dns []string) (*corev1.Secret, error) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate a pem block with the private key
+	keyPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	})
+
+	commonName := ""
+	if len(dns) > 0 {
+		commonName = dns[0]
+	}
+
+	tml := x509.Certificate{
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().AddDate(2, 0, 0),
+		// need to generate a different serial number each execution
+		SerialNumber: big.NewInt(int64(mathRand.Intn(1000000))),
+		Subject: pkix.Name{
+			CommonName:   commonName,
+			Organization: []string{"IBM"},
+		},
+		BasicConstraintsValid: true,
+	}
+	if ip != nil {
+		tml.IPAddresses = ip
+	}
+	if dns != nil {
+		tml.DNSNames = dns
+	}
+
+	cert, err := x509.CreateCertificate(rand.Reader, &tml, &tml, &key.PublicKey, key)
+	if err != nil {
+		return nil, err
+	}
+
+	certPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: cert,
+	})
+
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      namespacedName.Name,
+			Namespace: namespacedName.Namespace,
+		},
+		Data: map[string][]byte{
+			"tls.crt": certPem,
+			"tls.key": keyPem,
+		},
+		Type: corev1.SecretTypeTLS,
+	}, nil
+}
+
+func ProcessCerfiticateSecret(secret corev1.Secret) (cert, caCert, key string) {
+
+	certChain := string(secret.Data["tls.crt"])
+	key = string(secret.Data["tls.key"])
+	re := regexp.MustCompile("(?s)-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----")
+	externalCerts := re.FindAllString(certChain, -1)
+
+	cert = externalCerts[0]
+
+	if len(externalCerts) == 2 {
+		caCert = externalCerts[1]
+	} else {
+		caCert = ""
+	}
+	return
 }

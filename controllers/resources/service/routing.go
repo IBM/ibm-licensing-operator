@@ -17,8 +17,6 @@
 package service
 
 import (
-	"regexp"
-
 	routev1 "github.com/openshift/api/route/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,31 +25,9 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
-func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing,
-	externalCertData map[string][]byte,
-	internalCertData map[string][]byte) (*routev1.Route, error) {
-
+func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) (*routev1.Route, error) {
 	var tls *routev1.TLSConfig
 
-	certChain := string(externalCertData["tls.crt"])
-	key := string(externalCertData["tls.key"])
-	re := regexp.MustCompile("(?s)-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----")
-	externalCerts := re.FindAllString(certChain, -1)
-
-	cert := externalCerts[0]
-	caCert := ""
-
-	if len(externalCerts) == 2 {
-		caCert = externalCerts[1]
-	}
-
-	defaultRouteTLS := &routev1.TLSConfig{
-		Termination:                   routev1.TLSTerminationReencrypt,
-		InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
-		Key:                           key,
-		Certificate:                   cert,
-		CACertificate:                 caCert,
-	}
 	if instance.Spec.RouteOptions != nil {
 		if instance.Spec.RouteOptions.TLS == nil {
 			if instance.Spec.HTTPSEnable {
