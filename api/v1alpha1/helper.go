@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/IBM/ibm-licensing-operator/api/v1alpha1/features"
 	"os"
 	"strings"
 
@@ -118,7 +119,7 @@ func (spec *IBMLicenseServiceBaseSpec) IsVerbose() bool {
 }
 
 func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool,
-	operatorNamespace string) error {
+	isAlertingEnabledByDefault bool, operatorNamespace string) error {
 	if spec.InstanceNamespace == "" {
 		spec.InstanceNamespace = operatorNamespace
 	}
@@ -143,6 +144,18 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 			reqLogger.Info("RHMP reporting enabled automatically")
 		} else {
 			reqLogger.Info("RHMP wasn't detected")
+		}
+	}
+	if isAlertingEnabledByDefault {
+		if spec.Features == nil {
+			spec.Features = &Features{}
+		}
+		if spec.Features.Alerting == nil {
+			spec.Features.Alerting = &features.Alerting{}
+		}
+		if spec.Features.Alerting.Enabled == nil {
+			trueVal := true
+			spec.Features.Alerting.Enabled = &trueVal
 		}
 	}
 	if spec.APISecretToken == "" {

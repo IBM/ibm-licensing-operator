@@ -133,7 +133,8 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		reqLogger.Error(err, "Can not update version in CR")
 	}
 
-	err = instance.Spec.FillDefaultValues(reqLogger, res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled, r.OperatorNamespace)
+	err = instance.Spec.FillDefaultValues(reqLogger, res.IsServiceCAAPI, res.IsRouteAPI, res.RHMPEnabled,
+		res.IsAlertingEnabledByDefault, r.OperatorNamespace)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -146,25 +147,16 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	reconcileFunctions := []interface{}{
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
+		r.reconcileServiceAccountToken,
 		r.reconcileConfigMaps,
 		r.reconcileServices,
 		r.reconcileDeployment,
 		r.reconcileIngress,
 		r.reconcileRoute,
+		r.reconcileNetworkPolicy,
+		r.reconcileRHMPServiceMonitor,
+		r.reconcileAlertingServiceMonitor,
 		r.reconcileMeterDefinition,
-	}
-
-	if instance.Spec.IsPrometheusServiceNeeded() {
-		reconcileFunctions = append(reconcileFunctions, r.reconcileNetworkPolicy)
-	}
-
-	if instance.Spec.IsRHMPEnabled() {
-		reconcileFunctions = append(reconcileFunctions, r.reconcileRHMPServiceMonitor)
-	}
-
-	if instance.Spec.IsAlertingEnabled() {
-		reconcileFunctions = append(reconcileFunctions, r.reconcileServiceAccountToken)
-		reconcileFunctions = append(reconcileFunctions, r.reconcileAlertingServiceMonitor)
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
@@ -246,33 +238,36 @@ func (r *IBMLicensingReconciler) reconcileAPISecretToken(instance *operatorv1alp
 }
 
 func (r *IBMLicensingReconciler) reconcileServiceAccountToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	reqLogger := r.Log.WithValues("reconcileServiceAccountToken", "Entry", "instance.GetName()", instance.GetName())
-	expectedSecret, err := service.GetServiceAccountSecret(instance)
-	if err != nil {
-		reqLogger.Info("Failed to get expected secret")
-		return reconcile.Result{
-			Requeue:      true,
-			RequeueAfter: time.Minute,
-		}, err
-	}
-	foundSecret := &corev1.Secret{}
-	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
-	if err != nil || result.Requeue {
+	if instance.Spec.IsAlertingEnabled() {
+		reqLogger := r.Log.WithValues("reconcileServiceAccountToken", "Entry", "instance.GetName()", instance.GetName())
+		expectedSecret, err := service.GetServiceAccountSecret(instance)
+		if err != nil {
+			reqLogger.Info("Failed to get expected secret")
+			return reconcile.Result{
+				Requeue:      true,
+				RequeueAfter: time.Minute,
+			}, err
+		}
+		foundSecret := &corev1.Secret{}
+		result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+		if err != nil || result.Requeue {
+			return result, err
+		}
+		if expectedSecret.Annotations[service.ServiceAccountSecretAnnotationKey] !=
+			foundSecret.Annotations[service.ServiceAccountSecretAnnotationKey] {
+			err = r.Client.Delete(context.TODO(), foundSecret)
+			if err != nil {
+				reqLogger.Error(err, "Failed to delete ServiceAccount secret due to wrong annotations.")
+				return reconcile.Result{}, err
+			}
+			return reconcile.Result{
+				Requeue:      true,
+				RequeueAfter: time.Minute,
+			}, err
+		}
 		return result, err
 	}
-	if expectedSecret.Annotations[service.ServiceAccountSecretAnnotationKey] !=
-		foundSecret.Annotations[service.ServiceAccountSecretAnnotationKey] {
-		err = r.Client.Delete(context.TODO(), foundSecret)
-		if err != nil {
-			reqLogger.Error(err, "Failed to delete ServiceAccount secret due to wrong annotations.")
-			return reconcile.Result{}, err
-		}
-		return reconcile.Result{
-			Requeue:      true,
-			RequeueAfter: time.Minute,
-		}, err
-	}
-	return result, err
+	return reconcile.Result{}, nil
 }
 
 func (r *IBMLicensingReconciler) reconcileUploadToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -338,24 +333,37 @@ func (r *IBMLicensingReconciler) reconcileServices(instance *operatorv1alpha1.IB
 }
 
 func (r *IBMLicensingReconciler) reconcileRHMPServiceMonitor(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	return r.reconcileServiceMonitor(instance, service.GetRHMPServiceMonitor(instance))
+	expectedServiceMonitor := service.GetRHMPServiceMonitor(instance)
+	shouldDelete := !instance.Spec.IsRHMPEnabled()
+	return r.reconcileServiceMonitor(instance, expectedServiceMonitor, shouldDelete)
 }
 
 func (r *IBMLicensingReconciler) reconcileAlertingServiceMonitor(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	return r.reconcileServiceMonitor(instance, service.GetAlertingServiceMonitor(instance))
+	expectedServiceMonitor := service.GetAlertingServiceMonitor(instance)
+	shouldDelete := !instance.Spec.IsAlertingEnabled()
+	return r.reconcileServiceMonitor(instance, expectedServiceMonitor, shouldDelete)
 }
 
 func (r *IBMLicensingReconciler) reconcileServiceMonitor(instance *operatorv1alpha1.IBMLicensing,
-	expectedServiceMonitor *monitoringv1.ServiceMonitor) (reconcile.Result, error) {
+	expectedServiceMonitor *monitoringv1.ServiceMonitor, shouldDelete bool) (reconcile.Result, error) {
 
 	reqLogger := r.Log.WithValues("reconcileServiceMonitor", "Entry", "instance.GetName()", instance.GetName(),
 		"expectedServiceMonitor.GetName()", expectedServiceMonitor.GetName())
+	foundServiceMonitor := &monitoringv1.ServiceMonitor{}
+	if shouldDelete {
+		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(
+			instance, expectedServiceMonitor, foundServiceMonitor)
+		if err != nil || reconcileResult.Requeue {
+			return reconcileResult, err
+		}
+		return reconcile.Result{}, nil
+	}
+
 	owner := service.GetPrometheusService(instance)
 	result, err := res.UpdateOwner(&reqLogger, r.Client, owner)
 	if err != nil || result.Requeue {
 		return result, err
 	}
-	foundServiceMonitor := &monitoringv1.ServiceMonitor{}
 	result, err = r.reconcileResourceNamespacedExistenceWithCustomController(instance, owner, expectedServiceMonitor, foundServiceMonitor)
 	if err != nil || result.Requeue {
 		return result, err
@@ -366,21 +374,24 @@ func (r *IBMLicensingReconciler) reconcileServiceMonitor(instance *operatorv1alp
 }
 
 func (r *IBMLicensingReconciler) reconcileNetworkPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	reqLogger := r.Log.WithValues("reconcileNetworkPolicy", "Entry", "instance.GetName()", instance.GetName())
-	expected := service.GetNetworkPolicy(instance)
-	owner := service.GetPrometheusService(instance)
-	result, err := res.UpdateOwner(&reqLogger, r.Client, owner)
-	if err != nil || result.Requeue {
-		return result, err
-	}
-	found := &networkingv1.NetworkPolicy{}
-	result, err = r.reconcileResourceNamespacedExistenceWithCustomController(instance, owner, expected, found)
-	if err != nil || result.Requeue {
-		return result, err
-	}
-	result, err = res.UpdateResource(&reqLogger, r.Client, expected, found)
+	if instance.Spec.IsPrometheusServiceNeeded() {
+		reqLogger := r.Log.WithValues("reconcileNetworkPolicy", "Entry", "instance.GetName()", instance.GetName())
+		expected := service.GetNetworkPolicy(instance)
+		owner := service.GetPrometheusService(instance)
+		result, err := res.UpdateOwner(&reqLogger, r.Client, owner)
+		if err != nil || result.Requeue {
+			return result, err
+		}
+		found := &networkingv1.NetworkPolicy{}
+		result, err = r.reconcileResourceNamespacedExistenceWithCustomController(instance, owner, expected, found)
+		if err != nil || result.Requeue {
+			return result, err
+		}
+		result, err = res.UpdateResource(&reqLogger, r.Client, expected, found)
 
-	return result, err
+		return result, err
+	}
+	return reconcile.Result{}, nil
 }
 
 func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {

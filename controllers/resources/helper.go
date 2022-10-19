@@ -57,6 +57,7 @@ var Seconds60 int64 = 60
 
 var IsRouteAPI = true
 var IsServiceCAAPI = true
+var IsAlertingEnabledByDefault = true
 var RHMPEnabled = false
 var IsUIEnabled = false
 var IsODLM = true
@@ -396,8 +397,10 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 	serviceCAInstance := &servicecav1.ServiceCA{}
 	if err := client.List(context.TODO(), serviceCAInstance, listOpts...); err == nil {
 		IsServiceCAAPI = true
+		IsAlertingEnabledByDefault = true
 	} else {
 		IsServiceCAAPI = false
+		IsAlertingEnabledByDefault = false
 	}
 
 	odlmTestInstance := &odlm.OperandBindInfo{}
