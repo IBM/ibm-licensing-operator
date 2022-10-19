@@ -20,9 +20,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/IBM/ibm-licensing-operator/api/v1alpha1/features"
 	"os"
 	"strings"
+
+	"github.com/IBM/ibm-licensing-operator/api/v1alpha1/features"
 
 	"github.com/go-logr/logr"
 	routev1 "github.com/openshift/api/route/v1"
