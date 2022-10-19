@@ -459,6 +459,9 @@ func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, ip []net.
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      namespacedName.Name,
 			Namespace: namespacedName.Namespace,
+			Labels: map[string]string{
+				"release": "ibm-licensing-service",
+			},
 		},
 		Data: map[string][]byte{
 			"tls.crt": certPem,
@@ -468,12 +471,17 @@ func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, ip []net.
 	}, nil
 }
 
-func ProcessCerfiticateSecret(secret corev1.Secret) (cert, caCert, key string) {
+func ProcessCerfiticateSecret(secret corev1.Secret) (cert, caCert, key string, err error) {
 
 	certChain := string(secret.Data["tls.crt"])
 	key = string(secret.Data["tls.key"])
 	re := regexp.MustCompile("(?s)-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----")
 	externalCerts := re.FindAllString(certChain, -1)
+
+	if len(externalCerts) == 0 {
+		err = errors.New("Invalid certificate format under tls.crt section")
+		return
+	}
 
 	cert = externalCerts[0]
 
