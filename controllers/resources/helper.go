@@ -479,7 +479,7 @@ func ProcessCerfiticateSecret(secret corev1.Secret) (cert, caCert, key string, e
 	externalCerts := re.FindAllString(certChain, -1)
 
 	if len(externalCerts) == 0 {
-		err = errors.New("Invalid certificate format under tls.crt section")
+		err = errors.New("Invalid certificate format under tls.crt section.")
 		return
 	}
 
