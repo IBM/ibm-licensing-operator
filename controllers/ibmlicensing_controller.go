@@ -512,7 +512,17 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 		reqLogger := r.Log.WithValues("reconcileRoute", "Entry", "instance.GetName()", instance.GetName())
 
 		if !res.CompareRoutes(reqLogger, expectedRoute, foundRoute) {
-			return res.UpdateResource(&reqLogger, r.Client, expectedRoute, foundRoute)
+			//route tls cannot be updated, that is why we delete and create
+			reconcileResult, err = res.DeleteResource(&reqLogger, r.Client, foundRoute)
+			if err != nil {
+				return reconcileResult, err
+			}
+			time.Sleep(time.Second * 30)
+			foundRoute = &routev1.Route{}
+			reconcileResult, err = r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
+			if err != nil || reconcileResult.Requeue {
+				return reconcileResult, err
+			}
 		}
 	}
 	return reconcile.Result{}, nil
