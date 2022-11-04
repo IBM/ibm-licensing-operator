@@ -517,7 +517,7 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 			if err != nil {
 				return reconcileResult, err
 			}
-			time.Sleep(time.Second * 30)
+			time.Sleep(time.Second * 10)
 			foundRoute = &routev1.Route{}
 			reconcileResult, err = r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
 			if err != nil || reconcileResult.Requeue {
