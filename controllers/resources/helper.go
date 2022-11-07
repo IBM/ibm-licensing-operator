@@ -452,7 +452,7 @@ func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, ip []net.
 
 	tml := x509.Certificate{
 		NotBefore: time.Now(),
-		NotAfter:  time.Now().AddDate(2, 0, 0),
+		NotAfter:  time.Now().AddDate(1, 0, 0),
 		// need to generate a different serial number each execution
 		SerialNumber: big.NewInt(int64(mathRand.Intn(1000000))),
 		Subject: pkix.Name{
