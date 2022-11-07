@@ -381,36 +381,43 @@ func CompareConfigMap(cm1, cm2 *corev1.ConfigMap) bool {
 
 // Returns true if routes are equal
 func CompareRoutes(reqLogger logr.Logger, expectedRoute, foundRoute *routev1.Route) bool {
-	areEqual := false
 	if foundRoute.ObjectMeta.Name != expectedRoute.ObjectMeta.Name {
 		reqLogger.Info("Names not equal", "old", foundRoute.ObjectMeta.Name, "new", expectedRoute.ObjectMeta.Name)
-	} else if foundRoute.Spec.To.Name != expectedRoute.Spec.To.Name {
+		return false
+	}
+	if foundRoute.Spec.To.Name != expectedRoute.Spec.To.Name {
 		reqLogger.Info("Specs To Name not equal",
 			"old", fmt.Sprintf("%v", foundRoute.Spec),
 			"new", fmt.Sprintf("%v", expectedRoute.Spec))
-	} else if foundRoute.Spec.TLS == nil && expectedRoute.Spec.TLS != nil {
+		return false
+	}
+	if foundRoute.Spec.TLS == nil && expectedRoute.Spec.TLS != nil {
 		reqLogger.Info("Found Route has empty TLS options, but Expected Route has not empty TLS options",
 			"old", fmt.Sprintf("%v", foundRoute.Spec.TLS),
 			"new", fmt.Sprintf("%v", GetTLSDataAsString(expectedRoute)))
-	} else if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS == nil {
+		return false
+	}
+	if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS == nil {
 		reqLogger.Info("Expected Route has empty TLS options, but Found Route has not empty TLS options",
 			"old", fmt.Sprintf("%v", GetTLSDataAsString(foundRoute)),
 			"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
-	} else if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS != nil {
+		return false
+	}
+	if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS != nil {
 		if foundRoute.Spec.TLS.Termination != expectedRoute.Spec.TLS.Termination {
 			reqLogger.Info("Expected Route has different TLS Termination option than Found Route",
 				"old", fmt.Sprintf("%v", foundRoute.Spec.TLS.Termination),
 				"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS.Termination))
+			return false
 		}
 		if foundRoute.Spec.TLS.InsecureEdgeTerminationPolicy != expectedRoute.Spec.TLS.InsecureEdgeTerminationPolicy {
 			reqLogger.Info("Expected Route has different TLS InsecureEdgeTerminationPolicy option than Found Route",
 				"old", fmt.Sprintf("%v", foundRoute.Spec.TLS.InsecureEdgeTerminationPolicy),
 				"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS.InsecureEdgeTerminationPolicy))
+			return false
 		}
-	} else {
-		areEqual = true
 	}
-	return areEqual
+	return true
 }
 
 func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, ip []net.IP, dns []string) (*corev1.Secret, error) {
