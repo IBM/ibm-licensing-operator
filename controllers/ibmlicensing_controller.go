@@ -443,7 +443,14 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
 		r.Log.Info("Reconciling route with certificate")
 		externalCertSecret := corev1.Secret{}
-		externalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceExternalCertName}
+		var externalCertName string
+		if instance.Spec.HTTPSCertsSource == "custom" {
+			externalCertName = service.LicenseServiceCustomExternalCertName
+		} else {
+			externalCertName = service.LicenseServiceExternalCertName
+		}
+
+		externalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: externalCertName}
 		if err := r.Client.Get(context.TODO(), externalNamespacedName, &externalCertSecret); err != nil {
 			r.Log.Error(err, "Cannot retrieve external certificate from secret")
 			return reconcile.Result{Requeue: true}, nil
