@@ -98,7 +98,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=apps,resources=replicasets;deployments,verbs=get
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=rbac.authorization.k8s.io,resources=clusterroles;clusterrolebindings;roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods;nodes;namespaces,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=route.openshift.io,resources=routes,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-common-services,groups=route.openshift.io,resources=routes;routes/custom-host,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=marketplace.redhat.com,resources=meterdefinitions,verbs=get;list;create;update;watch
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=networking.k8s.io;extensions,resources=ingresses;networkpolicies,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=apps,resources=deployments;daemonsets;replicasets;statefulsets,verbs=get;list;watch;create;update;patch;delete
@@ -512,7 +512,17 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 		reqLogger := r.Log.WithValues("reconcileRoute", "Entry", "instance.GetName()", instance.GetName())
 
 		if !res.CompareRoutes(reqLogger, expectedRoute, foundRoute) {
-			return res.UpdateResource(&reqLogger, r.Client, expectedRoute, foundRoute)
+			//route tls cannot be updated, that is why we delete and create
+			reconcileResult, err = res.DeleteResource(&reqLogger, r.Client, foundRoute)
+			if err != nil {
+				return reconcileResult, err
+			}
+			time.Sleep(time.Second * 10)
+			foundRoute = &routev1.Route{}
+			reconcileResult, err = r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
+			if err != nil || reconcileResult.Requeue {
+				return reconcileResult, err
+			}
 		}
 	}
 	return reconcile.Result{}, nil
