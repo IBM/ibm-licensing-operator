@@ -394,12 +394,12 @@ func CompareRoutes(reqLogger logr.Logger, expectedRoute, foundRoute *routev1.Rou
 	if foundRoute.Spec.TLS == nil && expectedRoute.Spec.TLS != nil {
 		reqLogger.Info("Found Route has empty TLS options, but Expected Route has not empty TLS options",
 			"old", fmt.Sprintf("%v", foundRoute.Spec.TLS),
-			"new", fmt.Sprintf("%v", GetTLSDataAsString(expectedRoute)))
+			"new", fmt.Sprintf("%v", getTLSDataAsString(expectedRoute)))
 		return false
 	}
 	if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS == nil {
 		reqLogger.Info("Expected Route has empty TLS options, but Found Route has not empty TLS options",
-			"old", fmt.Sprintf("%v", GetTLSDataAsString(foundRoute)),
+			"old", fmt.Sprintf("%v", getTLSDataAsString(foundRoute)),
 			"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
 		return false
 	}
@@ -416,8 +416,21 @@ func CompareRoutes(reqLogger logr.Logger, expectedRoute, foundRoute *routev1.Rou
 				"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS.InsecureEdgeTerminationPolicy))
 			return false
 		}
+		if !areTLSCertsSame(*expectedRoute.Spec.TLS, *foundRoute.Spec.TLS) {
+			reqLogger.Info("Expected route has different certificate info in TLS section tha Found Route",
+				"old", fmt.Sprintf("%v", getTLSDataAsString(foundRoute)),
+				"new", fmt.Sprintf("%v", getTLSDataAsString(expectedRoute)))
+			return false
+		}
 	}
 	return true
+}
+
+func areTLSCertsSame(expected, found routev1.TLSConfig) bool {
+	return (expected.CACertificate == found.CACertificate &&
+		expected.Certificate == found.Certificate &&
+		expected.Key == found.Key &&
+		expected.DestinationCACertificate == found.DestinationCACertificate)
 }
 
 func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, ip []net.IP, dns []string) (*corev1.Secret, error) {
@@ -503,7 +516,7 @@ func ProcessCerfiticateSecret(secret corev1.Secret) (cert, caCert, key string, e
 	return
 }
 
-func GetTLSDataAsString(route *routev1.Route) string {
+func getTLSDataAsString(route *routev1.Route) string {
 	return fmt.Sprintf("{Termination: %v, InsecureEdgeTerminationPolicy: %v, Certificate: %s, CACertificate: %s, DestinationCACertificate: %s}",
 		route.Spec.TLS.Termination, route.Spec.TLS.InsecureEdgeTerminationPolicy,
 		route.Spec.TLS.Certificate, route.Spec.TLS.CACertificate, route.Spec.TLS.DestinationCACertificate)
