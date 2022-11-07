@@ -41,7 +41,6 @@ func GetZenNginxConf(instance *operatorv1alpha1.IBMLicenseServiceReporter) strin
 }`
 }
 
-
 const ZenExtensions = `[
   {
     "extension_point_id": "left_menu_item",
