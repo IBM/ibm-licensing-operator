@@ -430,19 +430,30 @@ func CompareRoutes(reqLogger logr.Logger, expectedRoute, foundRoute *routev1.Rou
 	} else if foundRoute.Spec.TLS == nil && expectedRoute.Spec.TLS != nil {
 		reqLogger.Info("Found Route has empty TLS options, but Expected Route has not empty TLS options",
 			"old", fmt.Sprintf("%v", foundRoute.Spec.TLS),
-			"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
+			"new", fmt.Sprintf("%v", GetTLSDataAsString(expectedRoute)))
 	} else if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS == nil {
 		reqLogger.Info("Expected Route has empty TLS options, but Found Route has not empty TLS options",
-			"old", fmt.Sprintf("%v", foundRoute.Spec.TLS),
+			"old", fmt.Sprintf("%v", GetTLSDataAsString(foundRoute)),
 			"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
-	} else if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS != nil &&
-		(foundRoute.Spec.TLS.Termination != expectedRoute.Spec.TLS.Termination ||
-			foundRoute.Spec.TLS.InsecureEdgeTerminationPolicy != expectedRoute.Spec.TLS.InsecureEdgeTerminationPolicy) {
-		reqLogger.Info("Expected Route has different TLS options than Found Route",
-			"old", fmt.Sprintf("%v", foundRoute.Spec.TLS),
-			"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
+	} else if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS != nil {
+		if foundRoute.Spec.TLS.Termination != expectedRoute.Spec.TLS.Termination {
+			reqLogger.Info("Expected Route has different TLS Termination option than Found Route",
+				"old", fmt.Sprintf("%v", foundRoute.Spec.TLS.Termination),
+				"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS.Termination))
+		}
+		if foundRoute.Spec.TLS.InsecureEdgeTerminationPolicy != expectedRoute.Spec.TLS.InsecureEdgeTerminationPolicy {
+			reqLogger.Info("Expected Route has different TLS InsecureEdgeTerminationPolicy option than Found Route",
+				"old", fmt.Sprintf("%v", foundRoute.Spec.TLS.InsecureEdgeTerminationPolicy),
+				"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS.InsecureEdgeTerminationPolicy))
+		}
 	} else {
 		areEqual = true
 	}
 	return areEqual
+}
+
+func GetTLSDataAsString(route *routev1.Route) string {
+	return fmt.Sprintf("{Termination: %v, InsecureEdgeTerminationPolicy: %v, Certificate: %s, CACertificate: %s, DestinationCACertificate: %s}",
+		route.Spec.TLS.Termination, route.Spec.TLS.InsecureEdgeTerminationPolicy,
+		route.Spec.TLS.Certificate, route.Spec.TLS.CACertificate, route.Spec.TLS.DestinationCACertificate)
 }
