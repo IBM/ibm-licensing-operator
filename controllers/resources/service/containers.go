@@ -72,6 +72,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "true",
 		})
 	}
+	if spec.IsAlertingEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "enable.alerting",
+			Value: "true",
+		})
+	}
 	if spec.IsChargebackEnabled() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "ENABLE_CHARGEBACK",
@@ -257,7 +263,7 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 		}
 		containers = append(containers, ocpSecretCheckContainer)
 
-		if spec.IsRHMPEnabled() {
+		if spec.IsPrometheusServiceNeeded() {
 			baseContainer := getLicensingContainerBase(spec)
 			ocpPrometheusSecretCheckContainer := corev1.Container{}
 
@@ -303,7 +309,7 @@ func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 		},
 	}
 
-	if spec.IsRHMPEnabled() {
+	if spec.IsPrometheusServiceNeeded() {
 		ports = append(ports, corev1.ContainerPort{
 			ContainerPort: prometheusServicePort.IntVal,
 			Protocol:      corev1.ProtocolTCP,

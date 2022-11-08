@@ -39,10 +39,7 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 		}
 	}
 
-	serviceAccount := LicensingServiceAccount
-	if instance.Spec.IsNamespaceScopeEnabled() {
-		serviceAccount = LicensingServiceAccountRestricted
-	}
+	serviceAccount := GetServiceAccountName(instance)
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetResourceName(instance),

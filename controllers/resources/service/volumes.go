@@ -53,7 +53,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 					ReadOnly:  true,
 				},
 			}...)
-			if spec.IsRHMPEnabled() {
+			if spec.IsPrometheusServiceNeeded() {
 				volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 					{
 						Name:      PrometheusHTTPSCertsVolumeName,
@@ -124,9 +124,9 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 			volumes = append(volumes, resources.GetVolume(LicensingHTTPSCertsVolumeName, "ibm-licensing-certs"))
 		} else if resources.IsServiceCAAPI && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
 			volumes = append(volumes, resources.GetVolume(LicensingHTTPSCertsVolumeName, LicenseServiceOCPCertName))
-			if spec.IsRHMPEnabled() {
-				volumes = append(volumes, resources.GetVolume(PrometheusHTTPSCertsVolumeName, PrometheusServiceOCPCertName))
-			}
+		}
+		if spec.IsPrometheusServiceNeeded() {
+			volumes = append(volumes, resources.GetVolume(PrometheusHTTPSCertsVolumeName, PrometheusServiceOCPCertName))
 		}
 	}
 
