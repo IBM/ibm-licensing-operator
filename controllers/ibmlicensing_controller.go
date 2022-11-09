@@ -447,10 +447,11 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 				return reconcile.Result{Requeue: true}, err
 			}
 		} else {
-			// checking expiration date
+			// checking certificate
 			cert, err := res.ParseCertificate(ocpExternalCertSecret.Data["tls.crt"])
 			reqLogger := r.Log.WithValues("reconcileCertificate", "Entry", "instance.GetName()", instance.GetName())
 
+			// if improper x509 certificate
 			if err != nil {
 				r.Log.Error(err, "Improper x509 certificate in secret, regenrating certificate")
 				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, nil, []string{route.Spec.Host})
@@ -462,6 +463,7 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 				return res.UpdateResource(&reqLogger, r.Client, secret, ocpExternalCertSecret)
 			}
 
+			// if certificate is expired
 			if cert.NotAfter.Before(time.Now()) {
 				r.Log.Info("Self signed certificate has expired. Generating new certificate")
 				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, nil, []string{route.Spec.Host})
@@ -472,6 +474,19 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 				}
 				return res.UpdateResource(&reqLogger, r.Client, secret, ocpExternalCertSecret)
 			}
+
+			// if certificate is not issued to the route host
+			if err := cert.VerifyHostname(route.Spec.Host); err != nil {
+				r.Log.Info("Certificate not issued to a propper hostname. Generating new self-signed certificate")
+				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, nil, []string{route.Spec.Host})
+				if err != nil {
+					r.Log.Error(err, "Error creating self signed certificate")
+					return reconcile.Result{Requeue: true}, err
+
+				}
+				return res.UpdateResource(&reqLogger, r.Client, secret, ocpExternalCertSecret)
+			}
+
 		}
 	}
 
