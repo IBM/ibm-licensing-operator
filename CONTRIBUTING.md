@@ -95,3 +95,21 @@ Example to bump operator from 1.9.0 to 1.10.0:
 ```shell
 common/scripts/next_csv.sh 1.9.0 1.10.0 1.8.0
 ```
+
+## Commit hook on OSX
+
+When committing using your IDE doesn't work and commit hook fails, try extending PATH, for example I just opened terminal from an IDE typed `echo $PATH` and pasted the result before running lint in `common/scripts/.githooks/pre-commit` like so:
+
+```shell
+# in terminal where pre commit hooks are successful:
+echo $PATH
+
+# paste the result in pre-commit file, example:
+...
+PATH=$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:...other paths...
+
+.git/hooks/make_lint-all.sh
+...
+```
+
+After that save this change to your local changelist in IDE, so you wont push it with Default (or other) changelist changes.
