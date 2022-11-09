@@ -417,7 +417,7 @@ func CompareRoutes(reqLogger logr.Logger, expectedRoute, foundRoute *routev1.Rou
 			return false
 		}
 		if !areTLSCertsSame(*expectedRoute.Spec.TLS, *foundRoute.Spec.TLS) {
-			reqLogger.Info("Expected route has different certificate info in TLS section tha Found Route",
+			reqLogger.Info("Expected route has different certificate info in the TLS section than Found Route",
 				"old", fmt.Sprintf("%v", getTLSDataAsString(foundRoute)),
 				"new", fmt.Sprintf("%v", getTLSDataAsString(expectedRoute)))
 			return false
