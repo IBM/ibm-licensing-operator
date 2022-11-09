@@ -55,7 +55,9 @@ const LicenseReporterUIBase = "ibm-license-service-reporter-ui"
 const LicenseReporterResourceBase = "ibm-license-service-reporter"
 const LicenseReporterComponentName = "ibm-license-service-reporter-svc"
 const LicenseReporterReleaseName = "ibm-license-service-reporter"
-const LicenseReportOCPCertName = "ibm-license-reporter-cert"
+const LicenseReportOCPCertName = "ibm-license-reporter-cert-internal"
+const LicenseReportExternalCertName = "ibm-license-reporter-cert"
+const LicenseReportCustomExternalCertName = "ibm-licensing-reporter-certs"
 
 const OperatorName = "ibm-licensing-operator"
 
