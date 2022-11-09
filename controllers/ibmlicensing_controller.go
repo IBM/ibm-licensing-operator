@@ -18,15 +18,11 @@ package controllers
 
 import (
 	"context"
-	goerrors "errors"
 	"fmt"
 	"net"
 	"reflect"
 	goruntime "runtime"
 	"time"
-
-	"crypto/x509"
-	"encoding/pem"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
@@ -452,18 +448,7 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 			}
 		} else {
 			// checking expiration date
-			var cert *x509.Certificate
-			var err error
-
-			pemCert := ocpExternalCertSecret.Data["tls.crt"]
-			block, _ := pem.Decode(pemCert)
-
-			if block != nil {
-				cert, err = x509.ParseCertificate(block.Bytes)
-			} else {
-				err = goerrors.New("unable to decode pem block")
-			}
-
+			cert, err := res.ParseCertificate(ocpExternalCertSecret.Data["tls.crt"])
 			reqLogger := r.Log.WithValues("reconcileCertificate", "Entry", "instance.GetName()", instance.GetName())
 
 			if err != nil {

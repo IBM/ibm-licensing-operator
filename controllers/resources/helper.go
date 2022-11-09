@@ -564,6 +564,16 @@ func ProcessCerfiticateSecret(secret corev1.Secret) (cert, caCert, key string, e
 	return
 }
 
+func ParseCertificate(rawCertData []byte) (*x509.Certificate, error) {
+	block, _ := pem.Decode(rawCertData)
+
+	if block != nil {
+		return x509.ParseCertificate(block.Bytes)
+	} else {
+		return nil, errors.New("unable to decode pem block")
+	}
+}
+
 func getTLSDataAsString(route *routev1.Route) string {
 	return fmt.Sprintf("{Termination: %v, InsecureEdgeTerminationPolicy: %v, Certificate: %s, CACertificate: %s, DestinationCACertificate: %s}",
 		route.Spec.TLS.Termination, route.Spec.TLS.InsecureEdgeTerminationPolicy,
