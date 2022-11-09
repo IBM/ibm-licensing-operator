@@ -471,7 +471,7 @@ func areTLSCertsSame(expected, found routev1.TLSConfig) bool {
 		expected.DestinationCACertificate == found.DestinationCACertificate)
 }
 
-func GetTLSDataAsString(route *routev1.Route) string {
+func getTLSDataAsString(route *routev1.Route) string {
 	return fmt.Sprintf("{Termination: %v, InsecureEdgeTerminationPolicy: %v, Certificate: %s, CACertificate: %s, DestinationCACertificate: %s}",
 		route.Spec.TLS.Termination, route.Spec.TLS.InsecureEdgeTerminationPolicy,
 		route.Spec.TLS.Certificate, route.Spec.TLS.CACertificate, route.Spec.TLS.DestinationCACertificate)
