@@ -89,10 +89,19 @@ func LabelsForPod(instance *operatorv1alpha1.IBMLicenseServiceReporter) map[stri
 }
 
 func getReciverEnvVariables(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []corev1.EnvVar {
+	var certSource operatorv1alpha1.HTTPSCertsSource
+
+	if res.IsServiceCAAPI {
+		certSource = operatorv1alpha1.OcpCertsSource
+	} else {
+		// on K8s always always generate self-signed certificate in operand
+		certSource = operatorv1alpha1.SelfSignedCertsSource
+	}
+
 	environmentVariables := []corev1.EnvVar{
 		{
 			Name:  "HTTPS_CERTS_SOURCE",
-			Value: string(spec.HTTPSCertsSource),
+			Value: string(certSource),
 		},
 	}
 	if spec.IsDebug() {
