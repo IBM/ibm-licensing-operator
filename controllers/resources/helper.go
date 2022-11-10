@@ -161,7 +161,7 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 }
 
 func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isHTTPS bool, certName string) map[string]string {
-	if IsServiceCAAPI && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
+	if IsServiceCAAPI && isHTTPS {
 		return map[string]string{ocpCertSecretNameTag: certName}
 	}
 	return map[string]string{}
