@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"net"
 	"os"
 	"regexp"
 
@@ -480,7 +479,6 @@ func areTLSCertsSame(expected, found routev1.TLSConfig) bool {
 		expected.Key == found.Key &&
 		expected.DestinationCACertificate == found.DestinationCACertificate)
 }
-
 
 func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, dns []string) (*corev1.Secret, error) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
