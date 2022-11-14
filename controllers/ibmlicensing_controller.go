@@ -436,7 +436,7 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 		if err := r.Client.Get(context.TODO(), namespacedName, ocpExternalCertSecret); err != nil {
 			r.Log.WithValues("external cert name", namespacedName).Info("external certificate secret not existing. Generating self signed certificate")
 
-			secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, nil, []string{route.Spec.Host})
+			secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
 			if err != nil {
 				r.Log.Error(err, "Error generating self signed certificate")
 				return reconcile.Result{Requeue: true}, err
@@ -454,7 +454,7 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 			// if improper x509 certificate
 			if err != nil {
 				r.Log.Error(err, "Improper x509 certificate in secret, regenrating certificate")
-				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, nil, []string{route.Spec.Host})
+				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
 				if err != nil {
 					r.Log.Error(err, "Error creating self signed certificate")
 					return reconcile.Result{Requeue: true}, err
@@ -466,7 +466,7 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 			// if certificate is expired
 			if cert.NotAfter.Before(time.Now()) {
 				r.Log.Info("Self signed certificate has expired. Generating new certificate")
-				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, nil, []string{route.Spec.Host})
+				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
 				if err != nil {
 					r.Log.Error(err, "Error creating self signed certificate")
 					return reconcile.Result{Requeue: true}, err
@@ -478,7 +478,7 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 			// if certificate is not issued to the route host
 			if err := cert.VerifyHostname(route.Spec.Host); err != nil {
 				r.Log.Info("Certificate not issued to a propper hostname. Generating new self-signed certificate")
-				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, nil, []string{route.Spec.Host})
+				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
 				if err != nil {
 					r.Log.Error(err, "Error creating self signed certificate")
 					return reconcile.Result{Requeue: true}, err
@@ -796,10 +796,9 @@ func (r *IBMLicensingReconciler) reconcileResourceWhichShouldNotExist(
 func (r *IBMLicensingReconciler) getSelfSignedCertWithOwnerReference(
 	instance *operatorv1alpha1.IBMLicensing,
 	namespacedName types.NamespacedName,
-	ip []net.IP,
 	dns []string) (*corev1.Secret, error) {
 
-	secret, err := res.GenerateSelfSignedCertSecret(namespacedName, ip, dns)
+	secret, err := res.GenerateSelfSignedCertSecret(namespacedName, dns)
 	if err != nil {
 		r.Log.Error(err, "Error when generating self signed certificate")
 	}

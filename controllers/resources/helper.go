@@ -481,7 +481,8 @@ func areTLSCertsSame(expected, found routev1.TLSConfig) bool {
 		expected.DestinationCACertificate == found.DestinationCACertificate)
 }
 
-func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, ip []net.IP, dns []string) (*corev1.Secret, error) {
+
+func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, dns []string) (*corev1.Secret, error) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return nil, err
@@ -509,9 +510,7 @@ func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, ip []net.
 		},
 		BasicConstraintsValid: true,
 	}
-	if ip != nil {
-		tml.IPAddresses = ip
-	}
+
 	if dns != nil {
 		tml.DNSNames = dns
 	}
@@ -569,9 +568,9 @@ func ParseCertificate(rawCertData []byte) (*x509.Certificate, error) {
 
 	if block != nil {
 		return x509.ParseCertificate(block.Bytes)
-	} else {
-		return nil, errors.New("unable to decode pem block")
 	}
+
+	return nil, errors.New("unable to decode pem block")
 }
 
 func getTLSDataAsString(route *routev1.Route) string {
