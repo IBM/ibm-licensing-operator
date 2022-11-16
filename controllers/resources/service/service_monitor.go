@@ -26,14 +26,28 @@ import (
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )
 
-func GetServiceMonitorName() string {
-	return PrometheusServiceMonitor
+func GetRHMPServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.ServiceMonitor {
+	interval := "3h"
+	name := PrometheusRHMPServiceMonitor
+	tlsConfig := getTLSConfigForRHMP(instance)
+	metricRelabelConfigs := getMetricRelabelConfigsForRHMP()
+	return GetServiceMonitor(instance, name, interval, tlsConfig, metricRelabelConfigs)
 }
 
-func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.ServiceMonitor {
+func GetAlertingServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.ServiceMonitor {
+	interval := "5m"
+	name := PrometheusAlertingServiceMonitor
+	tlsConfig := getTLSConfigForAlerting(instance)
+	metricRelabelConfigs := getMetricRelabelConfigsForAlerting()
+	return GetServiceMonitor(instance, name, interval, tlsConfig, metricRelabelConfigs)
+}
+
+func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing, name string, interval string,
+	tlsConfig *monitoringv1.TLSConfig, metricRelabelConfigs []*monitoringv1.RelabelConfig) *monitoringv1.ServiceMonitor {
+
 	return &monitoringv1.ServiceMonitor{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetServiceMonitorName(),
+			Name:      name,
 			Namespace: instance.Spec.InstanceNamespace,
 			Labels:    LabelsForServiceMonitor(),
 		},
@@ -46,16 +60,75 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.Se
 					BearerTokenSecret: corev1.SecretKeySelector{
 						Key: "",
 					},
-					Path:           "/metrics",
-					Scheme:         getScheme(instance),
-					TargetPort:     &prometheusTargetPort,
-					TLSConfig:      getTLSConfig(instance),
-					Interval:       "3h",
-					RelabelConfigs: getRelabelConfigs(instance),
+					Path:                 "/metrics",
+					MetricRelabelConfigs: metricRelabelConfigs,
+					Scheme:               getScheme(instance),
+					TargetPort:           &prometheusTargetPort,
+					TLSConfig:            tlsConfig,
+					Interval:             interval,
+					RelabelConfigs:       getRelabelConfigs(instance),
 				},
 			},
 		},
 	}
+}
+
+// initialize with all prometheus metrics from License Service operand monitoring service
+var orderedAllPrometheusMetrics = []string{
+	"cp4d_capability",
+	"ibm_licensing_usage_daily_high_watermark",
+	"product_license_usage",
+	"product_license_usage_chargeback",
+	"product_license_usage_details",
+}
+
+func getMetricRelabelConfigsForRHMP() []*monitoringv1.RelabelConfig {
+	var usedMetrics = map[string]bool{
+		"product_license_usage":            true,
+		"product_license_usage_chargeback": true,
+		"product_license_usage_details":    true,
+		"cp4d_capability":                  true,
+	}
+	return getMetricRelabelConfigs(usedMetrics)
+}
+
+func getMetricRelabelConfigsForAlerting() []*monitoringv1.RelabelConfig {
+	var usedMetrics = map[string]bool{
+		"ibm_licensing_usage_daily_high_watermark": true,
+	}
+	return getMetricRelabelConfigs(usedMetrics)
+}
+
+// return metric relabel config that drops not used prometheus metrics
+func getMetricRelabelConfigs(usedMetrics map[string]bool) []*monitoringv1.RelabelConfig {
+	regex := "("
+	isFirstMetric := true
+
+	for _, metric := range orderedAllPrometheusMetrics {
+
+		// drop metrics if used metrics doesn't have it
+		if !usedMetrics[metric] {
+			if isFirstMetric {
+				isFirstMetric = false
+			} else {
+				regex += "|"
+			}
+			regex += metric
+		}
+	}
+	regex += ")"
+
+	var sourceLabels []string
+	sourceLabels = append(sourceLabels, "__name__")
+
+	relabelConfigs := make([]*monitoringv1.RelabelConfig, 0)
+	relabelConfigs = append(relabelConfigs, &monitoringv1.RelabelConfig{
+		Action:       "drop",
+		Regex:        regex,
+		SourceLabels: sourceLabels,
+	})
+
+	return relabelConfigs
 }
 
 func getRelabelConfigs(instance *operatorv1alpha1.IBMLicensing) []*monitoringv1.RelabelConfig {
@@ -69,13 +142,29 @@ func getRelabelConfigs(instance *operatorv1alpha1.IBMLicensing) []*monitoringv1.
 	return relabelConfigs
 }
 
-func getTLSConfig(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConfig {
+func getTLSConfigForRHMP(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConfig {
 	if instance.Spec.HTTPSEnable {
 		return &monitoringv1.TLSConfig{
 			CA: monitoringv1.SecretOrConfigMap{
 				ConfigMap: &corev1.ConfigMapKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{
 						Name: "ibm-cs-operator-webhook-ca",
+					},
+					Key: "service-ca.crt",
+				},
+			},
+		}
+	}
+	return nil
+}
+
+func getTLSConfigForAlerting(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConfig {
+	if instance.Spec.HTTPSEnable {
+		return &monitoringv1.TLSConfig{
+			CA: monitoringv1.SecretOrConfigMap{
+				Secret: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: ServiceAccountSecretName,
 					},
 					Key: "service-ca.crt",
 				},

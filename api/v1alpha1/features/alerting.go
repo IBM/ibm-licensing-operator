@@ -13,8 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-package version
 
-var (
-	Version = "1.20.0"
-)
+package features
+
+// +k8s:deepcopy-gen=true
+type Alerting struct {
+	// Should this function be enabled.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+}

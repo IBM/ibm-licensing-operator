@@ -23,6 +23,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/IBM/ibm-licensing-operator/api/v1alpha1/features"
+
 	"github.com/go-logr/logr"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -118,7 +120,7 @@ func (spec *IBMLicenseServiceBaseSpec) IsVerbose() bool {
 }
 
 func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool,
-	operatorNamespace string) error {
+	isAlertingEnabledByDefault bool, operatorNamespace string) error {
 	if spec.InstanceNamespace == "" {
 		spec.InstanceNamespace = operatorNamespace
 	}
@@ -143,6 +145,18 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 			reqLogger.Info("RHMP reporting enabled automatically")
 		} else {
 			reqLogger.Info("RHMP wasn't detected")
+		}
+	}
+	if isAlertingEnabledByDefault {
+		if spec.Features == nil {
+			spec.Features = &Features{}
+		}
+		if spec.Features.Alerting == nil {
+			spec.Features.Alerting = &features.Alerting{}
+		}
+		if spec.Features.Alerting.Enabled == nil {
+			trueVal := true
+			spec.Features.Alerting.Enabled = &trueVal
 		}
 	}
 	if spec.APISecretToken == "" {
@@ -184,6 +198,10 @@ func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 
 func (spec *IBMLicensingSpec) IsRHMPEnabled() bool {
 	return spec.RHMPEnabled != nil && *spec.RHMPEnabled
+}
+
+func (spec *IBMLicensingSpec) IsPrometheusServiceNeeded() bool {
+	return spec.IsRHMPEnabled() || spec.IsAlertingEnabled()
 }
 
 func (spec *IBMLicensingSpec) IsChargebackEnabled() bool {

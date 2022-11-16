@@ -15,9 +15,9 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.19.0
+CSV_VERSION ?= 1.20.0
 CSV_VERSION_DEVELOPMENT ?= development
-OLD_CSV_VERSION ?= 1.18.0
+OLD_CSV_VERSION ?= 1.19.0
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -177,13 +177,12 @@ work: $(GOBIN)
 
 ##@ Development
 
-code-dev: ## Run the default dev commands which are the go tidy, fmt, vet then execute the $ make code-gen
+code-dev: ## Run the default dev commands which are the go tidy, fmt, vet then execute the $ make check
 	@echo Running the common required commands for developments purposes
 	- make code-tidy
 	- make code-fmt
 	- make fmt
 	- make code-vet
-# 	- make code-gen
 	@echo Running the common required commands for code delivery
 	make check
 
