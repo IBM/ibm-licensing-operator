@@ -44,9 +44,9 @@ Repo maintainers can assign you an issue or pull request by leaving a
 
     | linting tool | version | instructions |
     | ------------ | ------- | ------------ |
-    | [hadolint](https://github.com/hadolint/hadolint#install) | [v1.17.2](https://github.com/hadolint/hadolint/releases/tag/v1.17.2) | download binary from version link, make executable with `chmod +x` and add to bin directory |
-    | [shellcheck](https://github.com/koalaman/shellcheck#installing) | [v0.7.0](https://github.com/koalaman/shellcheck/releases/tag/v0.7.0) | download binary from version link, make executable with `chmod +x` and add to bin directory |
-    | [yamllint](https://github.com/adrienverge/yamllint#installation) | [v1.17.0](https://github.com/adrienverge/yamllint/releases/tag/v1.17.0) | download zip from version link, unzip and enter directory, then use python pip to install e.g. with this command `sudo pip3 install .` |
+    | [hadolint](https://github.com/hadolint/hadolint#install) | [v2.12.0](https://github.com/hadolint/hadolint/releases/tag/v2.12.0) | download binary from version link, make executable with `chmod +x` and add to bin directory |
+    | [shellcheck](https://github.com/koalaman/shellcheck#installing) | [v0.8.0](https://github.com/koalaman/shellcheck/releases/tag/v0.8.0) | download binary from version link, make executable with `chmod +x` and add to bin directory |
+    | [yamllint](https://github.com/adrienverge/yamllint#installation) | [v1.28.0](https://github.com/adrienverge/yamllint/releases/tag/v1.28.0) | `pip install yamllint==1.28.0` |
     | [golangci-lint](https://github.com/golangci/golangci-lint#install) | [v1.50.1](https://github.com/golangci/golangci-lint/releases/tag/v1.50.1) | `go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1` |
     | [mdl](https://github.com/markdownlint/markdownlint#installation) | [v0.5.0](https://github.com/markdownlint/markdownlint/releases/tag/v0.5.0) | download using `git clone https://github.com/markdownlint/markdownlint.git -b v0.5.0` and install using `rake install` |
     | [awesome_bot](https://github.com/dkhamsing/awesome_bot#installation) | [1.19.1](https://github.com/dkhamsing/awesome_bot/releases/tag/1.19.1) | download using `git clone https://github.com/dkhamsing/awesome_bot.git -b 1.19.1` and install using `rake install` |
