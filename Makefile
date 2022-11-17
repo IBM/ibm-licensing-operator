@@ -184,7 +184,7 @@ code-dev: ## Run the default dev commands which are the go tidy, fmt, vet then e
 	- make fmt
 	- make code-vet
 	@echo Running the common required commands for code delivery
-	make check
+	- make check
 
 # All available format: format-go format-protos
 # Default value will run all formats, override these make target with your requirements:
