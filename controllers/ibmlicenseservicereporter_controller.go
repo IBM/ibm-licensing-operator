@@ -402,7 +402,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileDeployment(instance *oper
 
 func (r *IBMLicenseServiceReporterReconciler) reconcileCertificateSecrets(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
 	// for backward compatibility, we treat the "ocp" HTTPSCertsSource same as "self-signed"
-	if res.IsRouteAPI && instance.Spec.HTTPSCertsSource != "custom" {
+	if res.IsRouteAPI && instance.Spec.HTTPSCertsSource != operatorv1alpha1.CustomCertsSource {
 		ocpExternalCertSecret := &corev1.Secret{}
 		r.Log.Info("Reconciling external certificate")
 		namespacedName := types.NamespacedName{Namespace: instance.GetNamespace(), Name: reporter.LicenseReportExternalCertName}
@@ -496,7 +496,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileReporterRouteWithCertific
 		r.Log.Info("Reconciling route with certificate")
 		externalCertSecret := corev1.Secret{}
 		var externalCertName string
-		if instance.Spec.HTTPSCertsSource == "custom" {
+		if instance.Spec.HTTPSCertsSource == operatorv1alpha1.CustomCertsSource {
 			externalCertName = reporter.LicenseReportCustomExternalCertName
 		} else {
 			externalCertName = reporter.LicenseReportExternalCertName
