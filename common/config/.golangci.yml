@@ -28,26 +28,28 @@ linters:
   # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
   disable-all: true
   enable:
-    - deadcode
-    - errcheck
-    - gocyclo
-    - gofmt
-    - goimports
-    - golint
-    # - gosec
-    - gosimple
-    - govet
-    # - ineffassign
-    - interfacer
-    - lll
-    # - misspell
-    - staticcheck
-    - structcheck
-    - typecheck
-    - unconvert
-    - unparam
-    - unused
-    - varcheck
+    # Default linters
+    - unused # Detects unused consts, vars, functions, types
+    - errcheck # Detects unchecked errors
+    - typecheck # Standard golang type check
+    - staticcheck # It finds bugs and performance issues
+    - ineffassign # Detects unused variable assigments
+    - gosimple # Linter used for simplifying code
+    - govet # Examines Go source code and reports suspicious constructs
+    
+    # Additional linters
+    - gocyclo # Computes and checks the cyclomatic complexity of functions
+    - gofmt # Formats Go programs
+    - goimports # Import formatting/ordering
+    - revive # Drop-in replacement of golint
+    - misspell # Fix spelling errors
+    - goconst # Detects repeated strings that could by replaced by constant
+    - unconvert # Analyse type converstions
+    - unparam # Check for unused function parameter
+    - lll # Check if max line-length is satisfied
+    - nakedret # Finds naked returns in functions
+    # - gosec # Inspects source code for security problems
+
   # don't enable:
   # - gocritic
   # - bodyclose
@@ -78,9 +80,9 @@ linters-settings:
   govet:
     # report about shadowed variables
     check-shadowing: false
-  golint:
+  revive:
     # minimal confidence for issues, default is 0.8
-    min-confidence: 0.0
+    confidence: 0.0
   gofmt:
     # simplify code: gofmt with `-s` option, true by default
     simplify: true
