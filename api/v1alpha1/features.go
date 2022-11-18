@@ -36,6 +36,11 @@ type Features struct {
 	// +optional
 	PrometheusQuerySource *features.PrometheusQuerySource `json:"prometheusQuerySource,omitempty"`
 
+	// Change alerting settings.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Alerting settings",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
+	// +optional
+	Alerting *features.Alerting `json:"alerting,omitempty"`
+
 	// Special terms, must be granted by IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Namespace scope enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
@@ -59,6 +64,15 @@ func (spec *IBMLicensingSpec) IsURLBasedAuthEnabled() bool {
 		return false
 	}
 	return true
+}
+
+func (spec *IBMLicensingSpec) IsAlertingEnabled() bool {
+	// this is also set by default when filling default values during reconciliation
+	// return true only and only if the value is set to true
+	if spec.HaveFeatures() && spec.Features.Alerting != nil && spec.Features.Alerting.Enabled != nil {
+		return *spec.Features.Alerting.Enabled
+	}
+	return false
 }
 
 func (spec *IBMLicensingSpec) IsPrometheusQuerySourceEnabled() bool {

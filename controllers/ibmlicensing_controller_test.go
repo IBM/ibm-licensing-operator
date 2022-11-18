@@ -260,7 +260,7 @@ var _ = Describe("IBMLicensing controller", func() {
 			By("Checking if service monitor exists")
 			Eventually(func() bool {
 				serviceMonitor := &monitoringv1.ServiceMonitor{}
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetServiceMonitorName(), Namespace: namespace}, serviceMonitor)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.PrometheusRHMPServiceMonitor, Namespace: namespace}, serviceMonitor)).Should(Succeed())
 				return serviceMonitor != nil
 			}, timeout, interval).Should(BeTrue())
 

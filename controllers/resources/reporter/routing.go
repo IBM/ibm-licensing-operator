@@ -29,12 +29,9 @@ func annotationsForReporterRoute() map[string]string {
 	return map[string]string{"haproxy.router.openshift.io/timeout": "90s"}
 }
 
-func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *routev1.Route {
-
+func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter, defaultRouteTLS *routev1.TLSConfig) *routev1.Route {
 	var tls *routev1.TLSConfig
-	defaultRouteTLS := &routev1.TLSConfig{
-		Termination: routev1.TLSTerminationPassthrough,
-	}
+
 	if instance.Spec.RouteOptions != nil {
 		if instance.Spec.RouteOptions.TLS != nil {
 			tls = instance.Spec.RouteOptions.TLS

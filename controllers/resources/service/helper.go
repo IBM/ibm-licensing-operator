@@ -28,21 +28,36 @@ import (
 const LicensingResourceBase = "ibm-licensing-service"
 const LicensingComponentName = "ibm-licensing-service-svc"
 const LicensingReleaseName = "ibm-licensing-service"
-const LicenseServiceOCPCertName = "ibm-license-service-cert"
+const LicenseServiceOCPCertName = "ibm-license-service-cert-internal"
 const PrometheusServiceOCPCertName = "ibm-licensing-service-prometheus-cert"
+const LicenseServiceExternalCertName = "ibm-license-service-cert"
+const LicenseServiceCustomExternalCertName = "ibm-licensing-certs"
 const LicensingServiceAccount = "ibm-license-service"
 const LicensingServiceAccountRestricted = "ibm-license-service-restricted"
 const UsageServiceName = "ibm-licensing-service-usage"
 const PrometheusServiceName = "ibm-licensing-service-prometheus"
-const PrometheusServiceMonitor = "ibm-licensing-service-service-monitor"
+const PrometheusRHMPServiceMonitor = "ibm-licensing-service-service-monitor"
+const PrometheusAlertingServiceMonitor = "ibm-licensing-service-service-monitor-alerting"
 
 const LicensingServiceAppLabel = "ibm-licensing-service-instance"
+
+//goland:noinspection GoNameStartsWithPackageName
 const ServiceMonitorSelectorLabel = "marketplace.redhat.com/metering"
 const ReleaseLabel = "ibm-licensing-service-prometheus"
 const ReleaseUsageLabel = "ibm-licensing-service-usage"
 
 const NamespaceScopeLabelKey = "intent"
 const NamespaceScopeLabelValue = "projected"
+
+//goland:noinspection GoNameStartsWithPackageName
+const ServiceAccountSecretName = "ibm-licensing-service-account-token"
+
+func GetServiceAccountName(instance *operatorv1alpha1.IBMLicensing) string {
+	if instance.Spec.IsNamespaceScopeEnabled() {
+		return LicensingServiceAccountRestricted
+	}
+	return LicensingServiceAccount
+}
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()

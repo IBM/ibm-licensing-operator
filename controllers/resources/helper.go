@@ -23,8 +23,16 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"regexp"
+
 	"reflect"
 	"time"
+
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
+	mathRand "math/rand"
 
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 
@@ -57,6 +65,7 @@ var Seconds60 int64 = 60
 
 var IsRouteAPI = true
 var IsServiceCAAPI = true
+var IsAlertingEnabledByDefault = true
 var RHMPEnabled = false
 var IsUIEnabled = false
 var IsODLM = true
@@ -151,7 +160,7 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 }
 
 func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isHTTPS bool, certName string) map[string]string {
-	if IsServiceCAAPI && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
+	if IsServiceCAAPI && isHTTPS {
 		return map[string]string{ocpCertSecretNameTag: certName}
 	}
 	return map[string]string{}
@@ -255,6 +264,10 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 			return updateResource()
 		}
 	}
+	result, done, err := checkMetricRelabelConfigs(reqLogger, expectedEndpoint, foundEndpoint, updateResource, found)
+	if done {
+		return result, err
+	}
 	if expectedEndpoint.TLSConfig != nil {
 		if foundEndpoint.TLSConfig == nil ||
 			!reflect.DeepEqual(expectedEndpoint.TLSConfig, foundEndpoint.TLSConfig) {
@@ -269,6 +282,47 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 		return updateResource()
 	}
 	return reconcile.Result{}, nil
+}
+
+func checkMetricRelabelConfigs(reqLogger *logr.Logger, expectedEndpoint monitoringv1.Endpoint, foundEndpoint monitoringv1.Endpoint,
+	updateResource func() (reconcile.Result, error), found *monitoringv1.ServiceMonitor) (reconcile.Result, bool, error) {
+	if expectedEndpoint.MetricRelabelConfigs != nil {
+		if foundEndpoint.MetricRelabelConfigs == nil ||
+			len(expectedEndpoint.MetricRelabelConfigs) != len(foundEndpoint.MetricRelabelConfigs) {
+			result, err := updateResource()
+			return result, true, err
+		}
+		// we assume only one relabeling, if changed in expected service monitor then modify this method as well
+		if len(expectedEndpoint.MetricRelabelConfigs) != 1 {
+			err := errors.New("expected service monitor metric relabeling error")
+			(*reqLogger).Error(
+				err, "Expected service monitor should have 1 metric relabeling, change this function otherwise.",
+				"Namespace", found.GetNamespace(), "Name", found.GetName())
+			return reconcile.Result{}, true, err
+		}
+		expectedRelabeling := expectedEndpoint.MetricRelabelConfigs[0]
+		foundRelabeling := foundEndpoint.MetricRelabelConfigs[0]
+		if len(expectedRelabeling.SourceLabels) != 1 {
+			err := errors.New("expected service monitor metric relabeling error")
+			(*reqLogger).Error(
+				err, "Expected service monitor should have 1 metric relabeling source label, change this function otherwise.",
+				"Namespace", found.GetNamespace(), "Name", found.GetName())
+			return reconcile.Result{}, true, err
+		}
+		if expectedRelabeling.Action != foundRelabeling.Action ||
+			expectedRelabeling.Regex != foundRelabeling.Regex ||
+			len(expectedRelabeling.SourceLabels) != len(foundRelabeling.SourceLabels) ||
+			expectedRelabeling.SourceLabels[0] != foundRelabeling.SourceLabels[0] {
+			result, err := updateResource()
+			return result, true, err
+		}
+	} else {
+		if foundEndpoint.MetricRelabelConfigs != nil {
+			result, err := updateResource()
+			return result, true, err
+		}
+	}
+	return reconcile.Result{}, false, nil
 }
 
 func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource ResourceObject) (reconcile.Result, error) {
@@ -351,8 +405,10 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 	serviceCAInstance := &servicecav1.ServiceCA{}
 	if err := client.List(context.TODO(), serviceCAInstance, listOpts...); err == nil {
 		IsServiceCAAPI = true
+		IsAlertingEnabledByDefault = true
 	} else {
 		IsServiceCAAPI = false
+		IsAlertingEnabledByDefault = false
 	}
 
 	odlmTestInstance := &odlm.OperandBindInfo{}
@@ -372,29 +428,151 @@ func CompareConfigMap(cm1, cm2 *corev1.ConfigMap) bool {
 
 // Returns true if routes are equal
 func CompareRoutes(reqLogger logr.Logger, expectedRoute, foundRoute *routev1.Route) bool {
-	areEqual := false
 	if foundRoute.ObjectMeta.Name != expectedRoute.ObjectMeta.Name {
 		reqLogger.Info("Names not equal", "old", foundRoute.ObjectMeta.Name, "new", expectedRoute.ObjectMeta.Name)
-	} else if foundRoute.Spec.To.Name != expectedRoute.Spec.To.Name {
+		return false
+	}
+	if foundRoute.Spec.To.Name != expectedRoute.Spec.To.Name {
 		reqLogger.Info("Specs To Name not equal",
 			"old", fmt.Sprintf("%v", foundRoute.Spec),
 			"new", fmt.Sprintf("%v", expectedRoute.Spec))
-	} else if foundRoute.Spec.TLS == nil && expectedRoute.Spec.TLS != nil {
+		return false
+	}
+	if foundRoute.Spec.TLS == nil && expectedRoute.Spec.TLS != nil {
 		reqLogger.Info("Found Route has empty TLS options, but Expected Route has not empty TLS options",
 			"old", fmt.Sprintf("%v", foundRoute.Spec.TLS),
-			"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
-	} else if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS == nil {
-		reqLogger.Info("Expected Route has empty TLS options, but Found Route has not empty TLS options",
-			"old", fmt.Sprintf("%v", foundRoute.Spec.TLS),
-			"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
-	} else if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS != nil &&
-		(foundRoute.Spec.TLS.Termination != expectedRoute.Spec.TLS.Termination ||
-			foundRoute.Spec.TLS.InsecureEdgeTerminationPolicy != expectedRoute.Spec.TLS.InsecureEdgeTerminationPolicy) {
-		reqLogger.Info("Expected Route has different TLS options than Found Route",
-			"old", fmt.Sprintf("%v", foundRoute.Spec.TLS),
-			"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
-	} else {
-		areEqual = true
+			"new", fmt.Sprintf("%v", getTLSDataAsString(expectedRoute)))
+		return false
 	}
-	return areEqual
+	if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS == nil {
+		reqLogger.Info("Expected Route has empty TLS options, but Found Route has not empty TLS options",
+			"old", fmt.Sprintf("%v", getTLSDataAsString(foundRoute)),
+			"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS))
+		return false
+	}
+	if foundRoute.Spec.TLS != nil && expectedRoute.Spec.TLS != nil {
+		if foundRoute.Spec.TLS.Termination != expectedRoute.Spec.TLS.Termination {
+			reqLogger.Info("Expected Route has different TLS Termination option than Found Route",
+				"old", fmt.Sprintf("%v", foundRoute.Spec.TLS.Termination),
+				"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS.Termination))
+			return false
+		}
+		if foundRoute.Spec.TLS.InsecureEdgeTerminationPolicy != expectedRoute.Spec.TLS.InsecureEdgeTerminationPolicy {
+			reqLogger.Info("Expected Route has different TLS InsecureEdgeTerminationPolicy option than Found Route",
+				"old", fmt.Sprintf("%v", foundRoute.Spec.TLS.InsecureEdgeTerminationPolicy),
+				"new", fmt.Sprintf("%v", expectedRoute.Spec.TLS.InsecureEdgeTerminationPolicy))
+			return false
+		}
+		if !areTLSCertsSame(*expectedRoute.Spec.TLS, *foundRoute.Spec.TLS) {
+			reqLogger.Info("Expected route has different certificate info in the TLS section than Found Route",
+				"old", fmt.Sprintf("%v", getTLSDataAsString(foundRoute)),
+				"new", fmt.Sprintf("%v", getTLSDataAsString(expectedRoute)))
+			return false
+		}
+	}
+	return true
+}
+
+func areTLSCertsSame(expected, found routev1.TLSConfig) bool {
+	return (expected.CACertificate == found.CACertificate &&
+		expected.Certificate == found.Certificate &&
+		expected.Key == found.Key &&
+		expected.DestinationCACertificate == found.DestinationCACertificate)
+}
+
+func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, dns []string) (*corev1.Secret, error) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate a pem block with the private key
+	keyPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	})
+
+	commonName := ""
+	if len(dns) > 0 {
+		commonName = dns[0]
+	}
+
+	tml := x509.Certificate{
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().AddDate(1, 0, 0),
+		// need to generate a different serial number each execution
+		SerialNumber: big.NewInt(int64(mathRand.Intn(1000000))),
+		Subject: pkix.Name{
+			CommonName:   commonName,
+			Organization: []string{"IBM"},
+		},
+		BasicConstraintsValid: true,
+	}
+
+	if dns != nil {
+		tml.DNSNames = dns
+	}
+
+	cert, err := x509.CreateCertificate(rand.Reader, &tml, &tml, &key.PublicKey, key)
+	if err != nil {
+		return nil, err
+	}
+
+	certPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: cert,
+	})
+
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      namespacedName.Name,
+			Namespace: namespacedName.Namespace,
+			Labels: map[string]string{
+				"release": "ibm-licensing-service",
+			},
+		},
+		Data: map[string][]byte{
+			"tls.crt": certPem,
+			"tls.key": keyPem,
+		},
+		Type: corev1.SecretTypeTLS,
+	}, nil
+}
+
+func ProcessCerfiticateSecret(secret corev1.Secret) (cert, caCert, key string, err error) {
+
+	certChain := string(secret.Data["tls.crt"])
+	key = string(secret.Data["tls.key"])
+	re := regexp.MustCompile("(?s)-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----")
+	externalCerts := re.FindAllString(certChain, -1)
+
+	if len(externalCerts) == 0 {
+		err = errors.New("invalid certificate format under tls.crt section")
+		return
+	}
+
+	cert = externalCerts[0]
+
+	if len(externalCerts) == 2 {
+		caCert = externalCerts[1]
+	} else {
+		caCert = ""
+	}
+	return
+}
+
+func ParseCertificate(rawCertData []byte) (*x509.Certificate, error) {
+	block, _ := pem.Decode(rawCertData)
+
+	if block != nil {
+		return x509.ParseCertificate(block.Bytes)
+	}
+
+	return nil, errors.New("unable to decode pem block")
+}
+
+func getTLSDataAsString(route *routev1.Route) string {
+	return fmt.Sprintf("{Termination: %v, InsecureEdgeTerminationPolicy: %v, Certificate: %s, CACertificate: %s, DestinationCACertificate: %s}",
+		route.Spec.TLS.Termination, route.Spec.TLS.InsecureEdgeTerminationPolicy,
+		route.Spec.TLS.Certificate, route.Spec.TLS.CACertificate, route.Spec.TLS.DestinationCACertificate)
 }

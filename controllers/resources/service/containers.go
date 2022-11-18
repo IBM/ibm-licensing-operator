@@ -55,9 +55,18 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 		})
 	}
 	if spec.HTTPSEnable {
+		var certSource operatorv1alpha1.HTTPSCertsSource
+
+		if resources.IsServiceCAAPI {
+			certSource = operatorv1alpha1.OcpCertsSource
+		} else {
+			// on K8s always always generate self-signed certificate in operand
+			certSource = operatorv1alpha1.SelfSignedCertsSource
+		}
+
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "HTTPS_CERTS_SOURCE",
-			Value: string(spec.HTTPSCertsSource),
+			Value: string(certSource),
 		})
 	}
 	if spec.IsMetering() {
@@ -69,6 +78,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 	if spec.IsRHMPEnabled() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "enable.metrics",
+			Value: "true",
+		})
+	}
+	if spec.IsAlertingEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "enable.alerting",
 			Value: "true",
 		})
 	}
@@ -257,7 +272,7 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 		}
 		containers = append(containers, ocpSecretCheckContainer)
 
-		if spec.IsRHMPEnabled() {
+		if spec.IsPrometheusServiceNeeded() {
 			baseContainer := getLicensingContainerBase(spec)
 			ocpPrometheusSecretCheckContainer := corev1.Container{}
 
@@ -303,7 +318,7 @@ func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 		},
 	}
 
-	if spec.IsRHMPEnabled() {
+	if spec.IsPrometheusServiceNeeded() {
 		ports = append(ports, corev1.ContainerPort{
 			ContainerPort: prometheusServicePort.IntVal,
 			Protocol:      corev1.ProtocolTCP,
