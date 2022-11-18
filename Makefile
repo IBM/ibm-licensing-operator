@@ -453,15 +453,8 @@ else
 PODMAN=podman
 endif
 
-
-alm-example:
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" \
-	"[\
-	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml`,\
-	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml`,\
-	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingbindinfo.yaml`,\
-	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingrequest.yaml`\
-	]"
+# Take the roles (e.g. permissions) from bundle manifest that are created by kubebuilder and put them in CSV
+update-roles-alm-exaple: alm-example
 	yq r -P ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/clusterrole.yaml
 	yq r -P ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml rules > /tmp/role.yaml
 	yq r -P bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/reader-clusterrole.yaml
@@ -513,6 +506,16 @@ alm-example:
 	rm -f ./bundle/manifests/ibm-license-service_v1_serviceaccount.yaml
 	rm -f ./bundle/manifests/ibm-license-service-restricted_v1_serviceaccount.yaml
 
+# Takes config samples CRs and update alm-exmaple in CSV
+alm-example:
+	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" \
+	"[\
+	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml`,\
+	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml`,\
+	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingbindinfo.yaml`,\
+	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingrequest.yaml`\
+	]"
+
 # Generate bundle manifests and metadata, then validate generated files. Yq is used to change order of owned resources here to ensure Licensing is first and Reporter second.
 pre-bundle: manifests
 	operator-sdk generate kustomize manifests -q
@@ -531,7 +534,7 @@ pre-bundle: manifests
 	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml yq_tmp_metadata.yaml yq_tmp_definitions.yaml yq_tmp_querysources.yaml
 	operator-sdk bundle validate ./bundle
 
-bundle: pre-bundle alm-example
+bundle: pre-bundle update-roles-alm-exaple
 
 # Build the bundle image.
 bundle-build:
