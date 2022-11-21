@@ -53,6 +53,12 @@ Repo maintainers can assign you an issue or pull request by leaving a
     | [goimports](https://pkg.go.dev/golang.org/x/tools@v0.3.0/cmd/goimports) | [v0.3.0](https://pkg.go.dev/golang.org/x/tools@v0.3.0/cmd/goimports) | - `go install golang.org/x/tools/cmd/goimports@v0.3.0` |
     | [diffutils](https://www.gnu.org/software/diffutils/) | [v3.8](https://ftp.gnu.org/gnu/diffutils/diffutils-3.8.tar.xz) | - download binary from version link, make executable with `chmod +x` and add to bin directory<br/>- for MacOS: `brew install diffutils` |
 
+To install required linters for the development process, you can use script:
+```shell
+bash ./common/scripts/install-linters-development.sh  
+```
+The script needs root privalaged so it is recommended to use `sudo` option.
+
 
 - if you have an error during `make check`, for example:
 
