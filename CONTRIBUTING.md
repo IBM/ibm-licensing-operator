@@ -44,7 +44,7 @@ Repo maintainers can assign you an issue or pull request by leaving a
 
     | linting tool | version | instructions |
     | ------------ | ------- | ------------ |
-    | [hadolint](https://github.com/hadolint/hadolint#install) | [v1.17.2](https://github.com/hadolint/hadolint/releases/tag/v1.17.2) | download binary from version link, make executable with `chmod +x` and add to bin directory |
+    | [hadolint](https://github.com/hadolint/hadolint#install) | [v2.12.1-beta](https://github.com/hadolint/hadolint/releases/tag/v2.12.1-beta) | download binary from version link, make executable with `chmod +x` and add to bin directory |
     | [shellcheck](https://github.com/koalaman/shellcheck#installing) | [v0.7.0](https://github.com/koalaman/shellcheck/releases/tag/v0.7.0) | download binary from version link, make executable with `chmod +x` and add to bin directory |
     | [yamllint](https://github.com/adrienverge/yamllint#installation) | [v1.17.0](https://github.com/adrienverge/yamllint/releases/tag/v1.17.0) | download zip from version link, unzip and enter directory, then use python pip to install e.g. with this command `sudo pip3 install .` |
     | [golangci-lint](https://github.com/golangci/golangci-lint#install) | [v1.44.0](https://github.com/golangci/golangci-lint/releases/tag/v1.44.0) | `go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.44.0` |
