@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 ACTIVE_OS=
+real_user=
 
 function detect_os() {
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -69,6 +70,19 @@ AWESOME_BOT_VERSION=1.20.0
 GOIMPORTS_VERSION=v0.3.0
 DIFFUTILS_VERSION=v3.8
 
+##### Start script logic #####
+
+if ! [ "$(id -u)" = 0 ]; then
+   echo "The script need to be run as root." >&2
+   exit 1
+fi
+
+if [ "$SUDO_USER" ]; then
+    real_user=$SUDO_USER
+else
+    real_user=$(whoami)
+fi
+
 detect_os
 
 # Hadolint
@@ -91,11 +105,11 @@ fi
 if ! [ -x "$(command -v shellcheck)" ]; then
   echo " » Installing shellcheck [${SHELLCHECK_VERSION}]"
   if [ $ACTIVE_OS == 'MacOS_arm64' ]; then
-    install_shellcheck_from_binary shellcheck-v0.8.0.linux.armv6hf.tar.xz
+    install_shellcheck_from_binary shellcheck-"${SHELLCHECK_VERSION}".linux.armv6hf.tar.xz
   elif [ $ACTIVE_OS == 'MacOS_x86' ]; then
-    install_shellcheck_from_binary shellcheck-v0.8.0.darwin.x86_64.tar.xz
+    install_shellcheck_from_binary shellcheck-"${SHELLCHECK_VERSION}".darwin.x86_64.tar.xz
   else
-    install_shellcheck_from_binary shellcheck-v0.8.0.linux.x86_64.tar.xz
+    install_shellcheck_from_binary shellcheck-"${SHELLCHECK_VERSION}".linux.x86_64.tar.xz
   fi
 
 else
@@ -107,7 +121,7 @@ fi
 # Yamllint
 if ! [ -x "$(command -v yamllint)" ]; then
   echo " » Installing yamllint [${YAMLLINT_VERSION}]"
-  pip install yamllint==1.28.0
+  pip install yamllint=="${YAMLLINT_VERSION}"
 else
   echo " » Yamllint already installed"
   yamllint --version
@@ -147,7 +161,7 @@ fi
 # goimports
 if ! [ -x "$(command -v goimports)" ]; then
   echo " » Installing goimports [${GOIMPORTS_VERSION}]"
-  go install golang.org/x/tools/cmd/goimports@v0.3.0
+  go install golang.org/x/tools/cmd/goimports@"${GOIMPORTS_VERSION}"
 else
   echo " » Goimports already installed"
   echo
@@ -160,7 +174,7 @@ if ! [ -x "$(command -v diffutils)" ]; then
     apt-get update
     apt-get install diffutils
   else
-    brew install diffutils
+    sudo -u "$real_user" brew install diffutils
   fi
 
 else
