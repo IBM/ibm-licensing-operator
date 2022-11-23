@@ -27,7 +27,7 @@ import (
 const LicensingResourceBase = "ibm-licensing-service"
 const LicensingComponentName = "ibm-licensing-service-svc"
 const LicensingReleaseName = "ibm-licensing-service"
-const LicenseServiceOCPCertName = "ibm-license-service-cert-internal"
+const LicenseServiceInternalCertName = "ibm-license-service-cert-internal"
 const PrometheusServiceOCPCertName = "ibm-licensing-service-prometheus-cert"
 const LicenseServiceExternalCertName = "ibm-license-service-cert"
 const LicenseServiceCustomExternalCertName = "ibm-licensing-certs"
