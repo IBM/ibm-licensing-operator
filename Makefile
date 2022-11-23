@@ -454,7 +454,7 @@ PODMAN=podman
 endif
 
 # Take the roles (e.g. permissions) from bundle manifest that are created by kubebuilder and put them in CSV
-update-roles-alm-exaple: alm-example
+update-roles-alm-example: alm-example
 	yq r -P ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/clusterrole.yaml
 	yq r -P ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml rules > /tmp/role.yaml
 	yq r -P bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/reader-clusterrole.yaml
