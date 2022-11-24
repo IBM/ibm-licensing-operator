@@ -36,6 +36,21 @@ function detect_os() {
   echo
 }
 
+function check_prerequisites() {
+  if ! [ -x "$(command -v pip)" ]; then
+    echo " » Tool not found: pip. Install suitable version and try again."
+    exit 1
+  fi
+  if ! [ -x "$(command -v go)" ]; then
+    echo " » Tool not found: go. Install suitable version and try again."
+    exit 1
+  fi
+  if ! [ -x "$(command -v gem)" ]; then
+    echo " » Tool not found: gem. Install suitable version and try again."
+    exit 1
+  fi
+}
+
 ##hadolint-Darwin-x86_64
 ##hadolint-Linux-arm64
 ##hadolint-Linux-x86_64
@@ -84,6 +99,7 @@ else
 fi
 
 detect_os
+check_prerequisites
 
 # Hadolint
 if ! [ -x "$(command -v hadolint)" ]; then
