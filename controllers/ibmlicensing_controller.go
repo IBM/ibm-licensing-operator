@@ -364,16 +364,16 @@ func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.
 }
 
 func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	// for backward compatibility, we treat the "ocp" HTTPSCertsSource same as "self-signed"
-	if instance.Spec.HTTPSCertsSource == "custom" {
-		r.Log.Info("Skipping external certificate reconciliation - custom certificate set")
-		return reconcile.Result{}, nil
-	}
-
 	var namespacedName types.NamespacedName
-	var hostname string
+	var hostname []string
 
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
+		// for backward compatibility, we treat the "ocp" HTTPSCertsSource same as "self-signed"
+		if instance.Spec.HTTPSCertsSource == "custom" {
+			r.Log.Info("Skipping external certificate reconciliation - custom certificate set")
+			return reconcile.Result{}, nil
+		}
+
 		r.Log.Info("Reconciling external certificate")
 
 		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.GetResourceName(instance)}
@@ -384,12 +384,17 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 		}
 
 		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceExternalCertName}
-		hostname = route.Spec.Host
-	} else {
+		hostname = []string{route.Spec.Host}
+	}
+
+	// Reconcile internal certificate only on non-OCP environments
+	if !res.IsServiceCAAPI {
 		r.Log.Info("Reconciling internal certificate")
 
 		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
-		hostname = fmt.Sprintf("%s-%s.svc", service.GetResourceName(instance), instance.Spec.InstanceNamespace)
+		hostname = make([]string, 2)
+		hostname[0] = fmt.Sprintf("%s.%s.svc", service.GetResourceName(instance), instance.Spec.InstanceNamespace)
+		hostname[1] = fmt.Sprintf("%s.%s.svc.cluster.local", service.GetResourceName(instance), instance.Spec.InstanceNamespace)
 	}
 
 	return r.reconcileSelfSignedCertificate(instance, namespacedName, hostname)
@@ -737,13 +742,13 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 
 }
 
-func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operatorv1alpha1.IBMLicensing, secretNsName types.NamespacedName, hostname string) (reconcile.Result, error) {
+func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operatorv1alpha1.IBMLicensing, secretNsName types.NamespacedName, hostname []string) (reconcile.Result, error) {
 	certSecret := &corev1.Secret{}
 
 	if err := r.Client.Get(context.TODO(), secretNsName, certSecret); err != nil {
 		r.Log.WithValues("cert name", secretNsName).Info("certificate secret not existing. Generating self signed certificate")
 
-		secret, err := r.getSelfSignedCertWithOwnerReference(instance, secretNsName, []string{hostname})
+		secret, err := r.getSelfSignedCertWithOwnerReference(instance, secretNsName, hostname)
 		if err != nil {
 			r.Log.Error(err, "Error generating self signed certificate")
 			return reconcile.Result{Requeue: true}, err
@@ -767,19 +772,19 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 		regenerateCertificate = true
 	}
 	// if certificate is expired
-	if cert.NotAfter.Before(time.Now()) {
-		r.Log.Info("Self signed certificate has expired.")
+	if cert.NotAfter.Before(time.Now().AddDate(0, -30, 0)) {
+		r.Log.Info("Self signed certificate is expiring in less than 30 days.")
 		regenerateCertificate = true
 	}
-	// if certificate is not issued to the route host
-	if err := cert.VerifyHostname(hostname); err != nil {
+	// if certificate is not issued to the proper host
+	if err := cert.VerifyHostname(hostname[0]); err != nil {
 		r.Log.Info("Certificate not issued to a propper hostname.")
 		regenerateCertificate = true
 	}
 
 	if regenerateCertificate {
 		r.Log.Info("Regenerating certificate")
-		secret, err := r.getSelfSignedCertWithOwnerReference(instance, secretNsName, []string{hostname})
+		secret, err := r.getSelfSignedCertWithOwnerReference(instance, secretNsName, hostname)
 		if err != nil {
 			r.Log.Error(err, "Error creating self signed certificate")
 			return reconcile.Result{Requeue: true}, err
@@ -787,5 +792,6 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 		}
 		return res.UpdateResource(&reqLogger, r.Client, secret, certSecret)
 	}
+	r.Log.Info("*v1.Certificate exists!")
 	return reconcile.Result{}, nil
 }

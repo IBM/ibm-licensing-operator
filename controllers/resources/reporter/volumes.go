@@ -40,15 +40,14 @@ func getVolumeMounts(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []core
 			ReadOnly:  true,
 		},
 	}
-	if resources.IsServiceCAAPI && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
-		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
-			{
-				Name:      LicenseReporterHTTPSCertsVolumeName,
-				MountPath: "/opt/licensing/certs/",
-				ReadOnly:  true,
-			},
-		}...)
-	}
+	volumeMounts = append(volumeMounts, []corev1.VolumeMount{
+		{
+			Name:      LicenseReporterHTTPSCertsVolumeName,
+			MountPath: "/opt/licensing/certs/",
+			ReadOnly:  true,
+		},
+	}...)
+
 	return volumeMounts
 }
 
@@ -97,8 +96,7 @@ func getLicenseServiceReporterVolumes(spec operatorv1alpha1.IBMLicenseServiceRep
 		},
 	}
 
-	if resources.IsServiceCAAPI && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
-		volumes = append(volumes, resources.GetVolume(LicenseReporterHTTPSCertsVolumeName, LicenseReportOCPCertName))
-	}
+	volumes = append(volumes, resources.GetVolume(LicenseReporterHTTPSCertsVolumeName, LicenseReportOCPCertName))
+
 	return volumes
 }

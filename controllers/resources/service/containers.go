@@ -56,7 +56,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 	if spec.HTTPSEnable {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "HTTPS_CERTS_SOURCE",
-			Value: string(operatorv1alpha1.OcpCertsSource),
+			Value: string(operatorv1alpha1.ExternalCertsSource),
 		})
 	}
 	if spec.IsMetering() {
