@@ -370,6 +370,9 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 		return reconcile.Result{}, nil
 	}
 
+	var namespacedName types.NamespacedName
+	var hostname string
+
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
 		r.Log.Info("Reconciling external certificate")
 
@@ -380,14 +383,16 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 			return reconcile.Result{Requeue: true}, err
 		}
 
-		namespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceExternalCertName}
-		return r.reconcileSelfSignedCertificate(instance, namespacedName, route.Spec.Host)
+		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceExternalCertName}
+		hostname = route.Spec.Host
 	} else {
 		r.Log.Info("Reconciling internal certificate")
 
-		namespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
-		return r.reconcileSelfSignedCertificate(instance, namespacedName, fmt.Sprintf("%s-%s.svc", service.GetResourceName(instance), instance.Spec.InstanceNamespace))
+		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
+		hostname = fmt.Sprintf("%s-%s.svc", service.GetResourceName(instance), instance.Spec.InstanceNamespace)
 	}
+
+	return r.reconcileSelfSignedCertificate(instance, namespacedName, hostname)
 }
 
 func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
