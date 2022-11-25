@@ -145,13 +145,13 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	reconcileFunctions := []interface{}{
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
-		r.reconcileConfigMaps,
 		r.reconcileServices,
 		r.reconcileDeployment,
 		r.reconcileIngress,
 		r.reconcileRouteWithoutCertificates,
 		r.reconcileCertificateSecrets,
 		r.reconcileRouteWithCertificates,
+		r.reconcileConfigMaps,
 		r.reconcileMeterDefinition,
 	}
 
@@ -253,9 +253,18 @@ func (r *IBMLicensingReconciler) reconcileUploadToken(instance *operatorv1alpha1
 
 func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("reconcileConfigMaps", "Entry", "instance.GetName()", instance.GetName())
+
+	internalCertificate := &corev1.Secret{}
+	certificateNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
+
+	if err := r.Client.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
+		r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
+		return reconcile.Result{Requeue: true}, err
+	}
+
 	expectedCMs := []*corev1.ConfigMap{
 		service.GetUploadConfigMap(instance),
-		service.GetInfoConfigMap(instance),
+		service.GetInfoConfigMap(instance, internalCertificate.Data["tls.crt"]),
 	}
 	for _, expectedCM := range expectedCMs {
 		foundCM := &corev1.ConfigMap{}

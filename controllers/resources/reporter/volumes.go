@@ -27,7 +27,7 @@ const LicenseReporterHTTPSCertsVolumeName = "license-reporter-https-certs"
 const DatabaseCredentialsVolumeName = "db-config"
 const persistentVolumeClaimVolumeName = "data"
 
-func getVolumeMounts(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []corev1.VolumeMount {
+func getVolumeMounts() []corev1.VolumeMount {
 	var volumeMounts = []corev1.VolumeMount{
 		{
 			Name:      APISecretTokenVolumeName,
