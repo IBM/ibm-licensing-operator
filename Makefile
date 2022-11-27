@@ -123,7 +123,7 @@ else
 endif
 
 # Setup DOCKER_BUILD_OPTS after all includes complete
-#Variables for redhat ubi certification required labels
+# Variables for redhat ubi certification required labels
 IMAGE_NAME=$(IMG)
 IMAGE_DISPLAY_NAME=IBM Licensing Operator
 IMAGE_MAINTAINER=talk2sam@us.ibm.com
@@ -143,7 +143,7 @@ GIT_REMOTE_URL = $(shell git config --get remote.origin.url)
 BUNDLE_IMG ?= $(IMAGE_BUNDLE_NAME)-$(LOCAL_ARCH):$(VERSION)
 CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
 
-# Idnetify stream based in current git branch
+# Identify stream based in current git branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 DEVOPS_STREAM :=
 ifeq ($(GIT_BRANCH),master) 
@@ -158,15 +158,25 @@ DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 
 $(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "VCS_URL=$(GIT_REMOTE_URL)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
 
-all: fmt version.properties check test coverage-kind build images
-
 ifeq ($(BUILD_LOCALLY),0)
     ifneq ("$(realpath $(DEST))", "$(realpath $(PWD))")
         $(error Please run 'make' from $(DEST). Current directory is $(PWD))
     endif
 endif
 
+ifeq ($(BUILD_LOCALLY),0)
+    export CONFIG_DOCKER_TARGET = config-docker
+config-docker:
+endif
+
+ifeq ($(BUILD_LOCALLY),0)
+    export CONFIG_DOCKER_TARGET_SCRATCH = config-docker-scratch
+config-docker-scratch:
+endif
+
 include common/Makefile.common.mk
+
+all: fmt version.properties check test coverage-kind build images
 
 # generate file containing info about the build
 version.properties:
@@ -178,6 +188,7 @@ version.properties:
 ############################################################
 # work section
 ############################################################
+
 $(GOBIN):
 	@echo "create gobin"
 	@mkdir -p $(GOBIN)
@@ -210,26 +221,6 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 # Default value will run all linters, override these make target with your requirements:
 #    eg: lint: lint-go lint-yaml
 lint: lint-all vet
-
-############################################################
-# install operator sdk section
-############################################################
-
-install-operator-sdk:
-	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-operator-sdk.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPERATOR_SDK_VERSION}; fi
-
-install-opm:
-	@opm version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-opm.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPM_VERSION}; fi	
-
-ifeq ($(BUILD_LOCALLY),0)
-    export CONFIG_DOCKER_TARGET = config-docker
-config-docker:
-endif
-
-ifeq ($(BUILD_LOCALLY),0)
-    export CONFIG_DOCKER_TARGET_SCRATCH = config-docker-scratch
-config-docker-scratch:
-endif
 
 ##@ Build
 
@@ -264,7 +255,7 @@ push-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH) build-image-development
 ##@ SHA Digest section
 
 .PHONY: get-image-sha
-get-image-sha: ## replaces operand tag for digest in operator.yaml and csv
+get-image-sha: ## Replaces operand tag for digest in operator.yaml and csv
 	@echo Get SHA for ibm-licensing:$(OPERAND_TAG)
 	@common/scripts/get-image-sha.sh $(OPERAND_REGISTRY)/ibm-licensing $(OPERAND_TAG)
 
@@ -303,10 +294,12 @@ verify-bundle: ## verify bundle
 redhat-certify-ready: bundle verify-bundle ## makes bundle and verify it using operator courier
 
 ##@ Cleanup
+
 clean: ## Clean build binary
 	rm -f bin/$(IMG)
 
 ##@ Help
+
 help: ## Display this help
 	@echo "Usage:  make <target>"
 	@awk 'BEGIN {FS = ":.*##"}; \
@@ -315,9 +308,9 @@ help: ## Display this help
 
 ## FROM NEW OPERATOR
 
-# Run tests
+##@ Test
 #ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-test:
+test: ## Run basic tests (to discuss...)
 	@echo "Running tests for the controllers."
 	#@mkdir -p ${ENVTEST_ASSETS_DIR}
 	#@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
@@ -408,62 +401,6 @@ docker-build: test
 # Push the docker image
 docker-push:
 	docker push ${IMG}
-
-# find or download controller-gen
-# download controller-gen if necessary
-controller-gen:
-ifeq (, $(shell which controller-gen))
-	@{ \
-	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@${CONTROLLER_GEN_VERSION} ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	}
-CONTROLLER_GEN=$(GOBIN)/controller-gen
-else
-CONTROLLER_GEN=$(shell which controller-gen)
-endif
-
-kustomize:
-ifeq (, $(shell which kustomize))
-	@{ \
-	set -e ;\
-	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v3@${KUSTOMIZE_VERSION} ;\
-	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
-	}
-KUSTOMIZE=$(GOBIN)/kustomize
-else
-KUSTOMIZE=$(shell which kustomize)
-endif
-
-opm:
-ifeq (, $(shell which opm))
-	@{ \
-	set -e ;\
-	OPM_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$OPM_GEN_TMP_DIR ;\
-	git clone  --branch ${OPM_VERSION}  https://github.com/operator-framework/operator-registry.git ;\
-	cd ./operator-registry ; \
-	git checkout ${OPM_VERSION};\
-	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=0e53cafe' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=${OPM_VERSION}' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2022-09-21T15:25:25Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
-	cp ./bin/opm ~/ ; \
-	rm -rf $$OPM_GEN_TMP_DIR ;\
-	}
-OPM=~/opm
-else
-OPM=$(shell which opm)
-endif
-
-ifeq (, $(shell which podman))
-PODMAN=docker
-else
-PODMAN=podman
-endif
 
 # Take the roles (e.g. permissions) from bundle manifest that are created by kubebuilder and put them in CSV
 update-roles-alm-example: alm-example
@@ -578,7 +515,6 @@ ifneq (${DEVOPS_STREAM},)
 	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
 endif
 
-
 catalogsource-development: opm
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
@@ -594,5 +530,71 @@ catalogsource-development: opm
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive  -c ${PODMAN}  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push  ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+
+############################################################
+# Installation section
+############################################################
+
+##@ Install
+
+install-operator-sdk: ## Install tool locally: operator-sdk
+	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-operator-sdk.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPERATOR_SDK_VERSION}; fi
+
+install-opm: ## Install tool locally: opm
+	@opm version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-opm.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPM_VERSION}; fi	
+
+controller-gen:
+ifeq (, $(shell which controller-gen))
+	@{ \
+	set -e ;\
+	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$CONTROLLER_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@${CONTROLLER_GEN_VERSION} ;\
+	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
+	}
+CONTROLLER_GEN=$(GOBIN)/controller-gen
+else
+CONTROLLER_GEN=$(shell which controller-gen)
+endif
+
+kustomize:
+ifeq (, $(shell which kustomize))
+	@{ \
+	set -e ;\
+	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/kustomize/kustomize/v3@${KUSTOMIZE_VERSION} ;\
+	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
+	}
+KUSTOMIZE=$(GOBIN)/kustomize
+else
+KUSTOMIZE=$(shell which kustomize)
+endif
+
+opm:
+ifeq (, $(shell which opm))
+	@{ \
+	set -e ;\
+	OPM_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$OPM_GEN_TMP_DIR ;\
+	git clone  --branch ${OPM_VERSION}  https://github.com/operator-framework/operator-registry.git ;\
+	cd ./operator-registry ; \
+	git checkout ${OPM_VERSION};\
+	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=0e53cafe' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=${OPM_VERSION}' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2022-09-21T15:25:25Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
+	cp ./bin/opm ~/ ; \
+	rm -rf $$OPM_GEN_TMP_DIR ;\
+	}
+OPM=~/opm
+else
+OPM=$(shell which opm)
+endif
+
+ifeq (, $(shell which podman))
+PODMAN=docker
+else
+PODMAN=podman
+endif
 
 .PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
