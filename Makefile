@@ -19,6 +19,13 @@ CSV_VERSION ?= 1.20.0
 CSV_VERSION_DEVELOPMENT ?= development
 OLD_CSV_VERSION ?= 1.19.0
 
+# Tools versions
+OPM_VERSION ?= v1.26.2
+OPERATOR_SDK_VERSION ?= v1.25.2
+YQ_VERSION ?= 3.4.0
+KUSTOMIZE_VERSION ?= v3.5.4
+CONTROLLER_GEN_VERSION ?= v0.7.0
+
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
 BUILD_LOCALLY ?= 1
@@ -109,6 +116,8 @@ else ifeq ($(ARCH),ppc64le)
     LOCAL_ARCH="ppc64le"
 else ifeq ($(ARCH),s390x)
     LOCAL_ARCH="s390x"
+else ifeq ($(ARCH),arm64)
+    LOCAL_ARCH="arm64"
 else
     $(error "This system's ARCH $(ARCH) isn't recognized/supported")
 endif
@@ -207,7 +216,10 @@ lint: lint-all vet
 ############################################################
 
 install-operator-sdk:
-	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then ./common/scripts/install-operator-sdk.sh; fi
+	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-operator-sdk.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPERATOR_SDK_VERSION}; fi
+
+install-opm:
+	@opm version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-opm.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPM_VERSION}; fi	
 
 ifeq ($(BUILD_LOCALLY),0)
     export CONFIG_DOCKER_TARGET = config-docker
@@ -406,7 +418,7 @@ ifeq (, $(shell which controller-gen))
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0 ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@${CONTROLLER_GEN_VERSION} ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
@@ -421,7 +433,7 @@ ifeq (, $(shell which kustomize))
 	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
+	go get sigs.k8s.io/kustomize/kustomize/v3@${KUSTOMIZE_VERSION} ;\
 	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
 	}
 KUSTOMIZE=$(GOBIN)/kustomize
@@ -435,10 +447,10 @@ ifeq (, $(shell which opm))
 	set -e ;\
 	OPM_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$OPM_GEN_TMP_DIR ;\
-	git clone  --branch v1.16.1  https://github.com/operator-framework/operator-registry.git ;\
+	git clone  --branch ${OPM_VERSION}  https://github.com/operator-framework/operator-registry.git ;\
 	cd ./operator-registry ; \
-	git checkout v1.16.1;\
-	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=eb9fff53' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=v1.16.0' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2021-03-30T13:32:56Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
+	git checkout ${OPM_VERSION};\
+	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=0e53cafe' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=${OPM_VERSION}' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2022-09-21T15:25:25Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
 	cp ./bin/opm ~/ ; \
 	rm -rf $$OPM_GEN_TMP_DIR ;\
 	}
@@ -548,7 +560,7 @@ scorecard:
 
 catalogsource: opm
 	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
-	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
+	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${REGISTRY}/${IMG}:${CSV_VERSION}"
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value'  "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"
@@ -569,7 +581,7 @@ endif
 
 catalogsource-development: opm
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
-	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
+	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${SCRATCH_REGISTRY}/${IMG}:${CSV_VERSION}"
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"
