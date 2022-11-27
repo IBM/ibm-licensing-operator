@@ -11,7 +11,7 @@ metadata:
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to
       monitor the licensing usage of products.
     olm.skipRange: '>=1.0.0 <1.20.0'
-    operators.operatorframework.io/builder: operator-sdk-v1.2.0
+    operators.operatorframework.io/builder: operator-sdk-v1.25.2
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com",
       "ibmlicensingdefinitions.operator.ibm.com", "ibmlicensingquerysources.operator.ibm.com"]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
