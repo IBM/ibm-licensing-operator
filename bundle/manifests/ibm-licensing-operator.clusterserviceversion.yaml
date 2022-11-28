@@ -455,15 +455,15 @@ spec:
                       - ibm-licensing-operator
                     env:
                       - name: IBM_LICENSING_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-licensing:1.20.0
+                        value: hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom/ibm-licensing:1.20.0
                       - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.20.0
+                        value: hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom/ibm-license-service-reporter-ui:1.20.0
                       - name: IBM_POSTGRESQL_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-postgresql:1.20.0
+                        value: hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom/ibm-postgresql:1.20.0
                       - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.20.0
+                        value: hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom/ibm-license-service-reporter:1.20.0
                       - name: IBM_LICENSING_USAGE_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-licensing-usage:1.20.0
+                        value: hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom/ibm-licensing-usage:1.20.0
                       - name: WATCH_NAMESPACE
                         valueFrom:
                           fieldRef:
@@ -478,7 +478,7 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: spec.serviceAccountName
-                    image: icr.io/cpopen/ibm-licensing-operator:1.20.0
+                    image: hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom/ibm-licensing-operator:update-sdk-version
                     imagePullPolicy: Always
                     name: ibm-licensing-operator
                     resources:
@@ -722,4 +722,17 @@ spec:
   maturity: alpha
   provider:
     name: IBM
+  relatedImages:
+    - image: icr.io/cpopen/ibm-licensing-operator:1.20.0
+      name: IBM_LICENSING_OPERATOR_IMAGE
+    - image: icr.io/cpopen/cpfs/ibm-licensing:1.20.0
+      name: IBM_LICENSING_IMAGE
+    - image: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.20.0
+      name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
+    - image: icr.io/cpopen/cpfs/ibm-postgresql:1.20.0
+      name: IBM_POSTGRESQL_IMAGE
+    - image: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.20.0
+      name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
+    - image: icr.io/cpopen/cpfs/ibm-licensing-usage:1.20.0
+      name: IBM_LICENSING_USAGE_IMAGE  
   version: 1.20.0

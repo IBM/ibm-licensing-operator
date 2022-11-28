@@ -23,8 +23,8 @@ OLD_CSV_VERSION ?= 1.19.0
 OPM_VERSION ?= v1.26.2
 OPERATOR_SDK_VERSION ?= v1.25.2
 YQ_VERSION ?= 3.4.0
-KUSTOMIZE_VERSION ?= v3.5.4
-CONTROLLER_GEN_VERSION ?= v0.7.0
+KUSTOMIZE_VERSION ?= v4.5.7
+CONTROLLER_GEN_VERSION ?= v0.10.0
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -310,7 +310,7 @@ help: ## Display this help
 
 ##@ Test
 #ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-test: ## Run basic tests (to discuss...)
+test:
 	@echo "Running tests for the controllers."
 	#@mkdir -p ${ENVTEST_ASSETS_DIR}
 	#@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
@@ -543,6 +543,9 @@ install-operator-sdk: ## Install tool locally: operator-sdk
 install-opm: ## Install tool locally: opm
 	@opm version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-opm.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPM_VERSION}; fi	
 
+install-controller-gen: ## Install tool locally: controller-gen
+	@controller-gen --version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/controller-tools/cmd/controller-gen@${CONTROLLER_GEN_VERSION}; fi	
+
 controller-gen:
 ifeq (, $(shell which controller-gen))
 	@{ \
@@ -565,7 +568,7 @@ ifeq (, $(shell which kustomize))
 	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v3@${KUSTOMIZE_VERSION} ;\
+	go get sigs.k8s.io/kustomize/kustomize/v4@${KUSTOMIZE_VERSION} ;\
 	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
 	}
 KUSTOMIZE=$(GOBIN)/kustomize
