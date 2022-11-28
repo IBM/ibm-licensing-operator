@@ -24,7 +24,7 @@ OPM_VERSION ?= v1.26.2
 OPERATOR_SDK_VERSION ?= v1.25.2
 YQ_VERSION ?= 3.4.0
 KUSTOMIZE_VERSION ?= v4.5.7
-CONTROLLER_GEN_VERSION ?= v0.10.0
+CONTROLLER_GEN_VERSION ?= v0.7.0
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -545,6 +545,9 @@ install-opm: ## Install tool locally: opm
 
 install-controller-gen: ## Install tool locally: controller-gen
 	@controller-gen --version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/controller-tools/cmd/controller-gen@${CONTROLLER_GEN_VERSION}; fi	
+
+install-kustomize: ## Install tool locally: kustomize
+	@kustomize version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/kustomize/kustomize/v4@${KUSTOMIZE_VERSION}; fi	
 
 controller-gen:
 ifeq (, $(shell which controller-gen))
