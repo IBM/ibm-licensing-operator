@@ -53,7 +53,7 @@ func GetUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) *corev1.ConfigM
 	return expectedCM
 }
 
-func GetInfoConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertData []byte) *corev1.ConfigMap {
+func GetInfoConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertData string) *corev1.ConfigMap {
 	metaLabels := LabelsForMeta(instance)
 	expectedCM := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -61,8 +61,10 @@ func GetInfoConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertData 
 			Namespace: instance.Spec.InstanceNamespace,
 			Labels:    metaLabels,
 		},
-		Data:       map[string]string{URLConfigMapKey: GetServiceURL(instance)},
-		BinaryData: map[string][]byte{CrtConfigMapKey: internalCertData},
+		Data: map[string]string{
+			URLConfigMapKey: GetServiceURL(instance),
+			CrtConfigMapKey: internalCertData,
+		},
 	}
 	return expectedCM
 }
