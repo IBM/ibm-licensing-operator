@@ -240,14 +240,14 @@ push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
 
-build-push-image-development: build-image-development push-image-development catalogsource-development
+build-push-image-development: build-image-development push-image-development catalogsource-development ## Build, push image and catalogsource
 
-build-image-development: $(CONFIG_DOCKER_TARGET) build
+build-image-development: $(CONFIG_DOCKER_TARGET) build ## Create a docker image locally
 	@echo $(DOCKER_BUILD_OPTS)
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
-push-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH) build-image-development
+push-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH) build-image-development ## Push previously created image to scratch registry
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker push $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
 
@@ -519,7 +519,7 @@ catalogsource-development: opm
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${SCRATCH_REGISTRY}/${IMG}:${CSV_VERSION}"
+	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"
 	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value'  "${SCRATCH_REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}"
