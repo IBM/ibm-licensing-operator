@@ -478,7 +478,7 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: spec.serviceAccountName
-                    image: icr.io/cpopen/cpfs/ibm-licensing-operator:1.20.0
+                    image: icr.io/cpopen/ibm-licensing-operator:1.20.0
                     imagePullPolicy: Always
                     name: ibm-licensing-operator
                     resources:
