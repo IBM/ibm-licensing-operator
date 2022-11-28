@@ -778,7 +778,7 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 				Namespace: instance.Spec.InstanceNamespace,
 			}
 
-			if err := r.rolloutRestartDeployment(instance, deploymentNsName); err != nil {
+			if err := r.rolloutRestartDeployment(deploymentNsName); err != nil {
 				r.Log.Info("Failed to roll update deployment")
 				return reconcile.Result{Requeue: true}, err
 			}
@@ -827,7 +827,7 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 				Namespace: instance.Spec.InstanceNamespace,
 			}
 
-			if err := r.rolloutRestartDeployment(instance, deploymentNsName); err != nil {
+			if err := r.rolloutRestartDeployment(deploymentNsName); err != nil {
 				r.Log.Info("Failed to roll update deployment")
 				return reconcile.Result{Requeue: true}, err
 			}
@@ -839,7 +839,7 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 	return reconcile.Result{}, nil
 }
 
-func (r *IBMLicensingReconciler) rolloutRestartDeployment(instance *operatorv1alpha1.IBMLicensing, deploymentNsName types.NamespacedName) error {
+func (r *IBMLicensingReconciler) rolloutRestartDeployment(deploymentNsName types.NamespacedName) error {
 	r.Log.Info("Performing rolling restart of deployment")
 	data := fmt.Sprintf(`{"spec":{"template":{"metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"%s"}}}}}`, time.Now().String())
 	patch := []byte(data)
