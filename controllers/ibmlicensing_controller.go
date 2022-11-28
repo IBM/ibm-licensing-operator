@@ -375,6 +375,7 @@ func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.
 func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	var namespacedName types.NamespacedName
 	var hostname []string
+	var rolloutPods bool
 
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
 		// for backward compatibility, we treat the "ocp" HTTPSCertsSource same as "self-signed"
@@ -394,6 +395,7 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 
 		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceExternalCertName}
 		hostname = []string{route.Spec.Host}
+		rolloutPods = false
 	}
 
 	// Reconcile internal certificate only on non-OCP environments
@@ -401,12 +403,15 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 		r.Log.Info("Reconciling internal certificate")
 
 		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
+
 		hostname = make([]string, 2)
 		hostname[0] = fmt.Sprintf("%s.%s.svc", service.GetResourceName(instance), instance.Spec.InstanceNamespace)
 		hostname[1] = fmt.Sprintf("%s.%s.svc.cluster.local", service.GetResourceName(instance), instance.Spec.InstanceNamespace)
+
+		rolloutPods = true
 	}
 
-	return r.reconcileSelfSignedCertificate(instance, namespacedName, hostname)
+	return r.reconcileSelfSignedCertificate(instance, namespacedName, hostname, rolloutPods)
 }
 
 func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -751,7 +756,7 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 
 }
 
-func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operatorv1alpha1.IBMLicensing, secretNsName types.NamespacedName, hostname []string) (reconcile.Result, error) {
+func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operatorv1alpha1.IBMLicensing, secretNsName types.NamespacedName, hostname []string, rolloutPods bool) (reconcile.Result, error) {
 	certSecret := &corev1.Secret{}
 
 	if err := r.Client.Get(context.TODO(), secretNsName, certSecret); err != nil {
@@ -767,6 +772,18 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 			r.Log.Error(err, "Error creating self signed certificate")
 			return reconcile.Result{Requeue: true}, err
 		}
+		if rolloutPods {
+			deploymentNsName := types.NamespacedName{
+				Name:      service.GetResourceName(instance),
+				Namespace: instance.Spec.InstanceNamespace,
+			}
+
+			if err := r.rolloutRestartDeployment(instance, deploymentNsName); err != nil {
+				r.Log.Info("Failed to roll update deployment")
+				return reconcile.Result{Requeue: true}, err
+			}
+		}
+
 		return reconcile.Result{}, nil
 	}
 	// checking certificate
@@ -799,8 +816,40 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 			return reconcile.Result{Requeue: true}, err
 
 		}
-		return res.UpdateResource(&reqLogger, r.Client, secret, certSecret)
+		result, err2 := res.UpdateResource(&reqLogger, r.Client, secret, certSecret)
+		if err2 != nil {
+			return result, err
+		}
+
+		if rolloutPods {
+			deploymentNsName := types.NamespacedName{
+				Name:      service.GetResourceName(instance),
+				Namespace: instance.Spec.InstanceNamespace,
+			}
+
+			if err := r.rolloutRestartDeployment(instance, deploymentNsName); err != nil {
+				r.Log.Info("Failed to roll update deployment")
+				return reconcile.Result{Requeue: true}, err
+			}
+		}
+
+		return result, nil
 	}
 	r.Log.Info("*v1.Certificate exists!")
 	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicensingReconciler) rolloutRestartDeployment(instance *operatorv1alpha1.IBMLicensing, deploymentNsName types.NamespacedName) error {
+	r.Log.Info("Performing rolling restart of deployment")
+	data := fmt.Sprintf(`{"spec":{"template":{"metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"%s"}}}}}`, time.Now().String())
+	patch := []byte(data)
+
+	r.Log.Info(data)
+
+	return r.Client.Patch(context.TODO(), &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: deploymentNsName.Namespace,
+			Name:      deploymentNsName.Name,
+		},
+	}, client.RawPatch(types.MergePatchType, patch))
 }
