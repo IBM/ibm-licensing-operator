@@ -102,7 +102,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "false",
 		})
 	}
-	if spec.IsPrometheusQuerySourceEnabled() {
+	if spec.IsPrometheusQuerySourceEnabled() && resources.IsServiceCAAPI {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "PROMETHEUS_QUERY_SOURCE_ENABLED",
 			Value: "true",
