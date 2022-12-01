@@ -69,7 +69,7 @@ func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servic
 			Name:        GetLicensingServiceName(instance),
 			Namespace:   instance.Spec.InstanceNamespace,
 			Labels:      metaLabels,
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceOCPCertName),
+			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceInternalCertName),
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,

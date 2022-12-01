@@ -32,6 +32,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	mathRand "math/rand"
 
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 
@@ -422,7 +423,7 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 
 // Returns true if configmaps are equal
 func CompareConfigMap(cm1, cm2 *corev1.ConfigMap) bool {
-	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels)
+	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels) && reflect.DeepEqual(cm1.BinaryData, cm2.BinaryData)
 }
 
 // Returns true if routes are equal
@@ -496,13 +497,11 @@ func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, dns []str
 		commonName = dns[0]
 	}
 
-	// need to generate a different serial number each execution
-	serialNumber, _ := rand.Int(rand.Reader, big.NewInt(1000000))
-
 	tml := x509.Certificate{
-		NotBefore:    time.Now(),
-		NotAfter:     time.Now().AddDate(1, 0, 0),
-		SerialNumber: serialNumber,
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().AddDate(1, 0, 0),
+		// need to generate a different serial number each execution
+		SerialNumber: big.NewInt(int64(mathRand.Intn(1000000))),
 		Subject: pkix.Name{
 			CommonName:   commonName,
 			Organization: []string{"IBM"},

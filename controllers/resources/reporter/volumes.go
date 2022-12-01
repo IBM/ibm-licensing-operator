@@ -28,7 +28,7 @@ const LicenseReporterHTTPSCertsVolumeName = "license-reporter-https-certs"
 const DatabaseCredentialsVolumeName = "db-config"
 const persistentVolumeClaimVolumeName = "data"
 
-func getVolumeMounts(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []corev1.VolumeMount {
+func getVolumeMounts() []corev1.VolumeMount {
 	var volumeMounts = []corev1.VolumeMount{
 		{
 			Name:      APISecretTokenVolumeName,
@@ -41,15 +41,14 @@ func getVolumeMounts(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []core
 			ReadOnly:  true,
 		},
 	}
-	if resources.IsServiceCAAPI && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
-		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
-			{
-				Name:      LicenseReporterHTTPSCertsVolumeName,
-				MountPath: "/opt/licensing/certs/",
-				ReadOnly:  true,
-			},
-		}...)
-	}
+	volumeMounts = append(volumeMounts, []corev1.VolumeMount{
+		{
+			Name:      LicenseReporterHTTPSCertsVolumeName,
+			MountPath: "/opt/licensing/certs/",
+			ReadOnly:  true,
+		},
+	}...)
+
 	return volumeMounts
 }
 
@@ -98,8 +97,7 @@ func getLicenseServiceReporterVolumes(spec operatorv1alpha1.IBMLicenseServiceRep
 		},
 	}
 
-	if resources.IsServiceCAAPI {
-		volumes = append(volumes, resources.GetVolume(LicenseReporterHTTPSCertsVolumeName, LicenseReportOCPCertName))
-	}
+	volumes = append(volumes, resources.GetVolume(LicenseReporterHTTPSCertsVolumeName, LicenseReportOCPCertName))
+
 	return volumes
 }
