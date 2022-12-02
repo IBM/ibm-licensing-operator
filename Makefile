@@ -22,7 +22,7 @@ OLD_CSV_VERSION ?= 1.19.0
 # Tools versions
 OPM_VERSION ?= v1.26.2
 OPERATOR_SDK_VERSION ?= v1.25.2
-YQ_VERSION ?= 3.4.0
+YQ_VERSION ?= v4.30.5
 KUSTOMIZE_VERSION ?= v4.5.7
 CONTROLLER_GEN_VERSION ?= v0.7.0
 
@@ -35,7 +35,7 @@ BUILD_LOCALLY ?= 1
 IMG ?= ibm-licensing-operator
 REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
 
-SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom"
+SCRATCH_REGISTRY ?= hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom
 
 # Default bundle image tag
 IMAGE_BUNDLE_NAME ?= ibm-licensing-operator-bundle
@@ -386,8 +386,8 @@ deploy: manifests kustomize
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
-	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations."olm.skipRange"' '>=1.0.0 <$(CSV_VERSION)'
-	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations.containerImage' 'icr.io/cpopen/${IMG}:$(CSV_VERSION)'
+	yq -i '.metadata.annotations."olm.skipRange" = ">=1.0.0 <$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
+	yq -i '.metadata.annotations.containerImage = "icr.io/cpopen/${IMG}:$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Generate code
@@ -404,11 +404,11 @@ docker-push:
 
 # Take the roles (e.g. permissions) from bundle manifest that are created by kubebuilder and put them in CSV
 update-roles-alm-example: alm-example
-	yq r -P ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/clusterrole.yaml
-	yq r -P ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml rules > /tmp/role.yaml
-	yq r -P bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/reader-clusterrole.yaml
-	yq r -P ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/clusterrole2.yaml
-	yq r -P ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_role.yaml rules > /tmp/role2.yaml
+	yq -P '.rules' ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/clusterrole.yaml
+	yq -P '.rules' ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml > /tmp/role.yaml
+	yq -P '.rules' ./bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/reader-clusterrole.yaml
+	yq -P '.rules' ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/clusterrole2.yaml
+	yq -P '.rules' ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_role.yaml > /tmp/role2.yaml
 
 	sed -i -e 's/^/  /' /tmp/clusterrole.yaml
 	sed -i -e 's/^/  /' /tmp/role.yaml
@@ -416,29 +416,25 @@ update-roles-alm-example: alm-example
 	sed -i -e 's/^/  /' /tmp/clusterrole2.yaml
 	sed -i -e 's/^/  /' /tmp/role2.yaml
 
-	cp ./common/scripts/updateCSV/updateCP.yaml /tmp/updateCP.yaml
-	cat /tmp/clusterrole.yaml >> /tmp/updateCP.yaml
-	cat ./common/scripts/updateCSV/saCP.yaml >> /tmp/updateCP.yaml
-	yq w -i -s /tmp/updateCP.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	yq -i '.spec.install.spec.clusterPermissions[1].rules |= load("/tmp/clusterrole.yaml") | \
+		.spec.install.spec.clusterPermissions[1].serviceAccountName = "ibm-license-service" \
+	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	cp ./common/scripts/updateCSV/updateCP2.yaml /tmp/updateCP2.yaml
-	cat /tmp/clusterrole2.yaml >> /tmp/updateCP2.yaml
-	cat ./common/scripts/updateCSV/saCP2.yaml >> /tmp/updateCP2.yaml
-	yq w -i -s /tmp/updateCP2.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-	cp ./common/scripts/updateCSV/updateP.yaml /tmp/updateP.yaml
-	cat /tmp/role.yaml >> /tmp/updateP.yaml
-	cat ./common/scripts/updateCSV/saP.yaml >> /tmp/updateP.yaml
-	yq w -i -s /tmp/updateP.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	yq -i '.spec.install.spec.clusterPermissions[2].rules |= load("/tmp/clusterrole2.yaml") | \
+		.spec.install.spec.clusterPermissions[2].serviceAccountName = "ibm-license-service-restricted" \
+	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	cp ./common/scripts/updateCSV/updateP2.yaml /tmp/updateP2.yaml
-	cat /tmp/role2.yaml >> /tmp/updateP2.yaml
-	cat ./common/scripts/updateCSV/saP2.yaml >> /tmp/updateP2.yaml
-	yq w -i -s /tmp/updateP2.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	yq -i '.spec.install.spec.clusterPermissions[3].rules |= load("/tmp/reader-clusterrole.yaml") | \
+		.spec.install.spec.clusterPermissions[3].serviceAccountName = "ibm-licensing-default-reader" \
+	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml	
 
-	cp ./common/scripts/updateCSV/updateAccessCP.yaml /tmp/updateAccessCP.yaml
-	cat /tmp/reader-clusterrole.yaml >> /tmp/updateAccessCP.yaml
-	cat ./common/scripts/updateCSV/saAccessCP.yaml >> /tmp/updateAccessCP.yaml
-	yq w -i -s /tmp/updateAccessCP.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	yq -i '.spec.install.spec.permissions[1].rules |= load("/tmp/role.yaml") | \
+		.spec.install.spec.permissions[1].serviceAccountName = "ibm-license-service" \
+	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+
+	yq -i '.spec.install.spec.permissions[2].rules |= load("/tmp/role2.yaml") | \
+		.spec.install.spec.permissions[2].serviceAccountName = "ibm-license-service-restricted" \
+	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml
 	rm -f ./bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml
@@ -457,28 +453,31 @@ update-roles-alm-example: alm-example
 
 # Takes config samples CRs and update alm-exmaple in CSV
 alm-example:
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" \
-	"[\
-	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml`,\
-	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml`,\
-	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingbindinfo.yaml`,\
-	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingrequest.yaml`\
-	]"
+	mkdir -p /tmp/json
+	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml > /tmp/json/ibmlicensing.json
+	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml > /tmp/json/ibmlicenseservicereporter.json
+	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingbindinfo.yaml > /tmp/json/ibmlicensingbindinfo.json
+	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingrequest.yaml > /tmp/json/ibmlicensingrequest.json
+
+	jq -s '.' /tmp/json/ibmlicensing.json /tmp/json/ibmlicenseservicereporter.json /tmp/json/ibmlicensingbindinfo.json /tmp/json/ibmlicensingrequest.json > /tmp/json/merged.json
+	yq -i '.metadata.annotations.alm-examples |= load_str("/tmp/json/merged.json")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+
+	rm -r /tmp/json
 
 # Generate bundle manifests and metadata, then validate generated files. Yq is used to change order of owned resources here to ensure Licensing is first and Reporter second.
 pre-bundle: manifests
 	operator-sdk generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
-	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" > yq_tmp_reporter.yaml
-	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_definitions.yaml
-	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[2]" > yq_tmp_metadata.yaml
-	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[3]" > yq_tmp_querysources.yaml
-	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[4]" > yq_tmp_licensing.yaml
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[2]" -f yq_tmp_definitions.yaml
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[3]" -f yq_tmp_metadata.yaml
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[4]" -f yq_tmp_querysources.yaml
+	yq '.spec.customresourcedefinitions.owned[0]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_reporter.yaml
+	yq '.spec.customresourcedefinitions.owned[1]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_definitions.yaml
+	yq '.spec.customresourcedefinitions.owned[2]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_metadata.yaml
+	yq '.spec.customresourcedefinitions.owned[3]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_querysources.yaml
+	yq '.spec.customresourcedefinitions.owned[4]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_licensing.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[0] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_licensing.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[1] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_reporter.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[2] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_definitions.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[3] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_metadata.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[4] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_querysources.yaml
 	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml yq_tmp_metadata.yaml yq_tmp_definitions.yaml yq_tmp_querysources.yaml
 	operator-sdk bundle validate ./bundle
 
@@ -499,13 +498,13 @@ catalogsource: opm
 	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${REGISTRY}/${IMG}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value'  "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value'  "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value'  "${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value'  "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[4].value'  "${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/metadata/annotations.yaml 'annotations."operators.operatorframework.io.bundle.channels.v1"' "v3,beta,dev,stable-v1"
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${REGISTRY}/${IMG}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value = "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value = "${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value = "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[4].value = "${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "v3,beta,dev,stable-v1"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
 	docker push ${REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
@@ -519,13 +518,13 @@ catalogsource-development: opm
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value'  "${SCRATCH_REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[4].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/metadata/annotations.yaml 'annotations."operators.operatorframework.io.bundle.channels.v1"' "v3,beta,dev,stable-v1"
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value = "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value = "${SCRATCH_REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value = "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[4].value = "${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "v3,beta,dev,stable-v1"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive  -c ${PODMAN}  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
@@ -548,6 +547,9 @@ install-controller-gen: ## Install tool locally: controller-gen
 
 install-kustomize: ## Install tool locally: kustomize
 	@kustomize version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/kustomize/kustomize/v4@${KUSTOMIZE_VERSION}; fi	
+
+install-yq: ## Install tool locally: yq
+	@yq --version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-yq.sh ${TARGET_OS} ${LOCAL_ARCH} ${YQ_VERSION}; fi	
 
 controller-gen:
 ifeq (, $(shell which controller-gen))
