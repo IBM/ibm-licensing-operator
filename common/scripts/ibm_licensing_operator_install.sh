@@ -319,7 +319,7 @@ EOF
   retries=36
   until [[ $retries == 0 || "$ibmlicensing_phase" == "Running" ]]; do
     if [[ "$retries" != 36 ]]; then
-      sleep 10
+      sleep 30
     fi
     retries=$((retries - 1))
     ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null)
