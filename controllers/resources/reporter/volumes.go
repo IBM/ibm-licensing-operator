@@ -96,7 +96,8 @@ func getLicenseServiceReporterVolumes(spec operatorv1alpha1.IBMLicenseServiceRep
 		},
 	}
 
-	volumes = append(volumes, resources.GetVolume(LicenseReporterHTTPSCertsVolumeName, LicenseReportOCPCertName))
-
+	if resources.IsServiceCAAPI {
+		volumes = append(volumes, resources.GetVolume(LicenseReporterHTTPSCertsVolumeName, LicenseReportOCPCertName))
+	}
 	return volumes
 }
