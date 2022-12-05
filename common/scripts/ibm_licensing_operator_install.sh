@@ -317,7 +317,7 @@ EOF
   fi
   log "Checking IBMLicensing instance status"
   retries=36
-  until [[ $retries == 0 || "$ibmlicensing_phase" == "Running*" ]]; do
+  until [[ $retries == 0 || "$ibmlicensing_phase" == Running* ]]; do
     if [[ "$retries" != 36 ]]; then
       sleep 30
     fi
