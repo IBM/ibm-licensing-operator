@@ -476,7 +476,7 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 
 			// if certificate is not issued to the route host
 			if err := cert.VerifyHostname(route.Spec.Host); err != nil {
-				r.Log.Info("Certificate not issued to a propper hostname. Generating new self-signed certificate")
+				r.Log.Info("Certificate not issued to a proper hostname. Generating new self-signed certificate")
 				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
 				if err != nil {
 					r.Log.Error(err, "Error creating self signed certificate")

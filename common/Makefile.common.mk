@@ -71,7 +71,8 @@ ifdef MARKDOWN_LINT_WHITELIST
 else
 	@${FINDFILES} -name '*.md' -print0 | ${XARGS} awesome_bot --skip-save-results --allow_ssl --allow-timeout --allow-dupe --allow-redirect
 endif
-lint-all: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown
+# Ignore lint-markdown
+lint-all: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go 
 
 format-go:
 	@${FINDFILES} -name '*.go' \( ! \( -name '*.gen.go' -o -name '*.pb.go' -o -name '*_generated.deepcopy.go' \) \) -print0 | ${XARGS} goimports -w -local "github.com/IBM"

@@ -15,4 +15,12 @@
 # limitations under the License.
 #
 
-GOGC=25 golangci-lint run -v -c ./common/config/.golangci.yml
+echo ">>> Installing Yq"
+
+TARGET_OS=$1
+LOCAL_ARCH=$2
+YQ_VERSION=$3
+# Download binary
+curl -LO https://github.com/mikefarah/yq/releases/download/"${YQ_VERSION}"/yq_"${TARGET_OS}"_"${LOCAL_ARCH}"
+# Install binary
+chmod +x yq_"${TARGET_OS}"_"${LOCAL_ARCH}" && mkdir -p /usr/local/bin/ && cp yq_"${TARGET_OS}"_"${LOCAL_ARCH}" /usr/local/bin/yq && rm yq_"${TARGET_OS}"_"${LOCAL_ARCH}"

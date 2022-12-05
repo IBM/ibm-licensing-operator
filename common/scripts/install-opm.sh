@@ -15,4 +15,12 @@
 # limitations under the License.
 #
 
-GOGC=25 golangci-lint run -v -c ./common/config/.golangci.yml
+echo ">>> Installing Opm"
+
+TARGET_OS=$1
+LOCAL_ARCH=$2
+OPM_VERSION=$3
+# Download binary
+curl -LO https://github.com/operator-framework/operator-registry/releases/download/"${OPM_VERSION}"/"${TARGET_OS}"-"${LOCAL_ARCH}"-opm
+# Install binary
+chmod +x "${TARGET_OS}"-"${LOCAL_ARCH}"-opm && mkdir -p /usr/local/bin/ && cp "${TARGET_OS}"-"${LOCAL_ARCH}"-opm /usr/local/bin/opm && rm "${TARGET_OS}"-"${LOCAL_ARCH}"-opm
