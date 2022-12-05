@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 ACTIVE_OS=
-real_user=
 
 function detect_os() {
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -52,7 +51,6 @@ function check_prerequisites() {
 }
 
 ##hadolint-Darwin-x86_64
-##hadolint-Linux-arm64
 ##hadolint-Linux-x86_64
 install_hadolint_from_binary() {
   binaryName=$1
@@ -63,7 +61,6 @@ install_hadolint_from_binary() {
 }
 
 ##shellcheck-v0.8.0.darwin.x86_64.tar.xz
-##shellcheck-v0.8.0.linux.armv6hf.tar.xz
 ##shellcheck-v0.8.0.linux.x86_64.tar.xz
 install_shellcheck_from_binary() {
   binaryName=$1
@@ -87,17 +84,6 @@ DIFFUTILS_VERSION=v3.8
 
 ##### Start script logic #####
 
-if ! [ "$(id -u)" = 0 ]; then
-   echo "The script need to be run as root." >&2
-   exit 1
-fi
-
-if [ "$SUDO_USER" ]; then
-    real_user=$SUDO_USER
-else
-    real_user=$(whoami)
-fi
-
 detect_os
 check_prerequisites
 
@@ -105,7 +91,7 @@ check_prerequisites
 if ! [ -x "$(command -v hadolint)" ]; then
   echo " » Installing hadolint [${HADOLINT_VERSION}]"
   if [ $ACTIVE_OS == 'MacOS_arm64' ]; then
-    install_hadolint_from_binary hadolint-Linux-arm64
+    brew install hadolint
   elif [ $ACTIVE_OS == 'MacOS_x86' ]; then
     install_hadolint_from_binary hadolint-Darwin-x86_64
   else
@@ -121,7 +107,7 @@ fi
 if ! [ -x "$(command -v shellcheck)" ]; then
   echo " » Installing shellcheck [${SHELLCHECK_VERSION}]"
   if [ $ACTIVE_OS == 'MacOS_arm64' ]; then
-    install_shellcheck_from_binary shellcheck-"${SHELLCHECK_VERSION}".linux.armv6hf.tar.xz
+    brew install shellcheck
   elif [ $ACTIVE_OS == 'MacOS_x86' ]; then
     install_shellcheck_from_binary shellcheck-"${SHELLCHECK_VERSION}".darwin.x86_64.tar.xz
   else
@@ -157,7 +143,7 @@ fi
 # Mdl
 if ! [ -x "$(command -v mdl)" ]; then
   echo " » Installing mdl [${MDL_VERSION}]"
-  gem install mdl -v ${MDL_VERSION}
+  sudo gem install mdl -v ${MDL_VERSION}
 else
   echo " » Mdl already installed"
   mdl --version
@@ -167,7 +153,7 @@ fi
 # Awesome_bot
 if ! [ -x "$(command -v awesome_bot)" ]; then
   echo " » Installing awesome_bot [${AWESOME_BOT_VERSION}]"
-  gem install awesome_bot -v ${AWESOME_BOT_VERSION}
+  sudo gem install awesome_bot -v ${AWESOME_BOT_VERSION}
 else
   echo " » Awesome_bot already installed"
   awesome_bot --version
@@ -184,17 +170,18 @@ else
 fi
 
 # Diffutils
-if ! [ -x "$(command -v diffutils)" ]; then
+if ! [ -x "$(command -v diff3)" ]; then
   echo " » Installing diffutils [${DIFFUTILS_VERSION}]"
   if [ $ACTIVE_OS == 'Linux' ]; then
-    apt-get update
-    apt-get install diffutils
+    sudo apt-get update
+    sudo apt-get install diffutils
   else
-    sudo -u "$real_user" brew install diffutils
+    brew install diffutils
   fi
 
 else
   echo " » Diffutils already installed"
+  diff3 --version
   echo
 fi
 

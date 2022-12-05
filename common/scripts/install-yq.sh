@@ -15,13 +15,12 @@
 # limitations under the License.
 #
 
-echo ">>> Installing Operator SDK"
+echo ">>> Installing Yq"
 
 TARGET_OS=$1
 LOCAL_ARCH=$2
-OPERATOR_SDK_VERSION=$3
-
+YQ_VERSION=$3
 # Download binary
-curl -LO https://github.com/operator-framework/operator-sdk/releases/download/"${OPERATOR_SDK_VERSION}"/operator-sdk_"${TARGET_OS}"_"${LOCAL_ARCH}"
+curl -LO https://github.com/mikefarah/yq/releases/download/"${YQ_VERSION}"/yq_"${TARGET_OS}"_"${LOCAL_ARCH}"
 # Install binary
-chmod +x operator-sdk_"${TARGET_OS}"_"${LOCAL_ARCH}" && mkdir -p /usr/local/bin/ && cp operator-sdk_"${TARGET_OS}"_"${LOCAL_ARCH}" /usr/local/bin/operator-sdk && rm operator-sdk_"${TARGET_OS}"_"${LOCAL_ARCH}"
+chmod +x yq_"${TARGET_OS}"_"${LOCAL_ARCH}" && mkdir -p /usr/local/bin/ && cp yq_"${TARGET_OS}"_"${LOCAL_ARCH}" /usr/local/bin/yq && rm yq_"${TARGET_OS}"_"${LOCAL_ARCH}"

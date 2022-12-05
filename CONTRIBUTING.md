@@ -57,7 +57,7 @@ To install required linters for the development process, you can use script:
 ```shell
 bash ./common/scripts/install-linters-development.sh  
 ```
-The script needs root privalaged so it is recommended to use `sudo` option.
+Some commands need root privileges, so provide your password upon being asked.
 
 
 - if you have an error during `make check`, for example:
