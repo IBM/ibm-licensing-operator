@@ -547,7 +547,7 @@ print-requirement-list:
 	» yq-${YQ_VERSION} $'\n\
 	"
 
-verify-installed-tools: print-requirement-list
+verify-installed-tools: print-requirement-list ## Verify if tools are installed
 	@command -v operator-sdk >/dev/null 2>&1 || { echo >&2 "Required tool: operator-sdk-${OPERATOR_SDK_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
 	@command -v opm >/dev/null 2>&1 || { echo >&2 "Required tool: opm-${OPM_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
 	@command -v controller-gen >/dev/null 2>&1 || { echo >&2 "Required tool: controller-gen-${CONTROLLER_GEN_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
@@ -555,7 +555,7 @@ verify-installed-tools: print-requirement-list
 	@command -v yq >/dev/null 2>&1 || { echo >&2 "Required tool: yq-${YQ_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
 	@echo "Successfully verified installed tools. Make sure the version matches required to avoid further issues."
 
-install-all-tools: print-requirement-list install-operator-sdk install-opm install-controller-gen install-kustomize install-yq
+install-all-tools: print-requirement-list install-operator-sdk install-opm install-controller-gen install-kustomize install-yq ## Install all tools locally
 
 install-operator-sdk: ## Install tool locally: operator-sdk
 	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-operator-sdk.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPERATOR_SDK_VERSION}; fi
