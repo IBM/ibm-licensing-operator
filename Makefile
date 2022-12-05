@@ -538,24 +538,24 @@ catalogsource-development: opm
 
 ##@ Install
 
-print-requirement-list:
-	@echo "Required tools with appropriate version: $'\n\
-	» operator-sdk-${OPERATOR_SDK_VERSION} $'\n\
-	» opm-${OPM_VERSION} $'\n\
-	» controller-gen-${CONTROLLER_GEN_VERSION} $'\n\
-	» kustomize-${KUSTOMIZE_VERSION} $'\n\
-	» yq-${YQ_VERSION} $'\n\
-	"
-
-verify-installed-tools: print-requirement-list ## Verify if tools are installed
+verify-installed-tools: ## Verify if tools are installed
 	@command -v operator-sdk >/dev/null 2>&1 || { echo >&2 "Required tool: operator-sdk-${OPERATOR_SDK_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
 	@command -v opm >/dev/null 2>&1 || { echo >&2 "Required tool: opm-${OPM_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
 	@command -v controller-gen >/dev/null 2>&1 || { echo >&2 "Required tool: controller-gen-${CONTROLLER_GEN_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
 	@command -v kustomize >/dev/null 2>&1 || { echo >&2 "Required tool: kustomize-${KUSTOMIZE_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
 	@command -v yq >/dev/null 2>&1 || { echo >&2 "Required tool: yq-${YQ_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
-	@echo "Successfully verified installed tools. Make sure the version matches required to avoid further issues."
+	@echo "Successfully verified installed tools. Make sure the version matches required to avoid further issues.$'\n"
 
-install-all-tools: print-requirement-list install-operator-sdk install-opm install-controller-gen install-kustomize install-yq ## Install all tools locally
+	@echo "Printing installed tools summary $'\n\
+	Required | Intalled $'\n\
+	» operator-sdk-${OPERATOR_SDK_VERSION} | operator-sdk-"$(shell operator-sdk version | awk '{print $$3}')" $'\n\
+	» opm-${OPM_VERSION} | opm-"$(shell opm version | awk '{print $$2}' | awk -F ':' '{print $$2}')" $'\n\
+	» controller-gen-${CONTROLLER_GEN_VERSION} | controller-gen-"$(shell controller-gen --version | awk '{print $$2}')", $'\n\
+	» kustomize-${KUSTOMIZE_VERSION} | kustomize-"$(shell kustomize version | awk '{print $$1}' | awk -F ':' '{print $$2}')", $'\n\
+	» yq-${YQ_VERSION} | yq-"$(shell yq --version | awk '{print $$4}')" $'\n\
+	"
+
+install-all-tools: install-operator-sdk install-opm install-controller-gen install-kustomize install-yq verify-installed-tools ## Install all tools locally
 
 install-operator-sdk: ## Install tool locally: operator-sdk
 	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-operator-sdk.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPERATOR_SDK_VERSION}; fi
