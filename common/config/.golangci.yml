@@ -48,7 +48,7 @@ linters:
     - unparam # Check for unused function parameter
     - lll # Check if max line-length is satisfied
     - nakedret # Finds naked returns in functions
-    # - gosec # Inspects source code for security problems
+    - gosec # Inspects source code for security problems
 
   # don't enable:
   # - gocritic
@@ -93,6 +93,9 @@ linters-settings:
   maligned:
     # print struct with more effective memory layout or not, false by default
     suggest-new: true
+  gosec:
+    excludes:
+      - G101 # Look for hard coded credentials  
   misspell:
     # Correct spellings using locale preferences for US or UK.
     # Default is to use a neutral variety of English.
