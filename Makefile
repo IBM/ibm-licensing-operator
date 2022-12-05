@@ -144,6 +144,7 @@ BUNDLE_IMG ?= $(IMAGE_BUNDLE_NAME)-$(LOCAL_ARCH):$(VERSION)
 CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
 
 # Identify stream based in current git branch
+
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 DEVOPS_STREAM :=
 ifeq ($(GIT_BRANCH),master) 

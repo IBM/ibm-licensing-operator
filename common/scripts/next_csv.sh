@@ -63,6 +63,7 @@ inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" config/samples/operator.ibm.com_v1
 echo "Updated the config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml"
 
 inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml
+
 echo "Updated the config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml"
 
 # Update relatedImages (make bundle target)
