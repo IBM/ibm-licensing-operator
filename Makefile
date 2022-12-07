@@ -47,14 +47,16 @@ IBM_POSTGRESQL_IMAGE ?= ibm-postgresql
 IBM_LICENSE_SERVICE_REPORTER_IMAGE ?= ibm-license-service-reporter
 IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 
-CHANNELS=v3,v3.20,v3.21,v3.22,beta,dev,stable-v1
+CHANNELS=v3,beta,dev,stable-v1
 DEFAULT_CHANNEL=v3
 
 # Identify default channel based on branch-parent
 PARENT_BRANCH:= $(shell git show-branch 2> /dev/null | sed "s/].*//" | grep "\*" | grep -v "$(shell git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//")
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 
+# if branch or either parent branch is master change channel
 ifneq ($(filter master, ${PARENT_BRANCH} ${GIT_BRANCH}),)  
+CHANNELS=v3,v3.20,v3.21,v3.22,beta,dev,stable-v1
 DEFAULT_CHANNEL=v3.22
 else
 DEFAULT_CHANNEL=v3
