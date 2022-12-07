@@ -51,10 +51,9 @@ CHANNELS=v3,v3.20,v3.21,v3.22,beta,dev,stable-v1
 DEFAULT_CHANNEL=v3
 
 # Identify default channel based on branch-parent
-$(eval CURRENT_BRANCH_SHA:= $(shell git rev-parse HEAD))
-PARENT_BRANCHES:=$(shell git branch --contains ${CURRENT_BRANCH_SHA})
+PARENT_BRANCH:= $(shell git show-branch 2> /dev/null | sed "s/].*//" | grep "\*" | grep -v "$(shell git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//")
 
-ifneq (,$(findstring master,$(PARENT_BRANCHES)))
+ifeq (${PARENT_BRANCH}, master)
 DEFAULT_CHANNEL=v3.22
 else
 DEFAULT_CHANNEL=v3
