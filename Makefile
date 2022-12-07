@@ -52,8 +52,9 @@ DEFAULT_CHANNEL=v3
 
 # Identify default channel based on branch-parent
 PARENT_BRANCH:= $(shell git show-branch 2> /dev/null | sed "s/].*//" | grep "\*" | grep -v "$(shell git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//")
+GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 
-ifeq (${PARENT_BRANCH}, master)
+ifneq ($(filter master, ${PARENT_BRANCH} ${GIT_BRANCH}),)  
 DEFAULT_CHANNEL=v3.22
 else
 DEFAULT_CHANNEL=v3
@@ -153,7 +154,6 @@ BUNDLE_IMG ?= $(IMAGE_BUNDLE_NAME)-$(LOCAL_ARCH):$(VERSION)
 CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
 
 # Identify stream based in current git branch
-GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 DEVOPS_STREAM :=
 ifeq ($(GIT_BRANCH),master) 
 	DEVOPS_STREAM="cd"
