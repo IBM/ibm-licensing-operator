@@ -51,8 +51,8 @@ CHANNELS=v3,beta,dev,stable-v1
 DEFAULT_CHANNEL=v3
 
 # Identify default channel based on branch-parent
-PARENT_BRANCH:= $(shell git show-branch 2> /dev/null | sed "s/].*//" | grep "\*" | grep -v "$(shell git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//")
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+PARENT_BRANCH:= $(shell git show-branch 2> /dev/null | sed "s/].*//" | grep "\*" | grep -v "$(GIT_BRANCH)" | head -n1 | sed "s/^.*\[//")
 
 # if branch or either parent branch is master change channel
 ifneq ($(filter master, ${PARENT_BRANCH} ${GIT_BRANCH}),)  
@@ -543,6 +543,9 @@ catalogsource-development: opm
 	@echo ${GIT_BRANCH}
 	@echo ${CHANNELS}
 	@echo ${DEFAULT_CHANNEL}
+	@echo $(shell command -v sed)
+	@echo $(shell command -v grep)
+	@echo $(shell command -v head)
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml	
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
