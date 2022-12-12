@@ -50,17 +50,8 @@ IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 CHANNELS=v3,beta,dev,stable-v1
 DEFAULT_CHANNEL=v3
 
-# Identify default channel based on branch-parent
+# Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
-PARENT_BRANCH:= $(shell git show-branch 2> /dev/null | sed "s/].*//" | grep "\*" | grep -v "$(GIT_BRANCH)" | head -n1 | sed "s/^.*\[//")
-
-# if branch or either parent branch is master change channel
-ifneq ($(filter master, ${PARENT_BRANCH} ${GIT_BRANCH}),)  
-CHANNELS=v3,v3.20,v3.21,v3.22,beta,dev,stable-v1
-DEFAULT_CHANNEL=v3.22
-else
-DEFAULT_CHANNEL=v3
-endif
 
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
@@ -507,7 +498,18 @@ bundle-build-development:
 scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
-catalogsource: opm
+detect-release-stream:
+  BRANCH_TAGS:=$(shell git tag --merged ${GIT_BRANCH})
+	@for tag in ${BRANCH_TAGS} ; do \
+		if [[ $tag =~ (v)?1.16.[1-9][0-9]?+$$ ]]; then \
+			echo "Detected stream Release-ltsr."; \
+			exit 0; \
+		fi \
+	done;
+  CHANNELS=v3,v3.20,v3.21,v3.22,beta,dev,stable-v1
+  DEFAULT_CHANNEL=v3.22
+	
+catalogsource: opm detect-release-stream
 	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
@@ -528,7 +530,7 @@ ifneq (${DEVOPS_STREAM},)
 	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
 endif
 
-catalogsource-development: opm
+catalogsource-development: opm detect-release-stream
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
@@ -538,14 +540,6 @@ catalogsource-development: opm
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value = "${SCRATCH_REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value = "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[4].value = "${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-#  Test prow output and will be deleted
-	@echo ${PARENT_BRANCH}
-	@echo ${GIT_BRANCH}
-	@echo ${CHANNELS}
-	@echo ${DEFAULT_CHANNEL}
-	@echo $(shell command -v sed)
-	@echo $(shell command -v grep)
-	@echo $(shell command -v head)
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml	
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
