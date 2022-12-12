@@ -53,6 +53,9 @@ DEFAULT_CHANNEL=v3.22
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 
+# Identify tags created on current branch
+BRANCH_TAGS=$(shell git tag --merged ${GIT_BRANCH})
+
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
@@ -499,11 +502,12 @@ scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
 detect-release-stream:
-	@for tag in $(shell git tag --merged ${GIT_BRANCH}) ; do \
-		if [[ $$tag =~ (v?)1.16.[1-9][0-9]? ]]; then \
-			echo "$$tag - Detected stream Release-ltsr."; \
+	@for tag in $(BRANCH_TAGS) ; do \
+		if [[ $$tag =~ v?1.16.[1-9][0-9]? ]]; then \
+			echo "Detected stream Release-ltsr."; \
 			CHANNELS=v3,beta,dev,stable-v1 \
 			DEFAULT_CHANNEL=v3 ;\
+			break ;\
 		fi; \
 	done; \
 
