@@ -500,13 +500,12 @@ scorecard:
 
 detect-release-stream:
 	@for tag in $(shell git tag --merged ${GIT_BRANCH}) ; do \
-		if [[ $tag =~ (v)?1.16.[1-9][0-9]?+$$ ]]; then \
-			echo "Detected stream Release-ltsr."; \
+		if [[ $$tag =~ (v?)1.16.[1-9][0-9]? ]]; then \
+			echo "$$tag - Detected stream Release-ltsr."; \
 			CHANNELS=v3,beta,dev,stable-v1 \
-			DEFAULT_CHANNEL=v3 \
-			break; \
+			DEFAULT_CHANNEL=v3 ;\
 		fi; \
-	done \
+	done; \
 
 catalogsource: opm detect-release-stream
 	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
