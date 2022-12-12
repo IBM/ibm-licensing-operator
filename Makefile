@@ -47,8 +47,8 @@ IBM_POSTGRESQL_IMAGE ?= ibm-postgresql
 IBM_LICENSE_SERVICE_REPORTER_IMAGE ?= ibm-license-service-reporter
 IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 
-CHANNELS=v3,beta,dev,stable-v1
-DEFAULT_CHANNEL=v3
+CHANNELS=v3,v3.20,v3.21,v3.22,beta,dev,stable-v1
+DEFAULT_CHANNEL=v3.22
 
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
@@ -499,16 +499,15 @@ scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
 detect-release-stream:
-  BRANCH_TAGS:=$(shell git tag --merged ${GIT_BRANCH})
-	@for tag in ${BRANCH_TAGS} ; do \
+	@for tag in $(shell git tag --merged ${GIT_BRANCH}) ; do \
 		if [[ $tag =~ (v)?1.16.[1-9][0-9]?+$$ ]]; then \
 			echo "Detected stream Release-ltsr."; \
-			exit 0; \
-		fi \
-	done;
-  CHANNELS=v3,v3.20,v3.21,v3.22,beta,dev,stable-v1
-  DEFAULT_CHANNEL=v3.22
-	
+			CHANNELS=v3,beta,dev,stable-v1 \
+			DEFAULT_CHANNEL=v3 \
+			break; \
+		fi; \
+	done \
+
 catalogsource: opm detect-release-stream
 	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
