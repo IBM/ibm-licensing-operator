@@ -501,17 +501,17 @@ bundle-build-development:
 scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
-detect-release-stream:
-	@for tag in $(BRANCH_TAGS) ; do \
-		if [[ $$tag =~ v?1.16.[1-9][0-9]?$$ ]]; then \
-			echo "Detected stream Release-ltsr."; \
-			CHANNELS=v3,beta,dev,stable-v1 \
-			DEFAULT_CHANNEL=v3 ;\
-			break ;\
-		fi; \
-	done; \
+identify-release-stream:
+	$(shell bash common/scripts/identify-release-stream.sh $(BRANCH_TAGS))
+	@if [ $$? -eq 1 ]; then \
+		echo "Detected release stream: LTSR."; \
+		CHANNELS=v3,beta,dev,stable-v1 \
+		DEFAULT_CHANNEL=v3 ;\
+	else \
+		echo "Detected release stream: CD."; \
+	fi
 
-catalogsource: opm detect-release-stream
+catalogsource: opm identify-release-stream
 	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
@@ -532,7 +532,7 @@ ifneq (${DEVOPS_STREAM},)
 	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
 endif
 
-catalogsource-development: opm detect-release-stream
+catalogsource-development: opm identify-release-stream
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
