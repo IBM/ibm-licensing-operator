@@ -503,7 +503,7 @@ scorecard:
 
 detect-release-stream:
 	@for tag in $(BRANCH_TAGS) ; do \
-		if [[ $$tag =~ v?1.16.[1-9][0-9]? ]]; then \
+		if [[ $$tag =~ v?1.16.[1-9][0-9]?$$ ]]; then \
 			echo "Detected stream Release-ltsr."; \
 			CHANNELS=v3,beta,dev,stable-v1 \
 			DEFAULT_CHANNEL=v3 ;\
