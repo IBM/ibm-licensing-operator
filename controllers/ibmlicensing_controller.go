@@ -864,7 +864,7 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 	}
 	// if certificate is not issued to the proper host
 	if err := cert.VerifyHostname(hostname[0]); err != nil {
-		r.Log.Info("Certificate not issued to a propper hostname.")
+		r.Log.Info("Certificate not issued to a proper hostname.")
 		regenerateCertificate = true
 	}
 
