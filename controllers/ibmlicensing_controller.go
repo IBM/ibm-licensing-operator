@@ -133,18 +133,18 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	ibmlicensingList := &v1alpha1.IBMLicensingList{}
 	if err := r.Client.List(context.TODO(), ibmlicensingList); err != nil {
 		// Error when looking for IMBLicensing objects - requeue
-		reqLogger.Error(err, "Couldn't retrive IBMLicensing objects. Retrying.")
+		reqLogger.Error(err, "Couldn't retrieve IBMLicensing objects. Retrying.")
 		return reconcile.Result{}, err
-	} else {
-		// Remove old instance in case of multiple instances
-		if len(ibmlicensingList.Items) > 1 {
-			reqLogger.Info("Failed to create IBMLicensing ", req.NamespacedName.String(), ", IBMLicensing instance already exists!")
-			reconcileResult, err := res.DeleteResource(&reqLogger, r.Client, instance) // #TODO always delete newly created instance
-			if err != nil {
-				return reconcileResult, err
-			}
-			return reconcile.Result{}, nil
+	}
+
+	// Remove old instance in case of multiple instances
+	if len(ibmlicensingList.Items) > 1 {
+		reqLogger.Info("Failed to create IBMLicensing ", req.NamespacedName.String(), ", IBMLicensing instance already exists!")
+		reconcileResult, err := res.DeleteResource(&reqLogger, r.Client, instance) // #TODO always delete newly created instance
+		if err != nil {
+			return reconcileResult, err
 		}
+		return reconcile.Result{}, nil
 	}
 
 	err = service.UpdateVersion(r.Client, instance)
