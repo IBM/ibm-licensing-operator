@@ -445,7 +445,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileCertificateSecrets(instan
 			}
 
 			// if certificate is expired
-			if cert.NotAfter.Before(time.Now()) {
+			if cert.NotAfter.Before(time.Now().AddDate(0, 90, 0)) {
 				r.Log.Info("Self signed certificate has expired. Generating new certificate")
 				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
 				if err != nil {
