@@ -95,7 +95,7 @@ type reconcileLRFunctionType = func(*operatorv1alpha1.IBMLicenseServiceReporter)
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=operator.ibm.com,resources=ibmlicenseservicereporters;ibmlicenseservicereporters/status;ibmlicenseservicereporters/finalizers;operandbindinfos,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicenseservicereporters;ibmlicenseservicereporters/status;ibmlicenseservicereporters/finalizers,verbs=get;list;watch;create;update;patch;delete
 
-func (r *IBMLicenseServiceReporterReconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) {
+func (r *IBMLicenseServiceReporterReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("Request", req)
 	reqLogger.Info("Reconciling IBMLicenseServiceReporter")
 	goruntime.GC()
@@ -588,7 +588,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileSenderConfiguration(insta
 func (r *IBMLicenseServiceReporterReconciler) reconcileResourceExistence(
 	instance *operatorv1alpha1.IBMLicenseServiceReporter,
 	expectedRes res.ResourceObject,
-	foundRes runtime.Object,
+	foundRes client.Object,
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
 
 	resType := reflect.TypeOf(expectedRes)
@@ -628,7 +628,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileResourceExistence(
 }
 
 func (r *IBMLicenseServiceReporterReconciler) reconcileResourceNamespacedExistence(
-	instance *operatorv1alpha1.IBMLicenseServiceReporter, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+	instance *operatorv1alpha1.IBMLicenseServiceReporter, expectedRes res.ResourceObject, foundRes client.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
 	return r.reconcileResourceExistence(instance, expectedRes, foundRes, namespacedName)

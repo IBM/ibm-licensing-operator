@@ -101,7 +101,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:groups=operator.openshift.io,resources=servicecas,verbs=list
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 
-func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) {
+func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 
 	reqLogger := r.Log.WithValues("ibmlicensing", req.NamespacedName)
 	reqLogger.Info("Reconciling IBMLicensing")
@@ -708,14 +708,14 @@ func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1al
 }
 
 func (r *IBMLicensingReconciler) reconcileResourceNamespacedExistence(
-	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes client.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
 	return r.reconcileResourceExistence(instance, instance, expectedRes, foundRes, namespacedName)
 }
 
 func (r *IBMLicensingReconciler) reconcileResourceNamespacedExistenceWithCustomController(
-	instance *operatorv1alpha1.IBMLicensing, controller, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+	instance *operatorv1alpha1.IBMLicensing, controller, expectedRes res.ResourceObject, foundRes client.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
 	return r.reconcileResourceExistence(instance, controller, expectedRes, foundRes, namespacedName)
@@ -725,7 +725,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	instance *operatorv1alpha1.IBMLicensing,
 	controller metav1.Object,
 	expectedRes res.ResourceObject,
-	foundRes runtime.Object,
+	foundRes client.Object,
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
 
 	resType := reflect.TypeOf(expectedRes)
@@ -765,7 +765,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 }
 
 func (r *IBMLicensingReconciler) reconcileNamespacedResourceWhichShouldNotExist(
-	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes client.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
 	return r.reconcileResourceWhichShouldNotExist(instance, expectedRes, foundRes, namespacedName)
@@ -774,7 +774,7 @@ func (r *IBMLicensingReconciler) reconcileNamespacedResourceWhichShouldNotExist(
 func (r *IBMLicensingReconciler) reconcileResourceWhichShouldNotExist(
 	instance *operatorv1alpha1.IBMLicensing,
 	expectedRes res.ResourceObject,
-	foundRes runtime.Object,
+	foundRes client.Object,
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
 
 	resType := reflect.TypeOf(expectedRes)

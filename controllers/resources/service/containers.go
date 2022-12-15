@@ -206,9 +206,9 @@ func getProbeScheme(spec operatorv1alpha1.IBMLicensingSpec) corev1.URIScheme {
 	return "HTTP"
 }
 
-func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.Handler {
+func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.ProbeHandler {
 	var probeScheme = getProbeScheme(spec)
-	return corev1.Handler{
+	return corev1.ProbeHandler{
 		HTTPGet: &corev1.HTTPGetAction{
 			Path: "/",
 			Port: intstr.IntOrString{
@@ -220,8 +220,8 @@ func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.Handler {
 	}
 }
 
-func getUsageProbeHandler() corev1.Handler {
-	return corev1.Handler{
+func getUsageProbeHandler() corev1.ProbeHandler {
+	return corev1.ProbeHandler{
 		HTTPGet: &corev1.HTTPGetAction{
 			Path: "/metrics",
 			Port: intstr.IntOrString{
