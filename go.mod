@@ -9,7 +9,7 @@ require (
 	github.com/go-logr/logr v1.2.3
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.19.0
-	github.com/openshift/api v0.0.0-20200930075302-db52bc4ef99f
+	github.com/openshift/api v0.0.0-20221013123533-341d389bd4a7
 	github.com/redhat-marketplace/redhat-marketplace-operator/v2 v2.0.0-20210125205956-4eda6b4abf4e
 	k8s.io/api v0.25.0
 	k8s.io/apimachinery v0.25.0
@@ -91,10 +91,5 @@ replace (
 	k8s.io/client-go => k8s.io/client-go v0.24.9
 
 	sigs.k8s.io/controller-runtime/pkg/cache => sigs.k8s.io/controller-runtime/pkg/cache v0.10.0
+	sigs.k8s.io/controller-runtime/pkg/client => sigs.k8s.io/controller-runtime/pkg/client v0.6.4
 )
-
-// replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
-
-// replace golang.org/x/crypto => golang.org/x/crypto v0.0.0-20220408190544-5352b0902921
-
-// replace golang.org/x/net => golang.org/x/net v0.0.0-20220407224826-aac1ed45d8e3
