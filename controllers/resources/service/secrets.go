@@ -31,7 +31,7 @@ const APIUploadTokenKeyName = "token-upload"
 const ReporterSecretTokenKeyName = "token"
 
 const URLConfigMapKey = "url"
-const CrtConfigMapKey = "crt"
+const CrtConfigMapKey = "crt.pem"
 
 //goland:noinspection GoNameStartsWithPackageName
 const ServiceAccountSecretAnnotationKey = "kubernetes.io/service-account.name"
