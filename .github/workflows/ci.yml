@@ -44,7 +44,7 @@ jobs:
     name: Check
     runs-on: ubuntu-18.04
     container: 
-      image: quay.io/multicloudlab/build-tool:v20221107-3b1566bf9
+      image: quay.io/multicloudlab/build-tool:v20221024-850bb1ca7
     steps:
       - name: Checkout
         uses: actions/checkout@v3
