@@ -402,7 +402,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileDeployment(instance *oper
 
 func (r *IBMLicenseServiceReporterReconciler) reconcileCertificateSecrets(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
 	// for backward compatibility, we treat the "ocp" HTTPSCertsSource same as "self-signed"
-	if res.IsRouteAPI && instance.Spec.HTTPSCertsSource != "custom" {
+	if res.IsRouteAPI && instance.Spec.HTTPSCertsSource != operatorv1alpha1.CustomCertsSource {
 		ocpExternalCertSecret := &corev1.Secret{}
 		r.Log.Info("Reconciling external certificate")
 		namespacedName := types.NamespacedName{Namespace: instance.GetNamespace(), Name: reporter.LicenseReportExternalCertName}
@@ -445,7 +445,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileCertificateSecrets(instan
 			}
 
 			// if certificate is expired
-			if cert.NotAfter.Before(time.Now()) {
+			if cert.NotAfter.Before(time.Now().AddDate(0, 90, 0)) {
 				r.Log.Info("Self signed certificate has expired. Generating new certificate")
 				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
 				if err != nil {
@@ -458,7 +458,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileCertificateSecrets(instan
 
 			// if certificate is not issued to the route host
 			if err := cert.VerifyHostname(route.Spec.Host); err != nil {
-				r.Log.Info("Certificate not issued to a propper hostname. Generating new self-signed certificate")
+				r.Log.Info("Certificate not issued to a proper hostname. Generating new self-signed certificate")
 				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
 				if err != nil {
 					r.Log.Error(err, "Error creating self signed certificate")
@@ -496,7 +496,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileReporterRouteWithCertific
 		r.Log.Info("Reconciling route with certificate")
 		externalCertSecret := corev1.Secret{}
 		var externalCertName string
-		if instance.Spec.HTTPSCertsSource == "custom" {
+		if instance.Spec.HTTPSCertsSource == operatorv1alpha1.CustomCertsSource {
 			externalCertName = reporter.LicenseReportCustomExternalCertName
 		} else {
 			externalCertName = reporter.LicenseReportExternalCertName

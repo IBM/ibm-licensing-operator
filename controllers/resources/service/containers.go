@@ -55,18 +55,9 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 		})
 	}
 	if spec.HTTPSEnable {
-		var certSource operatorv1alpha1.HTTPSCertsSource
-
-		if resources.IsServiceCAAPI {
-			certSource = operatorv1alpha1.OcpCertsSource
-		} else {
-			// on K8s always always generate self-signed certificate in operand
-			certSource = operatorv1alpha1.SelfSignedCertsSource
-		}
-
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "HTTPS_CERTS_SOURCE",
-			Value: string(certSource),
+			Value: string(operatorv1alpha1.ExternalCertsSource),
 		})
 	}
 	if spec.IsMetering() {
@@ -118,7 +109,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "false",
 		})
 	}
-	if spec.IsPrometheusQuerySourceEnabled() {
+	if spec.IsPrometheusQuerySourceEnabled() && resources.IsServiceCAAPI {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "PROMETHEUS_QUERY_SOURCE_ENABLED",
 			Value: "true",

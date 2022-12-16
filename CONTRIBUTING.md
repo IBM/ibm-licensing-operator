@@ -44,13 +44,21 @@ Repo maintainers can assign you an issue or pull request by leaving a
 
     | linting tool | version | instructions |
     | ------------ | ------- | ------------ |
-    | [hadolint](https://github.com/hadolint/hadolint#install) | [v1.17.2](https://github.com/hadolint/hadolint/releases/tag/v1.17.2) | download binary from version link, make executable with `chmod +x` and add to bin directory |
-    | [shellcheck](https://github.com/koalaman/shellcheck#installing) | [v0.7.0](https://github.com/koalaman/shellcheck/releases/tag/v0.7.0) | download binary from version link, make executable with `chmod +x` and add to bin directory |
-    | [yamllint](https://github.com/adrienverge/yamllint#installation) | [v1.17.0](https://github.com/adrienverge/yamllint/releases/tag/v1.17.0) | download zip from version link, unzip and enter directory, then use python pip to install e.g. with this command `sudo pip3 install .` |
-    | [golangci-lint](https://github.com/golangci/golangci-lint#install) | [v1.44.0](https://github.com/golangci/golangci-lint/releases/tag/v1.44.0) | `go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.44.0` |
-    | [mdl](https://github.com/markdownlint/markdownlint#installation) | [v0.5.0](https://github.com/markdownlint/markdownlint/releases/tag/v0.5.0) | download using `git clone https://github.com/markdownlint/markdownlint.git -b v0.5.0` and install using `rake install` |
-    | [awesome_bot](https://github.com/dkhamsing/awesome_bot#installation) | [1.19.1](https://github.com/dkhamsing/awesome_bot/releases/tag/1.19.1) | download using `git clone https://github.com/dkhamsing/awesome_bot.git -b 1.19.1` and install using `rake install` |
-    | [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports) | `3792095` | `go get golang.org/x/tools/cmd/goimports@3792095` |
+    | [hadolint](https://github.com/hadolint/hadolint#install) | [v2.12.0](https://github.com/hadolint/hadolint/releases/tag/v2.12.0) | - download binary from version link, make executable with `chmod +x` and add to bin directory<br/>- for MacOS: `brew install hadolint` |
+    | [shellcheck](https://github.com/koalaman/shellcheck#installing) | [v0.8.0](https://github.com/koalaman/shellcheck/releases/tag/v0.8.0) | - download binary from version link, make executable with `chmod +x` and add to bin directory<br/>- for MacOS: `brew install shellcheck`  |
+    | [yamllint](https://github.com/adrienverge/yamllint#installation) | [v1.28.0](https://github.com/adrienverge/yamllint/releases/tag/v1.28.0) | - `pip install yamllint==1.28.0` |
+    | [golangci-lint](https://github.com/golangci/golangci-lint#install) | [v1.50.1](https://github.com/golangci/golangci-lint/releases/tag/v1.50.1) | - `go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1`<br/>- for MacOS: `brew install golangci-lint`  |
+    | [mdl](https://github.com/markdownlint/markdownlint#installation) | [v0.11.0](https://github.com/markdownlint/markdownlint/releases/tag/v0.11.0) | - download using `git clone https://github.com/markdownlint/markdownlint.git -b v0.11.0` and install using `sudo rake install` |
+    | [awesome_bot](https://github.com/dkhamsing/awesome_bot#installation) | [1.20.0](https://github.com/dkhamsing/awesome_bot/releases/tag/1.20.0) | - download using `git clone https://github.com/dkhamsing/awesome_bot.git -b 1.20.0` and install using `sudo rake install` |
+    | [goimports](https://pkg.go.dev/golang.org/x/tools@v0.3.0/cmd/goimports) | [v0.3.0](https://pkg.go.dev/golang.org/x/tools@v0.3.0/cmd/goimports) | - `go install golang.org/x/tools/cmd/goimports@v0.3.0` |
+    | [diffutils](https://www.gnu.org/software/diffutils/) | [v3.8](https://ftp.gnu.org/gnu/diffutils/diffutils-3.8.tar.xz) | - download binary from version link, make executable with `chmod +x` and add to bin directory<br/>- for MacOS: `brew install diffutils` |
+
+To install required linters for the development process, you can use script:
+```shell
+bash ./common/scripts/install-linters-development.sh  
+```
+Some commands need root privileges, so provide your password upon being asked.
+
 
 - if you have an error during `make check`, for example:
 

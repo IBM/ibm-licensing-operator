@@ -131,6 +131,9 @@ func ShouldUpdateDeployment(
 	reqLogger *logr.Logger,
 	expectedSpec *corev1.PodTemplateSpec,
 	foundSpec *corev1.PodTemplateSpec) bool {
+
+	expectedSpec.Annotations["kubectl.kubernetes.io/restartedAt"] = foundSpec.Annotations["kubectl.kubernetes.io/restartedAt"]
+
 	if !reflect.DeepEqual(foundSpec.Spec.Volumes, expectedSpec.Spec.Volumes) {
 		(*reqLogger).Info("Deployment has wrong volumes")
 	} else if !reflect.DeepEqual(foundSpec.Spec.Affinity, expectedSpec.Spec.Affinity) {

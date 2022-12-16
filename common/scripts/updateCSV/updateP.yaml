@@ -1,3 +1,0 @@
-- command: update
-  path: spec.install.spec.permissions[1].rules
-  value:
