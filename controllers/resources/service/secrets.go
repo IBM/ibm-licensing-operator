@@ -30,7 +30,7 @@ const APIUploadTokenKeyName = "token-upload"
 const ReporterSecretTokenKeyName = "token"
 
 const URLConfigMapKey = "url"
-const CrtConfigMapKey = "crt"
+const CrtConfigMapKey = "crt.pem"
 
 func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
 	return resources.GetSecretToken(instance.Spec.APISecretToken, instance.Spec.InstanceNamespace, APISecretTokenKeyName, LabelsForMeta(instance))
