@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"reflect"
 	goruntime "runtime"
+	"sort"
 	"time"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -39,7 +40,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
 	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
@@ -130,21 +130,27 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	instance := foundInstance.DeepCopy()
 
 	// Check if there are already IBMLicensing instances created
-	ibmlicensingList := &v1alpha1.IBMLicensingList{}
+	ibmlicensingList := &operatorv1alpha1.IBMLicensingList{}
 	if err := r.Client.List(context.TODO(), ibmlicensingList); err != nil {
 		// Error when looking for IMBLicensing objects - requeue
 		reqLogger.Error(err, "Couldn't retrieve IBMLicensing objects. Retrying.")
 		return reconcile.Result{}, err
 	}
 
-	// Remove old instance in case of multiple instances
+	// Unable creation of multiple operands
 	if len(ibmlicensingList.Items) > 1 {
-		reqLogger.Info("Failed to create IBMLicensing ", req.NamespacedName.String(), ", IBMLicensing instance already exists!")
-		reconcileResult, err := res.DeleteResource(&reqLogger, r.Client, instance) // #TODO always delete newly created instance
-		if err != nil {
-			return reconcileResult, err
+		// Sort by creation timestamp
+		sort.SliceStable(ibmlicensingList.Items, func(i, j int) bool {
+			return ibmlicensingList.Items[i].ObjectMeta.CreationTimestamp.Time.Before(ibmlicensingList.Items[j].ObjectMeta.CreationTimestamp.Time)
+		})
+
+		initialInstance := ibmlicensingList.Items[0]
+
+		if instance.ObjectMeta.CreationTimestamp.Time.After(initialInstance.ObjectMeta.CreationTimestamp.Time) {
+			reqLogger.Info("IBMLicensing instance already exists! Ignoring " + req.NamespacedName.String())
+			//TODO: Set CR status to (ACTIVE/DISABLED)
+			return reconcile.Result{}, nil
 		}
-		return reconcile.Result{}, nil
 	}
 
 	err = service.UpdateVersion(r.Client, instance)
