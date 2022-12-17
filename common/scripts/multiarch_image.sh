@@ -61,9 +61,9 @@ ${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSI
 
 if [ -n "$ADDITIONAL_TAG" ]
 then
-  VALID_TAG=$(echo "${ADDITIONAL_TAG}" | sed 's/[^[:alnum:]\.\_\-]/-/g')
+  ADDITIONAL_TAG="${ADDITIONAL_TAG//[^[:alnum:]\.\_\-]/-}"
   ${CONTAINER_CLI} pull "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}"
-  echo "Tagging multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${VALID_TAG} with branch name..."
-  ${CONTAINER_CLI} tag "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}" "${IMAGE_REPO}"/"${IMAGE_NAME}":"${VALID_TAG}"
-  ${CONTAINER_CLI} push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${VALID_TAG}"
+  echo "Tagging multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${ADDITIONAL_TAG} with branch name..."
+  ${CONTAINER_CLI} tag "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}" "${IMAGE_REPO}"/"${IMAGE_NAME}":"${ADDITIONAL_TAG}"
+  ${CONTAINER_CLI} push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${ADDITIONAL_TAG}"
 fi
