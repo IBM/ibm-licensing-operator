@@ -137,20 +137,8 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	// Unable creation of multiple operands
-	if len(ibmlicensingList.Items) > 1 {
-		// Sort by creation timestamp
-		sort.SliceStable(ibmlicensingList.Items, func(i, j int) bool {
-			return ibmlicensingList.Items[i].ObjectMeta.CreationTimestamp.Time.Before(ibmlicensingList.Items[j].ObjectMeta.CreationTimestamp.Time)
-		})
-
-		initialInstance := ibmlicensingList.Items[0]
-
-		if instance.ObjectMeta.CreationTimestamp.Time.After(initialInstance.ObjectMeta.CreationTimestamp.Time) {
-			reqLogger.Info("IBMLicensing instance already exists! Ignoring " + req.NamespacedName.String())
-			//TODO: Set CR status to (ACTIVE/DISABLED)
-			return reconcile.Result{}, nil
-		}
+	if instance.Status.State != "ACTIVE" {
+		return r.detectIBMLicensingState(instance, ibmlicensingList, reqLogger)
 	}
 
 	err = service.UpdateVersion(r.Client, instance)
@@ -195,6 +183,39 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 
 	// Update status logic, using foundInstance, because we do not want to add filled default values to yaml
 	return r.updateStatus(foundInstance, reqLogger)
+}
+
+func (r *IBMLicensingReconciler) detectIBMLicensingState(instance *operatorv1alpha1.IBMLicensing, ibmlicensingList *operatorv1alpha1.IBMLicensingList, reqLogger logr.Logger) (reconcile.Result, error) {
+	// Ignore reconciliation if CR is 'inactive'
+	if instance.Status.State == "INACTIVE" {
+		return reconcile.Result{}, nil
+	}
+
+	// Sort by creation timestamp
+	sort.SliceStable(ibmlicensingList.Items, func(i, j int) bool {
+		return ibmlicensingList.Items[i].ObjectMeta.CreationTimestamp.Time.Before(ibmlicensingList.Items[j].ObjectMeta.CreationTimestamp.Time)
+	})
+
+	initialInstance := ibmlicensingList.Items[0]
+
+	var cr operatorv1alpha1.IBMLicensing
+	// Mark all CRs states depending on their creation time
+	for _, cr = range ibmlicensingList.Items {
+		// Only firstly created instance is marked as 'active' and will be reconciled
+		if cr.ObjectMeta.CreationTimestamp.Time.Equal(initialInstance.ObjectMeta.CreationTimestamp.Time) {
+			cr.Status.State = "ACTIVE"
+		} else {
+			reqLogger.Info("IBMLicensing instance already exists! Ignoring CR: " + cr.Name)
+			cr.Status.State = "INACTIVE"
+		}
+		err := r.Client.Status().Update(context.TODO(), &cr)
+		if err != nil {
+			reqLogger.Info("Failed to update IBMLicensing CR status, this does not affect License Service")
+			return reconcile.Result{}, err
+		}
+	}
+
+	return reconcile.Result{Requeue: true}, nil
 }
 
 func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLicensing, reqLogger logr.Logger) (reconcile.Result, error) {
