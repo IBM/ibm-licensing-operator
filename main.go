@@ -151,13 +151,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.IBMLicensingReconciler{
+	controller := &controllers.IBMLicensingReconciler{
 		Client:            mgr.GetClient(),
 		Reader:            mgr.GetAPIReader(),
 		Log:               ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
 		Scheme:            mgr.GetScheme(),
 		OperatorNamespace: watchNamespace,
-	}).SetupWithManager(mgr); err != nil {
+	}
+	if err = controller.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicensing")
 		os.Exit(1)
 	}
@@ -171,6 +172,9 @@ func main() {
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
+
+	setupLog.Info("Creating first instance.")
+	_ = controller.CreateDefaultInstance(true)
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

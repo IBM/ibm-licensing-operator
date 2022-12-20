@@ -63,6 +63,38 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return watcher.Complete(r)
 }
 
+func (r *IBMLicensingReconciler) createDefaultInstanceAfterCheck() error {
+	reqLogger := r.Log.WithValues("action", "Default IBMLicensing instance creation")
+	ibmLicensing := service.GetDefaultIBMLicensing()
+	err := r.Client.Create(context.TODO(), &ibmLicensing)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		reqLogger.Error(err, "Failure.")
+		return err
+	}
+	reqLogger.Info("Success.")
+	return nil
+}
+
+func (r *IBMLicensingReconciler) CreateDefaultInstance(checkIfInstancesExist bool) error {
+	reqLogger := r.Log.WithValues("action", "Default IBMLicensing instance existence check")
+	// need to check if any instance already exists
+	if checkIfInstancesExist {
+		// Fetch all IBMLicensing instances
+		// Check if there are already IBMLicensing instances created
+		ibmLicensingList := &operatorv1alpha1.IBMLicensingList{}
+		if err := r.Reader.List(context.TODO(), ibmLicensingList); err != nil {
+			// no need to check IsNotFound error as the list will always return but items can be empty
+			reqLogger.Error(err, "Failure.")
+			return err
+		}
+		if len(ibmLicensingList.Items) > 0 {
+			reqLogger.Info("There are instances present in cluster.")
+			return nil
+		}
+	}
+	return r.createDefaultInstanceAfterCheck()
+}
+
 // blank assignment to verify that IBMLicensingReconciler implements reconcile.Reconciler
 var _ reconcile.Reconciler = &IBMLicensingReconciler{}
 
@@ -111,24 +143,37 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		reqLogger.Error(err, "Error during checking K8s API")
 	}
 
-	// Fetch the IBMLicensing instance
-	foundInstance := &operatorv1alpha1.IBMLicensing{}
-	err := r.Client.Get(context.TODO(), req.NamespacedName, foundInstance)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile req.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
-			// reqLogger.Info("IBMLicensing resource not found. Ignoring since object must be deleted")
-			return reconcile.Result{}, nil
-		}
-		// Error reading the object - requeue the req.
-		// reqLogger.Error(err, "Failed to get IBMLicensing")
+	// Fetch all IBMLicensing instances
+	// Check if there are already IBMLicensing instances created
+	ibmLicensingList := &operatorv1alpha1.IBMLicensingList{}
+	if err := r.Client.List(context.TODO(), ibmLicensingList); err != nil {
+		// Error when looking for IMBLicensing objects - requeue
+		reqLogger.Error(err, "Couldn't retrieve IBMLicensing objects. Retrying.")
 		return reconcile.Result{}, err
+	}
+
+	// found instance will be empty if no LS instance was found and creating default one
+	var foundInstance *operatorv1alpha1.IBMLicensing
+
+	if len(ibmLicensingList.Items) == 0 {
+		reqLogger.Info("The instance seems to have been deleted, creating default one to try to assure compliance.")
+		err := r.CreateDefaultInstance(false)
+		return reconcile.Result{}, err
+	} else {
+		for _, item := range ibmLicensingList.Items {
+			if item.Name == req.Name {
+				foundInstance = &item
+			}
+		}
+	}
+
+	if foundInstance == nil {
+		reqLogger.Info("Did not find request name in instances, probably it was deleted.")
+		return reconcile.Result{}, nil
 	}
 	instance := foundInstance.DeepCopy()
 
-	err = service.UpdateVersion(r.Client, instance)
+	err := service.UpdateVersion(r.Client, instance)
 	if err != nil {
 		reqLogger.Error(err, "Can not update version in CR")
 	}
