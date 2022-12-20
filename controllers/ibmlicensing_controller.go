@@ -159,11 +159,12 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		reqLogger.Info("The instance seems to have been deleted, creating default one to try to assure compliance.")
 		err := r.CreateDefaultInstance(false)
 		return reconcile.Result{}, err
-	} else {
-		for _, item := range ibmLicensingList.Items {
-			if item.Name == req.Name {
-				foundInstance = &item
-			}
+	}
+	for _, item := range ibmLicensingList.Items {
+		if item.Name == req.Name {
+			// golang way to have iterated value stored in pointer
+			item := item
+			foundInstance = &item
 		}
 	}
 
