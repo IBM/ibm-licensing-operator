@@ -858,7 +858,7 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 		regenerateCertificate = true
 	}
 	// if certificate is expired
-	if cert.NotAfter.Before(time.Now().AddDate(0, 90, 0)) {
+	if cert.NotAfter.Before(time.Now().AddDate(0, 0, 90)) {
 		r.Log.Info("Self signed certificate is expiring in less than 90 days.")
 		regenerateCertificate = true
 	}

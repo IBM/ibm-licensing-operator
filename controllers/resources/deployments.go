@@ -132,7 +132,12 @@ func ShouldUpdateDeployment(
 	expectedSpec *corev1.PodTemplateSpec,
 	foundSpec *corev1.PodTemplateSpec) bool {
 
-	expectedSpec.Annotations["kubectl.kubernetes.io/restartedAt"] = foundSpec.Annotations["kubectl.kubernetes.io/restartedAt"]
+	// this ensures that the annotation is always the same in both objects (to exclude it from deepEqual comparison)
+	if _, ok := expectedSpec.Annotations["kubectl.kubernetes.io/restartedAt"]; ok {
+		foundSpec.Annotations["kubectl.kubernetes.io/restartedAt"] = expectedSpec.Annotations["kubectl.kubernetes.io/restartedAt"]
+	} else {
+		delete(foundSpec.Annotations, "kubectl.kubernetes.io/restartedAt")
+	}
 
 	if !reflect.DeepEqual(foundSpec.Spec.Volumes, expectedSpec.Spec.Volumes) {
 		(*reqLogger).Info("Deployment has wrong volumes")
