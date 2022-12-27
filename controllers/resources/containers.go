@@ -27,7 +27,7 @@ func GetSecurityContext() *corev1.SecurityContext {
 	securityContext := &corev1.SecurityContext{
 		AllowPrivilegeEscalation: &FalseVar,
 		Privileged:               &FalseVar,
-		ReadOnlyRootFilesystem:   &FalseVar,
+		ReadOnlyRootFilesystem:   &TrueVar,
 		RunAsNonRoot:             &TrueVar,
 		Capabilities: &corev1.Capabilities{
 			Drop: []corev1.Capability{
