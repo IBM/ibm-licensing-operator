@@ -45,9 +45,6 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
 )
 
-const activeCRState = "ACTIVE"
-const inactiveCRState = "INACTIVE"
-
 type reconcileLSFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
 
 func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -140,7 +137,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	if instance.Status.State != activeCRState {
+	if instance.Status.State != service.ActiveCRState {
 		return r.detectIBMLicensingState(instance, ibmlicensingList, reqLogger)
 	}
 
@@ -190,7 +187,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 
 func (r *IBMLicensingReconciler) detectIBMLicensingState(instance *operatorv1alpha1.IBMLicensing, ibmlicensingList *operatorv1alpha1.IBMLicensingList, reqLogger logr.Logger) (reconcile.Result, error) {
 	// Ignore reconciliation if CR is 'inactive'
-	if instance.Status.State == inactiveCRState {
+	if instance.Status.State == service.InactiveCRState {
 		return reconcile.Result{}, nil
 	}
 
@@ -206,10 +203,10 @@ func (r *IBMLicensingReconciler) detectIBMLicensingState(instance *operatorv1alp
 	for _, cr = range ibmlicensingList.Items {
 		// Only firstly created instance is marked as 'active' and will be reconciled
 		if cr.ObjectMeta.CreationTimestamp.Time.Equal(initialInstance.ObjectMeta.CreationTimestamp.Time) {
-			cr.Status.State = activeCRState
+			cr.Status.State = service.ActiveCRState
 		} else {
 			reqLogger.Info("IBMLicensing instance already exists! Ignoring CR: " + cr.Name)
-			cr.Status.State = inactiveCRState
+			cr.Status.State = service.InactiveCRState
 		}
 		err := r.Client.Status().Update(context.TODO(), &cr)
 		if err != nil {
