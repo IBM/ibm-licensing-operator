@@ -140,7 +140,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	if instance.Status.State != "ACTIVE" {
+	if instance.Status.State != activeCRState {
 		return r.detectIBMLicensingState(instance, ibmlicensingList, reqLogger)
 	}
 
