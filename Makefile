@@ -311,16 +311,6 @@ help: ## Display this help
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-## FROM NEW OPERATOR
-
-##@ Test
-#ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-test:
-	@echo "Running tests for the controllers."
-	#@mkdir -p ${ENVTEST_ASSETS_DIR}
-	#@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
-	#@source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
-
 prepare-unit-test:
 	kubectl create namespace ${NAMESPACE} || echo ""
 	kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo ""
@@ -629,7 +619,7 @@ ifeq (, $(shell which opm))
 	git clone  --branch ${OPM_VERSION}  https://github.com/operator-framework/operator-registry.git ;\
 	cd ./operator-registry ; \
 	git checkout ${OPM_VERSION};\
-	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=0e53cafe' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=${OPM_VERSION}' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2022-09-21T15:25:25Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
+	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=${OPM_VERSION}'"  -tags "json1" -o bin/opm ./cmd/opm ;\
 	cp ./bin/opm ~/ ; \
 	rm -rf $$OPM_GEN_TMP_DIR ;\
 	}
