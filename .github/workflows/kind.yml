@@ -26,7 +26,7 @@ jobs:
 
   scorecard:
     name: Scorecrd tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
@@ -88,7 +88,7 @@ jobs:
 
   setup-build-publish-deploy:
     name: Operator tests on KinD
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         k8s: [v1.19.11, v1.20.7, v1.21.1]
