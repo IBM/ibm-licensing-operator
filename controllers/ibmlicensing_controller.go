@@ -112,6 +112,14 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		reqLogger.Error(err, "Error during checking K8s API")
 	}
 
+	// Check if there are already IBMLicensing instances created
+	ibmlicensingList := &operatorv1alpha1.IBMLicensingList{}
+	if err := r.Client.List(context.TODO(), ibmlicensingList); err != nil {
+		// Error when looking for IMBLicensing objects - requeue
+		reqLogger.Error(err, "Couldn't retrieve IBMLicensing objects. Retrying.")
+		return reconcile.Result{}, err
+	}
+
 	// Fetch the IBMLicensing instance
 	foundInstance := &operatorv1alpha1.IBMLicensing{}
 	err := r.Client.Get(context.TODO(), req.NamespacedName, foundInstance)
@@ -121,6 +129,12 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
 			// reqLogger.Info("IBMLicensing resource not found. Ignoring since object must be deleted")
+
+			// In case of deleting active instance, detect new one
+			if !hasIBMLicensingListActiveInstance(ibmlicensingList) {
+				r.detectIBMLicensingState(ibmlicensingList, reqLogger)
+			}
+
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the req.
@@ -129,16 +143,14 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	}
 	instance := foundInstance.DeepCopy()
 
-	// Check if there are already IBMLicensing instances created
-	ibmlicensingList := &operatorv1alpha1.IBMLicensingList{}
-	if err := r.Client.List(context.TODO(), ibmlicensingList); err != nil {
-		// Error when looking for IMBLicensing objects - requeue
-		reqLogger.Error(err, "Couldn't retrieve IBMLicensing objects. Retrying.")
-		return reconcile.Result{}, err
+	// Check if there are any active CR or if they are properly marked (field .State)
+	if !hasIBMLicensingListActiveInstance(ibmlicensingList) || instance.Status.State == "" {
+		r.detectIBMLicensingState(ibmlicensingList, reqLogger)
 	}
 
-	if instance.Status.State != service.ActiveCRState {
-		return r.detectIBMLicensingState(instance, ibmlicensingList, reqLogger)
+	// Ignore reconciliation if CR is 'inactive'
+	if instance.Status.State == service.InactiveCRState {
+		return reconcile.Result{}, nil
 	}
 
 	err = service.UpdateVersion(r.Client, instance)
@@ -185,12 +197,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	return r.updateStatus(foundInstance, reqLogger)
 }
 
-func (r *IBMLicensingReconciler) detectIBMLicensingState(instance *operatorv1alpha1.IBMLicensing, ibmlicensingList *operatorv1alpha1.IBMLicensingList, reqLogger logr.Logger) (reconcile.Result, error) {
-	// Ignore reconciliation if CR is 'inactive'
-	if instance.Status.State == service.InactiveCRState {
-		return reconcile.Result{}, nil
-	}
-
+func (r *IBMLicensingReconciler) detectIBMLicensingState(ibmlicensingList *operatorv1alpha1.IBMLicensingList, reqLogger logr.Logger) (reconcile.Result, error) {
 	// Sort by creation timestamp
 	sort.SliceStable(ibmlicensingList.Items, func(i, j int) bool {
 		return ibmlicensingList.Items[i].ObjectMeta.CreationTimestamp.Time.Before(ibmlicensingList.Items[j].ObjectMeta.CreationTimestamp.Time)
@@ -206,7 +213,10 @@ func (r *IBMLicensingReconciler) detectIBMLicensingState(instance *operatorv1alp
 			cr.Status.State = service.ActiveCRState
 		} else {
 			reqLogger.Info("IBMLicensing instance already exists! Ignoring CR: " + cr.Name)
-			cr.Status.State = service.InactiveCRState
+			// extra check not to trigger reconcilation on inactive CRs
+			if cr.Status.State != service.InactiveCRState {
+				cr.Status.State = service.InactiveCRState
+			}
 		}
 		err := r.Client.Status().Update(context.TODO(), &cr)
 		if err != nil {
@@ -215,7 +225,17 @@ func (r *IBMLicensingReconciler) detectIBMLicensingState(instance *operatorv1alp
 		}
 	}
 
-	return reconcile.Result{Requeue: true}, nil
+	return reconcile.Result{}, nil
+}
+
+func hasIBMLicensingListActiveInstance(ibmlicensingList *operatorv1alpha1.IBMLicensingList) bool {
+	// Iterate over the ibmlicensingList items and check if there is any active CR
+	for _, s := range ibmlicensingList.Items {
+		if s.Status.State == service.ActiveCRState {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLicensing, reqLogger logr.Logger) (reconcile.Result, error) {
