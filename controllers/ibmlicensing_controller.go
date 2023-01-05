@@ -132,7 +132,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 
 			// In case of deleting active instance, detect new one
 			if !hasIBMLicensingListActiveInstance(ibmlicensingList) {
-				r.detectIBMLicensingState(ibmlicensingList, reqLogger)
+				return r.detectIBMLicensingState(ibmlicensingList, reqLogger)
 			}
 
 			return reconcile.Result{}, nil
@@ -145,7 +145,10 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 
 	// Check if there are any active CR or if they are properly marked (field .State)
 	if !hasIBMLicensingListActiveInstance(ibmlicensingList) || instance.Status.State == "" {
-		r.detectIBMLicensingState(ibmlicensingList, reqLogger)
+		_, err := r.detectIBMLicensingState(ibmlicensingList, reqLogger)
+		if err != nil {
+			reqLogger.Error(err, "Failed to update IBMLicensing CR status.")
+		}
 	}
 
 	// Ignore reconciliation if CR is 'inactive'
@@ -213,14 +216,13 @@ func (r *IBMLicensingReconciler) detectIBMLicensingState(ibmlicensingList *opera
 			cr.Status.State = service.ActiveCRState
 		} else {
 			reqLogger.Info("IBMLicensing instance already exists! Ignoring CR: " + cr.Name)
-			// extra check not to trigger reconcilation on inactive CRs
+			// extra check not to trigger reconciliation on inactive CRs
 			if cr.Status.State != service.InactiveCRState {
 				cr.Status.State = service.InactiveCRState
 			}
 		}
 		err := r.Client.Status().Update(context.TODO(), &cr)
 		if err != nil {
-			reqLogger.Info("Failed to update IBMLicensing CR status, this does not affect License Service")
 			return reconcile.Result{}, err
 		}
 	}
