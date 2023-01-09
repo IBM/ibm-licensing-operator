@@ -132,7 +132,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 
 			// In case of deleting active instance, detect new one
 			if !hasIBMLicensingListActiveInstance(ibmlicensingList) {
-				return r.findAndMarkActiveIBMLicensing(ibmlicensingList, reqLogger)
+				return reconcile.Result{}, r.findAndMarkActiveIBMLicensing(ibmlicensingList, reqLogger)
 			}
 
 			return reconcile.Result{}, nil
@@ -141,15 +141,17 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		// reqLogger.Error(err, "Failed to get IBMLicensing")
 		return reconcile.Result{}, err
 	}
-	instance := foundInstance.DeepCopy()
 
 	// Check if there are any active CR or if they are properly marked (field .State)
-	if !hasIBMLicensingListActiveInstance(ibmlicensingList) || instance.Status.State == "" {
-		_, err := r.findAndMarkActiveIBMLicensing(ibmlicensingList, reqLogger)
+	if !hasIBMLicensingListActiveInstance(ibmlicensingList) || foundInstance.Status.State == "" {
+		err := r.findAndMarkActiveIBMLicensing(ibmlicensingList, reqLogger)
 		if err != nil {
 			reqLogger.Error(err, "Failed to update IBMLicensing CR status.")
+			return reconcile.Result{}, err
 		}
 	}
+
+	instance := foundInstance.DeepCopy()
 
 	// Ignore reconciliation if CR is 'inactive'
 	if instance.Status.State == service.InactiveCRState {
@@ -200,9 +202,9 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	return r.updateStatus(foundInstance, reqLogger)
 }
 
-func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList *operatorv1alpha1.IBMLicensingList, reqLogger logr.Logger) (reconcile.Result, error) {
+func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList *operatorv1alpha1.IBMLicensingList, reqLogger logr.Logger) error {
 	if ibmlicensingList.Items == nil || len(ibmlicensingList.Items) == 0 {
-		return reconcile.Result{}, nil
+		return nil
 	}
 
 	// Sort by creation timestamp
@@ -228,11 +230,11 @@ func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList 
 		}
 		err := r.Client.Status().Update(context.TODO(), &cr)
 		if err != nil {
-			return reconcile.Result{}, err
+			return err
 		}
 	}
 
-	return reconcile.Result{}, nil
+	return nil
 }
 
 func hasIBMLicensingListActiveInstance(ibmlicensingList *operatorv1alpha1.IBMLicensingList) bool {
