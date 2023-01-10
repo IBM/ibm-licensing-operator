@@ -23,8 +23,8 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
-func getDatabaseProbeHandler() corev1.Handler {
-	return corev1.Handler{
+func getDatabaseProbeHandler() corev1.ProbeHandler {
+	return corev1.ProbeHandler{
 		Exec: &corev1.ExecAction{
 			Command: []string{
 				"psql",
