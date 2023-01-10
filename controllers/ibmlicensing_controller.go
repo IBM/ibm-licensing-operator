@@ -142,16 +142,17 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
+	instance := foundInstance.DeepCopy()
+
 	// Check if there are any active CR or if they are properly marked (field .State)
-	if !hasIBMLicensingListActiveInstance(ibmlicensingList) || foundInstance.Status.State == "" {
+	if !hasIBMLicensingListActiveInstance(ibmlicensingList) || instance.Status.State == "" {
 		err := r.findAndMarkActiveIBMLicensing(ibmlicensingList, reqLogger)
 		if err != nil {
 			reqLogger.Error(err, "Failed to update IBMLicensing CR status.")
 			return reconcile.Result{}, err
 		}
+		return reconcile.Result{Requeue: true}, nil
 	}
-
-	instance := foundInstance.DeepCopy()
 
 	// Ignore reconciliation if CR is 'inactive'
 	if instance.Status.State == service.InactiveCRState {
