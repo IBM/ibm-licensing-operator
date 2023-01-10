@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"reflect"
 	goruntime "runtime"
+	"sort"
 	"time"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -144,7 +145,6 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	}
 
 	// Fetch all IBMLicensing instances
-	// Check if there are already IBMLicensing instances created
 	ibmLicensingList := &operatorv1alpha1.IBMLicensingList{}
 	if err := r.Client.List(context.TODO(), ibmLicensingList); err != nil {
 		// Error when looking for IMBLicensing objects - requeue
@@ -170,8 +170,27 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 
 	if foundInstance == nil {
 		reqLogger.Info("Did not find request name in instances, probably it was deleted.")
+		if !hasIBMLicensingListActiveInstance(ibmLicensingList) {
+			return reconcile.Result{}, r.findAndMarkActiveIBMLicensing(ibmLicensingList, reqLogger)
+		}
 		return reconcile.Result{}, nil
 	}
+
+	// Check if there are any active CR or if they are properly marked (field .State)
+	if !hasIBMLicensingListActiveInstance(ibmLicensingList) || foundInstance.Status.State == "" {
+		err := r.findAndMarkActiveIBMLicensing(ibmLicensingList, reqLogger)
+		if err != nil {
+			reqLogger.Error(err, "Failed to update IBMLicensing CR status.")
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{Requeue: true}, nil
+	}
+
+	// Ignore reconciliation if CR is 'inactive'
+	if foundInstance.Status.State == service.InactiveCRState {
+		return reconcile.Result{}, nil
+	}
+
 	instance := foundInstance.DeepCopy()
 
 	err := service.UpdateVersion(r.Client, instance)
@@ -216,6 +235,51 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 
 	// Update status logic, using foundInstance, because we do not want to add filled default values to yaml
 	return r.updateStatus(foundInstance, reqLogger)
+}
+
+func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList *operatorv1alpha1.IBMLicensingList, reqLogger logr.Logger) error {
+	if ibmlicensingList.Items == nil || len(ibmlicensingList.Items) == 0 {
+		return nil
+	}
+
+	// Sort by creation timestamp
+	sort.SliceStable(ibmlicensingList.Items, func(i, j int) bool {
+		return ibmlicensingList.Items[i].ObjectMeta.CreationTimestamp.Time.Before(ibmlicensingList.Items[j].ObjectMeta.CreationTimestamp.Time)
+	})
+
+	// First element is oldest one and should only be active
+	initialInstance := ibmlicensingList.Items[0]
+
+	var cr operatorv1alpha1.IBMLicensing
+	// Mark all CRs states depending on their creation time
+	for _, cr = range ibmlicensingList.Items {
+		// Only firstly created instance is marked as 'active' and will be reconciled
+		if cr.UID == initialInstance.UID {
+			cr.Status.State = service.ActiveCRState
+		} else {
+			reqLogger.Info("IBMLicensing instance already exists! Ignoring CR: " + cr.Name)
+			// CR should be marked as 'inactive' and ignored during next reconciliation
+			if cr.Status.State != service.InactiveCRState {
+				cr.Status.State = service.InactiveCRState
+			}
+		}
+		err := r.Client.Status().Update(context.TODO(), &cr)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func hasIBMLicensingListActiveInstance(ibmlicensingList *operatorv1alpha1.IBMLicensingList) bool {
+	// Iterate over the ibmlicensingList items and check if there is any active CR
+	for _, s := range ibmlicensingList.Items {
+		if s.Status.State == service.ActiveCRState {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLicensing, reqLogger logr.Logger) (reconcile.Result, error) {
