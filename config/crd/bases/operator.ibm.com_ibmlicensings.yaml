@@ -1052,6 +1052,9 @@ spec:
                       type: string
                   type: object
                 type: array
+              state:
+                description: State field that defines status of the IBMLicensing
+                type: string
             type: object
         type: object
     served: true

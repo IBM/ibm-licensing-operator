@@ -52,6 +52,9 @@ const NamespaceScopeLabelValue = "projected"
 //goland:noinspection GoNameStartsWithPackageName
 const ServiceAccountSecretName = "ibm-licensing-service-account-token"
 
+const ActiveCRState = "ACTIVE"
+const InactiveCRState = "INACTIVE"
+
 func GetServiceAccountName(instance *operatorv1alpha1.IBMLicensing) string {
 	if instance.Spec.IsNamespaceScopeEnabled() {
 		return LicensingServiceAccountRestricted
