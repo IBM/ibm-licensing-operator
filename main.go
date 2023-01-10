@@ -119,7 +119,6 @@ func main() {
 	ctrl.SetLogger(zap.New(func(o *zap.Options) {
 		o.Development = true
 		o.TimeEncoder = zapcore.RFC3339TimeEncoder
-		o.Level = zapcore.DebugLevel
 	}))
 
 	printVersion()
