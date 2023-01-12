@@ -19,7 +19,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	r "runtime"
 
@@ -63,7 +62,7 @@ func printVersion() {
 }
 
 func readFile(filename string) string {
-	content, err := ioutil.ReadFile(filename)
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		setupLog.Info(fmt.Sprintf("Can not read: %s", filename))
 		return ""
