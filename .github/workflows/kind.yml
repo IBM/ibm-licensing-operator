@@ -26,7 +26,7 @@ jobs:
 
   scorecard:
     name: Scorecrd tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
