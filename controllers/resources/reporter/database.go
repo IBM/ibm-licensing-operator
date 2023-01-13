@@ -22,8 +22,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func getDatabaseProbeHandler() corev1.Handler {
-	return corev1.Handler{
+func getDatabaseProbeHandler() corev1.ProbeHandler {
+	return corev1.ProbeHandler{
 		Exec: &corev1.ExecAction{
 			Command: []string{
 				"psql",

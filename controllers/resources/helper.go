@@ -341,28 +341,28 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		c.InNamespace(namespace),
 	}
 
-	MeterDefinitionCRD := &rhmp.MeterDefinition{}
+	MeterDefinitionCRD := &rhmp.MeterDefinitionList{}
 	if err := client.List(context.TODO(), MeterDefinitionCRD, listOpts...); err == nil {
 		RHMPEnabled = true
 	} else {
 		RHMPEnabled = false
 	}
 
-	routeTestInstance := &routev1.Route{}
+	routeTestInstance := &routev1.RouteList{}
 	if err := client.List(context.TODO(), routeTestInstance, listOpts...); err == nil {
 		IsRouteAPI = true
 	} else {
 		IsRouteAPI = false
 	}
 
-	serviceCAInstance := &servicecav1.ServiceCA{}
+	serviceCAInstance := &servicecav1.ServiceCAList{}
 	if err := client.List(context.TODO(), serviceCAInstance, listOpts...); err == nil {
 		IsServiceCAAPI = true
 	} else {
 		IsServiceCAAPI = false
 	}
 
-	odlmTestInstance := &odlm.OperandBindInfo{}
+	odlmTestInstance := &odlm.OperandBindInfoList{}
 	if err := client.List(context.TODO(), odlmTestInstance, listOpts...); err == nil {
 		IsODLM = true
 	} else {
