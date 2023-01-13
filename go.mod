@@ -86,10 +86,13 @@ require (
 )
 
 replace (
+	github.com/emicklei/go-restful/v3 => github.com/emicklei/go-restful/v3 v3.10.1
+
 	k8s.io/api => k8s.io/api v0.24.9
 	k8s.io/apimachinery => k8s.io/apimachinery v0.24.9
 	k8s.io/client-go => k8s.io/client-go v0.24.9
 
 	sigs.k8s.io/controller-runtime/pkg/cache => sigs.k8s.io/controller-runtime/pkg/cache v0.10.0
 	sigs.k8s.io/controller-runtime/pkg/client => sigs.k8s.io/controller-runtime/pkg/client v0.6.4
+
 )
