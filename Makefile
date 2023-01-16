@@ -542,7 +542,7 @@ verify-installed-tools: ## Verify if tools are installed
 	@echo "Successfully verified installed tools. Make sure the version matches required to avoid further issues.$'\n"
 
 	@echo "Printing installed tools summary $'\n\
-	Required | Intalled $'\n\
+	Required | Installed $'\n\
 	» operator-sdk-${OPERATOR_SDK_VERSION} | operator-sdk-"$(shell operator-sdk version | awk '{print $$3}')" $'\n\
 	» opm-${OPM_VERSION} | opm-"$(shell opm version | awk '{print $$2}' | awk -F ':' '{print $$2}')" $'\n\
 	» controller-gen-${CONTROLLER_GEN_VERSION} | controller-gen-"$(shell controller-gen --version | awk '{print $$2}')", $'\n\
