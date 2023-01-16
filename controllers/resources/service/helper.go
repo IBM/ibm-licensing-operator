@@ -51,6 +51,8 @@ const NamespaceScopeLabelValue = "projected"
 
 //goland:noinspection GoNameStartsWithPackageName
 const ServiceAccountSecretName = "ibm-licensing-service-account-token"
+const DefaultReaderTokenName = "ibm-licensing-default-reader-token"
+const DefaultReaderServiceAccountName = "ibm-licensing-default-reader"
 
 const ActiveCRState = "ACTIVE"
 const InactiveCRState = "INACTIVE"
