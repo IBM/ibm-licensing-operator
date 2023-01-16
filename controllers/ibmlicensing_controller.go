@@ -32,6 +32,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -837,10 +838,12 @@ func (r *IBMLicensingReconciler) reconcileResourceWhichShouldNotExist(
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return reconcile.Result{}, nil
+		} else if metaErrors.IsNoMatchError(err) {
+			return reconcile.Result{}, nil
 		}
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())
-		return reconcile.Result{}, err
+		return reconcile.Result{}, nil
 	}
 	return res.DeleteResource(&reqLogger, r.Client, expectedRes)
 }
