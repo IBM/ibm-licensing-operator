@@ -94,7 +94,7 @@ type reconcileLRFunctionType = func(*operatorv1alpha1.IBMLicenseServiceReporter)
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=operator.ibm.com,resources=ibmlicenseservicereporters;ibmlicenseservicereporters/status;ibmlicenseservicereporters/finalizers;operandbindinfos,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicenseservicereporters;ibmlicenseservicereporters/status;ibmlicenseservicereporters/finalizers,verbs=get;list;watch;create;update;patch;delete
 
-func (r *IBMLicenseServiceReporterReconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) {
+func (r *IBMLicenseServiceReporterReconciler) Reconcile(tx context.Context, req reconcile.Request) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("Request", req)
 	reqLogger.Info("Reconciling IBMLicenseServiceReporter")
 	goruntime.GC()
@@ -444,7 +444,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileCertificateSecrets(instan
 			}
 
 			// if certificate is expired
-			if cert.NotAfter.Before(time.Now().AddDate(0, -90, 0)) {
+			if cert.NotAfter.Before(time.Now().AddDate(0, 0, 90)) {
 				r.Log.Info("Self signed certificate has expired. Generating new certificate")
 				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
 				if err != nil {
@@ -587,7 +587,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileSenderConfiguration(insta
 func (r *IBMLicenseServiceReporterReconciler) reconcileResourceExistence(
 	instance *operatorv1alpha1.IBMLicenseServiceReporter,
 	expectedRes res.ResourceObject,
-	foundRes runtime.Object,
+	foundRes client.Object,
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
 
 	resType := reflect.TypeOf(expectedRes)
@@ -627,7 +627,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileResourceExistence(
 }
 
 func (r *IBMLicenseServiceReporterReconciler) reconcileResourceNamespacedExistence(
-	instance *operatorv1alpha1.IBMLicenseServiceReporter, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+	instance *operatorv1alpha1.IBMLicenseServiceReporter, expectedRes res.ResourceObject, foundRes client.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
 	return r.reconcileResourceExistence(instance, expectedRes, foundRes, namespacedName)

@@ -27,6 +27,7 @@ const APIUploadTokenVolumeName = "token-upload"
 const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
 const PrometheusHTTPSCertsVolumeName = "prometheus-https-certs"
+const EmptyDirVolumeName = "tmp"
 
 func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.VolumeMount {
 	var volumeMounts = []corev1.VolumeMount{
@@ -41,6 +42,11 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 			MountPath: "/opt/ibm/licensing/" + APIUploadTokenKeyName,
 			SubPath:   APIUploadTokenKeyName,
 			ReadOnly:  true,
+		},
+		{
+			Name:      EmptyDirVolumeName,
+			MountPath: "/tmp",
+			ReadOnly:  false,
 		},
 	}
 	if spec.HTTPSEnable {
@@ -123,6 +129,14 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 			volumes = append(volumes, resources.GetVolume(PrometheusHTTPSCertsVolumeName, PrometheusServiceOCPCertName))
 		}
 	}
+
+	emptyDirVolume := corev1.Volume{
+		Name: EmptyDirVolumeName,
+		VolumeSource: corev1.VolumeSource{
+			EmptyDir: &corev1.EmptyDirVolumeSource{},
+		},
+	}
+	volumes = append(volumes, emptyDirVolume)
 
 	return volumes
 }

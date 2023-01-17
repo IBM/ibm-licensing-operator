@@ -42,8 +42,8 @@ func GetLicenseReporterInitContainers(instance *operatorv1alpha1.IBMLicenseServi
 	return containers
 }
 
-func getReceiverProbeHandler() corev1.Handler {
-	return corev1.Handler{
+func getReceiverProbeHandler() corev1.ProbeHandler {
+	return corev1.ProbeHandler{
 		HTTPGet: &corev1.HTTPGetAction{
 			Path: "/",
 			Port: intstr.IntOrString{
@@ -58,7 +58,7 @@ func getReceiverProbeHandler() corev1.Handler {
 func GetReceiverContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
 	container := resources.GetContainerBase(instance.Spec.ReceiverContainer)
 	container.Env = getReciverEnvVariables(instance.Spec)
-	container.VolumeMounts = getVolumeMounts()
+	container.VolumeMounts = getReceiverVolumeMounts()
 	container.Name = ReceiverContainerName
 	container.Ports = []corev1.ContainerPort{
 		{
