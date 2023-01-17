@@ -1,7 +1,6 @@
 module github.com/ibm/ibm-licensing-operator
 
-go 1.17
-
+go 1.18
 require (
 	github.com/IBM/controller-filtered-cache v0.3.5
 	github.com/IBM/operand-deployment-lifecycle-manager v1.5.0
