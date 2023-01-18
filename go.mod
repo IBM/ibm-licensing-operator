@@ -1,7 +1,6 @@
 module github.com/ibm/ibm-licensing-operator
 
-go 1.17
-
+go 1.18
 require (
 	github.com/IBM/controller-filtered-cache v0.3.5
 	github.com/IBM/operand-deployment-lifecycle-manager v1.5.0
@@ -86,6 +85,8 @@ require (
 )
 
 replace (
+	github.com/emicklei/go-restful/v3 => github.com/emicklei/go-restful/v3 v3.10.1
+
 	k8s.io/api => k8s.io/api v0.24.9
 	k8s.io/apimachinery => k8s.io/apimachinery v0.24.9
 	k8s.io/client-go => k8s.io/client-go v0.24.9

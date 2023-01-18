@@ -38,7 +38,7 @@ Repo maintainers can assign you an issue or pull request by leaving a
 ## Linting prerequisite
 
 - git
-- go version v1.17+
+- go version v1.18+
 - some tools below requires python with pip (tested on python3), and ruby with gem and bundler to install
 - Linting Tools
 
@@ -62,7 +62,7 @@ Then try downloading newer golang version from [golang.org](https://golang.org) 
 - make sure $GOROOT will be set to the newer one
 
 It was tested to work with these environment variables and setup:
-- go version go1.17 linux/amd64
+- go version go1.18 linux/amd64
 - Red Hat Enterprise Linux 8
 - GOROOT=/usr/local/go
 - GOPATH=$HOME/go
