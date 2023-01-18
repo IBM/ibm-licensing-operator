@@ -263,8 +263,8 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 	}
 
 	expectedCMs := []*corev1.ConfigMap{
-		service.GetUploadConfigMap(instance),
-		service.GetInfoConfigMap(instance, string(internalCertificate.Data["tls.crt"])),
+		service.GetUploadConfigMap(instance, string(internalCertificate.Data["tls.crt"])),
+		service.GetInfoConfigMap(instance),
 	}
 	for _, expectedCM := range expectedCMs {
 		foundCM := &corev1.ConfigMap{}
