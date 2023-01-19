@@ -19,14 +19,12 @@ ACTIVE_OS=
 function detect_os() {
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     ACTIVE_OS="Linux"
-
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     if [[ $(uname -m) == 'arm64' ]]; then
       ACTIVE_OS="MacOS_arm64"
     else
       ACTIVE_OS="MacOS_x86"
     fi
-
   else
     ACTIVE_OS="Unknown"
   fi
@@ -43,7 +41,6 @@ function check_prerequisites() {
     pip="pip3"
   elif [ -x "$(command -v pip)" ]; then
     pip="pip"
-
   fi
   if ! [ -x "$(command -v go)" ]; then
     echo " » Tool not found: go. Install suitable version and try again."
@@ -183,7 +180,6 @@ if ! [ -x "$(command -v diff3)" ]; then
   else
     brew install diffutils
   fi
-
 else
   echo " » Diffutils already installed"
   diff3 --version
