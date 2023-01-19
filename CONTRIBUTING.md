@@ -82,7 +82,6 @@ After your PR is ready to commit, please run following commands to check your co
 
 ```shell
 make check
-make test
 ```
 
 ## Build images
@@ -90,7 +89,7 @@ make test
 Make sure your code build passed.
 
 ```shell
-make
+make build
 ```
 
 Now, you can follow the [README](./README.md) to work with the ibm-licensing-operator.
