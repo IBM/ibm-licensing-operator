@@ -58,7 +58,7 @@ Repo maintainers can assign you an issue or pull request by leaving a
 To install required linters for the development process, you can use script:
 
 ```shell
-bash ./common/scripts/install-linters-development.sh  
+bash ./common/scripts/install-linters-development.sh
 ```
 
 Some commands need root privileges, so provide your password upon being asked.
