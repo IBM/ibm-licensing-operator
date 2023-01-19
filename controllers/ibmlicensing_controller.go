@@ -145,6 +145,7 @@ func (r *IBMLicensingReconciler) Reconcile(tx context.Context, req reconcile.Req
 	reconcileFunctions := []interface{}{
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
+		r.reconcileDefaultReaderToken,
 		r.reconcileServices,
 		r.reconcileDeployment,
 		r.reconcileIngress,
@@ -235,6 +236,38 @@ func (r *IBMLicensingReconciler) reconcileAPISecretToken(instance *operatorv1alp
 	}
 	foundSecret := &corev1.Secret{}
 	return r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+}
+
+// default reader token is not created by default since kubernetes 1.24, we need to ensure it is always generated
+// having two default reader tokens for previous k8s is not a problem, you can use either one, and both will be cleaned
+func (r *IBMLicensingReconciler) reconcileDefaultReaderToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcileDefaultReaderToken", "Entry", "instance.GetName()", instance.GetName())
+	expectedSecret, err := service.GetDefaultReaderToken(instance)
+	if err != nil {
+		reqLogger.Info("Failed to get expected secret")
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
+	}
+	foundSecret := &corev1.Secret{}
+	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	if expectedSecret.Annotations[service.ServiceAccountSecretAnnotationKey] !=
+		foundSecret.Annotations[service.ServiceAccountSecretAnnotationKey] {
+		err = r.Client.Delete(context.TODO(), foundSecret)
+		if err != nil {
+			reqLogger.Error(err, "Failed to delete ServiceAccount secret due to wrong annotations.")
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
+	}
+	return result, err
 }
 
 func (r *IBMLicensingReconciler) reconcileUploadToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {

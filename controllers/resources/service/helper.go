@@ -45,6 +45,10 @@ const ReleaseUsageLabel = "ibm-licensing-service-usage"
 const NamespaceScopeLabelKey = "intent"
 const NamespaceScopeLabelValue = "projected"
 
+//goland:noinspection GoNameStartsWithPackageName
+const DefaultReaderTokenName = "ibm-licensing-default-reader-token"
+const DefaultReaderServiceAccountName = "ibm-licensing-default-reader"
+
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
 }
