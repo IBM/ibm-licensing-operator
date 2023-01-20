@@ -533,6 +533,9 @@ catalogsource-development: opm identify-release-stream
 
 ##@ Install
 
+install-linters:  ## Install/verify required linting tools
+	common/scripts/install-linters-development.sh
+
 verify-installed-tools: ## Verify if tools are installed
 	@command -v operator-sdk >/dev/null 2>&1 || { echo >&2 "Required tool: operator-sdk-${OPERATOR_SDK_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
 	@command -v opm >/dev/null 2>&1 || { echo >&2 "Required tool: opm-${OPM_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }

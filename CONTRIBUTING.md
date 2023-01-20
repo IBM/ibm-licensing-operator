@@ -58,10 +58,10 @@ Repo maintainers can assign you an issue or pull request by leaving a
 To install required linters for the development process, you can use script:
 
 ```shell
-bash ./common/scripts/install-linters-development.sh
+make install-linters
 ```
 
-Some commands need root privileges, so provide your password upon being asked.
+Some tools will need root privileges, so provide your password upon being asked.
 
 - if you have an error during `make check`, for example:
 
@@ -87,6 +87,33 @@ After your PR is ready to commit, please run following commands to check your co
 
 ```shell
 make check
+```
+
+## Building tools
+
+Building the operators requires following tools installed:
+- operator-sdk-v1.25.2
+- opm-v1.26.2
+- controller-gen-v0.7.0
+- kustomize-v4.5.7
+- yq-v4.30.5
+
+Tools can installed using make target:
+
+```shell
+make install-all-tools
+```
+
+Toverify completness of the installed tools and their versions use the target:
+
+```shell
+make verify-installed-tools
+```
+
+Furthermore all important make targets are described in help section. To see the list of available commands run:
+
+```shell
+make help
 ```
 
 ## Build images
