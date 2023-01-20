@@ -1,6 +1,7 @@
 module github.com/ibm/ibm-licensing-operator
 
 go 1.18
+
 require (
 	github.com/IBM/controller-filtered-cache v0.3.5
 	github.com/IBM/operand-deployment-lifecycle-manager v1.5.0
@@ -24,7 +25,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
+	github.com/emicklei/go-restful/v3 v3.10.1 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/go-logr/zapr v1.2.3 // indirect
