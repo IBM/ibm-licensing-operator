@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
-func getDatabaseProbeHandler() corev1.Handler {
-	return corev1.Handler{
+func getDatabaseProbeHandler() corev1.ProbeHandler {
+	return corev1.ProbeHandler{
 		Exec: &corev1.ExecAction{
 			Command: []string{
 				"psql",

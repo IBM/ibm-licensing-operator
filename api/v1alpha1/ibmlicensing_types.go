@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -174,6 +174,8 @@ type IBMLicensingSecurityContext struct {
 
 // IBMLicensingStatus defines the observed state of IBMLicensing
 type IBMLicensingStatus struct {
+	// State field that defines status of the IBMLicensing
+	State string `json:"state,omitempty"`
 	// The status of IBM License Service Pods.
 	LicensingPods []corev1.PodStatus         `json:"licensingPods,omitempty"`
 	Features      IBMLicensingFeaturesStatus `json:"features,omitempty"`

@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -95,8 +95,8 @@ func getReporterUIEnvironmentVariables(instance *operatorv1alpha1.IBMLicenseServ
 
 }
 
-func getReporterUIProbeHandler() corev1.Handler {
-	return corev1.Handler{
+func getReporterUIProbeHandler() corev1.ProbeHandler {
+	return corev1.ProbeHandler{
 		HTTPGet: &corev1.HTTPGetAction{
 			Path: "/license-service-reporter/version.txt",
 			Port: intstr.IntOrString{

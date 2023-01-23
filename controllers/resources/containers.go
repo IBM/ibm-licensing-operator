@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ func GetSecurityContext() *corev1.SecurityContext {
 	securityContext := &corev1.SecurityContext{
 		AllowPrivilegeEscalation: &FalseVar,
 		Privileged:               &FalseVar,
-		ReadOnlyRootFilesystem:   &FalseVar,
+		ReadOnlyRootFilesystem:   &TrueVar,
 		RunAsNonRoot:             &TrueVar,
 		Capabilities: &corev1.Capabilities{
 			Drop: []corev1.Capability{
@@ -39,18 +39,18 @@ func GetSecurityContext() *corev1.SecurityContext {
 	return securityContext
 }
 
-func GetReadinessProbe(probeHandler corev1.Handler) *corev1.Probe {
+func GetReadinessProbe(probeHandler corev1.ProbeHandler) *corev1.Probe {
 	return &corev1.Probe{
-		Handler:             probeHandler,
+		ProbeHandler:        probeHandler,
 		InitialDelaySeconds: 60,
 		TimeoutSeconds:      10,
 		PeriodSeconds:       60,
 	}
 }
 
-func GetLivenessProbe(probeHandler corev1.Handler) *corev1.Probe {
+func GetLivenessProbe(probeHandler corev1.ProbeHandler) *corev1.Probe {
 	return &corev1.Probe{
-		Handler:             probeHandler,
+		ProbeHandler:        probeHandler,
 		InitialDelaySeconds: 120,
 		TimeoutSeconds:      10,
 		PeriodSeconds:       300,
