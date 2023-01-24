@@ -45,6 +45,9 @@ const ReleaseUsageLabel = "ibm-licensing-service-usage"
 const NamespaceScopeLabelKey = "intent"
 const NamespaceScopeLabelValue = "projected"
 
+const ActiveCRState = "ACTIVE"
+const InactiveCRState = "INACTIVE"
+
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
 }

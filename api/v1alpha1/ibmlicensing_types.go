@@ -173,6 +173,8 @@ type IBMLicensingSecurityContext struct {
 
 // IBMLicensingStatus defines the observed state of IBMLicensing
 type IBMLicensingStatus struct {
+	// State field that defines status of the IBMLicensing
+	State string `json:"state,omitempty"`
 	// The status of IBM License Service Pods.
 	LicensingPods []corev1.PodStatus         `json:"licensingPods,omitempty"`
 	Features      IBMLicensingFeaturesStatus `json:"features,omitempty"`
