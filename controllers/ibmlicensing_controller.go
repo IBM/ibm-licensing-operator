@@ -176,11 +176,11 @@ func (r *IBMLicensingReconciler) Reconcile(tx context.Context, req reconcile.Req
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
 		r.reconcileServices,
-		r.reconcileDeployment,
 		r.reconcileIngress,
 		r.reconcileRouteWithoutCertificates,
 		r.reconcileCertificateSecrets,
 		r.reconcileRouteWithCertificates,
+		r.reconcileDeployment,
 		r.reconcileConfigMaps,
 		r.reconcileMeterDefinition,
 	}
@@ -854,8 +854,16 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 			}
 
 			if err := r.rolloutRestartDeployment(deploymentNsName); err != nil {
-				r.Log.Info("Failed to roll update deployment")
-				return reconcile.Result{Requeue: true}, err
+				switch err := err.(type) {
+				default:
+					r.Log.Info("Failed to roll update deployment")
+					return reconcile.Result{Requeue: true}, err
+				case *errors.StatusError:
+					if err.ErrStatus.Reason != "NotFound" {
+						r.Log.Info("Failed to roll update deployment")
+						return reconcile.Result{Requeue: true}, err
+					}
+				}
 			}
 		}
 
