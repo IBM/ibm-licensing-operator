@@ -26,9 +26,9 @@ BUILD_LOCALLY ?= 1
 # Image URL to use all building/pushing image targets;
 # Use your own docker registry and image name for dev/test by overriding the IMG, REGISTRY and CSV_VERSION environment variable.
 IMG ?= ibm-licensing-operator
-REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
+REGISTRY ?= "docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-integration-docker-local/ibmcom"
 
-SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom"
+SCRATCH_REGISTRY ?= "docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-scratch-docker-local/ibmcom"
 
 # Default bundle image tag
 IMAGE_BUNDLE_NAME ?= ibm-licensing-operator-bundle
@@ -212,11 +212,6 @@ install-operator-sdk:
 ifeq ($(BUILD_LOCALLY),0)
     export CONFIG_DOCKER_TARGET = config-docker
 config-docker:
-endif
-
-ifeq ($(BUILD_LOCALLY),0)
-    export CONFIG_DOCKER_TARGET_SCRATCH = config-docker-scratch
-config-docker-scratch:
 endif
 
 ##@ Build
