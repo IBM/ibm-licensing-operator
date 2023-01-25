@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #
-# Copyright 2022 IBM Corporation
+# Copyright 2023 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -64,3 +64,7 @@ echo "Updated the config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml"
 
 inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml
 echo "Updated the config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml"
+
+# Update relatedImages (make bundle target)
+inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" common/relatedImages.yaml
+echo "Updated the common/relatedImages.yaml"

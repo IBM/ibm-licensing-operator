@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import (
 const LicensingResourceBase = "ibm-licensing-service"
 const LicensingComponentName = "ibm-licensing-service-svc"
 const LicensingReleaseName = "ibm-licensing-service"
-const LicenseServiceOCPCertName = "ibm-license-service-cert-internal"
+const LicenseServiceInternalCertName = "ibm-license-service-cert-internal"
 const PrometheusServiceOCPCertName = "ibm-licensing-service-prometheus-cert"
 const LicenseServiceExternalCertName = "ibm-license-service-cert"
 const LicenseServiceCustomExternalCertName = "ibm-licensing-certs"
@@ -51,6 +51,11 @@ const NamespaceScopeLabelValue = "projected"
 
 //goland:noinspection GoNameStartsWithPackageName
 const ServiceAccountSecretName = "ibm-licensing-service-account-token"
+const DefaultReaderTokenName = "ibm-licensing-default-reader-token"
+const DefaultReaderServiceAccountName = "ibm-licensing-default-reader"
+
+const ActiveCRState = "ACTIVE"
+const InactiveCRState = "INACTIVE"
 
 func GetServiceAccountName(instance *operatorv1alpha1.IBMLicensing) string {
 	if instance.Spec.IsNamespaceScopeEnabled() {

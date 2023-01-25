@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"reflect"
 	goruntime "runtime"
+	"sort"
 	"time"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -101,7 +102,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:groups=operator.openshift.io,resources=servicecas,verbs=list
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 
-func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) {
+func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 
 	reqLogger := r.Log.WithValues("ibmlicensing", req.NamespacedName)
 	reqLogger.Info("Reconciling IBMLicensing")
@@ -109,6 +110,14 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 
 	if err := res.UpdateCacheClusterExtensions(r.Reader); err != nil {
 		reqLogger.Error(err, "Error during checking K8s API")
+	}
+
+	// Check if there are already IBMLicensing instances created
+	ibmlicensingList := &operatorv1alpha1.IBMLicensingList{}
+	if err := r.Client.List(context.TODO(), ibmlicensingList); err != nil {
+		// Error when looking for IMBLicensing objects - requeue
+		reqLogger.Error(err, "Couldn't retrieve IBMLicensing objects. Retrying.")
+		return reconcile.Result{}, err
 	}
 
 	// Fetch the IBMLicensing instance
@@ -120,13 +129,35 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
 			// reqLogger.Info("IBMLicensing resource not found. Ignoring since object must be deleted")
+
+			// In case of deleting active instance, detect new one
+			if !hasIBMLicensingListActiveInstance(ibmlicensingList) {
+				return reconcile.Result{}, r.findAndMarkActiveIBMLicensing(ibmlicensingList, reqLogger)
+			}
+
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the req.
 		// reqLogger.Error(err, "Failed to get IBMLicensing")
 		return reconcile.Result{}, err
 	}
+
 	instance := foundInstance.DeepCopy()
+
+	// Check if there are any active CR or if they are properly marked (field .State)
+	if !hasIBMLicensingListActiveInstance(ibmlicensingList) || instance.Status.State == "" {
+		err := r.findAndMarkActiveIBMLicensing(ibmlicensingList, reqLogger)
+		if err != nil {
+			reqLogger.Error(err, "Failed to update IBMLicensing CR status.")
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{Requeue: true}, nil
+	}
+
+	// Ignore reconciliation if CR is 'inactive'
+	if instance.Status.State == service.InactiveCRState {
+		return reconcile.Result{}, nil
+	}
 
 	err = service.UpdateVersion(r.Client, instance)
 	if err != nil {
@@ -147,14 +178,15 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	reconcileFunctions := []interface{}{
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
+		r.reconcileDefaultReaderToken,
 		r.reconcileServiceAccountToken,
-		r.reconcileConfigMaps,
 		r.reconcileServices,
 		r.reconcileDeployment,
 		r.reconcileIngress,
 		r.reconcileRouteWithoutCertificates,
 		r.reconcileCertificateSecrets,
 		r.reconcileRouteWithCertificates,
+		r.reconcileConfigMaps,
 		r.reconcileNetworkPolicy,
 		r.reconcileRHMPServiceMonitor,
 		r.reconcileAlertingServiceMonitor,
@@ -170,6 +202,51 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 
 	// Update status logic, using foundInstance, because we do not want to add filled default values to yaml
 	return r.updateStatus(foundInstance, reqLogger)
+}
+
+func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList *operatorv1alpha1.IBMLicensingList, reqLogger logr.Logger) error {
+	if ibmlicensingList.Items == nil || len(ibmlicensingList.Items) == 0 {
+		return nil
+	}
+
+	// Sort by creation timestamp
+	sort.SliceStable(ibmlicensingList.Items, func(i, j int) bool {
+		return ibmlicensingList.Items[i].ObjectMeta.CreationTimestamp.Time.Before(ibmlicensingList.Items[j].ObjectMeta.CreationTimestamp.Time)
+	})
+
+	// First element is oldest one and should only be active
+	initialInstance := ibmlicensingList.Items[0]
+
+	var cr operatorv1alpha1.IBMLicensing
+	// Mark all CRs states depending on their creation time
+	for _, cr = range ibmlicensingList.Items {
+		// Only firstly created instance is marked as 'active' and will be reconciled
+		if cr.UID == initialInstance.UID {
+			cr.Status.State = service.ActiveCRState
+		} else {
+			reqLogger.Info("IBMLicensing instance already exists! Ignoring CR: " + cr.Name)
+			// CR should be marked as 'inactive' and ignored during next reconciliation
+			if cr.Status.State != service.InactiveCRState {
+				cr.Status.State = service.InactiveCRState
+			}
+		}
+		err := r.Client.Status().Update(context.TODO(), &cr)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func hasIBMLicensingListActiveInstance(ibmlicensingList *operatorv1alpha1.IBMLicensingList) bool {
+	// Iterate over the ibmlicensingList items and check if there is any active CR
+	for _, s := range ibmlicensingList.Items {
+		if s.Status.State == service.ActiveCRState {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLicensing, reqLogger logr.Logger) (reconcile.Result, error) {
@@ -239,6 +316,38 @@ func (r *IBMLicensingReconciler) reconcileAPISecretToken(instance *operatorv1alp
 	return r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
 }
 
+// default reader token is not created by default since kubernetes 1.24, we need to ensure it is always generated
+// having two default reader tokens for previous k8s is not a problem, you can use either one, and both will be cleaned
+func (r *IBMLicensingReconciler) reconcileDefaultReaderToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcileDefaultReaderToken", "Entry", "instance.GetName()", instance.GetName())
+	expectedSecret, err := service.GetDefaultReaderToken(instance)
+	if err != nil {
+		reqLogger.Info("Failed to get expected secret")
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
+	}
+	foundSecret := &corev1.Secret{}
+	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	if expectedSecret.Annotations[service.ServiceAccountSecretAnnotationKey] !=
+		foundSecret.Annotations[service.ServiceAccountSecretAnnotationKey] {
+		err = r.Client.Delete(context.TODO(), foundSecret)
+		if err != nil {
+			reqLogger.Error(err, "Failed to delete ServiceAccount secret due to wrong annotations.")
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
+	}
+	return result, err
+}
+
 func (r *IBMLicensingReconciler) reconcileServiceAccountToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	if instance.Spec.IsAlertingEnabled() {
 		reqLogger := r.Log.WithValues("reconcileServiceAccountToken", "Entry", "instance.GetName()", instance.GetName())
@@ -288,8 +397,17 @@ func (r *IBMLicensingReconciler) reconcileUploadToken(instance *operatorv1alpha1
 
 func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("reconcileConfigMaps", "Entry", "instance.GetName()", instance.GetName())
+
+	internalCertificate := &corev1.Secret{}
+	certificateNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
+
+	if err := r.Client.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
+		r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
+		return reconcile.Result{Requeue: true}, err
+	}
+
 	expectedCMs := []*corev1.ConfigMap{
-		service.GetUploadConfigMap(instance),
+		service.GetUploadConfigMap(instance, string(internalCertificate.Data["tls.crt"])),
 		service.GetInfoConfigMap(instance),
 	}
 	for _, expectedCM := range expectedCMs {
@@ -419,11 +537,18 @@ func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.
 }
 
 func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	// for backward compatibility, we treat the "ocp" HTTPSCertsSource same as "self-signed"
-	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() && instance.Spec.HTTPSCertsSource != "custom" {
-		ocpExternalCertSecret := &corev1.Secret{}
+	var namespacedName types.NamespacedName
+	var hostname []string
+	var rolloutPods bool
+
+	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
+		// for backward compatibility, we treat the "ocp" HTTPSCertsSource same as "self-signed"
+		if instance.Spec.HTTPSCertsSource == "custom" {
+			r.Log.Info("Skipping external certificate reconciliation - custom certificate set")
+			return reconcile.Result{}, nil
+		}
+
 		r.Log.Info("Reconciling external certificate")
-		namespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceExternalCertName}
 
 		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.GetResourceName(instance)}
 		route := &routev1.Route{}
@@ -432,64 +557,25 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 			return reconcile.Result{Requeue: true}, err
 		}
 
-		if err := r.Client.Get(context.TODO(), namespacedName, ocpExternalCertSecret); err != nil {
-			r.Log.WithValues("external cert name", namespacedName).Info("external certificate secret not existing. Generating self signed certificate")
-
-			secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
-			if err != nil {
-				r.Log.Error(err, "Error generating self signed certificate")
-				return reconcile.Result{Requeue: true}, err
-			}
-
-			if err := r.Client.Create(context.TODO(), secret); err != nil {
-				r.Log.Error(err, "Error creating self signed certificate")
-				return reconcile.Result{Requeue: true}, err
-			}
-		} else {
-			// checking certificate
-			cert, err := res.ParseCertificate(ocpExternalCertSecret.Data["tls.crt"])
-			reqLogger := r.Log.WithValues("reconcileCertificate", "Entry", "instance.GetName()", instance.GetName())
-
-			// if improper x509 certificate
-			if err != nil {
-				r.Log.Error(err, "Improper x509 certificate in secret, regenrating certificate")
-				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
-				if err != nil {
-					r.Log.Error(err, "Error creating self signed certificate")
-					return reconcile.Result{Requeue: true}, err
-
-				}
-				return res.UpdateResource(&reqLogger, r.Client, secret, ocpExternalCertSecret)
-			}
-
-			// if certificate is expired
-			if cert.NotAfter.Before(time.Now()) {
-				r.Log.Info("Self signed certificate has expired. Generating new certificate")
-				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
-				if err != nil {
-					r.Log.Error(err, "Error creating self signed certificate")
-					return reconcile.Result{Requeue: true}, err
-
-				}
-				return res.UpdateResource(&reqLogger, r.Client, secret, ocpExternalCertSecret)
-			}
-
-			// if certificate is not issued to the route host
-			if err := cert.VerifyHostname(route.Spec.Host); err != nil {
-				r.Log.Info("Certificate not issued to a propper hostname. Generating new self-signed certificate")
-				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
-				if err != nil {
-					r.Log.Error(err, "Error creating self signed certificate")
-					return reconcile.Result{Requeue: true}, err
-
-				}
-				return res.UpdateResource(&reqLogger, r.Client, secret, ocpExternalCertSecret)
-			}
-
-		}
+		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceExternalCertName}
+		hostname = []string{route.Spec.Host}
+		rolloutPods = false
 	}
 
-	return reconcile.Result{}, nil
+	// Reconcile internal certificate only on non-OCP environments
+	if !res.IsServiceCAAPI {
+		r.Log.Info("Reconciling internal certificate")
+
+		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
+
+		hostname = make([]string, 2)
+		hostname[0] = fmt.Sprintf("%s.%s.svc", service.GetResourceName(instance), instance.Spec.InstanceNamespace)
+		hostname[1] = fmt.Sprintf("%s.%s.svc.cluster.local", service.GetResourceName(instance), instance.Spec.InstanceNamespace)
+
+		rolloutPods = true
+	}
+
+	return r.reconcileSelfSignedCertificate(instance, namespacedName, hostname, rolloutPods)
 }
 
 func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -510,7 +596,7 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 		}
 
 		internalCertSecret := corev1.Secret{}
-		internalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceOCPCertName}
+		internalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 		if err := r.Client.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
 			r.Log.Error(err, "Cannot retrieve external certificate from secret")
 			return reconcile.Result{Requeue: true}, nil
@@ -708,14 +794,14 @@ func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1al
 }
 
 func (r *IBMLicensingReconciler) reconcileResourceNamespacedExistence(
-	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes client.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
 	return r.reconcileResourceExistence(instance, instance, expectedRes, foundRes, namespacedName)
 }
 
 func (r *IBMLicensingReconciler) reconcileResourceNamespacedExistenceWithCustomController(
-	instance *operatorv1alpha1.IBMLicensing, controller, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+	instance *operatorv1alpha1.IBMLicensing, controller, expectedRes res.ResourceObject, foundRes client.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
 	return r.reconcileResourceExistence(instance, controller, expectedRes, foundRes, namespacedName)
@@ -725,7 +811,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	instance *operatorv1alpha1.IBMLicensing,
 	controller metav1.Object,
 	expectedRes res.ResourceObject,
-	foundRes runtime.Object,
+	foundRes client.Object,
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
 
 	resType := reflect.TypeOf(expectedRes)
@@ -765,7 +851,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 }
 
 func (r *IBMLicensingReconciler) reconcileNamespacedResourceWhichShouldNotExist(
-	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes client.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
 	return r.reconcileResourceWhichShouldNotExist(instance, expectedRes, foundRes, namespacedName)
@@ -774,7 +860,7 @@ func (r *IBMLicensingReconciler) reconcileNamespacedResourceWhichShouldNotExist(
 func (r *IBMLicensingReconciler) reconcileResourceWhichShouldNotExist(
 	instance *operatorv1alpha1.IBMLicensing,
 	expectedRes res.ResourceObject,
-	foundRes runtime.Object,
+	foundRes client.Object,
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
 
 	resType := reflect.TypeOf(expectedRes)
@@ -837,4 +923,102 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 		r.Log.Info("Namespace scope restriction is enabled")
 	}
 
+}
+
+func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operatorv1alpha1.IBMLicensing, secretNsName types.NamespacedName, hostname []string, rolloutPods bool) (reconcile.Result, error) {
+	certSecret := &corev1.Secret{}
+
+	if err := r.Client.Get(context.TODO(), secretNsName, certSecret); err != nil {
+		r.Log.WithValues("cert name", secretNsName).Info("certificate secret not existing. Generating self signed certificate")
+
+		secret, err := r.getSelfSignedCertWithOwnerReference(instance, secretNsName, hostname)
+		if err != nil {
+			r.Log.Error(err, "Error generating self signed certificate")
+			return reconcile.Result{Requeue: true}, err
+		}
+
+		if err := r.Client.Create(context.TODO(), secret); err != nil {
+			r.Log.Error(err, "Error creating self signed certificate")
+			return reconcile.Result{Requeue: true}, err
+		}
+		if rolloutPods {
+			deploymentNsName := types.NamespacedName{
+				Name:      service.GetResourceName(instance),
+				Namespace: instance.Spec.InstanceNamespace,
+			}
+
+			if err := r.rolloutRestartDeployment(deploymentNsName); err != nil {
+				r.Log.Info("Failed to roll update deployment")
+				return reconcile.Result{Requeue: true}, err
+			}
+		}
+
+		return reconcile.Result{}, nil
+	}
+	// checking certificate
+	cert, err := res.ParseCertificate(certSecret.Data["tls.crt"])
+	reqLogger := r.Log.WithValues("reconcileCertificate", "Entry", "instance.GetName()", instance.GetName())
+
+	regenerateCertificate := false
+
+	// if improper x509 certificate
+	if err != nil {
+		r.Log.Error(err, "Improper x509 certificate in secret")
+		regenerateCertificate = true
+	}
+	// if certificate is expired
+	if cert.NotAfter.Before(time.Now().AddDate(0, 0, 90)) {
+		r.Log.Info("Self signed certificate is expiring in less than 90 days.")
+		regenerateCertificate = true
+	}
+	// if certificate is not issued to the proper host
+	if err := cert.VerifyHostname(hostname[0]); err != nil {
+		r.Log.Info("Certificate not issued to a proper hostname.")
+		regenerateCertificate = true
+	}
+
+	if regenerateCertificate {
+		r.Log.Info("Regenerating certificate")
+		secret, err := r.getSelfSignedCertWithOwnerReference(instance, secretNsName, hostname)
+		if err != nil {
+			r.Log.Error(err, "Error creating self signed certificate")
+			return reconcile.Result{Requeue: true}, err
+
+		}
+		result, err2 := res.UpdateResource(&reqLogger, r.Client, secret, certSecret)
+		if err2 != nil {
+			return result, err
+		}
+
+		if rolloutPods {
+			deploymentNsName := types.NamespacedName{
+				Name:      service.GetResourceName(instance),
+				Namespace: instance.Spec.InstanceNamespace,
+			}
+
+			if err := r.rolloutRestartDeployment(deploymentNsName); err != nil {
+				r.Log.Info("Failed to roll update deployment")
+				return reconcile.Result{Requeue: true}, err
+			}
+		}
+
+		return result, nil
+	}
+	r.Log.Info("*v1.Certificate exists!")
+	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicensingReconciler) rolloutRestartDeployment(deploymentNsName types.NamespacedName) error {
+	r.Log.Info("Performing rolling restart of deployment")
+	data := fmt.Sprintf(`{"spec":{"template":{"metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"%s"}}}}}`, time.Now().String())
+	patch := []byte(data)
+
+	r.Log.Info(data)
+
+	return r.Client.Patch(context.TODO(), &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: deploymentNsName.Namespace,
+			Name:      deploymentNsName.Name,
+		},
+	}, client.RawPatch(types.MergePatchType, patch))
 }

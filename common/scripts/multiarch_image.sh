@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2022 IBM Corporation
+# Copyright 2023 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ IMAGE_REPO=${1}
 IMAGE_NAME=${2}
 VERSION=${3-"$(git describe --exact-match 2> /dev/null || git describe --match="$(git rev-parse --short=8 HEAD)" --always --dirty --abbrev=8)"}
 MANIFEST_VERSION=${4}
+ADDITIONAL_TAG=${5}
 
 MAX_PULLING_RETRY=${MAX_PULLING_RETRY-10}
 RETRY_INTERVAL=${RETRY_INTERVAL-10}
@@ -58,3 +59,11 @@ ${CONTAINER_CLI} manifest create "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VER
 echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${MANIFEST_VERSION}..."
 ${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}"
 
+if [ -n "$ADDITIONAL_TAG" ]
+then
+  ADDITIONAL_TAG="${ADDITIONAL_TAG//[^[:alnum:]\.\_\-]/-}"
+  ${CONTAINER_CLI} pull "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}"
+  echo "Tagging multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${ADDITIONAL_TAG} with branch name..."
+  ${CONTAINER_CLI} tag "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}" "${IMAGE_REPO}"/"${IMAGE_NAME}":"${ADDITIONAL_TAG}"
+  ${CONTAINER_CLI} push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${ADDITIONAL_TAG}"
+fi

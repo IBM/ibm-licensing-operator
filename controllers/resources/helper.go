@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	mathRand "math/rand"
 
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 
@@ -388,21 +387,21 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		c.InNamespace(namespace),
 	}
 
-	MeterDefinitionCRD := &rhmp.MeterDefinition{}
+	MeterDefinitionCRD := &rhmp.MeterDefinitionList{}
 	if err := client.List(context.TODO(), MeterDefinitionCRD, listOpts...); err == nil {
 		RHMPEnabled = true
 	} else {
 		RHMPEnabled = false
 	}
 
-	routeTestInstance := &routev1.Route{}
+	routeTestInstance := &routev1.RouteList{}
 	if err := client.List(context.TODO(), routeTestInstance, listOpts...); err == nil {
 		IsRouteAPI = true
 	} else {
 		IsRouteAPI = false
 	}
 
-	serviceCAInstance := &servicecav1.ServiceCA{}
+	serviceCAInstance := &servicecav1.ServiceCAList{}
 	if err := client.List(context.TODO(), serviceCAInstance, listOpts...); err == nil {
 		IsServiceCAAPI = true
 		IsAlertingEnabledByDefault = true
@@ -411,7 +410,7 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsAlertingEnabledByDefault = false
 	}
 
-	odlmTestInstance := &odlm.OperandBindInfo{}
+	odlmTestInstance := &odlm.OperandBindInfoList{}
 	if err := client.List(context.TODO(), odlmTestInstance, listOpts...); err == nil {
 		IsODLM = true
 	} else {
@@ -423,7 +422,7 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 
 // Returns true if configmaps are equal
 func CompareConfigMap(cm1, cm2 *corev1.ConfigMap) bool {
-	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels)
+	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels) && reflect.DeepEqual(cm1.BinaryData, cm2.BinaryData)
 }
 
 // Returns true if routes are equal
@@ -497,11 +496,13 @@ func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, dns []str
 		commonName = dns[0]
 	}
 
+	// need to generate a different serial number each execution
+	serialNumber, _ := rand.Int(rand.Reader, big.NewInt(1000000))
+
 	tml := x509.Certificate{
-		NotBefore: time.Now(),
-		NotAfter:  time.Now().AddDate(1, 0, 0),
-		// need to generate a different serial number each execution
-		SerialNumber: big.NewInt(int64(mathRand.Intn(1000000))),
+		NotBefore:    time.Now(),
+		NotAfter:     time.Now().AddDate(1, 0, 0),
+		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			CommonName:   commonName,
 			Organization: []string{"IBM"},

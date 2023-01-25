@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,10 +25,13 @@ import (
 
 const APISecretTokenVolumeName = "api-token"
 const LicenseReporterHTTPSCertsVolumeName = "license-reporter-https-certs"
-const DatabaseCredentialsVolumeName = "db-config"
+const DatabaseCredentialsVolumeName = "db-config" //nolint:gosec
 const persistentVolumeClaimVolumeName = "data"
+const ReceiverTmpVolumeName = "receiver-tmp"
+const DatabaseTmpVolumeName = "db-tmp"
+const DatabaseSocketsVolumeName = "db-sockets"
 
-func getVolumeMounts(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []corev1.VolumeMount {
+func getReceiverVolumeMounts() []corev1.VolumeMount {
 	var volumeMounts = []corev1.VolumeMount{
 		{
 			Name:      APISecretTokenVolumeName,
@@ -40,16 +43,20 @@ func getVolumeMounts(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []core
 			MountPath: "/opt/ibm/licensing/" + DatabaseConfigSecretName,
 			ReadOnly:  true,
 		},
+		{
+			Name:      ReceiverTmpVolumeName,
+			MountPath: "/tmp",
+			ReadOnly:  false,
+		},
 	}
-	if resources.IsServiceCAAPI && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
-		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
-			{
-				Name:      LicenseReporterHTTPSCertsVolumeName,
-				MountPath: "/opt/licensing/certs/",
-				ReadOnly:  true,
-			},
-		}...)
-	}
+	volumeMounts = append(volumeMounts, []corev1.VolumeMount{
+		{
+			Name:      LicenseReporterHTTPSCertsVolumeName,
+			MountPath: "/opt/licensing/certs/",
+			ReadOnly:  true,
+		},
+	}...)
+
 	return volumeMounts
 }
 
@@ -63,6 +70,16 @@ func getDatabaseVolumeMounts() []corev1.VolumeMount {
 			Name:      DatabaseCredentialsVolumeName,
 			MountPath: "/opt/ibm/licensing/" + DatabaseConfigSecretName,
 			ReadOnly:  true,
+		},
+		{
+			Name:      DatabaseSocketsVolumeName,
+			MountPath: "/var/run/",
+			ReadOnly:  false,
+		},
+		{
+			Name:      DatabaseTmpVolumeName,
+			MountPath: "/tmp/",
+			ReadOnly:  false,
 		},
 	}
 }
@@ -96,10 +113,27 @@ func getLicenseServiceReporterVolumes(spec operatorv1alpha1.IBMLicenseServiceRep
 				},
 			},
 		},
+		{
+			Name: ReceiverTmpVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		},
+		{
+			Name: DatabaseTmpVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		},
+		{
+			Name: DatabaseSocketsVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		},
 	}
 
-	if resources.IsServiceCAAPI {
-		volumes = append(volumes, resources.GetVolume(LicenseReporterHTTPSCertsVolumeName, LicenseReportOCPCertName))
-	}
+	volumes = append(volumes, resources.GetVolume(LicenseReporterHTTPSCertsVolumeName, LicenseReportOCPCertName))
+
 	return volumes
 }

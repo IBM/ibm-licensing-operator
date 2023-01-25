@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2022 IBM Corporation
+# Copyright 2023 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 
 echo ">>> Installing Operator SDK"
 
-# Use version 0.15.2
-RELEASE_VERSION=v0.15.2
+TARGET_OS=$1
+LOCAL_ARCH=$2
+OPERATOR_SDK_VERSION=$3
+
 # Download binary
-curl -LO https://github.com/operator-framework/operator-sdk/releases/download/${RELEASE_VERSION}/operator-sdk-${RELEASE_VERSION}-x86_64-linux-gnu
+curl -LO https://github.com/operator-framework/operator-sdk/releases/download/"${OPERATOR_SDK_VERSION}"/operator-sdk_"${TARGET_OS}"_"${LOCAL_ARCH}"
 # Install binary
-chmod +x operator-sdk-${RELEASE_VERSION}-x86_64-linux-gnu && mkdir -p /usr/local/bin/ && cp operator-sdk-${RELEASE_VERSION}-x86_64-linux-gnu /usr/local/bin/operator-sdk && rm operator-sdk-${RELEASE_VERSION}-x86_64-linux-gnu
+chmod +x operator-sdk_"${TARGET_OS}"_"${LOCAL_ARCH}" && mkdir -p /usr/local/bin/ && cp operator-sdk_"${TARGET_OS}"_"${LOCAL_ARCH}" /usr/local/bin/operator-sdk && rm operator-sdk_"${TARGET_OS}"_"${LOCAL_ARCH}"

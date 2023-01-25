@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2022 IBM Corporation
+# Copyright 2023 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -317,9 +317,9 @@ EOF
   fi
   log "Checking IBMLicensing instance status"
   retries=36
-  until [[ $retries == 0 || "$ibmlicensing_phase" == "Running" ]]; do
+  until [[ $retries == 0 || "$ibmlicensing_phase" == Running* ]]; do
     if [[ "$retries" != 36 ]]; then
-      sleep 10
+      sleep 30
     fi
     retries=$((retries - 1))
     ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null)

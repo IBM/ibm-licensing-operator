@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import (
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
 	"github.com/IBM/ibm-licensing-operator/version"
-
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
@@ -89,19 +88,10 @@ func LabelsForPod(instance *operatorv1alpha1.IBMLicenseServiceReporter) map[stri
 }
 
 func getReciverEnvVariables(spec operatorv1alpha1.IBMLicenseServiceReporterSpec) []corev1.EnvVar {
-	var certSource operatorv1alpha1.HTTPSCertsSource
-
-	if res.IsServiceCAAPI {
-		certSource = operatorv1alpha1.OcpCertsSource
-	} else {
-		// on K8s always always generate self-signed certificate in operand
-		certSource = operatorv1alpha1.SelfSignedCertsSource
-	}
-
 	environmentVariables := []corev1.EnvVar{
 		{
 			Name:  "HTTPS_CERTS_SOURCE",
-			Value: string(certSource),
+			Value: string(operatorv1alpha1.ExternalCertsSource),
 		},
 	}
 	if spec.IsDebug() {

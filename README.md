@@ -21,7 +21,7 @@ Red Hat OpenShift Container Platform 4.2 or newer installed on Linux x86_64, Lin
 
 ## Operator versions
 
-- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.2, 1.2.3, 1.3.1, 1.4.1, 1.5.0, 1.6.0, 1.7.0, 1.8.0, 1.9.0, 1.10.0, 1.11.0, 1.12.0, 1.13.0, 1.14.0, 1.15.0, 1.16.0, 1.17.0, 1.18.0, 1.19.0
+- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.2, 1.2.3, 1.3.1, 1.4.1, 1.5.0, 1.6.0, 1.7.0, 1.8.0, 1.9.0, 1.10.0, 1.11.0, 1.12.0, 1.13.0, 1.14.0, 1.15.0, 1.16.0, 1.17.0, 1.18.0, 1.19.0, 1.20.0
 
 ## Prerequisites
 
@@ -56,7 +56,7 @@ You can use the `ibm-licensing-operator` to install License Service on any Kuber
 
 ## Product documentation
 
-For the overview and documentation, see [License Service deployment without an IBM Cloud  for IBM stand-alone IBM Cntainerized Software](https://ibm.biz/license_service4containers).
+For the overview and documentation, see [License Service deployment without an IBM Cloud for IBM stand-alone IBM Containerized Software](https://ibm.biz/license_service4containers).
 
 <!--- The short link: https://ibm.biz/license_service4containers contains documentation for License Service stand-alond intended for IBM stand alone COntainerized Software. To have this link updated contact the Foundational services ID team, manager: Dan Hawkins.
 --->
