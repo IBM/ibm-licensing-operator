@@ -11,6 +11,7 @@ metadata:
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to
       monitor the licensing usage of products.
     olm.skipRange: '>=1.0.0 <1.20.0'
+    operatorframework.io/suggested-namespace: ibm-licensing
     operators.operatorframework.io/builder: operator-sdk-v1.25.2
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com",
       "ibmlicensingdefinitions.operator.ibm.com", "ibmlicensingquerysources.operator.ibm.com"]'
@@ -287,9 +288,9 @@ spec:
     type: OwnNamespace
   - supported: true
     type: SingleNamespace
-  - supported: false
+  - supported: true
     type: MultiNamespace
-  - supported: false
+  - supported: true
     type: AllNamespaces
   keywords:
   - IBMLicensing
