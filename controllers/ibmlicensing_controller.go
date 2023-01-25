@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -134,7 +134,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:groups=operator.openshift.io,resources=servicecas,verbs=list
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 
-func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) {
+func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 
 	reqLogger := r.Log.WithValues("ibmlicensing", req.NamespacedName)
 	reqLogger.Info("Reconciling IBMLicensing")
@@ -212,6 +212,7 @@ func (r *IBMLicensingReconciler) Reconcile(req reconcile.Request) (reconcile.Res
 	reconcileFunctions := []interface{}{
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
+		r.reconcileDefaultReaderToken,
 		r.reconcileServiceAccountToken,
 		r.reconcileServices,
 		r.reconcileDeployment,
@@ -347,6 +348,38 @@ func (r *IBMLicensingReconciler) reconcileAPISecretToken(instance *operatorv1alp
 	}
 	foundSecret := &corev1.Secret{}
 	return r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+}
+
+// default reader token is not created by default since kubernetes 1.24, we need to ensure it is always generated
+// having two default reader tokens for previous k8s is not a problem, you can use either one, and both will be cleaned
+func (r *IBMLicensingReconciler) reconcileDefaultReaderToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcileDefaultReaderToken", "Entry", "instance.GetName()", instance.GetName())
+	expectedSecret, err := service.GetDefaultReaderToken(instance)
+	if err != nil {
+		reqLogger.Info("Failed to get expected secret")
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
+	}
+	foundSecret := &corev1.Secret{}
+	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	if expectedSecret.Annotations[service.ServiceAccountSecretAnnotationKey] !=
+		foundSecret.Annotations[service.ServiceAccountSecretAnnotationKey] {
+		err = r.Client.Delete(context.TODO(), foundSecret)
+		if err != nil {
+			reqLogger.Error(err, "Failed to delete ServiceAccount secret due to wrong annotations.")
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
+	}
+	return result, err
 }
 
 func (r *IBMLicensingReconciler) reconcileServiceAccountToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -795,14 +828,14 @@ func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1al
 }
 
 func (r *IBMLicensingReconciler) reconcileResourceNamespacedExistence(
-	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes client.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
 	return r.reconcileResourceExistence(instance, instance, expectedRes, foundRes, namespacedName)
 }
 
 func (r *IBMLicensingReconciler) reconcileResourceNamespacedExistenceWithCustomController(
-	instance *operatorv1alpha1.IBMLicensing, controller, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+	instance *operatorv1alpha1.IBMLicensing, controller, expectedRes res.ResourceObject, foundRes client.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
 	return r.reconcileResourceExistence(instance, controller, expectedRes, foundRes, namespacedName)
@@ -812,7 +845,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	instance *operatorv1alpha1.IBMLicensing,
 	controller metav1.Object,
 	expectedRes res.ResourceObject,
-	foundRes runtime.Object,
+	foundRes client.Object,
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
 
 	resType := reflect.TypeOf(expectedRes)
@@ -852,7 +885,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 }
 
 func (r *IBMLicensingReconciler) reconcileNamespacedResourceWhichShouldNotExist(
-	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes runtime.Object) (reconcile.Result, error) {
+	instance *operatorv1alpha1.IBMLicensing, expectedRes res.ResourceObject, foundRes client.Object) (reconcile.Result, error) {
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
 	return r.reconcileResourceWhichShouldNotExist(instance, expectedRes, foundRes, namespacedName)
@@ -861,7 +894,7 @@ func (r *IBMLicensingReconciler) reconcileNamespacedResourceWhichShouldNotExist(
 func (r *IBMLicensingReconciler) reconcileResourceWhichShouldNotExist(
 	instance *operatorv1alpha1.IBMLicensing,
 	expectedRes res.ResourceObject,
-	foundRes runtime.Object,
+	foundRes client.Object,
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
 
 	resType := reflect.TypeOf(expectedRes)

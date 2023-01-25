@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,6 +35,18 @@ const CrtConfigMapKey = "crt.pem"
 
 //goland:noinspection GoNameStartsWithPackageName
 const ServiceAccountSecretAnnotationKey = "kubernetes.io/service-account.name"
+
+func GetDefaultReaderToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
+	expectedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        DefaultReaderTokenName,
+			Namespace:   instance.Spec.InstanceNamespace,
+			Annotations: map[string]string{ServiceAccountSecretAnnotationKey: DefaultReaderServiceAccountName},
+		},
+		Type: corev1.SecretTypeServiceAccountToken,
+	}
+	return expectedSecret, nil
+}
 
 func GetServiceAccountSecret(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
 	expectedSecret := &corev1.Secret{
