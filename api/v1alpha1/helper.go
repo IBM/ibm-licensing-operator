@@ -82,6 +82,10 @@ const (
 	SelfSignedCertsSource HTTPSCertsSource = "self-signed"
 	// CustomCertsSource means application will use certificate created by user
 	CustomCertsSource HTTPSCertsSource = "custom"
+
+	// Option for operand HTTPS_CERTS_SOURCE
+	// ExternalCertsSource means operand will use certificate from a volume mounted to a container
+	ExternalCertsSource = "external"
 )
 
 type IBMLicenseServiceBaseSpec struct {

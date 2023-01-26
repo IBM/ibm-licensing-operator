@@ -1,3 +1,6 @@
+ignore: |
+  common/scripts/updateCSV/*
+
 rules:
   braces: disable
   brackets: disable

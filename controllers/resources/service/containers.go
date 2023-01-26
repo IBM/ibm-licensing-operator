@@ -56,7 +56,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 	if spec.HTTPSEnable {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "HTTPS_CERTS_SOURCE",
-			Value: string(spec.HTTPSCertsSource),
+			Value: string(operatorv1alpha1.ExternalCertsSource),
 		})
 	}
 	if spec.IsMetering() {
@@ -102,7 +102,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "false",
 		})
 	}
-	if spec.IsPrometheusQuerySourceEnabled() {
+	if spec.IsPrometheusQuerySourceEnabled() && resources.IsServiceCAAPI {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "PROMETHEUS_QUERY_SOURCE_ENABLED",
 			Value: "true",
@@ -190,9 +190,9 @@ func getProbeScheme(spec operatorv1alpha1.IBMLicensingSpec) corev1.URIScheme {
 	return "HTTP"
 }
 
-func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.Handler {
+func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.ProbeHandler {
 	var probeScheme = getProbeScheme(spec)
-	return corev1.Handler{
+	return corev1.ProbeHandler{
 		HTTPGet: &corev1.HTTPGetAction{
 			Path: "/",
 			Port: intstr.IntOrString{
@@ -204,8 +204,8 @@ func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.Handler {
 	}
 }
 
-func getUsageProbeHandler() corev1.Handler {
-	return corev1.Handler{
+func getUsageProbeHandler() corev1.ProbeHandler {
+	return corev1.ProbeHandler{
 		HTTPGet: &corev1.HTTPGetAction{
 			Path: "/metrics",
 			Port: intstr.IntOrString{
