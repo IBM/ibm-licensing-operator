@@ -55,7 +55,7 @@ func GetUploadToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, er
 	return resources.GetSecretToken(APIUploadTokenName, instance.Spec.InstanceNamespace, APIUploadTokenKeyName, LabelsForMeta(instance))
 }
 
-func GetUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) *corev1.ConfigMap {
+func GetUploadConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertData string) *corev1.ConfigMap {
 	metaLabels := LabelsForMeta(instance)
 	expectedCM := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -63,12 +63,15 @@ func GetUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) *corev1.ConfigM
 			Namespace: instance.Spec.InstanceNamespace,
 			Labels:    metaLabels,
 		},
-		Data: map[string]string{URLConfigMapKey: GetServiceURL(instance)},
+		Data: map[string]string{
+			URLConfigMapKey: GetServiceURL(instance),
+			CrtConfigMapKey: internalCertData,
+		},
 	}
 	return expectedCM
 }
 
-func GetInfoConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertData string) *corev1.ConfigMap {
+func GetInfoConfigMap(instance *operatorv1alpha1.IBMLicensing) *corev1.ConfigMap {
 	metaLabels := LabelsForMeta(instance)
 	expectedCM := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -76,10 +79,7 @@ func GetInfoConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertData 
 			Namespace: instance.Spec.InstanceNamespace,
 			Labels:    metaLabels,
 		},
-		Data: map[string]string{
-			URLConfigMapKey: GetServiceURL(instance),
-			CrtConfigMapKey: internalCertData,
-		},
+		Data: map[string]string{URLConfigMapKey: GetServiceURL(instance)},
 	}
 	return expectedCM
 }
