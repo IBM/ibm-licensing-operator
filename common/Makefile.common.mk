@@ -30,9 +30,6 @@ get-cluster-credentials: activate-serviceaccount
 config-docker: get-cluster-credentials
 	@common/scripts/config_docker.sh
 
-config-docker-scratch: get-cluster-credentials
-	@common/scripts/config_docker_scratch.sh
-
 ############################################################
 # install git hooks
 ############################################################
