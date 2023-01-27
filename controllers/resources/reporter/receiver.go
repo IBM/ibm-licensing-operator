@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 package reporter
 
 import (
-	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	"github.com/ibm/ibm-licensing-operator/controllers/resources"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
 func GetLicenseReporterInitContainers(instance *operatorv1alpha1.IBMLicenseServiceReporter) []corev1.Container {
@@ -42,8 +43,8 @@ func GetLicenseReporterInitContainers(instance *operatorv1alpha1.IBMLicenseServi
 	return containers
 }
 
-func getReceiverProbeHandler() corev1.Handler {
-	return corev1.Handler{
+func getReceiverProbeHandler() corev1.ProbeHandler {
+	return corev1.ProbeHandler{
 		HTTPGet: &corev1.HTTPGetAction{
 			Path: "/",
 			Port: intstr.IntOrString{
@@ -58,7 +59,7 @@ func getReceiverProbeHandler() corev1.Handler {
 func GetReceiverContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
 	container := resources.GetContainerBase(instance.Spec.ReceiverContainer)
 	container.Env = getReciverEnvVariables(instance.Spec)
-	container.VolumeMounts = getVolumeMounts(instance.Spec)
+	container.VolumeMounts = getReceiverVolumeMounts()
 	container.Name = ReceiverContainerName
 	container.Ports = []corev1.ContainerPort{
 		{

@@ -68,6 +68,13 @@ spec:
               features:
                 description: Set additional features under this field
                 properties:
+                  alerting:
+                    description: Change alerting settings.
+                    properties:
+                      enabled:
+                        description: Should this function be enabled.
+                        type: boolean
+                    type: object
                   auth:
                     description: Authorization settings.
                     properties:
@@ -1045,6 +1052,9 @@ spec:
                       type: string
                   type: object
                 type: array
+              state:
+                description: State field that defines status of the IBMLicensing
+                type: string
             type: object
         type: object
     served: true

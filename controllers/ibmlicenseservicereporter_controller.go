@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,9 +27,6 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 
 	"github.com/go-logr/logr"
-	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	res "github.com/ibm/ibm-licensing-operator/controllers/resources"
-	"github.com/ibm/ibm-licensing-operator/controllers/resources/reporter"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -41,6 +38,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources/reporter"
 
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
@@ -94,7 +95,7 @@ type reconcileLRFunctionType = func(*operatorv1alpha1.IBMLicenseServiceReporter)
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=operator.ibm.com,resources=ibmlicenseservicereporters;ibmlicenseservicereporters/status;ibmlicenseservicereporters/finalizers;operandbindinfos,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicenseservicereporters;ibmlicenseservicereporters/status;ibmlicenseservicereporters/finalizers,verbs=get;list;watch;create;update;patch;delete
 
-func (r *IBMLicenseServiceReporterReconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) {
+func (r *IBMLicenseServiceReporterReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("Request", req)
 	reqLogger.Info("Reconciling IBMLicenseServiceReporter")
 	goruntime.GC()
@@ -118,7 +119,9 @@ func (r *IBMLicenseServiceReporterReconciler) Reconcile(req reconcile.Request) (
 		r.reconcileOperandBindInfo,
 		r.reconcileOidcCredentials,
 		r.reconcileDeployment,
-		r.reconcileReporterRoute,
+		r.reconcileReporterRouteWithoutCertificates,
+		r.reconcileCertificateSecrets,
+		r.reconcileReporterRouteWithCertificates,
 		r.reconcileUIIngress,
 		r.reconcileIngressProxy,
 		r.reconcileSenderConfiguration,
@@ -397,20 +400,167 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileDeployment(instance *oper
 	return reconcile.Result{}, nil
 }
 
-func (r *IBMLicenseServiceReporterReconciler) reconcileReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
-	if res.IsRouteAPI {
-		expectedRoute := reporter.GetReporterRoute(instance)
-		foundRoute := &routev1.Route{}
-		namespacedName := types.NamespacedName{Name: expectedRoute.GetName(), Namespace: expectedRoute.GetNamespace()}
-		reconcileResult, err := r.reconcileResourceExistence(instance, expectedRoute, foundRoute, namespacedName)
+func (r *IBMLicenseServiceReporterReconciler) reconcileCertificateSecrets(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
+	// for backward compatibility, we treat the "ocp" HTTPSCertsSource same as "self-signed"
+	if res.IsRouteAPI && instance.Spec.HTTPSCertsSource != operatorv1alpha1.CustomCertsSource {
+		ocpExternalCertSecret := &corev1.Secret{}
+		r.Log.Info("Reconciling external certificate")
+		namespacedName := types.NamespacedName{Namespace: instance.GetNamespace(), Name: reporter.LicenseReportExternalCertName}
+		routeNamespacedName := types.NamespacedName{Namespace: instance.GetNamespace(), Name: reporter.LicenseReporterResourceBase}
 
+		route := &routev1.Route{}
+		if err := r.Client.Get(context.TODO(), routeNamespacedName, route); err != nil {
+			r.Log.Error(err, "Cannot get route")
+			return reconcile.Result{Requeue: true}, err
+		}
+
+		if err := r.Client.Get(context.TODO(), namespacedName, ocpExternalCertSecret); err != nil {
+			r.Log.WithValues("external cert name", namespacedName).Info("external certificate secret not existing. Generating self signed certificate")
+
+			secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
+			if err != nil {
+				r.Log.Error(err, "Error generating self signed certificate")
+				return reconcile.Result{Requeue: true}, err
+			}
+
+			if err := r.Client.Create(context.TODO(), secret); err != nil {
+				r.Log.Error(err, "Error creating self signed certificate")
+				return reconcile.Result{Requeue: true}, err
+			}
+		} else {
+			// checking certificate
+			cert, err := res.ParseCertificate(ocpExternalCertSecret.Data["tls.crt"])
+			reqLogger := r.Log.WithValues("reconcileCertificate", "Entry", "instance.GetName()", instance.GetName())
+
+			// if improper x509 certificate
+			if err != nil {
+				r.Log.Error(err, "Improper x509 certificate in secret, regenrating certificate")
+				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
+				if err != nil {
+					r.Log.Error(err, "Error creating self signed certificate")
+					return reconcile.Result{Requeue: true}, err
+
+				}
+				return res.UpdateResource(&reqLogger, r.Client, secret, ocpExternalCertSecret)
+			}
+
+			// if certificate is expired
+			if cert.NotAfter.Before(time.Now().AddDate(0, 0, 90)) {
+				r.Log.Info("Self signed certificate has expired. Generating new certificate")
+				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
+				if err != nil {
+					r.Log.Error(err, "Error creating self signed certificate")
+					return reconcile.Result{Requeue: true}, err
+
+				}
+				return res.UpdateResource(&reqLogger, r.Client, secret, ocpExternalCertSecret)
+			}
+
+			// if certificate is not issued to the route host
+			if err := cert.VerifyHostname(route.Spec.Host); err != nil {
+				r.Log.Info("Certificate not issued to a proper hostname. Generating new self-signed certificate")
+				secret, err := r.getSelfSignedCertWithOwnerReference(instance, namespacedName, []string{route.Spec.Host})
+				if err != nil {
+					r.Log.Error(err, "Error creating self signed certificate")
+					return reconcile.Result{Requeue: true}, err
+
+				}
+				return res.UpdateResource(&reqLogger, r.Client, secret, ocpExternalCertSecret)
+			}
+
+		}
+	}
+
+	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicenseServiceReporterReconciler) reconcileReporterRouteWithoutCertificates(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
+	if res.IsRouteAPI {
+		routeNamespacedName := types.NamespacedName{Namespace: instance.GetNamespace(), Name: reporter.LicenseReporterResourceBase}
+		route := &routev1.Route{}
+		if err := r.Client.Get(context.TODO(), routeNamespacedName, route); err != nil {
+			r.Log.Info("Route does not exist, reconciling route without certificates")
+
+			defaultRouteTLS := &routev1.TLSConfig{
+				Termination:                   routev1.TLSTerminationReencrypt,
+				InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
+			}
+			return r.reconcileRouteWithTLS(instance, defaultRouteTLS)
+		}
+	}
+	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicenseServiceReporterReconciler) reconcileReporterRouteWithCertificates(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
+	if res.IsRouteAPI {
+		r.Log.Info("Reconciling route with certificate")
+		externalCertSecret := corev1.Secret{}
+		var externalCertName string
+		if instance.Spec.HTTPSCertsSource == operatorv1alpha1.CustomCertsSource {
+			externalCertName = reporter.LicenseReportCustomExternalCertName
+		} else {
+			externalCertName = reporter.LicenseReportExternalCertName
+		}
+
+		externalNamespacedName := types.NamespacedName{Namespace: instance.GetNamespace(), Name: externalCertName}
+		if err := r.Client.Get(context.TODO(), externalNamespacedName, &externalCertSecret); err != nil {
+			r.Log.Error(err, "Cannot retrieve external certificate from secret")
+			return reconcile.Result{Requeue: true}, nil
+		}
+
+		internalCertSecret := corev1.Secret{}
+		internalNamespacedName := types.NamespacedName{Namespace: instance.GetNamespace(), Name: reporter.LicenseReportOCPCertName}
+		if err := r.Client.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
+			r.Log.Error(err, "Cannot retrieve external certificate from secret")
+			return reconcile.Result{Requeue: true}, nil
+		}
+
+		cert, caCert, key, err := res.ProcessCerfiticateSecret(externalCertSecret)
+		if err != nil {
+			r.Log.Error(err, "Invalid certificate format in secret, retrying")
+			return reconcile.Result{Requeue: true, RequeueAfter: 30 * time.Second}, err
+		}
+		_, destinationCaCert, _, err := res.ProcessCerfiticateSecret(internalCertSecret)
+		if err != nil {
+			r.Log.Error(err, "Invalid certificate format in secret, retrying")
+			return reconcile.Result{Requeue: true, RequeueAfter: 30 * time.Second}, err
+		}
+
+		defaultRouteTLS := &routev1.TLSConfig{
+			Termination:                   routev1.TLSTerminationReencrypt,
+			InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
+			Certificate:                   cert,
+			CACertificate:                 caCert,
+			Key:                           key,
+			DestinationCACertificate:      destinationCaCert,
+		}
+		return r.reconcileRouteWithTLS(instance, defaultRouteTLS)
+	}
+	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicenseServiceReporterReconciler) reconcileRouteWithTLS(instance *operatorv1alpha1.IBMLicenseServiceReporter, defaultRouteTLS *routev1.TLSConfig) (reconcile.Result, error) {
+	if res.IsRouteAPI {
+		expectedRoute := reporter.GetReporterRoute(instance, defaultRouteTLS)
+		foundRoute := &routev1.Route{}
+		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
 		}
 		reqLogger := r.Log.WithValues("reconcileRoute", "Entry", "instance.GetName()", instance.GetName())
 
 		if !res.CompareRoutes(reqLogger, expectedRoute, foundRoute) {
-			return res.UpdateResource(&reqLogger, r.Client, expectedRoute, foundRoute)
+			//route tls cannot be updated, that is why we delete and create
+			reconcileResult, err = res.DeleteResource(&reqLogger, r.Client, foundRoute)
+			if err != nil {
+				return reconcileResult, err
+			}
+			time.Sleep(time.Second * 10)
+			foundRoute = &routev1.Route{}
+			reconcileResult, err = r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
+			if err != nil || reconcileResult.Requeue {
+				return reconcileResult, err
+			}
 		}
 	}
 	return reconcile.Result{}, nil
@@ -438,7 +588,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileSenderConfiguration(insta
 func (r *IBMLicenseServiceReporterReconciler) reconcileResourceExistence(
 	instance *operatorv1alpha1.IBMLicenseServiceReporter,
 	expectedRes res.ResourceObject,
-	foundRes runtime.Object,
+	foundRes client.Object,
 	namespacedName types.NamespacedName) (reconcile.Result, error) {
 
 	resType := reflect.TypeOf(expectedRes)
@@ -477,6 +627,13 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileResourceExistence(
 	return reconcile.Result{}, nil
 }
 
+func (r *IBMLicenseServiceReporterReconciler) reconcileResourceNamespacedExistence(
+	instance *operatorv1alpha1.IBMLicenseServiceReporter, expectedRes res.ResourceObject, foundRes client.Object) (reconcile.Result, error) {
+
+	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
+	return r.reconcileResourceExistence(instance, expectedRes, foundRes, namespacedName)
+}
+
 func (r *IBMLicenseServiceReporterReconciler) controllerStatus() {
 	if res.IsRouteAPI {
 		r.Log.Info("Route feature is enabled")
@@ -493,4 +650,21 @@ func (r *IBMLicenseServiceReporterReconciler) controllerStatus() {
 	} else {
 		r.Log.Info("ODLM is unavailable")
 	}
+}
+
+func (r *IBMLicenseServiceReporterReconciler) getSelfSignedCertWithOwnerReference(
+	instance *operatorv1alpha1.IBMLicenseServiceReporter,
+	namespacedName types.NamespacedName,
+	dns []string) (*corev1.Secret, error) {
+
+	secret, err := res.GenerateSelfSignedCertSecret(namespacedName, dns)
+	if err != nil {
+		r.Log.Error(err, "Error when generating self signed certificate")
+	}
+	err = controllerutil.SetControllerReference(instance, secret, r.Scheme)
+	if err != nil {
+		r.Log.Error(err, "Failed to set owner reference in secret")
+		return nil, err
+	}
+	return secret, nil
 }

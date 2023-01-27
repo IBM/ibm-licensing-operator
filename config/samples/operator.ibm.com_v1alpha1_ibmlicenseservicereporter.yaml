@@ -7,5 +7,5 @@ metadata:
     app.kubernetes.io/name: ibm-licensing
   name: instance
 spec:
-  version: 1.18.0
+  version: 1.20.1
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #
-# Copyright 2022 IBM Corporation
+# Copyright 2023 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,17 @@
 # limitations under the License.
 #
 
+
+if [[ $OSTYPE == 'darwin'* ]]; then
+    inline_sed() {
+        sed -i "" "$@"
+    }
+else
+    inline_sed() {
+        sed -i "$@"
+    }
+fi
+
 # This script needs to inputs
 # The CSV version that is currently in dev
 
@@ -25,28 +36,35 @@ NEW_DEV_CSV=$2
 PREVIOUS_DEV_CSV=$3
 
 # Update bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-gsed -i "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/g" bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-gsed -i "s/$PREVIOUS_DEV_CSV/$CURRENT_DEV_CSV/g" bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/g" bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+inline_sed "s/$PREVIOUS_DEV_CSV/$CURRENT_DEV_CSV/g" bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 echo "Updated the bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml"
 
 # Update config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
-gsed -i "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/g" config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
+inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/g" config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
 echo "Updated the config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml"
 
 # Update cs operator version only
-gsed -i "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/g" version/version.go
+inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/g" version/version.go
 echo "Updated the multiarch_image.sh"
-gsed -i "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" README.md
+
+inline_sed "s/$CURRENT_DEV_CSV/&, $NEW_DEV_CSV/" README.md
 echo "Updated the README.md"
 
 # Update bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-gsed -i "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/g" Makefile
-gsed -i "s/$PREVIOUS_DEV_CSV/$CURRENT_DEV_CSV/g" Makefile
+inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/g" Makefile
+inline_sed "s/$PREVIOUS_DEV_CSV/$CURRENT_DEV_CSV/g" Makefile
 echo "Updated the Makefile"
 
-gsed -i "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" config/manager/manager.yaml
+inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" config/manager/manager.yaml
 echo "Updated the config/manager/manager.yaml"
 
-gsed -i "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" bundle/manifests/operator.ibm.com_ibmlicensings.yaml
-gsed -i "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" bundle/manifests/operator.ibm.com_ibmlicenseservicereporters.yaml
-echo "Updated the CR examples"
+inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml
+echo "Updated the config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml"
+
+inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml
+echo "Updated the config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml"
+
+# Update relatedImages (make bundle target)
+inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" common/relatedImages.yaml
+echo "Updated the common/relatedImages.yaml"

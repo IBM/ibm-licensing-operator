@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2022 IBM Corporation
+# Copyright 2023 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ set -e
 
 ec=0
 for fn in "$@"; do
-  if ! grep -L -q -e "Apache License, Version 2" "${fn}"; then
+  if ! grep -q -e "Apache License, Version 2" "${fn}"; then
     echo "Missing license: ${fn}"
     ec=1
   fi
 
-  if ! grep -L -q -e "Copyright" "${fn}"; then
+  if ! grep -q -e "Copyright" "${fn}"; then
     echo "Missing copyright: ${fn}"
     ec=1
   fi

@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,17 +19,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	r "runtime"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	operatoribmcomv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	"github.com/ibm/ibm-licensing-operator/controllers"
-	"github.com/ibm/ibm-licensing-operator/version"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+	"go.uber.org/zap/zapcore"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -41,10 +38,14 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"github.com/IBM/ibm-licensing-operator/controllers"
+	"github.com/IBM/ibm-licensing-operator/version"
+
 	cache "github.com/IBM/controller-filtered-cache/filteredcache"
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 
-	operatorv1 "github.com/ibm/ibm-licensing-operator/api/v1"
+	operatorv1 "github.com/IBM/ibm-licensing-operator/api/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -62,7 +63,7 @@ func printVersion() {
 }
 
 func readFile(filename string) string {
-	content, err := ioutil.ReadFile(filename)
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		setupLog.Info(fmt.Sprintf("Can not read: %s", filename))
 		return ""
@@ -115,7 +116,10 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
+	ctrl.SetLogger(zap.New(func(o *zap.Options) {
+		o.Development = true
+		o.TimeEncoder = zapcore.RFC3339TimeEncoder
+	}))
 
 	printVersion()
 

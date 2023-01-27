@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,29 +19,50 @@ package service
 import (
 	"context"
 
-	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	"github.com/ibm/ibm-licensing-operator/version"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"github.com/IBM/ibm-licensing-operator/version"
 )
 
 const LicensingResourceBase = "ibm-licensing-service"
 const LicensingComponentName = "ibm-licensing-service-svc"
 const LicensingReleaseName = "ibm-licensing-service"
-const LicenseServiceOCPCertName = "ibm-license-service-cert"
+const LicenseServiceInternalCertName = "ibm-license-service-cert-internal"
 const PrometheusServiceOCPCertName = "ibm-licensing-service-prometheus-cert"
+const LicenseServiceExternalCertName = "ibm-license-service-cert"
+const LicenseServiceCustomExternalCertName = "ibm-licensing-certs"
 const LicensingServiceAccount = "ibm-license-service"
 const LicensingServiceAccountRestricted = "ibm-license-service-restricted"
 const UsageServiceName = "ibm-licensing-service-usage"
 const PrometheusServiceName = "ibm-licensing-service-prometheus"
-const PrometheusServiceMonitor = "ibm-licensing-service-service-monitor"
+const PrometheusRHMPServiceMonitor = "ibm-licensing-service-service-monitor"
+const PrometheusAlertingServiceMonitor = "ibm-licensing-service-service-monitor-alerting"
 
 const LicensingServiceAppLabel = "ibm-licensing-service-instance"
+
+//goland:noinspection GoNameStartsWithPackageName
 const ServiceMonitorSelectorLabel = "marketplace.redhat.com/metering"
 const ReleaseLabel = "ibm-licensing-service-prometheus"
 const ReleaseUsageLabel = "ibm-licensing-service-usage"
 
 const NamespaceScopeLabelKey = "intent"
 const NamespaceScopeLabelValue = "projected"
+
+//goland:noinspection GoNameStartsWithPackageName
+const ServiceAccountSecretName = "ibm-licensing-service-account-token"
+const DefaultReaderTokenName = "ibm-licensing-default-reader-token"
+const DefaultReaderServiceAccountName = "ibm-licensing-default-reader"
+
+const ActiveCRState = "ACTIVE"
+const InactiveCRState = "INACTIVE"
+
+func GetServiceAccountName(instance *operatorv1alpha1.IBMLicensing) string {
+	if instance.Spec.IsNamespaceScopeEnabled() {
+		return LicensingServiceAccountRestricted
+	}
+	return LicensingServiceAccount
+}
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()

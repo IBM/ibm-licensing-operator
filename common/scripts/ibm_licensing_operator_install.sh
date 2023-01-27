@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2022 IBM Corporation
+# Copyright 2023 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -257,7 +257,7 @@ handle_subscription(){
     log "Either delete existing subscription for License Service Operator or change channel option of the script to the found one"
     exit 22
   fi
-  retries=55
+  retries=30
   no_csv_name_in_sub_count=0
   until [[ $retries == 0 || $new_csv_phase == "Succeeded" ]]; do
     csv_name=$(kubectl get sub -n "${INSTALL_NAMESPACE}" ibm-licensing-operator-app -o jsonpath='{.status.currentCSV}')
@@ -267,7 +267,7 @@ handle_subscription(){
         no_csv_name_in_sub_count=0
         verbose_output_command log "No CSV name in Subscription, deleting Subscription and creating it again"
         kubectl delete sub ibm-licensing-operator-app -n "${INSTALL_NAMESPACE}"
-        sleep 5
+        sleep 10
         create_subscription
       fi
     else
@@ -282,7 +282,9 @@ handle_subscription(){
         fi
       fi
     fi
-    sleep 2
+    if [[ "$retries" != 30 ]]; then
+      sleep 10
+    fi
     retries=$((retries - 1))
   done
   if [ $retries == 0 ]; then
@@ -315,9 +317,9 @@ EOF
   fi
   log "Checking IBMLicensing instance status"
   retries=36
-  until [[ $retries == 0 || "$ibmlicensing_phase" == "Running" ]]; do
+  until [[ $retries == 0 || "$ibmlicensing_phase" == Running* ]]; do
     if [[ "$retries" != 36 ]]; then
-      sleep 10
+      sleep 30
     fi
     retries=$((retries - 1))
     ibmlicensing_phase=$(kubectl get IBMLicensing instance -o jsonpath='{.status..phase}' 2>/dev/null)
@@ -325,7 +327,7 @@ EOF
       log "Error: Problem during installation of IBMLicensing, try running script again when fixed, check README for post installation section and troubleshooting"
       exit 20
     elif [[ "$ibmlicensing_phase" == "" ]]; then
-      echo "Waiting for IBMLicensing pod to appear"
+      log "Waiting for IBMLicensing pod to appear"
     else
       log "IBMLicensing Pod phase: $ibmlicensing_phase"
     fi

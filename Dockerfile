@@ -1,5 +1,5 @@
 #
-# Copyright 2022 IBM Corporation
+# Copyright 2023 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM hyc-cloud-private-edge-docker-local.artifactory.swg-devops.com/build-images/ubi8-minimal:latest
+FROM docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-edge-docker-local/build-images/ubi8-minimal:latest
 
 ARG IMAGE_NAME
 ARG IMAGE_DISPLAY_NAME
@@ -61,16 +61,16 @@ ENV OPERATOR=/usr/local/bin/ibm-licensing-operator \
 COPY bin/ibm-licensing-operator ${OPERATOR}
 COPY bundle ${DEPLOY_DIR}
 
-COPY build/bin /usr/local/bin
-RUN  /usr/local/bin/user_setup
-
 # copy licenses
 RUN mkdir /licenses
 COPY LICENSE /licenses
 
+COPY build/bin /usr/local/bin
+RUN  /usr/local/bin/user_setup
+
 # add commit image release
-RUN  echo "$IMAGE_RELEASE" > /IMAGE_RELEASE
-RUN  echo "$IMAGE_BUILDDATE" > /IMAGE_BUILDDATE
+RUN  echo "$IMAGE_RELEASE" > /IMAGE_RELEASE \ 
+  && echo "$IMAGE_BUILDDATE" > /IMAGE_BUILDDATE
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
 

@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,8 +21,6 @@ import (
 	"testing"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	"github.com/ibm/ibm-licensing-operator/controllers/resources/service"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	routev1 "github.com/openshift/api/route/v1"
@@ -31,6 +29,9 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
 )
 
 func TestCheckReconcileLicensing(t *testing.T) {
@@ -259,7 +260,7 @@ var _ = Describe("IBMLicensing controller", func() {
 			By("Checking if service monitor exists")
 			Eventually(func() bool {
 				serviceMonitor := &monitoringv1.ServiceMonitor{}
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetServiceMonitorName(), Namespace: namespace}, serviceMonitor)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.PrometheusRHMPServiceMonitor, Namespace: namespace}, serviceMonitor)).Should(Succeed())
 				return serviceMonitor != nil
 			}, timeout, interval).Should(BeTrue())
 

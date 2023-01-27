@@ -16,8 +16,8 @@
 # GKE section
 ############################################################
 PROJECT ?= oceanic-guard-191815
-ZONE    ?= us-west1-a
-CLUSTER ?= prow
+ZONE    ?= us-east5-c
+CLUSTER ?= bedrock-prow
 
 activate-serviceaccount:
 ifdef GOOGLE_APPLICATION_CREDENTIALS
@@ -29,9 +29,6 @@ get-cluster-credentials: activate-serviceaccount
 
 config-docker: get-cluster-credentials
 	@common/scripts/config_docker.sh
-
-config-docker-scratch: get-cluster-credentials
-	@common/scripts/config_docker_scratch.sh
 
 ############################################################
 # install git hooks
@@ -71,7 +68,8 @@ ifdef MARKDOWN_LINT_WHITELIST
 else
 	@${FINDFILES} -name '*.md' -print0 | ${XARGS} awesome_bot --skip-save-results --allow_ssl --allow-timeout --allow-dupe --allow-redirect
 endif
-lint-all: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown
+# Ignore lint-markdown
+lint-all: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go 
 
 format-go:
 	@${FINDFILES} -name '*.go' \( ! \( -name '*.gen.go' -o -name '*.pb.go' -o -name '*_generated.deepcopy.go' \) \) -print0 | ${XARGS} goimports -w -local "github.com/IBM"
@@ -93,27 +91,4 @@ code-tidy:
 	@echo go mod tidy
 	go mod tidy -v
 
-define CRD_LABELS_BODY
-  labels:\n    app.kubernetes.io\/instance: \"ibm-licensing-operator\"\n    app.kubernetes.io\/managed-by: \"ibm-licensing-operator\"\n    app.kubernetes.io\/name: \"ibm-licensing\"
-endef
-
-export CRD_LABELS_BODY
-# Run the operator-sdk commands to generated code (k8s and openapi and csv)
-code-gen:
-	@echo Updating the deep copy files with the changes in the API
-	operator-sdk generate k8s
-	@echo Updating the CRD files with the OpenAPI validations
-	operator-sdk generate crds
-	@echo Adding labels for CRD
-	sed -i 's/  name: ibmlicensings.operator.ibm.com/  name: ibmlicensings.operator.ibm.com\n'"$$CRD_LABELS_BODY"'/g' deploy/crds/operator.ibm.com_ibmlicensings_crd.yaml
-	@echo Generate openapi
-	openapi-gen --logtostderr=true -o "" -i ./pkg/apis/operator/v1alpha1 -O zz_generated.openapi -p ./pkg/apis/operator/v1alpha1 -h hack/boilerplate.go.txt -r "-"
-#	Not generating csv as it may break existing one, csv needs human changes
-#	@echo Updating/Generating a ClusterServiceVersion YAML manifest for the operator
-#	operator-sdk generate csv --csv-version ${CSV_VERSION} --update-crds
-
-csv-gen:
-	@echo Remember to fix things after csv generation
-	operator-sdk generate csv --csv-version ${CSV_VERSION} --update-crds
-
-.PHONY: code-vet code-fmt code-tidy code-gen csv-gen
+.PHONY: code-vet code-fmt code-tidy

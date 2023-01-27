@@ -1,5 +1,5 @@
 #
-# Copyright 2022 IBM Corporation
+# Copyright 2023 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,9 +15,16 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.18.0
+CSV_VERSION ?= 1.20.1
 CSV_VERSION_DEVELOPMENT ?= development
-OLD_CSV_VERSION ?= 1.17.0
+OLD_CSV_VERSION ?= 1.20.0
+
+# Tools versions
+OPM_VERSION ?= v1.26.2
+OPERATOR_SDK_VERSION ?= v1.25.2
+YQ_VERSION ?= v4.30.5
+KUSTOMIZE_VERSION ?= v4.5.7
+CONTROLLER_GEN_VERSION ?= v0.7.0
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -26,9 +33,11 @@ BUILD_LOCALLY ?= 1
 # Image URL to use all building/pushing image targets;
 # Use your own docker registry and image name for dev/test by overriding the IMG, REGISTRY and CSV_VERSION environment variable.
 IMG ?= ibm-licensing-operator
-REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
 
-SCRATCH_REGISTRY ?= "hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom"
+REGISTRY_URL ?= docker-na-public.artifactory.swg-devops.com
+
+REGISTRY ?= ${REGISTRY_URL}/hyc-cloud-private-integration-docker-local/ibmcom
+SCRATCH_REGISTRY ?= ${REGISTRY_URL}/hyc-cloud-private-scratch-docker-local/ibmcom
 
 # Default bundle image tag
 IMAGE_BUNDLE_NAME ?= ibm-licensing-operator-bundle
@@ -40,8 +49,14 @@ IBM_POSTGRESQL_IMAGE ?= ibm-postgresql
 IBM_LICENSE_SERVICE_REPORTER_IMAGE ?= ibm-license-service-reporter
 IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 
-CHANNELS="v3,beta"
-DEFAULT_CHANNEL=v3
+CHANNELS=v3,v3.20,v3.21,v3.22,beta,dev,stable-v1
+DEFAULT_CHANNEL=v3.22
+
+# Identify default channel based on tag of parent branch
+GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+
+# Identify tags created on current branch
+BRANCH_TAGS=$(shell git tag --merged ${GIT_BRANCH})
 
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
@@ -109,12 +124,14 @@ else ifeq ($(ARCH),ppc64le)
     LOCAL_ARCH="ppc64le"
 else ifeq ($(ARCH),s390x)
     LOCAL_ARCH="s390x"
+else ifeq ($(ARCH),arm64)
+    LOCAL_ARCH="arm64"
 else
     $(error "This system's ARCH $(ARCH) isn't recognized/supported")
 endif
 
 # Setup DOCKER_BUILD_OPTS after all includes complete
-#Variables for redhat ubi certification required labels
+# Variables for redhat ubi certification required labels
 IMAGE_NAME=$(IMG)
 IMAGE_DISPLAY_NAME=IBM Licensing Operator
 IMAGE_MAINTAINER=talk2sam@us.ibm.com
@@ -134,8 +151,7 @@ GIT_REMOTE_URL = $(shell git config --get remote.origin.url)
 BUNDLE_IMG ?= $(IMAGE_BUNDLE_NAME)-$(LOCAL_ARCH):$(VERSION)
 CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
 
-# Idnetify stream based in current git branch
-GIT_BRANCH=$(shell git branch --show-current)
+# Identify stream based in current git branch
 DEVOPS_STREAM :=
 ifeq ($(GIT_BRANCH),master) 
 	DEVOPS_STREAM="cd"
@@ -149,15 +165,20 @@ DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 
 $(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "VCS_URL=$(GIT_REMOTE_URL)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
 
-all: fmt version.properties check test coverage-kind build images
-
 ifeq ($(BUILD_LOCALLY),0)
     ifneq ("$(realpath $(DEST))", "$(realpath $(PWD))")
         $(error Please run 'make' from $(DEST). Current directory is $(PWD))
     endif
 endif
 
+ifeq ($(BUILD_LOCALLY),0)
+    export CONFIG_DOCKER_TARGET = config-docker
+config-docker:
+endif
+
 include common/Makefile.common.mk
+
+all: fmt version.properties check test coverage-kind build images
 
 # generate file containing info about the build
 version.properties:
@@ -169,6 +190,7 @@ version.properties:
 ############################################################
 # work section
 ############################################################
+
 $(GOBIN):
 	@echo "create gobin"
 	@mkdir -p $(GOBIN)
@@ -177,14 +199,14 @@ work: $(GOBIN)
 
 ##@ Development
 
-code-dev: ## Run the default dev commands which are the go tidy, fmt, vet then execute the $ make code-gen
+code-dev: ## Run the default dev commands which are the go tidy, fmt, vet then execute the $ make check
 	@echo Running the common required commands for developments purposes
 	- make code-tidy
 	- make code-fmt
+	- make fmt
 	- make code-vet
-	- make code-gen
 	@echo Running the common required commands for code delivery
-	make check
+	- make check
 
 # All available format: format-go format-protos
 # Default value will run all formats, override these make target with your requirements:
@@ -201,23 +223,6 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 # Default value will run all linters, override these make target with your requirements:
 #    eg: lint: lint-go lint-yaml
 lint: lint-all vet
-
-############################################################
-# install operator sdk section
-############################################################
-
-install-operator-sdk:
-	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then ./common/scripts/install-operator-sdk.sh; fi
-
-ifeq ($(BUILD_LOCALLY),0)
-    export CONFIG_DOCKER_TARGET = config-docker
-config-docker:
-endif
-
-ifeq ($(BUILD_LOCALLY),0)
-    export CONFIG_DOCKER_TARGET_SCRATCH = config-docker-scratch
-config-docker-scratch:
-endif
 
 ##@ Build
 
@@ -237,22 +242,21 @@ push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
 
-build-push-image-development: build-image-development push-image-development catalogsource-development
+build-push-image-development: build-image-development push-image-development catalogsource-development ## Build, push image and catalogsource
 
-build-image-development: $(CONFIG_DOCKER_TARGET) build
+build-image-development: $(CONFIG_DOCKER_TARGET) build ## Create a docker image locally
 	@echo $(DOCKER_BUILD_OPTS)
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
-push-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH) build-image-development
+push-image-development: $(CONFIG_DOCKER_TARGET) build-image-development ## Push previously created image to scratch registry
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker push $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
-
 
 ##@ SHA Digest section
 
 .PHONY: get-image-sha
-get-image-sha: ## replaces operand tag for digest in operator.yaml and csv
+get-image-sha: ## Replaces operand tag for digest in operator.yaml and csv
 	@echo Get SHA for ibm-licensing:$(OPERAND_TAG)
 	@common/scripts/get-image-sha.sh $(OPERAND_REGISTRY)/ibm-licensing $(OPERAND_TAG)
 
@@ -267,10 +271,10 @@ multiarch-image-latest: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION)
 
-multiarch-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH)
-	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${MANIFEST_VERSION}
+multiarch-image-development: $(CONFIG_DOCKER_TARGET)
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${VERSION} ${GIT_BRANCH}
 	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
-	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION) ${MANIFEST_VERSION}
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION) ${VERSION} ${GIT_BRANCH}
 
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
@@ -291,10 +295,12 @@ verify-bundle: ## verify bundle
 redhat-certify-ready: bundle verify-bundle ## makes bundle and verify it using operator courier
 
 ##@ Cleanup
+
 clean: ## Clean build binary
 	rm -f bin/$(IMG)
 
 ##@ Help
+
 help: ## Display this help
 	@echo "Usage:  make <target>"
 	@awk 'BEGIN {FS = ":.*##"}; \
@@ -303,7 +309,7 @@ help: ## Display this help
 
 ## FROM NEW OPERATOR
 
-# Run tests
+##@ Test
 #ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 test:
 	@echo "Running tests for the controllers."
@@ -381,8 +387,8 @@ deploy: manifests kustomize
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
-	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations."olm.skipRange"' '>=1.0.0 <$(CSV_VERSION)'
-	yq w -i ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml 'metadata.annotations.containerImage' 'icr.io/cpopen/${IMG}:$(CSV_VERSION)'
+	yq -i '.metadata.annotations."olm.skipRange" = ">=1.0.0 <$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
+	yq -i '.metadata.annotations.containerImage = "icr.io/cpopen/${IMG}:$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Generate code
@@ -397,76 +403,13 @@ docker-build: test
 docker-push:
 	docker push ${IMG}
 
-# find or download controller-gen
-# download controller-gen if necessary
-controller-gen:
-ifeq (, $(shell which controller-gen))
-	@{ \
-	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0 ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	}
-CONTROLLER_GEN=$(GOBIN)/controller-gen
-else
-CONTROLLER_GEN=$(shell which controller-gen)
-endif
-
-kustomize:
-ifeq (, $(shell which kustomize))
-	@{ \
-	set -e ;\
-	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
-	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
-	}
-KUSTOMIZE=$(GOBIN)/kustomize
-else
-KUSTOMIZE=$(shell which kustomize)
-endif
-
-opm:
-ifeq (, $(shell which opm))
-	@{ \
-	set -e ;\
-	OPM_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$OPM_GEN_TMP_DIR ;\
-	git clone  --branch v1.16.1  https://github.com/operator-framework/operator-registry.git ;\
-	cd ./operator-registry ; \
-	git checkout v1.16.1;\
-	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=eb9fff53' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=v1.16.0' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2021-03-30T13:32:56Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
-	cp ./bin/opm ~/ ; \
-	rm -rf $$OPM_GEN_TMP_DIR ;\
-	}
-OPM=~/opm
-else
-OPM=$(shell which opm)
-endif
-
-ifeq (, $(shell which podman))
-PODMAN=docker
-else
-PODMAN=podman
-endif
-
-
-alm-example:
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "metadata.annotations.alm-examples" \
-	"[\
-	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml`,\
-	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml`,\
-	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingbindinfo.yaml`,\
-	`yq r -P  -j ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingrequest.yaml`\
-	]"
-	yq r -P ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/clusterrole.yaml
-	yq r -P ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml rules > /tmp/role.yaml
-	yq r -P bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/reader-clusterrole.yaml
-	yq r -P ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_clusterrole.yaml rules > /tmp/clusterrole2.yaml
-	yq r -P ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_role.yaml rules > /tmp/role2.yaml
+# Take the roles (e.g. permissions) from bundle manifest that are created by kubebuilder and put them in CSV
+update-roles-alm-example: alm-example
+	yq -P '.rules' ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/clusterrole.yaml
+	yq -P '.rules' ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml > /tmp/role.yaml
+	yq -P '.rules' ./bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/reader-clusterrole.yaml
+	yq -P '.rules' ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/clusterrole2.yaml
+	yq -P '.rules' ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_role.yaml > /tmp/role2.yaml
 
 	sed -i -e 's/^/  /' /tmp/clusterrole.yaml
 	sed -i -e 's/^/  /' /tmp/role.yaml
@@ -474,29 +417,25 @@ alm-example:
 	sed -i -e 's/^/  /' /tmp/clusterrole2.yaml
 	sed -i -e 's/^/  /' /tmp/role2.yaml
 
-	cp ./common/scripts/updateCSV/updateCP.yaml /tmp/updateCP.yaml
-	cat /tmp/clusterrole.yaml >> /tmp/updateCP.yaml
-	cat ./common/scripts/updateCSV/saCP.yaml >> /tmp/updateCP.yaml
-	yq w -i -s /tmp/updateCP.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	yq -i '.spec.install.spec.clusterPermissions[1].rules |= load("/tmp/clusterrole.yaml") | \
+		.spec.install.spec.clusterPermissions[1].serviceAccountName = "ibm-license-service" \
+	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	cp ./common/scripts/updateCSV/updateCP2.yaml /tmp/updateCP2.yaml
-	cat /tmp/clusterrole2.yaml >> /tmp/updateCP2.yaml
-	cat ./common/scripts/updateCSV/saCP2.yaml >> /tmp/updateCP2.yaml
-	yq w -i -s /tmp/updateCP2.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-	cp ./common/scripts/updateCSV/updateP.yaml /tmp/updateP.yaml
-	cat /tmp/role.yaml >> /tmp/updateP.yaml
-	cat ./common/scripts/updateCSV/saP.yaml >> /tmp/updateP.yaml
-	yq w -i -s /tmp/updateP.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	yq -i '.spec.install.spec.clusterPermissions[2].rules |= load("/tmp/clusterrole2.yaml") | \
+		.spec.install.spec.clusterPermissions[2].serviceAccountName = "ibm-license-service-restricted" \
+	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	cp ./common/scripts/updateCSV/updateP2.yaml /tmp/updateP2.yaml
-	cat /tmp/role2.yaml >> /tmp/updateP2.yaml
-	cat ./common/scripts/updateCSV/saP2.yaml >> /tmp/updateP2.yaml
-	yq w -i -s /tmp/updateP2.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	yq -i '.spec.install.spec.clusterPermissions[3].rules |= load("/tmp/reader-clusterrole.yaml") | \
+		.spec.install.spec.clusterPermissions[3].serviceAccountName = "ibm-licensing-default-reader" \
+	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml	
 
-	cp ./common/scripts/updateCSV/updateAccessCP.yaml /tmp/updateAccessCP.yaml
-	cat /tmp/reader-clusterrole.yaml >> /tmp/updateAccessCP.yaml
-	cat ./common/scripts/updateCSV/saAccessCP.yaml >> /tmp/updateAccessCP.yaml
-	yq w -i -s /tmp/updateAccessCP.yaml ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	yq -i '.spec.install.spec.permissions[1].rules |= load("/tmp/role.yaml") | \
+		.spec.install.spec.permissions[1].serviceAccountName = "ibm-license-service" \
+	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+
+	yq -i '.spec.install.spec.permissions[2].rules |= load("/tmp/role2.yaml") | \
+		.spec.install.spec.permissions[2].serviceAccountName = "ibm-license-service-restricted" \
+	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
 	rm -f ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml
 	rm -f ./bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml
@@ -513,25 +452,39 @@ alm-example:
 	rm -f ./bundle/manifests/ibm-license-service_v1_serviceaccount.yaml
 	rm -f ./bundle/manifests/ibm-license-service-restricted_v1_serviceaccount.yaml
 
+# Takes config samples CRs and update alm-exmaple in CSV
+alm-example:
+	mkdir -p /tmp/json
+	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml > /tmp/json/ibmlicensing.json
+	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml > /tmp/json/ibmlicenseservicereporter.json
+	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingbindinfo.yaml > /tmp/json/ibmlicensingbindinfo.json
+	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingrequest.yaml > /tmp/json/ibmlicensingrequest.json
+
+	jq -s '.' /tmp/json/ibmlicensing.json /tmp/json/ibmlicenseservicereporter.json /tmp/json/ibmlicensingbindinfo.json /tmp/json/ibmlicensingrequest.json > /tmp/json/merged.json
+	yq -i '.metadata.annotations.alm-examples |= load_str("/tmp/json/merged.json")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+
+	rm -r /tmp/json
+
 # Generate bundle manifests and metadata, then validate generated files. Yq is used to change order of owned resources here to ensure Licensing is first and Reporter second.
 pre-bundle: manifests
 	operator-sdk generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
-	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" > yq_tmp_reporter.yaml
-	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" > yq_tmp_definitions.yaml
-	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[2]" > yq_tmp_metadata.yaml
-	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[3]" > yq_tmp_querysources.yaml
-	yq r ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[4]" > yq_tmp_licensing.yaml
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[0]" -f yq_tmp_licensing.yaml
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[1]" -f yq_tmp_reporter.yaml
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[2]" -f yq_tmp_definitions.yaml
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[3]" -f yq_tmp_metadata.yaml
-	yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml "spec.customresourcedefinitions.owned[4]" -f yq_tmp_querysources.yaml
-	# yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces' ibm-licensing-operator.v${OLD_CSV_VERSION}
+	yq '.spec.customresourcedefinitions.owned[0]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_reporter.yaml
+	yq '.spec.customresourcedefinitions.owned[1]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_definitions.yaml
+	yq '.spec.customresourcedefinitions.owned[2]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_metadata.yaml
+	yq '.spec.customresourcedefinitions.owned[3]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_querysources.yaml
+	yq '.spec.customresourcedefinitions.owned[4]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_licensing.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[0] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_licensing.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[1] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_reporter.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[2] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_definitions.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[3] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_metadata.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[4] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_querysources.yaml
+	yq -i '.spec.relatedImages = load("./common/relatedImages.yaml")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+
 	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml yq_tmp_metadata.yaml yq_tmp_definitions.yaml yq_tmp_querysources.yaml
 	operator-sdk bundle validate ./bundle
 
-bundle: pre-bundle alm-example
+bundle: pre-bundle update-roles-alm-example
 
 # Build the bundle image.
 bundle-build:
@@ -544,18 +497,29 @@ bundle-build-development:
 scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
-catalogsource: opm
+identify-release-stream: SHELL = /bin/bash
+identify-release-stream:
+	@for tag in $(BRANCH_TAGS) ; do \
+		if [[ $$tag =~ v?1.16.[1-9][0-9]? ]]; then \
+			echo "Detected stream: LTSR."; \
+			CHANNELS=v3,beta,dev,stable-v1 \
+			DEFAULT_CHANNEL=v3 ;\
+			break ;\
+		fi; \
+	done; \
+
+catalogsource: opm identify-release-stream
 	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
-	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_$(LOCAL_ARCH)"
+	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
-	# ./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${REGISTRY}/${IMG}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value'  "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value'  "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value'  "${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value'  "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[4].value'  "${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/metadata/annotations.yaml 'annotations."operators.operatorframework.io.bundle.channels.v1"' "v3,beta,dev,stable-v1"
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${REGISTRY}/${IMG}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value = "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value = "${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value = "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[4].value = "${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
+	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml	
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
 	docker push ${REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
@@ -565,23 +529,115 @@ ifneq (${DEVOPS_STREAM},)
 	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
 endif
 
-
-catalogsource-development: opm
+catalogsource-development: opm identify-release-stream
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
-	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/3.4.0/yq_linux_$(LOCAL_ARCH)"
+	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
-	# ./yq d -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.replaces'
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].image' "${SCRATCH_REGISTRY}/${IMG}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value'  "${SCRATCH_REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml 'spec.install.spec.deployments[0].spec.template.spec.containers[0].env[4].value'  "${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"
-	./yq w -i ./bundle/metadata/annotations.yaml 'annotations."operators.operatorframework.io.bundle.channels.v1"' "v3,beta,dev,stable-v1"
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value = "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value = "${SCRATCH_REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value = "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[4].value = "${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
+	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml	
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive  -c ${PODMAN}  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push  ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 
-.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
+############################################################
+# Installation section
+############################################################
 
+##@ Install
+
+verify-installed-tools: ## Verify if tools are installed
+	@command -v operator-sdk >/dev/null 2>&1 || { echo >&2 "Required tool: operator-sdk-${OPERATOR_SDK_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
+	@command -v opm >/dev/null 2>&1 || { echo >&2 "Required tool: opm-${OPM_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
+	@command -v controller-gen >/dev/null 2>&1 || { echo >&2 "Required tool: controller-gen-${CONTROLLER_GEN_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
+	@command -v kustomize >/dev/null 2>&1 || { echo >&2 "Required tool: kustomize-${KUSTOMIZE_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
+	@command -v yq >/dev/null 2>&1 || { echo >&2 "Required tool: yq-${YQ_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
+	@echo "Successfully verified installed tools. Make sure the version matches required to avoid further issues.$'\n"
+
+	@echo "Printing installed tools summary $'\n\
+	Required | Intalled $'\n\
+	» operator-sdk-${OPERATOR_SDK_VERSION} | operator-sdk-"$(shell operator-sdk version | awk '{print $$3}')" $'\n\
+	» opm-${OPM_VERSION} | opm-"$(shell opm version | awk '{print $$2}' | awk -F ':' '{print $$2}')" $'\n\
+	» controller-gen-${CONTROLLER_GEN_VERSION} | controller-gen-"$(shell controller-gen --version | awk '{print $$2}')", $'\n\
+	» kustomize-${KUSTOMIZE_VERSION} | kustomize-"$(shell kustomize version | awk '{print $$1}' | awk -F ':' '{print $$2}')", $'\n\
+	» yq-${YQ_VERSION} | yq-"$(shell yq --version | awk '{print $$4}')" $'\n\
+	"
+
+install-all-tools: install-operator-sdk install-opm install-controller-gen install-kustomize install-yq verify-installed-tools ## Install all tools locally
+
+install-operator-sdk: ## Install tool locally: operator-sdk
+	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-operator-sdk.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPERATOR_SDK_VERSION}; fi
+
+install-opm: ## Install tool locally: opm
+	@opm version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-opm.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPM_VERSION}; fi	
+
+install-controller-gen: ## Install tool locally: controller-gen
+	@controller-gen --version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/controller-tools/cmd/controller-gen@${CONTROLLER_GEN_VERSION}; fi	
+
+install-kustomize: ## Install tool locally: kustomize
+	@kustomize version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/kustomize/kustomize/v4@${KUSTOMIZE_VERSION}; fi	
+
+install-yq: ## Install tool locally: yq
+	@yq --version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-yq.sh ${TARGET_OS} ${LOCAL_ARCH} ${YQ_VERSION}; fi	
+
+controller-gen:
+ifeq (, $(shell which controller-gen))
+	@{ \
+	set -e ;\
+	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$CONTROLLER_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@${CONTROLLER_GEN_VERSION} ;\
+	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
+	}
+CONTROLLER_GEN=$(GOBIN)/controller-gen
+else
+CONTROLLER_GEN=$(shell which controller-gen)
+endif
+
+kustomize:
+ifeq (, $(shell which kustomize))
+	@{ \
+	set -e ;\
+	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/kustomize/kustomize/v4@${KUSTOMIZE_VERSION} ;\
+	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
+	}
+KUSTOMIZE=$(GOBIN)/kustomize
+else
+KUSTOMIZE=$(shell which kustomize)
+endif
+
+opm:
+ifeq (, $(shell which opm))
+	@{ \
+	set -e ;\
+	OPM_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$OPM_GEN_TMP_DIR ;\
+	git clone  --branch ${OPM_VERSION}  https://github.com/operator-framework/operator-registry.git ;\
+	cd ./operator-registry ; \
+	git checkout ${OPM_VERSION};\
+	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=0e53cafe' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=${OPM_VERSION}' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2022-09-21T15:25:25Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
+	cp ./bin/opm ~/ ; \
+	rm -rf $$OPM_GEN_TMP_DIR ;\
+	}
+OPM=~/opm
+else
+OPM=$(shell which opm)
+endif
+
+ifeq (, $(shell which podman))
+PODMAN=docker
+else
+PODMAN=podman
+endif
+
+.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help

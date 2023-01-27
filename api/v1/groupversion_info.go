@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ limitations under the License.
 */
 
 // Package v1 contains API Schema definitions for the operator v1 API group
-//+kubebuilder:object:generate=true
-//+groupName=operator.ibm.com
+// +kubebuilder:object:generate=true
+// +groupName=operator.ibm.com
 package v1
 
 import (

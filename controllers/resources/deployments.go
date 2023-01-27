@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -131,6 +131,14 @@ func ShouldUpdateDeployment(
 	reqLogger *logr.Logger,
 	expectedSpec *corev1.PodTemplateSpec,
 	foundSpec *corev1.PodTemplateSpec) bool {
+
+	// this ensures that the annotation is always the same in both objects (to exclude it from deepEqual comparison)
+	if _, ok := expectedSpec.Annotations["kubectl.kubernetes.io/restartedAt"]; ok {
+		foundSpec.Annotations["kubectl.kubernetes.io/restartedAt"] = expectedSpec.Annotations["kubectl.kubernetes.io/restartedAt"]
+	} else {
+		delete(foundSpec.Annotations, "kubectl.kubernetes.io/restartedAt")
+	}
+
 	if !reflect.DeepEqual(foundSpec.Spec.Volumes, expectedSpec.Spec.Volumes) {
 		(*reqLogger).Info("Deployment has wrong volumes")
 	} else if !reflect.DeepEqual(foundSpec.Spec.Affinity, expectedSpec.Spec.Affinity) {

@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 package service
 
 import (
-	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	"github.com/ibm/ibm-licensing-operator/controllers/resources"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
 const APIUploadTokenName = "ibm-licensing-upload-token"
@@ -30,6 +31,34 @@ const APIUploadTokenKeyName = "token-upload"
 const ReporterSecretTokenKeyName = "token"
 
 const URLConfigMapKey = "url"
+const CrtConfigMapKey = "crt.pem"
+
+//goland:noinspection GoNameStartsWithPackageName
+const ServiceAccountSecretAnnotationKey = "kubernetes.io/service-account.name"
+
+func GetDefaultReaderToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
+	expectedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        DefaultReaderTokenName,
+			Namespace:   instance.Spec.InstanceNamespace,
+			Annotations: map[string]string{ServiceAccountSecretAnnotationKey: DefaultReaderServiceAccountName},
+		},
+		Type: corev1.SecretTypeServiceAccountToken,
+	}
+	return expectedSecret, nil
+}
+
+func GetServiceAccountSecret(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
+	expectedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        ServiceAccountSecretName,
+			Namespace:   instance.Spec.InstanceNamespace,
+			Annotations: map[string]string{ServiceAccountSecretAnnotationKey: GetServiceAccountName(instance)},
+		},
+		Type: corev1.SecretTypeServiceAccountToken,
+	}
+	return expectedSecret, nil
+}
 
 func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
 	return resources.GetSecretToken(instance.Spec.APISecretToken, instance.Spec.InstanceNamespace, APISecretTokenKeyName, LabelsForMeta(instance))
@@ -39,7 +68,7 @@ func GetUploadToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, er
 	return resources.GetSecretToken(APIUploadTokenName, instance.Spec.InstanceNamespace, APIUploadTokenKeyName, LabelsForMeta(instance))
 }
 
-func GetUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) *corev1.ConfigMap {
+func GetUploadConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertData string) *corev1.ConfigMap {
 	metaLabels := LabelsForMeta(instance)
 	expectedCM := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -47,7 +76,10 @@ func GetUploadConfigMap(instance *operatorv1alpha1.IBMLicensing) *corev1.ConfigM
 			Namespace: instance.Spec.InstanceNamespace,
 			Labels:    metaLabels,
 		},
-		Data: map[string]string{URLConfigMapKey: GetServiceURL(instance)},
+		Data: map[string]string{
+			URLConfigMapKey: GetServiceURL(instance),
+			CrtConfigMapKey: internalCertData,
+		},
 	}
 	return expectedCM
 }

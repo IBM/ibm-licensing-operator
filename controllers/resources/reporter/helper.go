@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,14 +22,14 @@ import (
 	"reflect"
 
 	"github.com/go-logr/logr"
-	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	res "github.com/ibm/ibm-licensing-operator/controllers/resources"
-	"github.com/ibm/ibm-licensing-operator/version"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
+	"github.com/IBM/ibm-licensing-operator/version"
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
@@ -54,7 +54,9 @@ const LicenseReporterUIBase = "ibm-license-service-reporter-ui"
 const LicenseReporterResourceBase = "ibm-license-service-reporter"
 const LicenseReporterComponentName = "ibm-license-service-reporter-svc"
 const LicenseReporterReleaseName = "ibm-license-service-reporter"
-const LicenseReportOCPCertName = "ibm-license-reporter-cert"
+const LicenseReportOCPCertName = "ibm-license-reporter-cert-internal"
+const LicenseReportExternalCertName = "ibm-license-reporter-cert"
+const LicenseReportCustomExternalCertName = "ibm-licensing-reporter-certs"
 
 const OperatorName = "ibm-licensing-operator"
 
@@ -89,7 +91,7 @@ func getReciverEnvVariables(spec operatorv1alpha1.IBMLicenseServiceReporterSpec)
 	environmentVariables := []corev1.EnvVar{
 		{
 			Name:  "HTTPS_CERTS_SOURCE",
-			Value: string(spec.HTTPSCertsSource),
+			Value: string(operatorv1alpha1.ExternalCertsSource),
 		},
 	}
 	if spec.IsDebug() {

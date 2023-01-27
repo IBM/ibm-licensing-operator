@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,23 +17,21 @@
 package reporter
 
 import (
-	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	"github.com/ibm/ibm-licensing-operator/controllers/resources"
 	routev1 "github.com/openshift/api/route/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
 func annotationsForReporterRoute() map[string]string {
 	return map[string]string{"haproxy.router.openshift.io/timeout": "90s"}
 }
 
-func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter) *routev1.Route {
-
+func GetReporterRoute(instance *operatorv1alpha1.IBMLicenseServiceReporter, defaultRouteTLS *routev1.TLSConfig) *routev1.Route {
 	var tls *routev1.TLSConfig
-	defaultRouteTLS := &routev1.TLSConfig{
-		Termination: routev1.TLSTerminationPassthrough,
-	}
+
 	if instance.Spec.RouteOptions != nil {
 		if instance.Spec.RouteOptions.TLS != nil {
 			tls = instance.Spec.RouteOptions.TLS

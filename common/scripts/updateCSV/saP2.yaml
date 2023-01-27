@@ -1,4 +1,0 @@
-- command: update
-  path: spec.install.spec.permissions[2].serviceAccountName
-  value:
-    ibm-license-service-restricted

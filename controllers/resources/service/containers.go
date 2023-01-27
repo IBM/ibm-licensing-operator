@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,10 +19,11 @@ package service
 import (
 	"strconv"
 
-	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
-	"github.com/ibm/ibm-licensing-operator/controllers/resources"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
 func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
@@ -56,7 +57,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 	if spec.HTTPSEnable {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "HTTPS_CERTS_SOURCE",
-			Value: string(spec.HTTPSCertsSource),
+			Value: string(operatorv1alpha1.ExternalCertsSource),
 		})
 	}
 	if spec.IsMetering() {
@@ -68,6 +69,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 	if spec.IsRHMPEnabled() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "enable.metrics",
+			Value: "true",
+		})
+	}
+	if spec.IsAlertingEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "enable.alerting",
 			Value: "true",
 		})
 	}
@@ -102,7 +109,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "false",
 		})
 	}
-	if spec.IsPrometheusQuerySourceEnabled() {
+	if spec.IsPrometheusQuerySourceEnabled() && resources.IsServiceCAAPI {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "PROMETHEUS_QUERY_SOURCE_ENABLED",
 			Value: "true",
@@ -190,9 +197,9 @@ func getProbeScheme(spec operatorv1alpha1.IBMLicensingSpec) corev1.URIScheme {
 	return "HTTP"
 }
 
-func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.Handler {
+func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.ProbeHandler {
 	var probeScheme = getProbeScheme(spec)
-	return corev1.Handler{
+	return corev1.ProbeHandler{
 		HTTPGet: &corev1.HTTPGetAction{
 			Path: "/",
 			Port: intstr.IntOrString{
@@ -204,8 +211,8 @@ func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.Handler {
 	}
 }
 
-func getUsageProbeHandler() corev1.Handler {
-	return corev1.Handler{
+func getUsageProbeHandler() corev1.ProbeHandler {
+	return corev1.ProbeHandler{
 		HTTPGet: &corev1.HTTPGetAction{
 			Path: "/metrics",
 			Port: intstr.IntOrString{
@@ -256,7 +263,7 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 		}
 		containers = append(containers, ocpSecretCheckContainer)
 
-		if spec.IsRHMPEnabled() {
+		if spec.IsPrometheusServiceNeeded() {
 			baseContainer := getLicensingContainerBase(spec)
 			ocpPrometheusSecretCheckContainer := corev1.Container{}
 
@@ -302,7 +309,7 @@ func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 		},
 	}
 
-	if spec.IsRHMPEnabled() {
+	if spec.IsPrometheusServiceNeeded() {
 		ports = append(ports, corev1.ContainerPort{
 			ContainerPort: prometheusServicePort.IntVal,
 			Protocol:      corev1.ProtocolTCP,

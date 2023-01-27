@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ type IBMLicensingMetadataStatus struct {
 // IBMLicensingMetadata is the schema for IBM License Service. Thanks to IBMLicensingMetadata, you can track
 // the license usage of Virtual Processor Core (VPC) metric by Pods that are managed by automation,
 // for which licensing annotations are not defined at the time of deployment, such as the open source OpenLiberty.
-/// For more information, see documentation: https://ibm.biz/icpfs39install.
+// / For more information, see documentation: https://ibm.biz/icpfs39install.
 // License: By installing this product you accept the license terms. For more information about the license,
 // see https://ibm.biz/icpfs39license.
 // +kubebuilder:subresource:status

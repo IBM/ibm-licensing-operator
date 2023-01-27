@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package v1alpha1
 
 import (
-	"github.com/ibm/ibm-licensing-operator/api/v1alpha1/features"
+	"github.com/IBM/ibm-licensing-operator/api/v1alpha1/features"
 )
 
 type Features struct {
@@ -35,6 +35,11 @@ type Features struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Prometheus query source settings",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
 	PrometheusQuerySource *features.PrometheusQuerySource `json:"prometheusQuerySource,omitempty"`
+
+	// Change alerting settings.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Alerting settings",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
+	// +optional
+	Alerting *features.Alerting `json:"alerting,omitempty"`
 
 	// Special terms, must be granted by IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Namespace scope enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
@@ -59,6 +64,15 @@ func (spec *IBMLicensingSpec) IsURLBasedAuthEnabled() bool {
 		return false
 	}
 	return true
+}
+
+func (spec *IBMLicensingSpec) IsAlertingEnabled() bool {
+	// this is also set by default when filling default values during reconciliation
+	// return true only and only if the value is set to true
+	if spec.HaveFeatures() && spec.Features.Alerting != nil && spec.Features.Alerting.Enabled != nil {
+		return *spec.Features.Alerting.Enabled
+	}
+	return false
 }
 
 func (spec *IBMLicensingSpec) IsPrometheusQuerySourceEnabled() bool {

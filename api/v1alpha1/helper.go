@@ -1,5 +1,5 @@
 //
-// Copyright 2022 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/IBM/ibm-licensing-operator/api/v1alpha1/features"
 
 	"github.com/go-logr/logr"
 	routev1 "github.com/openshift/api/route/v1"
@@ -82,6 +84,10 @@ const (
 	SelfSignedCertsSource HTTPSCertsSource = "self-signed"
 	// CustomCertsSource means application will use certificate created by user
 	CustomCertsSource HTTPSCertsSource = "custom"
+
+	// Option for operand HTTPS_CERTS_SOURCE
+	// ExternalCertsSource means operand will use certificate from a volume mounted to a container
+	ExternalCertsSource = "external"
 )
 
 type IBMLicenseServiceBaseSpec struct {
@@ -118,7 +124,7 @@ func (spec *IBMLicenseServiceBaseSpec) IsVerbose() bool {
 }
 
 func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4CertManager bool, isRouteEnabled bool, rhmpEnabled bool,
-	operatorNamespace string) error {
+	isAlertingEnabledByDefault bool, operatorNamespace string) error {
 	if spec.InstanceNamespace == "" {
 		spec.InstanceNamespace = operatorNamespace
 	}
@@ -143,6 +149,18 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 			reqLogger.Info("RHMP reporting enabled automatically")
 		} else {
 			reqLogger.Info("RHMP wasn't detected")
+		}
+	}
+	if isAlertingEnabledByDefault {
+		if spec.Features == nil {
+			spec.Features = &Features{}
+		}
+		if spec.Features.Alerting == nil {
+			spec.Features.Alerting = &features.Alerting{}
+		}
+		if spec.Features.Alerting.Enabled == nil {
+			trueVal := true
+			spec.Features.Alerting.Enabled = &trueVal
 		}
 	}
 	if spec.APISecretToken == "" {
@@ -184,6 +202,10 @@ func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
 
 func (spec *IBMLicensingSpec) IsRHMPEnabled() bool {
 	return spec.RHMPEnabled != nil && *spec.RHMPEnabled
+}
+
+func (spec *IBMLicensingSpec) IsPrometheusServiceNeeded() bool {
+	return spec.IsRHMPEnabled() || spec.IsAlertingEnabled()
 }
 
 func (spec *IBMLicensingSpec) IsChargebackEnabled() bool {
