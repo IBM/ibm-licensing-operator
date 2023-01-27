@@ -15,9 +15,9 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.20.0
+CSV_VERSION ?= 1.20.1
 CSV_VERSION_DEVELOPMENT ?= development
-OLD_CSV_VERSION ?= 1.19.0
+OLD_CSV_VERSION ?= 1.20.0
 
 # Tools versions
 OPM_VERSION ?= v1.26.2
@@ -33,9 +33,11 @@ BUILD_LOCALLY ?= 1
 # Image URL to use all building/pushing image targets;
 # Use your own docker registry and image name for dev/test by overriding the IMG, REGISTRY and CSV_VERSION environment variable.
 IMG ?= ibm-licensing-operator
-REGISTRY ?= hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
 
-SCRATCH_REGISTRY ?= hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom
+REGISTRY_URL ?= docker-na-public.artifactory.swg-devops.com
+
+REGISTRY ?= ${REGISTRY_URL}/hyc-cloud-private-integration-docker-local/ibmcom
+SCRATCH_REGISTRY ?= ${REGISTRY_URL}/hyc-cloud-private-scratch-docker-local/ibmcom
 
 # Default bundle image tag
 IMAGE_BUNDLE_NAME ?= ibm-licensing-operator-bundle
@@ -174,11 +176,6 @@ ifeq ($(BUILD_LOCALLY),0)
 config-docker:
 endif
 
-ifeq ($(BUILD_LOCALLY),0)
-    export CONFIG_DOCKER_TARGET_SCRATCH = config-docker-scratch
-config-docker-scratch:
-endif
-
 include common/Makefile.common.mk
 
 all: fmt version.properties check test coverage-kind build images
@@ -252,10 +249,9 @@ build-image-development: $(CONFIG_DOCKER_TARGET) build ## Create a docker image 
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
-push-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH) build-image-development ## Push previously created image to scratch registry
+push-image-development: $(CONFIG_DOCKER_TARGET) build-image-development ## Push previously created image to scratch registry
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker push $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
-
 
 ##@ SHA Digest section
 
@@ -275,7 +271,7 @@ multiarch-image-latest: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION)
 
-multiarch-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH)
+multiarch-image-development: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${VERSION} ${GIT_BRANCH}
 	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION) ${VERSION} ${GIT_BRANCH}

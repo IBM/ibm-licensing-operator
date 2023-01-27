@@ -121,12 +121,7 @@ jobs:
         export PATH=`pwd`:$PATH
         export SUFIX=$RANDOM
         export USE_EXISTING_CLUSTER=true
-        if [[ $GITHUB_BASE_REF == 'development' || $GITHUB_REF == 'refs/heads/development' ]]
-        then
-          make unit-test-development > ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
-        else
-          make unit-test > ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
-        fi
+        make unit-test | tee ./unittest_logs_${{ matrix.k8s }}.txt 2>&1 || exit 1
 
     - name: Check all pods
       if: always()
