@@ -45,6 +45,10 @@ const ReleaseUsageLabel = "ibm-licensing-service-usage"
 const NamespaceScopeLabelKey = "intent"
 const NamespaceScopeLabelValue = "projected"
 
+//goland:noinspection GoNameStartsWithPackageName
+const DefaultReaderTokenName = "ibm-licensing-default-reader-token"
+const DefaultReaderServiceAccountName = "ibm-licensing-default-reader"
+
 const ActiveCRState = "ACTIVE"
 const InactiveCRState = "INACTIVE"
 
