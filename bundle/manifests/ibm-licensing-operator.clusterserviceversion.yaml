@@ -2,72 +2,77 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    alm-examples: |-
-      [{
-        "apiVersion": "operator.ibm.com/v1alpha1",
-        "kind": "IBMLicensing",
-        "metadata": {
-          "labels": {
-            "app.kubernetes.io/instance": "ibm-licensing-operator",
-            "app.kubernetes.io/managed-by": "ibm-licensing-operator",
-            "app.kubernetes.io/name": "ibm-licensing"
-          },
-          "name": "instance"
-        },
-        "spec": {
-          "version": "4.0.0",
-          "apiSecretToken": "ibm-licensing-token",
-          "datasource": "datacollector",
-          "httpsEnable": true
-        }
-      },{
-        "apiVersion": "operator.ibm.com/v1alpha1",
-        "kind": "IBMLicenseServiceReporter",
-        "metadata": {
-          "labels": {
-            "app.kubernetes.io/instance": "ibm-licensing-operator",
-            "app.kubernetes.io/managed-by": "ibm-licensing-operator",
-            "app.kubernetes.io/name": "ibm-licensing"
-          },
-          "name": "instance"
-        },
-        "spec": {
-          "version": "4.0.0"
-        }
-      },{
-        "apiVersion": "operator.ibm.com/v1alpha1",
-        "kind": "OperandBindInfo",
-        "metadata": {
-          "name": "ibm-licensing-bindinfo"
-        },
-        "spec": {
-          "operand": "ibm-licensing-operator",
-          "registry": "common-service",
-          "description": "Binding information that should be accessible to licensing adopters",
-          "bindings": {
-            "public-api-data": {
-              "secret": "ibm-licensing-token",
-              "configmap": "ibm-licensing-info"
+    alm-examples: |
+      [
+        {
+          "apiVersion": "operator.ibm.com/v1alpha1",
+          "kind": "IBMLicensing",
+          "metadata": {
+            "labels": {
+              "app.kubernetes.io/instance": "ibm-licensing-operator",
+              "app.kubernetes.io/managed-by": "ibm-licensing-operator",
+              "app.kubernetes.io/name": "ibm-licensing"
             },
-            "public-api-token": {
-              "secret": "ibm-licensing-token"
+            "name": "instance"
+          },
+          "spec": {
+            "version": "4.0.0",
+            "apiSecretToken": "ibm-licensing-token",
+            "datasource": "datacollector",
+            "httpsEnable": true
+          }
+        },
+        {
+          "apiVersion": "operator.ibm.com/v1alpha1",
+          "kind": "IBMLicenseServiceReporter",
+          "metadata": {
+            "labels": {
+              "app.kubernetes.io/instance": "ibm-licensing-operator",
+              "app.kubernetes.io/managed-by": "ibm-licensing-operator",
+              "app.kubernetes.io/name": "ibm-licensing"
             },
-            "public-api-upload": {
-              "secret": "ibm-licensing-upload-token",
-              "configmap": "ibm-licensing-upload-config"
+            "name": "instance"
+          },
+          "spec": {
+            "version": "4.0.0"
+          }
+        },
+        {
+          "apiVersion": "operator.ibm.com/v1alpha1",
+          "kind": "OperandBindInfo",
+          "metadata": {
+            "name": "ibm-licensing-bindinfo"
+          },
+          "spec": {
+            "operand": "ibm-licensing-operator",
+            "registry": "common-service",
+            "description": "Binding information that should be accessible to licensing adopters",
+            "bindings": {
+              "public-api-data": {
+                "secret": "ibm-licensing-token",
+                "configmap": "ibm-licensing-info"
+              },
+              "public-api-token": {
+                "secret": "ibm-licensing-token"
+              },
+              "public-api-upload": {
+                "secret": "ibm-licensing-upload-token",
+                "configmap": "ibm-licensing-upload-config"
+              }
             }
           }
-        }
-      },{
-        "apiVersion": "operator.ibm.com/v1alpha1",
-        "kind": "OperandRequest",
-        "metadata": {
-          "name": "ibm-licensing-request"
         },
-        "spec": {
-          "requests": []
+        {
+          "apiVersion": "operator.ibm.com/v1alpha1",
+          "kind": "OperandRequest",
+          "metadata": {
+            "name": "ibm-licensing-request"
+          },
+          "spec": {
+            "requests": []
+          }
         }
-      }]
+      ]
     capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
@@ -722,6 +727,7 @@ spec:
   maturity: alpha
   provider:
     name: IBM
+  version: 4.0.0
   relatedImages:
     - image: icr.io/cpopen/ibm-licensing-operator:4.0.0
       name: IBM_LICENSING_OPERATOR_IMAGE
@@ -735,4 +741,3 @@ spec:
       name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
     - image: icr.io/cpopen/cpfs/ibm-licensing-usage:4.0.0
       name: IBM_LICENSING_USAGE_IMAGE
-  version: 4.0.0
