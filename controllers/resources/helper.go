@@ -376,11 +376,11 @@ echo "$(date): All required secrets exist"
 }
 
 func UpdateCacheClusterExtensions(client c.Reader) error {
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+	var watchNamespaceEnvVar = "OPERATOR_NAMESPACE"
 
 	namespace, found := os.LookupEnv(watchNamespaceEnvVar)
 	if !found {
-		return errors.New("WATCH_NAMESPACE not found")
+		return errors.New("OPERATOR_NAMESPACE not found")
 	}
 
 	listOpts := []c.ListOption{
