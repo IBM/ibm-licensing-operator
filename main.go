@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	r "runtime"
+	"strings"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	servicecav1 "github.com/openshift/api/operator/v1"
@@ -94,7 +95,7 @@ func init() {
 }
 
 // getWatchNamespace returns the Namespace the operator should be watching for changes
-func getWatchNamespace() (string, error) {
+func getWatchNamespaces() ([]string, error) {
 	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
 	// which specifies the Namespace to watch.
 	// An empty value means the operator is running with cluster scope.
@@ -102,7 +103,22 @@ func getWatchNamespace() (string, error) {
 
 	ns, found := os.LookupEnv(watchNamespaceEnvVar)
 	if !found {
-		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+		return nil, fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+	}
+	return strings.Split(ns, ","), nil
+
+}
+
+// getWatchNamespace returns the Namespace the operator should be watching for changes
+func getOperatorNamespace() (string, error) {
+	// OperatorNamespaceEnvVar is the constant for env variable OPERATOR_NAMESPACE
+	// which describes the namespace where operator is working.
+	// An empty value means the operator is running with cluster scope.
+	var operatorNamespaceEnvVar = "OPERATOR_NAMESPACE"
+
+	ns, found := os.LookupEnv(operatorNamespaceEnvVar)
+	if !found {
+		return "", fmt.Errorf("%s must be set", operatorNamespaceEnvVar)
 	}
 	return ns, nil
 }
@@ -123,10 +139,15 @@ func main() {
 
 	printVersion()
 
-	watchNamespace, err := getWatchNamespace()
+	watchNamespaces, err := getWatchNamespaces()
 	if err != nil {
 		setupLog.Error(err, "unable to get WATCH_NAMESPACE, "+
 			"the manager will watch and manage resources in all namespaces")
+	}
+
+	operatorNamespace, err := getOperatorNamespace()
+	if err != nil {
+		setupLog.Error(err, "unable to get OPERATOR_NAMESPACE")
 	}
 
 	gvkLabelMap := map[schema.GroupVersionKind]cache.Selector{
@@ -147,8 +168,7 @@ func main() {
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "e1f51baf.ibm.com",
-		Namespace:          watchNamespace,
-		NewCache:           cache.NewFilteredCacheBuilder(gvkLabelMap),
+		NewCache:           cache.MultiNamespacedFilteredCacheBuilder(gvkLabelMap, watchNamespaces),
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -160,7 +180,7 @@ func main() {
 		Reader:            mgr.GetAPIReader(),
 		Log:               ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
 		Scheme:            mgr.GetScheme(),
-		OperatorNamespace: watchNamespace,
+		OperatorNamespace: operatorNamespace,
 	}
 	if err = controller.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicensing")

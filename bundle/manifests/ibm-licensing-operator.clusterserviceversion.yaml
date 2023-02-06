@@ -474,6 +474,10 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: metadata.annotations['olm.targetNamespaces']
+                      - name: OPERATOR_NAMESPACE
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.namespace
                       - name: POD_NAME
                         valueFrom:
                           fieldRef:
@@ -709,7 +713,7 @@ spec:
       type: OwnNamespace
     - supported: true
       type: SingleNamespace
-    - supported: false
+    - supported: true
       type: MultiNamespace
     - supported: false
       type: AllNamespaces
