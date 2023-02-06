@@ -306,20 +306,14 @@ help: ## Display this help
 	@awk 'BEGIN {FS = ":.*##"}; \
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-
-## FROM NEW OPERATOR
-
-##@ Test
-#ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-test:
-	@echo "Running tests for the controllers."
-	#@mkdir -p ${ENVTEST_ASSETS_DIR}
-	#@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
-	#@source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
-
+	
 prepare-unit-test:
 	kubectl create namespace ${NAMESPACE} || echo ""
-	kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo ""
+	@if [ -e ./artifactory.yaml ]; then \
+		kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo "" ;\
+	else \
+		kubectl create secret docker-registry artifactory-token -n ${NAMESPACE} --docker-server=${REGISTRY} --docker-username=${ARTIFACTORY_USER} --docker-password=${ARTIFACTORY_TOKEN} --docker-email=${ARTIFACTORY_USER} || echo "" ;\
+	fi ;\
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml || echo ""
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicensings.yaml || echo ""
 	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
@@ -344,19 +338,6 @@ unit-test: prepare-unit-test
 	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}; \
 	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}; \
 	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
-	go test -v ./controllers/... -coverprofile cover.out
-
-unit-test-development: prepare-unit-test
-	export USE_EXISTING_CLUSTER=true; \
-	export WATCH_NAMESPACE=${NAMESPACE}; \
-	export NAMESPACE=${NAMESPACE}; \
-	export OCP=${OCP}; \
-	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
-	export IBM_LICENSING_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
-	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
-	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
-	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}; \
-	export IBM_LICENSING_USAGE_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
 	go test -v ./controllers/... -coverprofile cover.out
 
 # Build manager binary
@@ -552,6 +533,9 @@ catalogsource-development: opm identify-release-stream
 
 ##@ Install
 
+install-linters:  ## Install/verify required linting tools
+	common/scripts/install-linters-development.sh
+
 verify-installed-tools: ## Verify if tools are installed
 	@command -v operator-sdk >/dev/null 2>&1 || { echo >&2 "Required tool: operator-sdk-${OPERATOR_SDK_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
 	@command -v opm >/dev/null 2>&1 || { echo >&2 "Required tool: opm-${OPM_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
@@ -561,7 +545,7 @@ verify-installed-tools: ## Verify if tools are installed
 	@echo "Successfully verified installed tools. Make sure the version matches required to avoid further issues.$'\n"
 
 	@echo "Printing installed tools summary $'\n\
-	Required | Intalled $'\n\
+	Required | Installed $'\n\
 	» operator-sdk-${OPERATOR_SDK_VERSION} | operator-sdk-"$(shell operator-sdk version | awk '{print $$3}')" $'\n\
 	» opm-${OPM_VERSION} | opm-"$(shell opm version | awk '{print $$2}' | awk -F ':' '{print $$2}')" $'\n\
 	» controller-gen-${CONTROLLER_GEN_VERSION} | controller-gen-"$(shell controller-gen --version | awk '{print $$2}')", $'\n\
@@ -625,7 +609,7 @@ ifeq (, $(shell which opm))
 	git clone  --branch ${OPM_VERSION}  https://github.com/operator-framework/operator-registry.git ;\
 	cd ./operator-registry ; \
 	git checkout ${OPM_VERSION};\
-	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=0e53cafe' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=${OPM_VERSION}' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2022-09-21T15:25:25Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
+	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=${OPM_VERSION}'"  -tags "json1" -o bin/opm ./cmd/opm ;\
 	cp ./bin/opm ~/ ; \
 	rm -rf $$OPM_GEN_TMP_DIR ;\
 	}

@@ -19,14 +19,12 @@ ACTIVE_OS=
 function detect_os() {
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     ACTIVE_OS="Linux"
-
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     if [[ $(uname -m) == 'arm64' ]]; then
       ACTIVE_OS="MacOS_arm64"
     else
       ACTIVE_OS="MacOS_x86"
     fi
-
   else
     ACTIVE_OS="Unknown"
   fi
@@ -36,9 +34,13 @@ function detect_os() {
 }
 
 function check_prerequisites() {
-  if ! [ -x "$(command -v pip)" ]; then
+  if ! [ -x "$(command -v pip)" ] && ! [ -x "$(command -v pip3)" ]; then
     echo " » Tool not found: pip. Install suitable version and try again."
     exit 1
+  elif [ -x "$(command -v pip3)" ]; then
+    pip="pip3"
+  elif [ -x "$(command -v pip)" ]; then
+    pip="pip"
   fi
   if ! [ -x "$(command -v go)" ]; then
     echo " » Tool not found: go. Install suitable version and try again."
@@ -123,7 +125,7 @@ fi
 # Yamllint
 if ! [ -x "$(command -v yamllint)" ]; then
   echo " » Installing yamllint [${YAMLLINT_VERSION}]"
-  pip install yamllint=="${YAMLLINT_VERSION}"
+  $pip install yamllint=="${YAMLLINT_VERSION}"
 else
   echo " » Yamllint already installed"
   yamllint --version
@@ -178,7 +180,6 @@ if ! [ -x "$(command -v diff3)" ]; then
   else
     brew install diffutils
   fi
-
 else
   echo " » Diffutils already installed"
   diff3 --version

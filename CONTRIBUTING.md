@@ -16,7 +16,9 @@
 
 ## Developer Certificate of Origin
 
-This repository built with [probot](https://github.com/probot/probot) that enforces the [Developer Certificate of Origin](https://developercertificate.org/) (DCO) on Pull Requests. It requires all commit messages to contain the `Signed-off-by` line with an email address that matches the commit author.
+This repository built with [probot](https://github.com/probot/probot) that enforces
+the [Developer Certificate of Origin](https://developercertificate.org/) (DCO) on Pull Requests. It requires all commit
+messages to contain the `Signed-off-by` line with an email address that matches the commit author.
 
 ## Contributing A Patch
 
@@ -42,23 +44,24 @@ Repo maintainers can assign you an issue or pull request by leaving a
 - some tools below requires python with pip (tested on python3), and ruby with gem and bundler to install
 - Linting Tools
 
-    | linting tool | version | instructions |
-    | ------------ | ------- | ------------ |
-    | [hadolint](https://github.com/hadolint/hadolint#install) | [v2.12.0](https://github.com/hadolint/hadolint/releases/tag/v2.12.0) | - download binary from version link, make executable with `chmod +x` and add to bin directory<br/>- for MacOS: `brew install hadolint` |
-    | [shellcheck](https://github.com/koalaman/shellcheck#installing) | [v0.8.0](https://github.com/koalaman/shellcheck/releases/tag/v0.8.0) | - download binary from version link, make executable with `chmod +x` and add to bin directory<br/>- for MacOS: `brew install shellcheck`  |
-    | [yamllint](https://github.com/adrienverge/yamllint#installation) | [v1.28.0](https://github.com/adrienverge/yamllint/releases/tag/v1.28.0) | - `pip install yamllint==1.28.0` |
-    | [golangci-lint](https://github.com/golangci/golangci-lint#install) | [v1.50.1](https://github.com/golangci/golangci-lint/releases/tag/v1.50.1) | - `go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1`<br/>- for MacOS: `brew install golangci-lint`  |
-    | [mdl](https://github.com/markdownlint/markdownlint#installation) | [v0.11.0](https://github.com/markdownlint/markdownlint/releases/tag/v0.11.0) | - download using `git clone https://github.com/markdownlint/markdownlint.git -b v0.11.0` and install using `sudo rake install` |
-    | [awesome_bot](https://github.com/dkhamsing/awesome_bot#installation) | [1.20.0](https://github.com/dkhamsing/awesome_bot/releases/tag/1.20.0) | - download using `git clone https://github.com/dkhamsing/awesome_bot.git -b 1.20.0` and install using `sudo rake install` |
-    | [goimports](https://pkg.go.dev/golang.org/x/tools@v0.3.0/cmd/goimports) | [v0.3.0](https://pkg.go.dev/golang.org/x/tools@v0.3.0/cmd/goimports) | - `go install golang.org/x/tools/cmd/goimports@v0.3.0` |
-    | [diffutils](https://www.gnu.org/software/diffutils/) | [v3.8](https://ftp.gnu.org/gnu/diffutils/diffutils-3.8.tar.xz) | - download binary from version link, make executable with `chmod +x` and add to bin directory<br/>- for MacOS: `brew install diffutils` |
+| linting tool                                                            | version                                                                      | instructions                                                                                                                             |
+|-------------------------------------------------------------------------|------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| [hadolint](https://github.com/hadolint/hadolint#install)                | [v2.12.0](https://github.com/hadolint/hadolint/releases/tag/v2.12.0)         | - download binary from version link, make executable with `chmod +x` and add to bin directory<br/>- for MacOS: `brew install hadolint`   |
+| [shellcheck](https://github.com/koalaman/shellcheck#installing)         | [v0.8.0](https://github.com/koalaman/shellcheck/releases/tag/v0.8.0)         | - download binary from version link, make executable with `chmod +x` and add to bin directory<br/>- for MacOS: `brew install shellcheck` |
+| [yamllint](https://github.com/adrienverge/yamllint#installation)        | [v1.28.0](https://github.com/adrienverge/yamllint/releases/tag/v1.28.0)      | - `pip install yamllint==1.28.0`                                                                                                         |
+| [golangci-lint](https://github.com/golangci/golangci-lint#install)      | [v1.50.1](https://github.com/golangci/golangci-lint/releases/tag/v1.50.1)    | - `go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1`<br/>- for MacOS: `brew install golangci-lint`                     |
+| [mdl](https://github.com/markdownlint/markdownlint#installation)        | [v0.11.0](https://github.com/markdownlint/markdownlint/releases/tag/v0.11.0) | - download using `git clone https://github.com/markdownlint/markdownlint.git -b v0.11.0` and install using `sudo rake install`           |
+| [awesome_bot](https://github.com/dkhamsing/awesome_bot#installation)    | [1.20.0](https://github.com/dkhamsing/awesome_bot/releases/tag/1.20.0)       | - download using `git clone https://github.com/dkhamsing/awesome_bot.git -b 1.20.0` and install using `sudo rake install`                |
+| [goimports](https://pkg.go.dev/golang.org/x/tools@v0.3.0/cmd/goimports) | [v0.3.0](https://pkg.go.dev/golang.org/x/tools@v0.3.0/cmd/goimports)         | - `go install golang.org/x/tools/cmd/goimports@v0.3.0`                                                                                   |
+| [diffutils](https://www.gnu.org/software/diffutils/)                    | [v3.8](https://ftp.gnu.org/gnu/diffutils/diffutils-3.8.tar.xz)               | - download binary from version link, make executable with `chmod +x` and add to bin directory<br/>- for MacOS: `brew install diffutils`  |
 
 To install required linters for the development process, you can use script:
-```shell
-bash ./common/scripts/install-linters-development.sh  
-```
-Some commands need root privileges, so provide your password upon being asked.
 
+```shell
+make install-linters
+```
+
+Some tools will need root privileges, so provide your password upon being asked.
 
 - if you have an error during `make check`, for example:
 
@@ -67,9 +70,11 @@ goboringcrypto.h fatal error: openssl/ossl_typ.h: no such file or directory
 ```
 
 Then try downloading newer golang version from [golang.org](https://golang.org) and:
+
 - make sure $GOROOT will be set to the newer one
 
 It was tested to work with these environment variables and setup:
+
 - go version go1.17 linux/amd64
 - Red Hat Enterprise Linux 8
 - GOROOT=/usr/local/go
@@ -82,7 +87,33 @@ After your PR is ready to commit, please run following commands to check your co
 
 ```shell
 make check
-make test
+```
+
+## Building tools
+
+Building the operators requires following tools installed:
+- operator-sdk-v1.25.2
+- opm-v1.26.2
+- controller-gen-v0.7.0
+- kustomize-v4.5.7
+- yq-v4.30.5
+
+Tools can installed using make target:
+
+```shell
+make install-all-tools
+```
+
+Toverify completness of the installed tools and their versions use the target:
+
+```shell
+make verify-installed-tools
+```
+
+Furthermore all important make targets are described in help section. To see the list of available commands run:
+
+```shell
+make help
 ```
 
 ## Build images
@@ -90,14 +121,15 @@ make test
 Make sure your code build passed.
 
 ```shell
-make
+make build
 ```
 
 Now, you can follow the [README](./README.md) to work with the ibm-licensing-operator.
 
 ## Version bump
 
-Run script `common/scripts/next_csv.sh` in project root directory with parameters: a current version, new version, old version..
+Run script `common/scripts/next_csv.sh` in project root directory with parameters: a current version, new version, old
+version..
 Example to bump operator from 1.9.0 to 1.10.0:
 
 ```shell
@@ -106,7 +138,9 @@ common/scripts/next_csv.sh 1.9.0 1.10.0 1.8.0
 
 ## Commit hook on OSX
 
-When committing using your IDE doesn't work and commit hook fails, try extending PATH, for example I just opened terminal from an IDE typed `echo $PATH` and pasted the result before running lint in `common/scripts/.githooks/pre-commit` like so:
+When committing using your IDE doesn't work and commit hook fails, try extending PATH, for example I just opened
+terminal from an IDE typed `echo $PATH` and pasted the result before running lint
+in `common/scripts/.githooks/pre-commit` like so:
 
 ```shell
 # in terminal where pre commit hooks are successful:
@@ -120,4 +154,5 @@ PATH=$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:...oth
 ...
 ```
 
-After that save this change to your local changelist in IDE, so you wont push it with Default (or other) changelist changes.
+After that save this change to your local changelist in IDE, so you wont push it with Default (or other) changelist
+changes.
