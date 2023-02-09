@@ -18,7 +18,6 @@ package reporter
 
 import (
 	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
@@ -42,38 +41,4 @@ func GetServiceAccount(instance *operatorv1alpha1.IBMLicenseServiceReporter) *co
 		}
 	}
 	return serviceAccount
-}
-
-func GetRole(instance *operatorv1alpha1.IBMLicenseServiceReporter) *rbacv1.Role {
-	return &rbacv1.Role{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetResourceName(instance),
-			Namespace: instance.GetNamespace(),
-		},
-		Rules: []rbacv1.PolicyRule{{
-			Verbs:     []string{"create", "get", "list", "update"},
-			APIGroups: []string{""},
-			Resources: []string{"configmaps"},
-		}},
-	}
-}
-
-func GetRoleBinding(instance *operatorv1alpha1.IBMLicenseServiceReporter) *rbacv1.RoleBinding {
-	return &rbacv1.RoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetResourceName(instance),
-			Namespace: instance.GetNamespace(),
-		},
-		Subjects: []rbacv1.Subject{{
-			APIGroup:  "",
-			Kind:      "ServiceAccount",
-			Name:      GetServiceAccountName(instance),
-			Namespace: instance.GetNamespace(),
-		}},
-		RoleRef: rbacv1.RoleRef{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "Role",
-			Name:     GetResourceName(instance),
-		},
-	}
 }

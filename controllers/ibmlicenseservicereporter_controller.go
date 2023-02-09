@@ -29,7 +29,6 @@ import (
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -109,8 +108,6 @@ func (r *IBMLicenseServiceReporterReconciler) Reconcile(ctx context.Context, req
 
 	reconcileFunctions := []interface{}{
 		r.reconcileServiceAccount,
-		r.reconcileRole,
-		r.reconcileRoleBinding,
 		r.reconcileAPISecretToken,
 		r.reconcileDatabaseSecret,
 		r.reconcilePersistentVolumeClaim,
@@ -248,20 +245,6 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileServiceAccount(instance *
 		return reconcile.Result{}, nil
 	}
 	return reconcile.Result{}, nil
-}
-
-func (r *IBMLicenseServiceReporterReconciler) reconcileRole(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
-	expectedRole := reporter.GetRole(instance)
-	foundRole := &rbacv1.Role{}
-	namespacedName := types.NamespacedName{Name: expectedRole.GetName(), Namespace: expectedRole.GetNamespace()}
-	return r.reconcileResourceExistence(instance, expectedRole, foundRole, namespacedName)
-}
-
-func (r *IBMLicenseServiceReporterReconciler) reconcileRoleBinding(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
-	expectedRoleBinding := reporter.GetRoleBinding(instance)
-	foundRoleBinding := &rbacv1.RoleBinding{}
-	namespacedName := types.NamespacedName{Name: expectedRoleBinding.GetName(), Namespace: expectedRoleBinding.GetNamespace()}
-	return r.reconcileResourceExistence(instance, expectedRoleBinding, foundRoleBinding, namespacedName)
 }
 
 func (r *IBMLicenseServiceReporterReconciler) reconcilePersistentVolumeClaim(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
