@@ -172,14 +172,14 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 	if foundInstance == nil {
 		reqLogger.Info("Did not find request name in instances, probably it was deleted.")
 		if !hasIBMLicensingListActiveInstance(ibmLicensingList) {
-			return reconcile.Result{}, r.findAndMarkActiveIBMLicensing(ibmLicensingList, reqLogger)
+			return reconcile.Result{}, r.findAndMarkActiveIBMLicensing(ibmLicensingList)
 		}
 		return reconcile.Result{}, nil
 	}
 
 	// Check if there are any active CR or if they are properly marked (field .State)
 	if !hasIBMLicensingListActiveInstance(ibmLicensingList) || foundInstance.Status.State == "" {
-		err := r.findAndMarkActiveIBMLicensing(ibmLicensingList, reqLogger)
+		err := r.findAndMarkActiveIBMLicensing(ibmLicensingList)
 		if err != nil {
 			reqLogger.Error(err, "Failed to update IBMLicensing CR status.")
 			return reconcile.Result{}, err
@@ -189,6 +189,7 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 
 	// Ignore reconciliation if CR is 'inactive'
 	if foundInstance.Status.State == service.InactiveCRState {
+		reqLogger.Info("Ignoring reconciliation because its status is " + foundInstance.Status.State)
 		return reconcile.Result{}, nil
 	}
 
@@ -239,7 +240,7 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 	return r.updateStatus(foundInstance, reqLogger)
 }
 
-func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList *operatorv1alpha1.IBMLicensingList, reqLogger logr.Logger) error {
+func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList *operatorv1alpha1.IBMLicensingList) error {
 	if ibmlicensingList.Items == nil || len(ibmlicensingList.Items) == 0 {
 		return nil
 	}
@@ -257,10 +258,11 @@ func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList 
 	for _, cr = range ibmlicensingList.Items {
 		// Only firstly created instance is marked as 'active' and will be reconciled
 		if cr.UID == initialInstance.UID {
+			r.Log.Info("Due to having first creation timestamp the active IBMLicensing instance CR is named: " + cr.Name)
 			cr.Status.State = service.ActiveCRState
 		} else {
-			reqLogger.Info("IBMLicensing instance already exists! Ignoring CR: " + cr.Name)
 			// CR should be marked as 'inactive' and ignored during next reconciliation
+			r.Log.Info("Other IBMLicensing instance already exists and is active! Ignoring CR: " + cr.Name)
 			if cr.Status.State != service.InactiveCRState {
 				cr.Status.State = service.InactiveCRState
 			}
