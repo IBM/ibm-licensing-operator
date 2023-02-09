@@ -46,9 +46,6 @@ const ServiceMonitorSelectorLabel = "marketplace.redhat.com/metering"
 const ReleaseLabel = "ibm-licensing-service-prometheus"
 const ReleaseUsageLabel = "ibm-licensing-service-usage"
 
-const NamespaceScopeLabelKey = "intent"
-const NamespaceScopeLabelValue = "projected"
-
 //goland:noinspection GoNameStartsWithPackageName
 const ServiceAccountSecretName = "ibm-licensing-service-account-token"
 const DefaultReaderTokenName = "ibm-licensing-default-reader-token"
@@ -97,9 +94,6 @@ func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]s
 	selectorLabels := LabelsForSelector(instance)
 	for key, value := range selectorLabels {
 		podLabels[key] = value
-	}
-	if instance.Spec.IsNamespaceScopeEnabled() {
-		podLabels[NamespaceScopeLabelKey] = NamespaceScopeLabelValue
 	}
 	return podLabels
 }

@@ -19,10 +19,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-	r "runtime"
-	"strings"
-
+	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
@@ -36,6 +33,8 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"os"
+	r "runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
@@ -94,35 +93,6 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 }
 
-// getWatchNamespace returns the Namespace the operator should be watching for changes
-func getWatchNamespaces() ([]string, error) {
-	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
-	// which specifies the Namespace to watch.
-	// An empty value means the operator is running with cluster scope.
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
-
-	ns, found := os.LookupEnv(watchNamespaceEnvVar)
-	if !found {
-		return nil, fmt.Errorf("%s must be set", watchNamespaceEnvVar)
-	}
-	return strings.Split(ns, ","), nil
-
-}
-
-// getWatchNamespace returns the Namespace the operator should be watching for changes
-func getOperatorNamespace() (string, error) {
-	// OperatorNamespaceEnvVar is the constant for env variable OPERATOR_NAMESPACE
-	// which describes the namespace where operator is working.
-	// An empty value means the operator is running with cluster scope.
-	var operatorNamespaceEnvVar = "OPERATOR_NAMESPACE"
-
-	ns, found := os.LookupEnv(operatorNamespaceEnvVar)
-	if !found {
-		return "", fmt.Errorf("%s must be set", operatorNamespaceEnvVar)
-	}
-	return ns, nil
-}
-
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
@@ -139,13 +109,13 @@ func main() {
 
 	printVersion()
 
-	watchNamespaces, err := getWatchNamespaces()
+	watchNamespaces, err := resources.GetWatchNamespaceList()
 	if err != nil {
 		setupLog.Error(err, "unable to get WATCH_NAMESPACE, "+
 			"the manager will watch and manage resources in all namespaces")
 	}
 
-	operatorNamespace, err := getOperatorNamespace()
+	operatorNamespace, err := resources.GetOperatorNamespace()
 	if err != nil {
 		setupLog.Error(err, "unable to get OPERATOR_NAMESPACE")
 	}

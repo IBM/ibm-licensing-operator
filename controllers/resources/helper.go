@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"os"
 	"regexp"
 
 	"reflect"
@@ -376,11 +375,9 @@ echo "$(date): All required secrets exist"
 }
 
 func UpdateCacheClusterExtensions(client c.Reader) error {
-	var watchNamespaceEnvVar = "OPERATOR_NAMESPACE"
-
-	namespace, found := os.LookupEnv(watchNamespaceEnvVar)
-	if !found {
-		return errors.New("OPERATOR_NAMESPACE not found")
+	namespace, err := GetOperatorNamespace()
+	if err != nil {
+		return errors.New("OPERATOR_NAMESPACE env not found")
 	}
 
 	listOpts := []c.ListOption{
