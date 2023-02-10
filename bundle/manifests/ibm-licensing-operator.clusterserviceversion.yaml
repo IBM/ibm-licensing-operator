@@ -97,12 +97,6 @@ spec:
         kind: IBMLicensing
         name: ibmlicensings.operator.ibm.com
         resources:
-          - kind: ClusterRole
-            name: ""
-            version: v1
-          - kind: ClusterRoleBinding
-            name: ""
-            version: v1
           - kind: Deployment
             name: ""
             version: v1
@@ -635,8 +629,6 @@ spec:
             - apiGroups:
                 - rbac.authorization.k8s.io
               resources:
-                - clusterrolebindings
-                - clusterroles
                 - rolebindings
                 - roles
               verbs:
