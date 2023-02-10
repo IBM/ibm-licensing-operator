@@ -147,8 +147,8 @@ func main() {
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "e1f51baf.ibm.com",
-		Namespace:          watchNamespace,
-		NewCache:           cache.NewFilteredCacheBuilder(gvkLabelMap),
+		// Namespace:          watchNamespace,
+		NewCache: cache.NewFilteredCacheBuilder(gvkLabelMap),
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -173,6 +173,15 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicenseServiceReporter")
+		os.Exit(1)
+	}
+	if err = (&controllers.OperandRequestReconciler{
+		Client:            mgr.GetClient(),
+		Log:               ctrl.Log.WithName("controllers").WithName("OperandRequest"),
+		Scheme:            mgr.GetScheme(),
+		OperatorNamespace: watchNamespace,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "OperandRequest")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

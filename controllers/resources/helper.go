@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"os"
 	"regexp"
 
 	"reflect"
@@ -55,32 +54,37 @@ import (
 )
 
 // cannot set to const due to k8s struct needing pointers to primitive types
+var (
+	TrueVar  = true
+	FalseVar = false
 
-var TrueVar = true
-var FalseVar = false
+	DefaultSecretMode int32 = 420
+	Seconds60         int64 = 60
 
-var DefaultSecretMode int32 = 420
-var Seconds60 int64 = 60
+	IsRouteAPI                 = true
+	IsServiceCAAPI             = true
+	IsAlertingEnabledByDefault = true
+	RHMPEnabled                = false
+	IsUIEnabled                = false
+	IsODLM                     = true
+	UIPlatformSecretName       = "platform-oidc-credentials"
 
-var IsRouteAPI = true
-var IsServiceCAAPI = true
-var IsAlertingEnabledByDefault = true
-var RHMPEnabled = false
-var IsUIEnabled = false
-var IsODLM = true
-var UIPlatformSecretName = "platform-oidc-credentials"
+	PathType = networkingv1.PathTypeImplementationSpecific
+)
 
-var PathType = networkingv1.PathTypeImplementationSpecific
+const (
+	// Important product values needed for annotations
+	LicensingProductName   = "IBM Cloud Platform Common Services"
+	LicensingProductID     = "068a62892a1e4db39641342e592daa25"
+	LicensingProductMetric = "FREE"
 
-// Important product values needed for annotations
-const LicensingProductName = "IBM Cloud Platform Common Services"
-const LicensingProductID = "068a62892a1e4db39641342e592daa25"
-const LicensingProductMetric = "FREE"
+	randStringCharset    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
 
-const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-const ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
-const OcpCheckString = "ocp-check-secret"
-const OcpPrometheusCheckString = "ocp-prometheus-check-secret"
+	OcpCheckString           = "ocp-check-secret"
+	OcpPrometheusCheckString = "ocp-prometheus-check-secret"
+	OperatorName             = "ibm-licensing-operator"
+)
 
 var randStringCharsetLength = big.NewInt(int64(len(randStringCharset)))
 
@@ -376,15 +380,15 @@ echo "$(date): All required secrets exist"
 }
 
 func UpdateCacheClusterExtensions(client c.Reader) error {
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+	// var watchNamespaceEnvVar = "WATCH_NAMESPACE"
 
-	namespace, found := os.LookupEnv(watchNamespaceEnvVar)
-	if !found {
-		return errors.New("WATCH_NAMESPACE not found")
-	}
+	// namespace, found := os.LookupEnv(watchNamespaceEnvVar)
+	// if !found {
+	// 	return errors.New("WATCH_NAMESPACE not found")
+	// }
 
 	listOpts := []c.ListOption{
-		c.InNamespace(namespace),
+		// c.InNamespace(namespace),
 	}
 
 	MeterDefinitionCRD := &rhmp.MeterDefinitionList{}
