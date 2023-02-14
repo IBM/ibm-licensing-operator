@@ -49,8 +49,8 @@ IBM_POSTGRESQL_IMAGE ?= ibm-postgresql
 IBM_LICENSE_SERVICE_REPORTER_IMAGE ?= ibm-license-service-reporter
 IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 
-CHANNELS=v3,v3.20,v3.21,v3.22,beta,dev,stable-v1
-DEFAULT_CHANNEL=v3.22
+CHANNELS=v3,v3.20,v3.21,v3.22,v3.23,beta,dev,stable-v1
+DEFAULT_CHANNEL=v3.23
 
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
