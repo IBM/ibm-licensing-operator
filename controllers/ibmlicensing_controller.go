@@ -93,7 +93,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods,verbs=get
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods,verbs=get
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=apps,resources=replicasets;deployments,verbs=get
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=rbac.authorization.k8s.io,resources=clusterroles;clusterrolebindings;roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-common-services,groups=rbac.authorization.k8s.io,resources=roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods;nodes;namespaces,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=route.openshift.io,resources=routes;routes/custom-host,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=marketplace.redhat.com,resources=meterdefinitions,verbs=get;list;create;update;watch

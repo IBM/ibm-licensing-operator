@@ -50,12 +50,6 @@ spec:
       kind: IBMLicensing
       name: ibmlicensings.operator.ibm.com
       resources:
-      - kind: ClusterRole
-        name: ""
-        version: v1
-      - kind: ClusterRoleBinding
-        name: ""
-        version: v1
       - kind: Deployment
         name: ""
         version: v1
