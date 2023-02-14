@@ -15,16 +15,16 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 4.2.12
+CSV_VERSION ?= 1.20.1
 CSV_VERSION_DEVELOPMENT ?= development
-OLD_CSV_VERSION ?= 4.2.11
+OLD_CSV_VERSION ?= 1.20.0
 
 # Tools versions
 OPM_VERSION ?= v1.26.2
-OPERATOR_SDK_VERSION ?= v1.32.0
+OPERATOR_SDK_VERSION ?= v1.25.2
 YQ_VERSION ?= v4.30.5
 KUSTOMIZE_VERSION ?= v4.5.7
-CONTROLLER_GEN_VERSION ?= v0.14.0
+CONTROLLER_GEN_VERSION ?= v0.7.0
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -44,9 +44,13 @@ IMAGE_BUNDLE_NAME ?= ibm-licensing-operator-bundle
 IMAGE_CATALOG_NAME ?= ibm-licensing-operator-catalog
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
+IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE ?= ibm-license-service-reporter-ui
+IBM_POSTGRESQL_IMAGE ?= ibm-postgresql
+IBM_LICENSE_SERVICE_REPORTER_IMAGE ?= ibm-license-service-reporter
+IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 
-CHANNELS=v3,v3.20,v3.21,v3.22,v4.0,beta,dev,stable-v1
-DEFAULT_CHANNEL=v4.0
+CHANNELS=v3,v3.20,v3.21,v3.22,v3.23,beta,dev,stable-v1
+DEFAULT_CHANNEL=v3.23
 
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
@@ -78,10 +82,7 @@ QUAY_PASSWORD ?=
 MARKDOWN_LINT_WHITELIST ?= https://quay.io/cnr,https://www-03preprod.ibm.com/support/knowledgecenter/SSHKN6/installer/3.3.0/install_operator.html,https://github.com/IBM/ibm-licensing-operator/releases/download/,https://github.com/operator-framework/operator-lifecycle-manager/releases/download,http://ibm.biz/,https://ibm.biz/,https://goreportcard.com/,https://docs.vmware.com/en/VMware-vSphere/7.0/vmware-vsphere-with-tanzu/GUID-CD033D1D-BAD2-41C4-A46F-647A560BAEAB.html,https://docs.vmware.com/en/VMware-vSphere/7.0/vmware-vsphere-with-tanzu/GUID-4CCDBB85-2770-4FB8-BF0E-5146B45C9543.html
 
 # The namespace that operator will be deployed in
-NAMESPACE ?= ibm-licensing
-
-# Namespaces for Kind tests
-OPREQ_TEST_NAMESPACE ?= opreq-ns
+NAMESPACE ?= ibm-common-services
 
 # Github host to use for checking the source tree;
 # Override this variable ue with your own value if you're working on forked repo.
@@ -154,13 +155,10 @@ CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
 DEVOPS_STREAM :=
 ifeq ($(GIT_BRANCH),master) 
 	DEVOPS_STREAM="cd"
-	DEFAULT_CHANNEL=v4.0
 else ifeq ($(GIT_BRANCH),release-ltsr)
 	DEVOPS_STREAM="ltsr"
-	DEFAULT_CHANNEL=v3
 else ifeq ($(GIT_BRANCH),release-future)
 	DEVOPS_STREAM="future"
-	DEFAULT_CHANNEL=v4.0
 endif
 
 DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
@@ -308,44 +306,52 @@ help: ## Display this help
 	@awk 'BEGIN {FS = ":.*##"}; \
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-
+	
 prepare-unit-test:
 	kubectl create namespace ${NAMESPACE} || echo ""
-	kubectl create namespace ${OPREQ_TEST_NAMESPACE} || echo ""
-	kubectl create secret docker-registry artifactory-token -n ${NAMESPACE} --docker-server=${REGISTRY} --docker-username=${ARTIFACTORY_USERNAME} --docker-password=${ARTIFACTORY_TOKEN} || echo "" ;\
+	@if [ -e ./artifactory.yaml ]; then \
+		kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo "" ;\
+	else \
+		kubectl create secret docker-registry artifactory-token -n ${NAMESPACE} --docker-server=${REGISTRY} --docker-username=${ARTIFACTORY_USER} --docker-password=${ARTIFACTORY_TOKEN} --docker-email=${ARTIFACTORY_USER} || echo "" ;\
+	fi ;\
+	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml || echo ""
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicensings.yaml || echo ""
-	sed "s/ibm-licensing/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
 	kubectl apply -f ./config/rbac/role_ns.yaml || echo ""
-	sed "s/ibm-licensing/${NAMESPACE}/g" < ./config/rbac/service_account.yaml > ./config/rbac/service_account_ns.yaml
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/service_account.yaml > ./config/rbac/service_account_ns.yaml
 	kubectl apply -f ./config/rbac/service_account_ns.yaml|| echo ""
-	sed "s/ibm-licensing/${NAMESPACE}/g" < ./config/rbac/role_binding.yaml > ./config/rbac/role_binding_ns.yaml
+	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role_binding.yaml > ./config/rbac/role_binding_ns.yaml
 	kubectl apply -f ./config/rbac/role_binding_ns.yaml || echo ""
 	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/master/v2/config/crd/bases/marketplace.redhat.com_meterdefinitions.yaml
 	kubectl apply -f marketplace.redhat.com_meterdefinitions.yaml
 	curl -O https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
 	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
-	curl -O https://raw.githubusercontent.com/IBM/operand-deployment-lifecycle-manager/v1.21.0/bundle/manifests/operator.ibm.com_operandrequests.yaml
-	kubectl apply -f operator.ibm.com_operandrequests.yaml
 
 unit-test: prepare-unit-test
 	export USE_EXISTING_CLUSTER=true; \
-	export OPERATOR_NAMESPACE=${NAMESPACE}; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
-	export OPREQ_TEST_NAMESPACE=${OPREQ_TEST_NAMESPACE}; \
 	export OCP=${OCP}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
+	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}; \
+	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}; \
+	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}; \
+	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
 	go test -v ./controllers/... -coverprofile cover.out
 
 # Build manager binary
 manager: generate
 	go build -o bin/$(IMAGE_NAME) main.go
 
-# Run against the configured Kubernetes cluster in ~/.kube/config. Adjust namespace variable according to your environment, e.g. NAMESPACE=lsr-ns make run
+# Run against the configured Kubernetes cluster in ~/.kube/config
 run: fmt vet
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
-	WATCH_NAMESPACE=${NAMESPACE} OPERATOR_NAMESPACE=${NAMESPACE} go run ./main.go
+	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}; \
+	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}; \
+	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}; \
+	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
+	WATCH_NAMESPACE= go run ./main.go
 
 # Install CRDs into a cluster
 install: manifests kustomize
@@ -431,27 +437,32 @@ update-roles-alm-example: alm-example
 alm-example:
 	mkdir -p /tmp/json
 	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml > /tmp/json/ibmlicensing.json
+	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicenseservicereporter.yaml > /tmp/json/ibmlicenseservicereporter.json
+	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingbindinfo.yaml > /tmp/json/ibmlicensingbindinfo.json
+	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingrequest.yaml > /tmp/json/ibmlicensingrequest.json
 
-	jq -s '.' /tmp/json/ibmlicensing.json > /tmp/json/merged.json
+	jq -s '.' /tmp/json/ibmlicensing.json /tmp/json/ibmlicenseservicereporter.json /tmp/json/ibmlicensingbindinfo.json /tmp/json/ibmlicensingrequest.json > /tmp/json/merged.json
 	yq -i '.metadata.annotations.alm-examples |= load_str("/tmp/json/merged.json")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
 	rm -r /tmp/json
 
-# Generate bundle manifests and metadata, then validate generated files. Yq is used to change order of owned resources here to ensure Licensing is first.
+# Generate bundle manifests and metadata, then validate generated files. Yq is used to change order of owned resources here to ensure Licensing is first and Reporter second.
 pre-bundle: manifests
 	operator-sdk generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
-	yq '.spec.customresourcedefinitions.owned[0]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_definitions.yaml
-	yq '.spec.customresourcedefinitions.owned[1]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_metadata.yaml
-	yq '.spec.customresourcedefinitions.owned[2]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_querysources.yaml
-	yq '.spec.customresourcedefinitions.owned[3]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_licensing.yaml
+	yq '.spec.customresourcedefinitions.owned[0]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_reporter.yaml
+	yq '.spec.customresourcedefinitions.owned[1]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_definitions.yaml
+	yq '.spec.customresourcedefinitions.owned[2]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_metadata.yaml
+	yq '.spec.customresourcedefinitions.owned[3]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_querysources.yaml
+	yq '.spec.customresourcedefinitions.owned[4]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_licensing.yaml
 	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[0] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_licensing.yaml
-	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[1] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_definitions.yaml
-	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[2] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_metadata.yaml
-	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[3] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_querysources.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[1] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_reporter.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[2] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_definitions.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[3] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_metadata.yaml
+	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[4] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_querysources.yaml
 	yq -i '.spec.relatedImages = load("./common/relatedImages.yaml")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	rm yq_tmp_licensing.yaml yq_tmp_metadata.yaml yq_tmp_definitions.yaml yq_tmp_querysources.yaml
+	rm yq_tmp_reporter.yaml yq_tmp_licensing.yaml yq_tmp_metadata.yaml yq_tmp_definitions.yaml yq_tmp_querysources.yaml
 	operator-sdk bundle validate ./bundle
 
 bundle: pre-bundle update-roles-alm-example
@@ -467,12 +478,27 @@ bundle-build-development:
 scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
-catalogsource: opm
+identify-release-stream: SHELL = /bin/bash
+identify-release-stream:
+	@for tag in $(BRANCH_TAGS) ; do \
+		if [[ $$tag =~ v?1.16.[1-9][0-9]? ]]; then \
+			echo "Detected stream: LTSR."; \
+			CHANNELS=v3,beta,dev,stable-v1 \
+			DEFAULT_CHANNEL=v3 ;\
+			break ;\
+		fi; \
+	done; \
+
+catalogsource: opm identify-release-stream
 	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${REGISTRY}/${IMG}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value = "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value = "${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value = "${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[4].value = "${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml	
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
@@ -484,12 +510,16 @@ ifneq (${DEVOPS_STREAM},)
 	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
 endif
 
-catalogsource-development: opm
+catalogsource-development: opm identify-release-stream
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value = "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[2].value = "${SCRATCH_REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[3].value = "${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[4].value = "${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml	
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
@@ -595,53 +625,3 @@ PODMAN=podman
 endif
 
 .PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
-
-.PHONY: generate-yaml-argo-cd
-generate-yaml-argo-cd: kustomize
-	@mkdir -p argo-cd && $(KUSTOMIZE) build config/manifests > argo-cd/tmp.yaml
-
-	# Split the resources into separate YAML files
-	@(echo "---" && yq 'select(.kind == "ClusterRole" or .kind == "ClusterRoleBinding")' argo-cd/tmp.yaml) > argo-cd/cluster-rbac.yaml
-	@(echo "---" && yq 'select(.kind == "IBMLicensing")' argo-cd/tmp.yaml) > argo-cd/cr.yaml
-	@(echo "---" && yq 'select(.kind == "CustomResourceDefinition")' argo-cd/tmp.yaml) > argo-cd/crds.yaml
-	@(echo "---" && yq 'select(.kind == "Deployment")' argo-cd/tmp.yaml) > argo-cd/deployment.yaml
-	@(echo "---" && yq 'select(.kind == "Role" or .kind == "RoleBinding")' argo-cd/tmp.yaml) > argo-cd/rbac.yaml
-	@(echo "---" && yq 'select(.kind == "ServiceAccount")' argo-cd/tmp.yaml) > argo-cd/serviceaccounts.yaml
-
-	# Add missing namespaces
-	@yq -i 'select(.kind == "ClusterRoleBinding").subjects[0].namespace = "sed-me"' argo-cd/cluster-rbac.yaml
-	@yq -i 'select(.kind == "RoleBinding").subjects[0].namespace = "sed-me"' argo-cd/rbac.yaml
-
-	# Remove redundant data
-	@yq -i 'del(.metadata.namespace)' argo-cd/cluster-rbac.yaml
-
-	# Prepare resources for templating with helm
-	@yq -i '.spec = ["sed-me"]' argo-cd/cr.yaml
-	@yq -i '.metadata.annotations.sed-deployment-annotations-top = "sed-me" \
-	| .metadata.labels.sed-deployment-labels-top = "sed-me" \
-	| .spec.template.metadata.annotations.sed-deployment-annotations-bottom = "sed-me" \
-	| .spec.template.metadata.labels.sed-deployment-labels-bottom = "sed-me" \
-	| .spec.template.spec.containers[0].env[1].valueFrom = "sed-me"' argo-cd/deployment.yaml
-
-	# Add extra fields, for example argo-cd sync waves
-	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-options" = "ServerSideApply=true"' argo-cd/cr.yaml
-	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "-1"' argo-cd/crds.yaml
-	# This sync wave is crucial because the deployment must be created after the CR, to avoid a situation when ArgoCD
-	# starts creating the CR at the same time as the operator does it (patch isn't applied and a name conflict happens)
-	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "1"' argo-cd/deployment.yaml
-
-	# Replace all namespaces to template them with helm
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.namespace }}/g" argo-cd/cluster-rbac.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.namespace }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.namespace }}/g" argo-cd/rbac.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.namespace }}/g" argo-cd/serviceaccounts.yaml
-
-	# Replace extra fields (in addition to the namespaces) to template them with helm
-	@sed -i '' "s/- sed-me/{{- toYaml .Values.spec | nindent 2 }}/g" argo-cd/cr.yaml
-	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.operator).annotations) }}\n      {{- toYaml .Values.operator.annotations | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.operator).labels) }}\n      {{- toYaml .Values.operator.labels | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.operator).annotations) }}\n          {{- toYaml .Values.operator.annotations | nindent 4 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-labels-bottom: sed-me/{{- if ((.Values.operator).labels) }}\n          {{- toYaml .Values.operator.labels | nindent 4 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.watchNamespace }}/g" argo-cd/deployment.yaml
-
-	@rm argo-cd/tmp.yaml
