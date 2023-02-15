@@ -38,6 +38,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
+
 	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
@@ -91,6 +93,9 @@ var _ = BeforeSuite(func(done Done) {
 	err = monitoringv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
+	err = odlm.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
 	err = networkingv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -120,6 +125,14 @@ var _ = BeforeSuite(func(done Done) {
 		Client: mgr.GetClient(),
 		Reader: mgr.GetAPIReader(),
 		Log:    ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = (&OperandRequestReconciler{
+		Client: mgr.GetClient(),
+		Reader: mgr.GetAPIReader(),
+		Log:    ctrl.Log.WithName("controllers").WithName("OperandRequest"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())

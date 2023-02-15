@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	r "runtime"
+	"time"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	servicecav1 "github.com/openshift/api/operator/v1"
@@ -32,6 +33,7 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -40,6 +42,7 @@ import (
 
 	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers"
+	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
 	"github.com/IBM/ibm-licensing-operator/version"
 
 	cache "github.com/IBM/controller-filtered-cache/filteredcache"
@@ -147,8 +150,8 @@ func main() {
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "e1f51baf.ibm.com",
-		// Namespace:          watchNamespace,
-		NewCache: cache.NewFilteredCacheBuilder(gvkLabelMap),
+		Namespace:          watchNamespace,
+		NewCache:           cache.NewFilteredCacheBuilder(gvkLabelMap),
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -175,15 +178,27 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicenseServiceReporter")
 		os.Exit(1)
 	}
-	if err = (&controllers.OperandRequestReconciler{
-		Client:            mgr.GetClient(),
-		Log:               ctrl.Log.WithName("controllers").WithName("OperandRequest"),
-		Scheme:            mgr.GetScheme(),
-		OperatorNamespace: watchNamespace,
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "OperandRequest")
-		os.Exit(1)
+
+	operandRequest := odlm.OperandRequest{}
+	resNsName := types.NamespacedName{Name: "example", Namespace: watchNamespace}
+	opreqControllerEnabled := res.DoesCRDExist(mgr.GetClient(), resNsName, &operandRequest)
+
+	if opreqControllerEnabled {
+		if err = (&controllers.OperandRequestReconciler{
+			Client:            mgr.GetClient(),
+			Reader:            mgr.GetAPIReader(),
+			Log:               ctrl.Log.WithName("controllers").WithName("OperandRequest"),
+			Scheme:            mgr.GetScheme(),
+			OperatorNamespace: watchNamespace,
+		}).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "OperandRequest")
+			os.Exit(1)
+		}
+	} else {
+		logger := ctrl.Log.WithName("controllers").WithName("OperandRequest")
+		go res.WatchForCRD(&logger, mgr.GetClient(), resNsName, &operandRequest, 30*time.Minute)
 	}
+
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("Creating first instance.")

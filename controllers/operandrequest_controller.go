@@ -42,6 +42,7 @@ import (
 // OperandRequestReconciler reconciles a OperandRequest object
 type OperandRequestReconciler struct {
 	client.Client
+	client.Reader
 	Log               logr.Logger
 	Scheme            *runtime.Scheme
 	OperatorNamespace string
@@ -92,6 +93,10 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	reqLogger := r.Log.WithValues("operandrequest", req.NamespacedName)
 	reqLogger.Info("Reconciling OperandRequest")
 
+	if err := res.UpdateCacheClusterExtensions(r.Reader); err != nil {
+		reqLogger.Error(err, "Error during checking K8s API")
+	}
+
 	// Fetch the OperandRequest instance
 	operandRequest := odlm.OperandRequest{}
 	if err := r.Client.Get(context.TODO(), req.NamespacedName, &operandRequest); err != nil {
@@ -107,7 +112,6 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	for _, request := range operandRequest.Spec.Requests {
 		for _, operand := range request.Operands {
 			if operand.Name == res.OperatorName {
-				reqLogger.Info("Found OperandRequest " + operandRequest.Name + " with " + res.OperatorName)
 
 				for key, binding := range operand.Bindings {
 					if key == "public-api-data" {
@@ -172,7 +176,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 // Copy secret `sourceName` from source namespace `sourceNs` to target namespace `targetNs`
 func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile.Request, sourceName, targetName, sourceNs, targetNs string,
 	requestInstance *odlm.OperandRequest) (requeue bool, err error) {
-	reqLogger := r.Log.WithValues("operandrequest", req.NamespacedName) // TODO namespaced?
+	reqLogger := r.Log.WithValues("operandrequest", req.NamespacedName)
 
 	if sourceName == "" || sourceNs == "" || targetNs == "" {
 		return false, nil
@@ -248,7 +252,7 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 // and rename it to `targetName`
 func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconcile.Request, sourceName, targetName, sourceNs, targetNs string,
 	requestInstance *odlm.OperandRequest) (requeue bool, err error) {
-	reqLogger := r.Log.WithValues("operandrequest", req.NamespacedName) // TODO namespaced?
+	reqLogger := r.Log.WithValues("operandrequest", req.NamespacedName)
 
 	if sourceName == "" || sourceNs == "" || targetNs == "" {
 		return false, nil
@@ -327,9 +331,14 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 }
 
 func compareSecret(secret *corev1.Secret, existingSecret *corev1.Secret) (needUpdate bool) {
-	return !equality.Semantic.DeepEqual(secret.GetLabels(), existingSecret.GetLabels()) || !equality.Semantic.DeepEqual(secret.Type, existingSecret.Type) || !equality.Semantic.DeepEqual(secret.Data, existingSecret.Data) || !equality.Semantic.DeepEqual(secret.StringData, existingSecret.StringData)
+	return !equality.Semantic.DeepEqual(secret.GetLabels(), existingSecret.GetLabels()) ||
+		!equality.Semantic.DeepEqual(secret.Type, existingSecret.Type) ||
+		!equality.Semantic.DeepEqual(secret.Data, existingSecret.Data) ||
+		!equality.Semantic.DeepEqual(secret.StringData, existingSecret.StringData)
 }
 
 func compareConfigMap(configMap *corev1.ConfigMap, existingConfigMap *corev1.ConfigMap) (needUpdate bool) {
-	return !equality.Semantic.DeepEqual(configMap.GetLabels(), existingConfigMap.GetLabels()) || !equality.Semantic.DeepEqual(configMap.Data, existingConfigMap.Data) || !equality.Semantic.DeepEqual(configMap.BinaryData, existingConfigMap.BinaryData)
+	return !equality.Semantic.DeepEqual(configMap.GetLabels(), existingConfigMap.GetLabels()) ||
+		!equality.Semantic.DeepEqual(configMap.Data, existingConfigMap.Data) ||
+		!equality.Semantic.DeepEqual(configMap.BinaryData, existingConfigMap.BinaryData)
 }
