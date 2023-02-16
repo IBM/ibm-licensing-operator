@@ -40,6 +40,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	operatorv1 "github.com/IBM/ibm-licensing-operator/api/v1"
 	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers"
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
@@ -47,8 +48,6 @@ import (
 
 	cache "github.com/IBM/controller-filtered-cache/filteredcache"
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
-
-	operatorv1 "github.com/IBM/ibm-licensing-operator/api/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -96,20 +95,6 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 }
 
-// getWatchNamespace returns the Namespace the operator should be watching for changes
-func getWatchNamespace() (string, error) {
-	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
-	// which specifies the Namespace to watch.
-	// An empty value means the operator is running with cluster scope.
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
-
-	ns, found := os.LookupEnv(watchNamespaceEnvVar)
-	if !found {
-		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
-	}
-	return ns, nil
-}
-
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
@@ -126,10 +111,15 @@ func main() {
 
 	printVersion()
 
-	watchNamespace, err := getWatchNamespace()
+	watchNamespaces, err := res.GetWatchNamespaceList()
 	if err != nil {
 		setupLog.Error(err, "unable to get WATCH_NAMESPACE, "+
 			"the manager will watch and manage resources in all namespaces")
+	}
+
+	operatorNamespace, err := res.GetOperatorNamespace()
+	if err != nil {
+		setupLog.Error(err, "unable to get OPERATOR_NAMESPACE")
 	}
 
 	gvkLabelMap := map[schema.GroupVersionKind]cache.Selector{
@@ -150,8 +140,7 @@ func main() {
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "e1f51baf.ibm.com",
-		Namespace:          watchNamespace,
-		NewCache:           cache.NewFilteredCacheBuilder(gvkLabelMap),
+		NewCache:           cache.MultiNamespacedFilteredCacheBuilder(gvkLabelMap, watchNamespaces),
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -163,7 +152,7 @@ func main() {
 		Reader:            mgr.GetAPIReader(),
 		Log:               ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
 		Scheme:            mgr.GetScheme(),
-		OperatorNamespace: watchNamespace,
+		OperatorNamespace: operatorNamespace,
 	}
 	if err = controller.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicensing")
@@ -180,7 +169,7 @@ func main() {
 	}
 
 	operandRequest := odlm.OperandRequest{}
-	resNsName := types.NamespacedName{Name: "example", Namespace: watchNamespace}
+	resNsName := types.NamespacedName{Name: "example", Namespace: operatorNamespace}
 	opreqControllerEnabled := res.DoesCRDExist(mgr.GetClient(), resNsName, &operandRequest)
 
 	if opreqControllerEnabled {
@@ -189,7 +178,7 @@ func main() {
 			Reader:            mgr.GetAPIReader(),
 			Log:               ctrl.Log.WithName("controllers").WithName("OperandRequest"),
 			Scheme:            mgr.GetScheme(),
-			OperatorNamespace: watchNamespace,
+			OperatorNamespace: operatorNamespace,
 		}).SetupWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "OperandRequest")
 			os.Exit(1)

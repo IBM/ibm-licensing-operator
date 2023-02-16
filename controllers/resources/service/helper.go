@@ -105,9 +105,6 @@ func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]s
 	for key, value := range selectorLabels {
 		podLabels[key] = value
 	}
-	if instance.Spec.IsNamespaceScopeEnabled() {
-		podLabels[NamespaceScopeLabelKey] = NamespaceScopeLabelValue
-	}
 	return podLabels
 }
 
