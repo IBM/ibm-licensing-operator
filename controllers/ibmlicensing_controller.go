@@ -157,7 +157,7 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 
 	// Ignore reconciliation if CR is 'inactive'
 	if instance.Status.State == service.InactiveCRState {
-		reqLogger.Info("Ignoring reconciliation because its status is " + instance.Status.State)
+		reqLogger.Info("Ignoring reconciliation because CR's status is " + instance.Status.State)
 		return reconcile.Result{}, nil
 	}
 
