@@ -634,6 +634,7 @@ spec:
                 - ibmlicensings
                 - ibmlicensings/finalizers
                 - ibmlicensings/status
+                - operandrequests
               verbs:
                 - create
                 - delete
