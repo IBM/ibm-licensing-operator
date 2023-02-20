@@ -26,9 +26,6 @@ rules:
   - ibmlicensings
   - ibmlicensings/finalizers
   - ibmlicensings/status
-  - operandrequests
-  - operandrequests/finalizers
-  - operandrequests/status
   verbs:
   - create
   - delete

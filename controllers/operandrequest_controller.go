@@ -22,7 +22,6 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -84,8 +83,7 @@ func ignoreDeletionPredicate() predicate.Predicate {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 
-//+kubebuilder:rbac:groups=operator.ibm.com,resources=operandrequests;operandrequests/finalizers,verbs=get;list;watch;create;update;patch
-//+kubebuilder:rbac:groups=operator.ibm.com,resources=operandrequests/status,verbs=get;list
+//+kubebuilder:rbac:groups=operator.ibm.com,resources=operandrequests;operandrequests/finalizers;operandrequests/status,verbs=get;list;watch;create;update;patch
 //+kubebuilder:rbac:groups="",resources=configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 
 func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -234,7 +232,7 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 				reqLogger.Error(err, "failed to get Secret "+targetNs+"/"+targetName)
 				return false, err
 			}
-			if needUpdate := compareSecret(secretCopy, existingSecret); needUpdate {
+			if needUpdate := res.CompareSecrets(secretCopy, existingSecret); needUpdate {
 				if err := r.Update(ctx, secretCopy); err != nil {
 					reqLogger.Error(err, "failed to update Secret "+targetNs+"/"+targetName)
 					return false, err
@@ -310,7 +308,7 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 				reqLogger.Error(err, "failed to get ConfigMap "+targetNs+"/"+targetName)
 				return false, err
 			}
-			if needUpdate := compareConfigMap(cmCopy, existingCm); needUpdate {
+			if needUpdate := res.CompareConfigMap(cmCopy, existingCm); needUpdate {
 				if err := r.Update(ctx, cmCopy); err != nil {
 					reqLogger.Error(err, "failed to update ConfigMap "+targetNs+"/"+targetName)
 					return false, err
@@ -329,17 +327,4 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 	}
 
 	return false, nil
-}
-
-func compareSecret(secret *corev1.Secret, existingSecret *corev1.Secret) (needUpdate bool) {
-	return !equality.Semantic.DeepEqual(secret.GetLabels(), existingSecret.GetLabels()) ||
-		!equality.Semantic.DeepEqual(secret.Type, existingSecret.Type) ||
-		!equality.Semantic.DeepEqual(secret.Data, existingSecret.Data) ||
-		!equality.Semantic.DeepEqual(secret.StringData, existingSecret.StringData)
-}
-
-func compareConfigMap(configMap *corev1.ConfigMap, existingConfigMap *corev1.ConfigMap) (needUpdate bool) {
-	return !equality.Semantic.DeepEqual(configMap.GetLabels(), existingConfigMap.GetLabels()) ||
-		!equality.Semantic.DeepEqual(configMap.Data, existingConfigMap.Data) ||
-		!equality.Semantic.DeepEqual(configMap.BinaryData, existingConfigMap.BinaryData)
 }
