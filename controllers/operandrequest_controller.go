@@ -131,7 +131,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueTokenSec, err = r.copySecret(ctx, req, svcres.LicensingToken, tokenSecretName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					reqLogger.Error(err, "Cannot copy Secret "+svcres.LicensingToken, "Namespace "+operandRequest.Namespace)
+					reqLogger.Error(err, "Cannot copy Secret "+svcres.LicensingToken+" to Namespace "+operandRequest.Namespace)
 				}
 				if requeueTokenSec {
 					return reconcile.Result{Requeue: true}, err
@@ -139,7 +139,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueUploadSec, err = r.copySecret(ctx, req, svcres.LicensingUploadToken, uploadTokenName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					reqLogger.Error(err, "Cannot copy Secret "+svcres.LicensingUploadToken, " Namespace "+operandRequest.Namespace)
+					reqLogger.Error(err, "Cannot copy Secret "+svcres.LicensingUploadToken+" to Namespace "+operandRequest.Namespace)
 				}
 				if requeueUploadSec {
 					return reconcile.Result{Requeue: true}, err
@@ -147,7 +147,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueInfoCm, err = r.copyConfigMap(ctx, req, svcres.LicensingInfo, infoConfigMapName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					reqLogger.Error(err, "Cannot copy ConfigMap "+svcres.LicensingInfo, "Namespace "+operandRequest.Namespace)
+					reqLogger.Error(err, "Cannot copy ConfigMap "+svcres.LicensingInfo+" to Namespace "+operandRequest.Namespace)
 				}
 				if requeueInfoCm {
 					return reconcile.Result{Requeue: true}, err
@@ -155,7 +155,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueUploadCm, err = r.copyConfigMap(ctx, req, svcres.LicensingUploadConfig, uploadConfigName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					reqLogger.Error(err, "Cannot copy ConfigMap "+svcres.LicensingUploadConfig, "Namespace "+operandRequest.Namespace)
+					reqLogger.Error(err, "Cannot copy ConfigMap "+svcres.LicensingUploadConfig+" to Namespace "+operandRequest.Namespace)
 				}
 				if requeueUploadCm {
 					return reconcile.Result{Requeue: true}, err
