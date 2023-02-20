@@ -170,6 +170,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		}
 	}
 
+	reqLogger.Info("reconcile all done")
 	return ctrl.Result{}, nil
 }
 
