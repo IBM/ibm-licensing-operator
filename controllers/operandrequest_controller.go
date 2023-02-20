@@ -131,7 +131,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueTokenSec, err = r.copySecret(ctx, req, svcres.LicensingToken, tokenSecretName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					reqLogger.Error(err, "Cannot copy Secret %s to Namespace %s", svcres.LicensingToken, operandRequest.Namespace)
+					reqLogger.Error(err, "Cannot copy Secret "+svcres.LicensingToken, "Namespace "+operandRequest.Namespace)
 				}
 				if requeueTokenSec {
 					return reconcile.Result{Requeue: true}, err
@@ -139,7 +139,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueUploadSec, err = r.copySecret(ctx, req, svcres.LicensingUploadToken, uploadTokenName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					reqLogger.Error(err, "Cannot copy Secret %s to Namespace %s", svcres.LicensingUploadToken, operandRequest.Namespace)
+					reqLogger.Error(err, "Cannot copy Secret "+svcres.LicensingUploadToken, " Namespace "+operandRequest.Namespace)
 				}
 				if requeueUploadSec {
 					return reconcile.Result{Requeue: true}, err
@@ -147,7 +147,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueInfoCm, err = r.copyConfigMap(ctx, req, svcres.LicensingInfo, infoConfigMapName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					reqLogger.Error(err, "Cannot copy ConfigMap %s to Namespace %s", svcres.LicensingInfo, operandRequest.Namespace)
+					reqLogger.Error(err, "Cannot copy ConfigMap "+svcres.LicensingInfo, "Namespace "+operandRequest.Namespace)
 				}
 				if requeueInfoCm {
 					return reconcile.Result{Requeue: true}, err
@@ -155,7 +155,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueUploadCm, err = r.copyConfigMap(ctx, req, svcres.LicensingUploadConfig, uploadConfigName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					reqLogger.Error(err, "Cannot copy ConfigMap %s to Namespace %s", svcres.LicensingUploadConfig, operandRequest.Namespace)
+					reqLogger.Error(err, "Cannot copy ConfigMap "+svcres.LicensingUploadConfig, "Namespace "+operandRequest.Namespace)
 				}
 				if requeueUploadCm {
 					return reconcile.Result{Requeue: true}, err
@@ -197,7 +197,7 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 			reqLogger.Info("Secret %s is not found from the namespace %s", sourceName, sourceNs) // TODO
 			return true, nil
 		}
-		reqLogger.Error(err, "failed to get Secret %s/%s", sourceNs, sourceName)
+		reqLogger.Error(err, "failed to get Secret "+sourceNs+"/"+sourceName)
 		return false, err
 	}
 	// Create the Secret to the OperandRequest namespace
@@ -222,7 +222,7 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 	}
 	// Set the OperandRequest as the controller of the Secret
 	if err := controllerutil.SetControllerReference(requestInstance, secretCopy, r.Scheme); err != nil {
-		reqLogger.Error(err, "failed to set OperandRequest %s as the owner of Secret %s", requestInstance.Name, targetName)
+		reqLogger.Error(err, "failed to set OperandRequest "+requestInstance.Name+" as the owner of Secret "+targetName)
 		return false, err
 	}
 
@@ -231,17 +231,17 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 			// If already exist, update the Secret
 			existingSecret := &corev1.Secret{}
 			if err := r.Client.Get(ctx, types.NamespacedName{Namespace: targetNs, Name: targetName}, existingSecret); err != nil {
-				reqLogger.Error(err, "failed to get secret %s/%s", targetNs, targetName)
+				reqLogger.Error(err, "failed to get Secret "+targetNs+"/"+targetName)
 				return false, err
 			}
 			if needUpdate := compareSecret(secretCopy, existingSecret); needUpdate {
 				if err := r.Update(ctx, secretCopy); err != nil {
-					reqLogger.Error(err, "failed to update secret %s/%s", targetNs, targetName)
+					reqLogger.Error(err, "failed to update Secret "+targetNs+"/"+targetName)
 					return false, err
 				}
 			}
 		} else {
-			reqLogger.Error(err, "failed to create secret %s/%s", targetNs, targetName)
+			reqLogger.Error(err, "failed to create Secret "+targetNs+"/"+targetName)
 			return false, err
 		}
 	}
@@ -273,7 +273,7 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 			reqLogger.Info("Configmap %s/%s is not found", sourceNs, sourceName)
 			return true, nil
 		}
-		reqLogger.Error(err, "failed to get ConfigMap %s/%s", sourceNs, sourceName)
+		reqLogger.Error(err, "failed to get ConfigMap "+targetNs+"/"+targetName)
 		return false, err
 	}
 	// Create the ConfigMap to the OperandRequest namespace
@@ -297,7 +297,7 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 	}
 	// Set the OperandRequest as the controller of the configmap
 	if err := controllerutil.SetControllerReference(requestInstance, cmCopy, r.Scheme); err != nil {
-		reqLogger.Error(err, "failed to set OperandRequest %s as the owner of ConfigMap %s", requestInstance.Name, sourceName)
+		reqLogger.Error(err, "failed to set OperandRequest "+requestInstance.Name+" as the owner of ConfigMap "+sourceName)
 		return false, err
 	}
 
@@ -307,24 +307,24 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 			// If already exist, update the ConfigMap
 			existingCm := &corev1.ConfigMap{}
 			if err := r.Client.Get(ctx, types.NamespacedName{Namespace: targetNs, Name: targetName}, existingCm); err != nil {
-				reqLogger.Error(err, "failed to get ConfigMap %s/%s", targetNs, targetName)
+				reqLogger.Error(err, "failed to get ConfigMap "+targetNs+"/"+targetName)
 				return false, err
 			}
 			if needUpdate := compareConfigMap(cmCopy, existingCm); needUpdate {
 				if err := r.Update(ctx, cmCopy); err != nil {
-					reqLogger.Error(err, "failed to update ConfigMap %s/%s", targetNs, sourceName)
+					reqLogger.Error(err, "failed to update ConfigMap "+targetNs+"/"+targetName)
 					return false, err
 				}
 			}
 		} else {
-			reqLogger.Error(err, "failed to create ConfigMap %s/%s", targetNs, sourceName)
+			reqLogger.Error(err, "failed to create ConfigMap "+targetNs+"/"+targetName)
 			return false, err
 		}
 	}
 
 	// Update the operand Configmap
 	if err := r.Update(ctx, cm); err != nil {
-		reqLogger.Error(err, "failed to update ConfigMap %s/%s", cm.Namespace, cm.Name)
+		reqLogger.Error(err, "failed to update ConfigMap "+cm.Namespace+"/"+cm.Name)
 		return false, err
 	}
 
