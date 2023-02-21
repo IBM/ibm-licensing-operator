@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"os"
 	r "runtime"
-	"time"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	servicecav1 "github.com/openshift/api/operator/v1"
@@ -184,8 +183,15 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		logger := ctrl.Log.WithName("controllers").WithName("OperandRequest")
-		go res.WatchForCRD(&logger, mgr.GetClient(), resNsName, &operandRequest, 30*time.Minute)
+		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
+
+		// Set custom time duration for CRD watcher (in seconds)
+		reconcileInterval, err := res.GetOperandRequestCRDReconcileInterval()
+		if err != nil {
+			setupLog.Error(err, "Incorrect reconcile interval set. Defaulting to 3600s", "crd-watcher", "OperandRequest")
+		}
+
+		go res.WatchForCRD(&logger, mgr.GetClient(), resNsName, &operandRequest, reconcileInterval)
 	}
 
 	// +kubebuilder:scaffold:builder

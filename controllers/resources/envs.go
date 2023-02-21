@@ -18,7 +18,9 @@ package resources
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // GetWatchNamespace returns the Namespace the operator should be watching for changes
@@ -59,4 +61,21 @@ func GetOperatorNamespace() (string, error) {
 		return "", fmt.Errorf("%s must be set", operatorNamespaceEnvVar)
 	}
 	return ns, nil
+}
+
+// GetOperandRequestCRDReconcileInterval returns time duration n seconds for OperandRequest CRD watching
+func GetOperandRequestCRDReconcileInterval() (time.Duration, error) {
+	reconcileOpreqEnvVar := "OPREQ_CRD_RECONCILE_INTERVAL"
+
+	reconcileInterval := 3600 * time.Second
+	env, found := os.LookupEnv(reconcileOpreqEnvVar)
+
+	if found {
+		envVal, err := strconv.Atoi(env)
+		if err != nil {
+			return 3600 * time.Second, fmt.Errorf("%s must be of type int (interval in seconds)", reconcileOpreqEnvVar)
+		}
+		return time.Duration(envVal), nil
+	}
+	return reconcileInterval, nil
 }

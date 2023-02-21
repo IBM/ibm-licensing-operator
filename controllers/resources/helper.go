@@ -604,7 +604,7 @@ func WatchForCRD(logger *logr.Logger, client c.Client, namespacedName types.Name
 	reqLogger := logger.WithValues("action", "Checking for "+resType.String()+" CRD existence")
 	for {
 		if DoesCRDExist(client, namespacedName, foundRes) {
-			reqLogger.Info(resType.String() + " CRD found on cluster. Operator will be restarted with new controller enabled.")
+			reqLogger.Info(resType.String() + " CRD found on cluster. Operator will be restarted with new controller enabled")
 			os.Exit(0)
 		}
 		time.Sleep(reconcileInterval)
