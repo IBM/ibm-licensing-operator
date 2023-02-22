@@ -109,12 +109,6 @@ func main() {
 
 	printVersion()
 
-	watchNamespaces, err := res.GetWatchNamespaceList()
-	if err != nil {
-		setupLog.Error(err, "unable to get WATCH_NAMESPACE, "+
-			"the manager will watch and manage resources in all namespaces")
-	}
-
 	operatorNamespace, err := res.GetOperatorNamespace()
 	if err != nil {
 		setupLog.Error(err, "unable to get OPERATOR_NAMESPACE")
@@ -138,7 +132,7 @@ func main() {
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "e1f51baf.ibm.com",
-		NewCache:           cache.MultiNamespacedFilteredCacheBuilder(gvkLabelMap, watchNamespaces),
+		NewCache:           cache.NewFilteredCacheBuilder(gvkLabelMap),
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
