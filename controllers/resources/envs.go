@@ -63,17 +63,17 @@ func GetOperatorNamespace() (string, error) {
 	return ns, nil
 }
 
-// GetOperandRequestCRDReconcileInterval returns time duration n seconds for OperandRequest CRD watching
-func GetOperandRequestCRDReconcileInterval() (time.Duration, error) {
-	reconcileOpreqEnvVar := "OPREQ_CRD_RECONCILE_INTERVAL"
+// GetCrdReconcileInterval returns time duration in seconds for requested CRD watching
+func GetCrdReconcileInterval() (time.Duration, error) {
+	crdReconcileEnvVar := "CRD_RECONCILE_INTERVAL"
 
 	reconcileInterval := 3600 * time.Second
-	env, found := os.LookupEnv(reconcileOpreqEnvVar)
+	env, found := os.LookupEnv(crdReconcileEnvVar)
 
 	if found {
 		envVal, err := strconv.Atoi(env)
 		if err != nil {
-			return 3600 * time.Second, fmt.Errorf("%s must be of type int (interval in seconds)", reconcileOpreqEnvVar)
+			return 3600 * time.Second, fmt.Errorf("%s must be of type int (interval in seconds)", crdReconcileEnvVar)
 		}
 		return time.Duration(envVal), nil
 	}

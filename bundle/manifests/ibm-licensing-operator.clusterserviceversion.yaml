@@ -500,7 +500,7 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: spec.serviceAccountName
-                      - name: OPREQ_CRD_RECONCILE_INTERVAL
+                      - name: CRD_RECONCILE_INTERVAL
                         value: "3600"
                     image: icr.io/cpopen/ibm-licensing-operator:4.0.0
                     imagePullPolicy: Always

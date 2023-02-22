@@ -186,7 +186,7 @@ func main() {
 		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
 
 		// Set custom time duration for CRD watcher (in seconds)
-		reconcileInterval, err := res.GetOperandRequestCRDReconcileInterval()
+		reconcileInterval, err := res.GetCrdReconcileInterval()
 		if err != nil {
 			setupLog.Error(err, "Incorrect reconcile interval set. Defaulting to 3600s", "crd-watcher", "OperandRequest")
 		}

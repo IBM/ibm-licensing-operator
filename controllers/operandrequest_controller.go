@@ -192,7 +192,7 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 	secret := &corev1.Secret{}
 	if err := r.Client.Get(ctx, types.NamespacedName{Name: sourceName, Namespace: sourceNs}, secret); err != nil {
 		if apierrors.IsNotFound(err) {
-			reqLogger.Info("Secret %s is not found from the namespace %s", sourceName, sourceNs) // TODO
+			reqLogger.Info("Secret %s/%s is not found", sourceName, sourceNs)
 			return true, nil
 		}
 		reqLogger.Error(err, "failed to get Secret "+sourceNs+"/"+sourceName)
@@ -232,7 +232,7 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 				reqLogger.Error(err, "failed to get Secret "+targetNs+"/"+targetName)
 				return false, err
 			}
-			if needUpdate := res.CompareSecrets(secretCopy, existingSecret); needUpdate {
+			if needUpdate := !res.CompareSecrets(secretCopy, existingSecret); needUpdate {
 				if err := r.Update(ctx, secretCopy); err != nil {
 					reqLogger.Error(err, "failed to update Secret "+targetNs+"/"+targetName)
 					return false, err
@@ -308,7 +308,7 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 				reqLogger.Error(err, "failed to get ConfigMap "+targetNs+"/"+targetName)
 				return false, err
 			}
-			if needUpdate := res.CompareConfigMap(cmCopy, existingCm); needUpdate {
+			if needUpdate := !res.CompareConfigMap(cmCopy, existingCm); needUpdate {
 				if err := r.Update(ctx, cmCopy); err != nil {
 					reqLogger.Error(err, "failed to update ConfigMap "+targetNs+"/"+targetName)
 					return false, err

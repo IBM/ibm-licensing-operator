@@ -598,13 +598,13 @@ func DoesCRDExist(client c.Client, namespacedName types.NamespacedName, foundRes
 	return true
 }
 
-// Restarts operator if CRD appears on the cluster
+// Restarts operator if requested CRD appears on the cluster
 func WatchForCRD(logger *logr.Logger, client c.Client, namespacedName types.NamespacedName, foundRes c.Object, reconcileInterval time.Duration) {
 	resType := reflect.TypeOf(foundRes)
 	reqLogger := logger.WithValues("action", "Checking for "+resType.String()+" CRD existence")
 	for {
 		if DoesCRDExist(client, namespacedName, foundRes) {
-			reqLogger.Info(resType.String() + " CRD found on cluster. Operator will be restarted with new controller enabled")
+			reqLogger.Info(resType.String() + " CRD found on cluster. Operator will be restarted to enable handling it")
 			os.Exit(0)
 		}
 		time.Sleep(reconcileInterval)
