@@ -587,23 +587,32 @@ func getTLSDataAsString(route *routev1.Route) string {
 		route.Spec.TLS.Certificate, route.Spec.TLS.CACertificate, route.Spec.TLS.DestinationCACertificate)
 }
 
-func DoesCRDExist(client c.Client, namespacedName types.NamespacedName, foundRes c.Object) bool {
-	if err := client.Get(context.TODO(), namespacedName, foundRes); err != nil {
+// Returns true if CRD for provided resource exits
+func DoesCRDExist(client c.Client, foundRes c.ObjectList) (bool, error) {
+	namespace, err := GetOperatorNamespace()
+	if err != nil {
+		return false, errors.New("OPERATOR_NAMESPACE env not found")
+	}
+	listOpts := []c.ListOption{
+		c.InNamespace(namespace),
+	}
+
+	if err := client.List(context.TODO(), foundRes, listOpts...); err != nil {
 		// If CRD is not resent on the cluster, NoKindMatchError is returned
 		kindMatchErr := &meta.NoKindMatchError{}
 		if errors.As(err, &kindMatchErr) {
-			return false
+			return false, nil
 		}
 	}
-	return true
+	return true, nil
 }
 
 // Restarts operator if requested CRD appears on the cluster
-func WatchForCRD(logger *logr.Logger, client c.Client, namespacedName types.NamespacedName, foundRes c.Object, reconcileInterval time.Duration) {
+func WatchForCRD(logger *logr.Logger, client c.Client, foundRes c.ObjectList, reconcileInterval time.Duration) {
 	resType := reflect.TypeOf(foundRes)
 	reqLogger := logger.WithValues("action", "Checking for "+resType.String()+" CRD existence")
 	for {
-		if DoesCRDExist(client, namespacedName, foundRes) {
+		if isCrdExists, _ := DoesCRDExist(client, foundRes); isCrdExists {
 			reqLogger.Info(resType.String() + " CRD found on cluster. Operator will be restarted to enable handling it")
 			os.Exit(0)
 		}

@@ -32,7 +32,6 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -167,9 +166,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	operandRequest := odlm.OperandRequest{}
-	resNsName := types.NamespacedName{Name: "example", Namespace: operatorNamespace}
-	opreqControllerEnabled := res.DoesCRDExist(mgr.GetClient(), resNsName, &operandRequest)
+	operandRequestList := odlm.OperandRequestList{}
+	opreqControllerEnabled, err := res.DoesCRDExist(mgr.GetClient(), &operandRequestList)
+	if err != nil {
+		setupLog.Error(err, "An error occurred while checking for CRD existence. OperandRequest controller will not be started")
+	}
 
 	if opreqControllerEnabled {
 		if err = (&controllers.OperandRequestReconciler{
@@ -191,7 +192,7 @@ func main() {
 			setupLog.Error(err, "Incorrect reconcile interval set. Defaulting to 3600s", "crd-watcher", "OperandRequest")
 		}
 
-		go res.WatchForCRD(&logger, mgr.GetClient(), resNsName, &operandRequest, reconcileInterval)
+		go res.WatchForCRD(&logger, mgr.GetClient(), &operandRequestList, reconcileInterval)
 	}
 
 	// +kubebuilder:scaffold:builder

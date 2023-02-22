@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"reflect"
 	"regexp"
 
 	"github.com/go-logr/logr"
@@ -232,7 +233,8 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 				reqLogger.Error(err, "failed to get Secret "+targetNs+"/"+targetName)
 				return false, err
 			}
-			if needUpdate := !res.CompareSecrets(secretCopy, existingSecret); needUpdate {
+			// Update existing Secret only if it has same name and set of labels
+			if needUpdate := reflect.DeepEqual(secretCopy.Labels, existingSecret.Labels) && !res.CompareSecrets(secretCopy, existingSecret); needUpdate {
 				if err := r.Update(ctx, secretCopy); err != nil {
 					reqLogger.Error(err, "failed to update Secret "+targetNs+"/"+targetName)
 					return false, err
@@ -308,7 +310,8 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 				reqLogger.Error(err, "failed to get ConfigMap "+targetNs+"/"+targetName)
 				return false, err
 			}
-			if needUpdate := !res.CompareConfigMap(cmCopy, existingCm); needUpdate {
+			// Update existing ConfigMap only if it has same name and set of labels
+			if needUpdate := reflect.DeepEqual(cmCopy.Labels, existingCm.Labels) && !res.CompareConfigMap(cmCopy, existingCm); needUpdate {
 				if err := r.Update(ctx, cmCopy); err != nil {
 					reqLogger.Error(err, "failed to update ConfigMap "+targetNs+"/"+targetName)
 					return false, err
@@ -318,12 +321,6 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 			reqLogger.Error(err, "failed to create ConfigMap "+targetNs+"/"+targetName)
 			return false, err
 		}
-	}
-
-	// Update the operand Configmap
-	if err := r.Update(ctx, cm); err != nil {
-		reqLogger.Error(err, "failed to update ConfigMap "+cm.Namespace+"/"+cm.Name)
-		return false, err
 	}
 
 	return false, nil
