@@ -81,10 +81,14 @@ func (r *IBMLicensingReconciler) CreateDefaultInstance(checkIfInstancesExist boo
 	reqLogger := r.Log.WithValues("action", "Default IBMLicensing instance existence check")
 	// need to check if any instance already exists
 	if checkIfInstancesExist {
+		operatorNs, _ := res.GetOperatorNamespace()
+		listOpts := []client.ListOption{
+			client.InNamespace(operatorNs),
+		}
 		// Fetch all IBMLicensing instances
 		// Check if there are already IBMLicensing instances created
 		ibmLicensingList := &operatorv1alpha1.IBMLicensingList{}
-		if err := r.Reader.List(context.TODO(), ibmLicensingList); err != nil {
+		if err := r.Reader.List(context.TODO(), ibmLicensingList, listOpts...); err != nil {
 			// no need to check IsNotFound error as the list will always return but items can be empty
 			reqLogger.Error(err, "Failure.")
 			return err
@@ -145,9 +149,14 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 		reqLogger.Error(err, "Error during checking K8s API")
 	}
 
+	operatorNs, _ := res.GetOperatorNamespace()
+	listOpts := []client.ListOption{
+		client.InNamespace(operatorNs),
+	}
+
 	// Fetch all IBMLicensing instances
 	ibmLicensingList := &operatorv1alpha1.IBMLicensingList{}
-	if err := r.Client.List(context.TODO(), ibmLicensingList); err != nil {
+	if err := r.Client.List(context.TODO(), ibmLicensingList, listOpts...); err != nil {
 		// Error when looking for IMBLicensing objects - requeue
 		reqLogger.Error(err, "Couldn't retrieve IBMLicensing objects. Retrying.")
 		return reconcile.Result{}, err

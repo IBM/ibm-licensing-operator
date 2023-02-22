@@ -25,6 +25,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
@@ -143,7 +144,12 @@ func AddSenderConfiguration(client client.Client, log logr.Logger) error {
 	licensingList := &operatorv1alpha1.IBMLicensingList{}
 	reqLogger := log.WithName("reconcileSenderConfiguration")
 
-	err := client.List(context.TODO(), licensingList)
+	operatorNs, _ := res.GetOperatorNamespace()
+	listOpts := []c.ListOption{
+		c.InNamespace(operatorNs),
+	}
+
+	err := client.List(context.TODO(), licensingList, listOpts...)
 	if err != nil {
 		reqLogger.Error(err, "Failed to get IBMLicensing resource")
 		return err
@@ -171,7 +177,12 @@ func ClearDefaultSenderConfiguration(client client.Client, log logr.Logger) {
 	licensingList := &operatorv1alpha1.IBMLicensingList{}
 	reqLogger := log.WithName("reconcileSenderConfiguration")
 
-	err := client.List(context.TODO(), licensingList)
+	operatorNs, _ := res.GetOperatorNamespace()
+	listOpts := []c.ListOption{
+		c.InNamespace(operatorNs),
+	}
+
+	err := client.List(context.TODO(), licensingList, listOpts...)
 	if err != nil {
 		reqLogger.Error(err, "Failed to get IBMLicensing resource")
 		return
