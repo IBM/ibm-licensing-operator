@@ -17,6 +17,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -133,6 +134,56 @@ func main() {
 		},
 	}
 
+	var opreqCtrlMetricsAddr string
+	flag.StringVar(&opreqCtrlMetricsAddr, "opreq-ctrl-metrics-addr", ":8081", "The address the metric endpoint binds to.")
+
+	opreqCtrlMgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+		Scheme:             scheme,
+		MetricsBindAddress: opreqCtrlMetricsAddr,
+		Port:               9443,
+		LeaderElection:     enableLeaderElection,
+		LeaderElectionID:   "e1f51baf.ibm.com",
+	})
+	if err != nil {
+		setupLog.Error(err, "unable to start manager")
+		os.Exit(1)
+	}
+
+	operandRequest := odlm.OperandRequest{}
+	resNsName := types.NamespacedName{Name: "example", Namespace: operatorNamespace}
+	opreqControllerEnabled := res.DoesCRDExist(opreqCtrlMgr.GetClient(), resNsName, &operandRequest)
+
+	if opreqControllerEnabled {
+		if err = (&controllers.OperandRequestReconciler{
+			Client:            opreqCtrlMgr.GetClient(),
+			Reader:            opreqCtrlMgr.GetAPIReader(),
+			Log:               ctrl.Log.WithName("controllers").WithName("OperandRequest"),
+			Scheme:            opreqCtrlMgr.GetScheme(),
+			OperatorNamespace: operatorNamespace,
+		}).SetupWithManager(opreqCtrlMgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "OperandRequest")
+			os.Exit(1)
+		}
+	} else {
+		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
+
+		// Set custom time duration for CRD watcher (in seconds)
+		reconcileInterval, err := res.GetOperandRequestCRDReconcileInterval()
+		if err != nil {
+			setupLog.Error(err, "Incorrect reconcile interval set. Defaulting to 3600s", "crd-watcher", "OperandRequest")
+		}
+
+		go res.WatchForCRD(&logger, opreqCtrlMgr.GetClient(), resNsName, &operandRequest, reconcileInterval)
+	}
+
+	go func() {
+		setupLog.Info("starting manager for operandrequests")
+		if err := opreqCtrlMgr.Start(context.Background()); err != nil {
+			// setupLog.Error(err, "problem running manager")
+			os.Exit(1)
+		}
+	}()
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
@@ -165,33 +216,6 @@ func main() {
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicenseServiceReporter")
 		os.Exit(1)
-	}
-
-	operandRequest := odlm.OperandRequest{}
-	resNsName := types.NamespacedName{Name: "example", Namespace: operatorNamespace}
-	opreqControllerEnabled := res.DoesCRDExist(mgr.GetClient(), resNsName, &operandRequest)
-
-	if opreqControllerEnabled {
-		if err = (&controllers.OperandRequestReconciler{
-			Client:            mgr.GetClient(),
-			Reader:            mgr.GetAPIReader(),
-			Log:               ctrl.Log.WithName("controllers").WithName("OperandRequest"),
-			Scheme:            mgr.GetScheme(),
-			OperatorNamespace: operatorNamespace,
-		}).SetupWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create controller", "controller", "OperandRequest")
-			os.Exit(1)
-		}
-	} else {
-		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
-
-		// Set custom time duration for CRD watcher (in seconds)
-		reconcileInterval, err := res.GetOperandRequestCRDReconcileInterval()
-		if err != nil {
-			setupLog.Error(err, "Incorrect reconcile interval set. Defaulting to 3600s", "crd-watcher", "OperandRequest")
-		}
-
-		go res.WatchForCRD(&logger, mgr.GetClient(), resNsName, &operandRequest, reconcileInterval)
 	}
 
 	// +kubebuilder:scaffold:builder

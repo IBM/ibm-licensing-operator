@@ -95,15 +95,10 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		reqLogger.Error(err, "Error during checking K8s API")
 	}
 
-	operandRequestList := odlm.OperandRequestList{}
-	if err := r.Reader.List(context.TODO(), &operandRequestList, &client.ListOptions{Namespace: ""}); err != nil {
-		// Error when looking for OperandRequest object on the cluster
-		reqLogger.Error(err, "Couldn't retrieve OperandRequest objects. Retrying.")
-		return reconcile.Result{}, client.IgnoreNotFound(err)
-	}
-
-	if len(operandRequestList.Items) == 0 {
-		return reconcile.Result{}, nil // TODO reconcile time
+	operandRequest := odlm.OperandRequest{}
+	if err := r.Client.Get(context.TODO(), req.NamespacedName, &operandRequest); err != nil {
+		// Error reading the object - requeue the request.
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	var infoConfigMapName, tokenSecretName, uploadConfigName, uploadTokenName string
@@ -111,68 +106,65 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	var err error
 
 	licensingOpreqHandled := false
-	for _, operandRequest := range operandRequestList.Items {
-		operandRequest := operandRequest
-		reqLogger.Info("OperandRequest: " + operandRequest.Namespace)
-		for _, request := range operandRequest.Spec.Requests {
-			for _, operand := range request.Operands {
-				if operand.Name == res.OperatorName {
+	reqLogger.Info("OperandRequest: " + operandRequest.Namespace)
+	for _, request := range operandRequest.Spec.Requests {
+		for _, operand := range request.Operands {
+			if operand.Name == res.OperatorName {
 
-					for key, binding := range operand.Bindings {
-						if key == "public-api-data" {
-							infoConfigMapName = binding.Configmap
-							tokenSecretName = binding.Secret
-						}
-
-						if key == "public-api-token" {
-							tokenSecretName = binding.Secret
-						}
-
-						if key == "public-api-upload" {
-							uploadConfigName = binding.Configmap
-							uploadTokenName = binding.Secret
-						}
+				for key, binding := range operand.Bindings {
+					if key == "public-api-data" {
+						infoConfigMapName = binding.Configmap
+						tokenSecretName = binding.Secret
 					}
 
-					requeueTokenSec, err = r.copySecret(ctx, req, svcres.LicensingToken, tokenSecretName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
-					if err != nil {
-						reqLogger.Error(err, "Cannot copy Secret "+svcres.LicensingToken+" to Namespace "+operandRequest.Namespace)
-					}
-					if requeueTokenSec {
-						return reconcile.Result{Requeue: true}, err
+					if key == "public-api-token" {
+						tokenSecretName = binding.Secret
 					}
 
-					requeueUploadSec, err = r.copySecret(ctx, req, svcres.LicensingUploadToken, uploadTokenName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
-					if err != nil {
-						reqLogger.Error(err, "Cannot copy Secret "+svcres.LicensingUploadToken+" to Namespace "+operandRequest.Namespace)
+					if key == "public-api-upload" {
+						uploadConfigName = binding.Configmap
+						uploadTokenName = binding.Secret
 					}
-					if requeueUploadSec {
-						return reconcile.Result{Requeue: true}, err
-					}
-
-					requeueInfoCm, err = r.copyConfigMap(ctx, req, svcres.LicensingInfo, infoConfigMapName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
-					if err != nil {
-						reqLogger.Error(err, "Cannot copy ConfigMap "+svcres.LicensingInfo+" to Namespace "+operandRequest.Namespace)
-					}
-					if requeueInfoCm {
-						return reconcile.Result{Requeue: true}, err
-					}
-
-					requeueUploadCm, err = r.copyConfigMap(ctx, req, svcres.LicensingUploadConfig, uploadConfigName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
-					if err != nil {
-						reqLogger.Error(err, "Cannot copy ConfigMap "+svcres.LicensingUploadConfig+" to Namespace "+operandRequest.Namespace)
-					}
-					if requeueUploadCm {
-						return reconcile.Result{Requeue: true}, err
-					}
-
-					licensingOpreqHandled = true
-					break
 				}
-			}
-			if licensingOpreqHandled {
+
+				requeueTokenSec, err = r.copySecret(ctx, req, svcres.LicensingToken, tokenSecretName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
+				if err != nil {
+					reqLogger.Error(err, "Cannot copy Secret "+svcres.LicensingToken+" to Namespace "+operandRequest.Namespace)
+				}
+				if requeueTokenSec {
+					return reconcile.Result{Requeue: true}, err
+				}
+
+				requeueUploadSec, err = r.copySecret(ctx, req, svcres.LicensingUploadToken, uploadTokenName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
+				if err != nil {
+					reqLogger.Error(err, "Cannot copy Secret "+svcres.LicensingUploadToken+" to Namespace "+operandRequest.Namespace)
+				}
+				if requeueUploadSec {
+					return reconcile.Result{Requeue: true}, err
+				}
+
+				requeueInfoCm, err = r.copyConfigMap(ctx, req, svcres.LicensingInfo, infoConfigMapName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
+				if err != nil {
+					reqLogger.Error(err, "Cannot copy ConfigMap "+svcres.LicensingInfo+" to Namespace "+operandRequest.Namespace)
+				}
+				if requeueInfoCm {
+					return reconcile.Result{Requeue: true}, err
+				}
+
+				requeueUploadCm, err = r.copyConfigMap(ctx, req, svcres.LicensingUploadConfig, uploadConfigName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
+				if err != nil {
+					reqLogger.Error(err, "Cannot copy ConfigMap "+svcres.LicensingUploadConfig+" to Namespace "+operandRequest.Namespace)
+				}
+				if requeueUploadCm {
+					return reconcile.Result{Requeue: true}, err
+				}
+
+				licensingOpreqHandled = true
 				break
 			}
+		}
+		if licensingOpreqHandled {
+			break
 		}
 	}
 
