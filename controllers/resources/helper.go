@@ -636,7 +636,7 @@ func DiscoverOperandRequests(logger *logr.Logger, reader client.Reader, watchNam
 				for _, operand := range request.Operands {
 					if operand.Name == OperatorName {
 						if !slices.Contains(watchNamespace, operandRequest.Namespace) {
-							logger.Info("OperandRequest for "+OperatorName+" detected. Add namespace to IBM Licensing OperatorGroup to grant an access", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
+							logger.Info("OperandRequest for "+OperatorName+" detected. Add namespace to IBM Licensing OperatorGroup to handle it", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
 						}
 					}
 				}
