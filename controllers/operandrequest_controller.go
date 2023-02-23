@@ -193,7 +193,7 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 	secret := &corev1.Secret{}
 	if err := r.Client.Get(ctx, types.NamespacedName{Name: sourceName, Namespace: sourceNs}, secret); err != nil {
 		if apierrors.IsNotFound(err) {
-			reqLogger.Info("Secret %s/%s is not found", sourceName, sourceNs)
+			reqLogger.Info("Secret " + sourceName + "/" + sourceNs + " is not found")
 			return true, nil
 		}
 		reqLogger.Error(err, "failed to get Secret "+sourceNs+"/"+sourceName)
@@ -270,7 +270,7 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 	cm := &corev1.ConfigMap{}
 	if err := r.Client.Get(ctx, types.NamespacedName{Name: sourceName, Namespace: sourceNs}, cm); err != nil {
 		if apierrors.IsNotFound(err) {
-			reqLogger.Info("Configmap %s/%s is not found", sourceNs, sourceName)
+			reqLogger.Info("Configmap " + sourceNs + "/" + sourceName + " is not found")
 			return true, nil
 		}
 		reqLogger.Error(err, "failed to get ConfigMap "+targetNs+"/"+targetName)

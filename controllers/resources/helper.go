@@ -36,6 +36,7 @@ import (
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 
 	networkingv1 "k8s.io/api/networking/v1"
+	"k8s.io/utils/strings/slices"
 
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 
@@ -49,6 +50,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -617,5 +619,30 @@ func WatchForCRD(logger *logr.Logger, client c.Client, foundRes c.ObjectList, re
 			os.Exit(0)
 		}
 		time.Sleep(reconcileInterval)
+	}
+}
+
+// Looks for OperandRequests (listing ibm-licensing-operator) in other namespaces
+func DiscoverOperandRequests(logger *logr.Logger, reader client.Reader, watchNamespace []string) {
+	for {
+		operandRequestList := odlm.OperandRequestList{}
+		err := reader.List(context.TODO(), &operandRequestList)
+		if err != nil {
+			logger.Error(err, "Could not list OperandRequests from cluster")
+		}
+
+		for _, operandRequest := range operandRequestList.Items {
+			for _, request := range operandRequest.Spec.Requests {
+				for _, operand := range request.Operands {
+					if operand.Name == OperatorName {
+						if !slices.Contains(watchNamespace, operandRequest.Namespace) {
+							logger.Info("OperandRequest for "+OperatorName+" detected. Add namespace to IBM Licensing OperatorGroup to grant an access", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
+						}
+					}
+				}
+			}
+		}
+
+		time.Sleep(30 * time.Second)
 	}
 }
