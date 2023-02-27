@@ -106,9 +106,10 @@ type IBMLicensingReconciler struct {
 	// that reads objects from the cache and writes to the apiserver
 	client.Client
 	client.Reader
-	Log               logr.Logger
-	Scheme            *runtime.Scheme
-	OperatorNamespace string
+	Log                     logr.Logger
+	Scheme                  *runtime.Scheme
+	OperatorNamespace       string
+	NamespaceScopeSemaphore chan bool
 }
 
 // //kubebuilder:rbac:namespace=ibm-common-services,groups=,resources=pod,verbs=get;list;watch;create;update;patch;delete
@@ -235,6 +236,8 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 			return recResult, err
 		}
 	}
+
+	r.NamespaceScopeSemaphore <- foundInstance.Spec.IsNamespaceScopeEnabled()
 
 	// Update status logic, using foundInstance, because we do not want to add filled default values to yaml
 	return r.updateStatus(foundInstance, reqLogger)

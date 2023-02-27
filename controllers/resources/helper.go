@@ -50,7 +50,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -600,7 +599,7 @@ func DoesCRDExist(client c.Client, foundRes c.ObjectList) (bool, error) {
 	}
 
 	if err := client.List(context.TODO(), foundRes, listOpts...); err != nil {
-		// If CRD is not resent on the cluster, NoKindMatchError is returned
+		// If CRD is not present on the cluster, NoKindMatchError is returned
 		kindMatchErr := &meta.NoKindMatchError{}
 		if errors.As(err, &kindMatchErr) {
 			return false, nil
@@ -622,9 +621,27 @@ func WatchForCRD(logger *logr.Logger, client c.Client, foundRes c.ObjectList, re
 	}
 }
 
-// Looks for OperandRequests (listing ibm-licensing-operator) in other namespaces
-func DiscoverOperandRequests(logger *logr.Logger, reader client.Reader, watchNamespace []string) {
+// Looks for OperandRequests (that request for ibm-licensing-operator) in other namespaces
+func DiscoverOperandRequests(logger *logr.Logger, reader c.Reader, watchNamespace []string, namespaceScopeSemaphore chan bool) {
+	nssEnabled := false
 	for {
+		prevNssEnabledState := nssEnabled
+		select {
+		case nssEnabled = <-namespaceScopeSemaphore:
+			if nssEnabled != prevNssEnabledState {
+				if nssEnabled {
+					logger.Info("Namespace scope enabled. Cluster-wide discovering OperandRequests disabled")
+				} else {
+					logger.Info("Namespace scope disabled. Cluster-wide discovering OperandRequests enabled")
+				}
+			}
+		default:
+		}
+
+		if nssEnabled {
+			time.Sleep(30 * time.Second)
+			continue
+		}
 		operandRequestList := odlm.OperandRequestList{}
 		err := reader.List(context.TODO(), &operandRequestList)
 		if err != nil {

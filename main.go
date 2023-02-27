@@ -145,12 +145,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	nssEnabledSemaphore := make(chan bool, 1)
+
 	controller := &controllers.IBMLicensingReconciler{
-		Client:            mgr.GetClient(),
-		Reader:            mgr.GetAPIReader(),
-		Log:               ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
-		Scheme:            mgr.GetScheme(),
-		OperatorNamespace: operatorNamespace,
+		Client:                  mgr.GetClient(),
+		Reader:                  mgr.GetAPIReader(),
+		Log:                     ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
+		Scheme:                  mgr.GetScheme(),
+		OperatorNamespace:       operatorNamespace,
+		NamespaceScopeSemaphore: nssEnabledSemaphore,
 	}
 	if err = controller.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicensing")
@@ -184,7 +187,7 @@ func main() {
 			os.Exit(1)
 		}
 		logger := ctrl.Log.WithName("operandrequest-discovery")
-		go res.DiscoverOperandRequests(&logger, mgr.GetAPIReader(), watchNamespaces)
+		go res.DiscoverOperandRequests(&logger, mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
 	} else {
 		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
 		// Set custom time duration for CRD watcher (in seconds)
