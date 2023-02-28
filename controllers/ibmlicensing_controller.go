@@ -237,7 +237,11 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 		}
 	}
 
-	r.NamespaceScopeSemaphore <- foundInstance.Spec.IsNamespaceScopeEnabled()
+	// non-blocking send to a non-buffered channel
+	select {
+	case r.NamespaceScopeSemaphore <- foundInstance.Spec.IsNamespaceScopeEnabled():
+	default:
+	}
 
 	// Update status logic, using foundInstance, because we do not want to add filled default values to yaml
 	return r.updateStatus(foundInstance, reqLogger)

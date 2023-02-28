@@ -145,7 +145,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	nssEnabledSemaphore := make(chan bool, 1)
+	nssEnabledSemaphore := make(chan bool)
 
 	controller := &controllers.IBMLicensingReconciler{
 		Client:                  mgr.GetClient(),
