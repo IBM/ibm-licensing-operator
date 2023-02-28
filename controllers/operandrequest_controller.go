@@ -78,14 +78,14 @@ func ignoreDeletionPredicate() predicate.Predicate {
 	}
 }
 
-// Reconcile reads that state of the cluster for a OperandRequest object and copies shared Config Maps and Secrets
+// Reconcile reads that state of the cluster for an OperandRequest object and copies shared Config Maps and Secrets
 // to OperandRequest's namespace
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 
-//+kubebuilder:rbac:groups=operator.ibm.com,resources=operandrequests;operandrequests/finalizers;operandrequests/status,verbs=get;list;watch;create;update;patch
-//+kubebuilder:rbac:groups="",resources=configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=operator.ibm.com,resources=operandrequests;operandrequests/finalizers;operandrequests/status,verbs=get;list;patch;update;watch
+// +kubebuilder:rbac:groups="",resources=configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 
 func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
@@ -98,7 +98,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	// Fetch the OperandRequest instance
 	operandRequest := odlm.OperandRequest{}
-	if err := r.Client.Get(context.TODO(), req.NamespacedName, &operandRequest); err != nil {
+	if err := r.Client.Get(ctx, req.NamespacedName, &operandRequest); err != nil {
 		// Error reading the object - requeue the request.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}

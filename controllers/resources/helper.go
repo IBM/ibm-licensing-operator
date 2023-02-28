@@ -642,6 +642,7 @@ func DiscoverOperandRequests(logger *logr.Logger, reader c.Reader, watchNamespac
 			time.Sleep(30 * time.Second)
 			continue
 		}
+
 		operandRequestList := odlm.OperandRequestList{}
 		err := reader.List(context.TODO(), &operandRequestList)
 		if err != nil {
