@@ -145,7 +145,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	nssEnabledSemaphore := make(chan bool)
+	// 1-size channel for communicating namespace scope status between IBMLicensing controller and operandrequest-discovery goroutine
+	nssEnabledSemaphore := make(chan bool, 1)
 
 	controller := &controllers.IBMLicensingReconciler{
 		Client:                  mgr.GetClient(),

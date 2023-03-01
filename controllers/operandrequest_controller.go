@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"reflect"
 	"regexp"
 
 	"github.com/go-logr/logr"
@@ -190,8 +189,8 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 		targetName = requestInstance.Name + "-" + sourceName
 	}
 
-	secret := &corev1.Secret{}
-	if err := r.Client.Get(ctx, types.NamespacedName{Name: sourceName, Namespace: sourceNs}, secret); err != nil {
+	secret := corev1.Secret{}
+	if err := r.Client.Get(ctx, types.NamespacedName{Name: sourceName, Namespace: sourceNs}, &secret); err != nil {
 		if apierrors.IsNotFound(err) {
 			reqLogger.Info("Secret not found", "name", sourceName, "namespace", sourceNs)
 			return true, nil
@@ -209,7 +208,7 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 		secretLabel[k] = v
 	}
 
-	secretCopy := &corev1.Secret{
+	secretCopy := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      targetName,
 			Namespace: targetNs,
@@ -220,22 +219,22 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 		StringData: secret.StringData,
 	}
 	// Set the OperandRequest as the controller of the Secret
-	if err := controllerutil.SetControllerReference(requestInstance, secretCopy, r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(requestInstance, &secretCopy, r.Scheme); err != nil {
 		reqLogger.Error(err, "failed to set OperandRequest as the owner of Secret", "OperandRequestName", requestInstance.Name, "SecretName", secretCopy.Name, "namespace", targetNs)
 		return false, err
 	}
 
-	if err := r.Create(ctx, secretCopy); err != nil {
+	if err := r.Create(ctx, &secretCopy); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			// If already exist, update the Secret
-			existingSecret := &corev1.Secret{}
-			if err := r.Client.Get(ctx, types.NamespacedName{Namespace: targetNs, Name: targetName}, existingSecret); err != nil {
+			existingSecret := corev1.Secret{}
+			if err := r.Client.Get(ctx, types.NamespacedName{Namespace: targetNs, Name: targetName}, &existingSecret); err != nil {
 				reqLogger.Error(err, "failed to get Secret", "name", targetName, "namespace", targetNs)
 				return false, err
 			}
 			// Update existing Secret only if it has same name and set of labels
-			if needUpdate := reflect.DeepEqual(secretCopy.Labels, existingSecret.Labels) && !res.CompareSecrets(secretCopy, existingSecret); needUpdate {
-				if err := r.Update(ctx, secretCopy); err != nil {
+			if needUpdate := !res.CompareSecrets(&secretCopy, &existingSecret); needUpdate {
+				if err := r.Update(ctx, &secretCopy); err != nil {
 					reqLogger.Error(err, "failed to update Secret", "name", targetName, "namespace", targetNs)
 					return false, err
 				}
@@ -267,8 +266,8 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 		targetName = requestInstance.Name + "-" + sourceName
 	}
 
-	cm := &corev1.ConfigMap{}
-	if err := r.Client.Get(ctx, types.NamespacedName{Name: sourceName, Namespace: sourceNs}, cm); err != nil {
+	cm := corev1.ConfigMap{}
+	if err := r.Client.Get(ctx, types.NamespacedName{Name: sourceName, Namespace: sourceNs}, &cm); err != nil {
 		if apierrors.IsNotFound(err) {
 			reqLogger.Info("Configmap not found", "name", sourceName, "namespace", sourceNs)
 			return true, nil
@@ -286,7 +285,7 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 		cmLabel[k] = v
 	}
 
-	cmCopy := &corev1.ConfigMap{
+	cmCopy := corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      targetName,
 			Namespace: targetNs,
@@ -296,23 +295,23 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 		BinaryData: cm.BinaryData,
 	}
 	// Set the OperandRequest as the controller of the configmap
-	if err := controllerutil.SetControllerReference(requestInstance, cmCopy, r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(requestInstance, &cmCopy, r.Scheme); err != nil {
 		reqLogger.Error(err, "failed to set OperandRequest as an owner of a ConfigMap", "OperandRequestName", requestInstance.Name, "ConfigMapName", cmCopy.Name, "namespace", targetNs)
 		return false, err
 	}
 
 	// Create the ConfigMap in the OperandRequest namespace
-	if err := r.Create(ctx, cmCopy); err != nil {
+	if err := r.Create(ctx, &cmCopy); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			// If already exist, update the ConfigMap
-			existingCm := &corev1.ConfigMap{}
-			if err := r.Client.Get(ctx, types.NamespacedName{Namespace: targetNs, Name: targetName}, existingCm); err != nil {
+			existingCm := corev1.ConfigMap{}
+			if err := r.Client.Get(ctx, types.NamespacedName{Namespace: targetNs, Name: targetName}, &existingCm); err != nil {
 				reqLogger.Error(err, "failed to get ConfigMap", "name", targetName, "namespace", targetNs)
 				return false, err
 			}
 			// Update existing ConfigMap only if it has same name and set of labels
-			if needUpdate := reflect.DeepEqual(cmCopy.Labels, existingCm.Labels) && !res.CompareConfigMap(cmCopy, existingCm); needUpdate {
-				if err := r.Update(ctx, cmCopy); err != nil {
+			if needUpdate := !res.CompareConfigMap(&cmCopy, &existingCm); needUpdate {
+				if err := r.Update(ctx, &cmCopy); err != nil {
 					reqLogger.Error(err, "failed to update ConfigMap", "name", targetName, "namespace", targetNs)
 					return false, err
 				}

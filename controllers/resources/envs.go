@@ -73,9 +73,9 @@ func GetCrdReconcileInterval() (time.Duration, error) {
 	if found {
 		envVal, err := strconv.Atoi(env)
 		if err != nil {
-			return 3600 * time.Second, fmt.Errorf("%s must be of type int (interval in seconds)", crdReconcileEnvVar)
+			return 3600 * time.Second, fmt.Errorf("%s must be a natural number", crdReconcileEnvVar)
 		}
-		return time.Duration(envVal), nil
+		return time.Duration(envVal) * time.Second, nil
 	}
 	return reconcileInterval, nil
 }

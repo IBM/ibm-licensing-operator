@@ -28,6 +28,7 @@ import (
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+	"go.uber.org/zap/zapcore"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -66,7 +67,12 @@ func TestAPIs(t *testing.T) {
 }
 
 var _ = BeforeSuite(func(done Done) {
-	logf.SetLogger(zap.New(zap.UseDevMode(true), zap.WriteTo(GinkgoWriter)))
+
+	logf.SetLogger(zap.New(func(o *zap.Options) {
+		o.Development = true
+		o.TimeEncoder = zapcore.RFC3339TimeEncoder
+		o.DestWriter = GinkgoWriter
+	}))
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
