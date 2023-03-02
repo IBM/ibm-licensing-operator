@@ -18,7 +18,9 @@ package resources
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // GetWatchNamespace returns the Namespace the operator should be watching for changes
@@ -59,4 +61,21 @@ func GetOperatorNamespace() (string, error) {
 		return "", fmt.Errorf("%s must be set", operatorNamespaceEnvVar)
 	}
 	return ns, nil
+}
+
+// GetCrdReconcileInterval returns time duration in seconds for requested CRD watching
+func GetCrdReconcileInterval() (time.Duration, error) {
+	crdReconcileEnvVar := "CRD_RECONCILE_INTERVAL"
+
+	reconcileInterval := 3600 * time.Second
+	env, found := os.LookupEnv(crdReconcileEnvVar)
+
+	if found {
+		envVal, err := strconv.Atoi(env)
+		if err != nil {
+			return 3600 * time.Second, fmt.Errorf("%s must be a natural number", crdReconcileEnvVar)
+		}
+		return time.Duration(envVal) * time.Second, nil
+	}
+	return reconcileInterval, nil
 }

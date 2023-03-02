@@ -331,6 +331,18 @@ spec:
                 - update
                 - watch
             - apiGroups:
+                - operator.ibm.com
+              resources:
+                - operandrequests
+                - operandrequests/finalizers
+                - operandrequests/status
+              verbs:
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
                 - operator.openshift.io
               resources:
                 - servicecas
@@ -488,6 +500,8 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: spec.serviceAccountName
+                      - name: CRD_RECONCILE_INTERVAL
+                        value: "3600"
                     image: icr.io/cpopen/ibm-licensing-operator:4.0.0
                     imagePullPolicy: Always
                     name: ibm-licensing-operator
@@ -637,6 +651,18 @@ spec:
               verbs:
                 - create
                 - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - operator.ibm.com
+              resources:
+                - operandrequests
+                - operandrequests/finalizers
+                - operandrequests/status
+              verbs:
                 - get
                 - list
                 - patch

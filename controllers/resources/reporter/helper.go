@@ -33,37 +33,37 @@ import (
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
-const DatabaseConfigSecretName = "license-service-hub-db-config"
-const PostgresPasswordKey = "POSTGRES_PASSWORD" // #nosec
-const PostgresUserKey = "POSTGRES_USER"
-const PostgresDatabaseNameKey = "POSTGRES_DB"
-const PostgresPgDataKey = "POSTGRES_PGDATA"
+const (
+	DatabaseConfigSecretName = "license-service-hub-db-config"
+	PostgresPasswordKey      = "POSTGRES_PASSWORD" // #nosec
+	PostgresUserKey          = "POSTGRES_USER"
+	PostgresDatabaseNameKey  = "POSTGRES_DB"
+	PostgresPgDataKey        = "POSTGRES_PGDATA"
 
-const DatabaseUser = "postgres"
-const DatabaseName = "postgres"
-const DatabaseMountPoint = "/var/lib/postgresql"
-const PgData = DatabaseMountPoint + "/pgdata"
+	DatabaseUser       = "postgres"
+	DatabaseName       = "postgres"
+	DatabaseMountPoint = "/var/lib/postgresql"
+	PgData             = DatabaseMountPoint + "/pgdata"
 
-const DatabaseContainerName = "database"
-const ReceiverContainerName = "receiver"
-const UIContainerName = "reporter-ui"
-const ReceiverPort = 8080
-const UIPort = 3001
+	DatabaseContainerName = "database"
+	ReceiverContainerName = "receiver"
+	UIContainerName       = "reporter-ui"
+	ReceiverPort          = 8080
+	UIPort                = 3001
 
-const LicenseReporterUIBase = "ibm-license-service-reporter-ui"
-const LicenseReporterResourceBase = "ibm-license-service-reporter"
-const LicenseReporterComponentName = "ibm-license-service-reporter-svc"
-const LicenseReporterReleaseName = "ibm-license-service-reporter"
-const LicenseReportOCPCertName = "ibm-license-reporter-cert-internal"
-const LicenseReportExternalCertName = "ibm-license-reporter-cert"
-const LicenseReportCustomExternalCertName = "ibm-licensing-reporter-certs"
+	LicenseReporterUIBase               = "ibm-license-service-reporter-ui"
+	LicenseReporterResourceBase         = "ibm-license-service-reporter"
+	LicenseReporterComponentName        = "ibm-license-service-reporter-svc"
+	LicenseReporterReleaseName          = "ibm-license-service-reporter"
+	LicenseReportOCPCertName            = "ibm-license-reporter-cert-internal"
+	LicenseReportExternalCertName       = "ibm-license-reporter-cert"
+	LicenseReportCustomExternalCertName = "ibm-licensing-reporter-certs"
 
-const OperatorName = "ibm-licensing-operator"
-
-const ZenConfigMapName = "ibm-license-service-reporter-zen"
-const LicenseReportBindInfoName = "ibm-license-service-reporter-bindinfo"
-const OperandRegistry = "common-service"
-const ZenBindingName = "public-zen-config"
+	ZenConfigMapName          = "ibm-license-service-reporter-zen"
+	LicenseReportBindInfoName = "ibm-license-service-reporter-bindinfo"
+	OperandRegistry           = "common-service"
+	ZenBindingName            = "public-zen-config"
+)
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicenseServiceReporter) string {
 	return LicenseReporterResourceBase + "-" + instance.GetName()
@@ -202,7 +202,7 @@ func GetBindInfo(instance *operatorv1alpha1.IBMLicenseServiceReporter) *odlm.Ope
 			Namespace: instance.GetNamespace(),
 		},
 		Spec: odlm.OperandBindInfoSpec{
-			Operand:           OperatorName,
+			Operand:           res.OperatorName,
 			Registry:          OperandRegistry,
 			RegistryNamespace: instance.GetNamespace(),
 			Description:       "Binding information that should be accessible to IBM License Service Reporter adopters",

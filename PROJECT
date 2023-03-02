@@ -14,6 +14,11 @@ resources:
   group: operator
   kind: IBMLicenseServiceReporter
   version: v1alpha1
+- controller: true
+  domain: ibm.com
+  group: operator
+  kind: OperandRequest
+  version: v1alpha1
 - group: operator
   kind: IBMLicensingMetadata
   version: v1alpha1

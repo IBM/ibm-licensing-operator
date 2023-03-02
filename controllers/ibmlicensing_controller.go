@@ -53,6 +53,10 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		r.Log.Error(err, "Error during checking K8s API")
 	}
 
+	if cap(r.NamespaceScopeSemaphore) != 1 {
+		panic("NamespaceScopeSemaphore must have capacity 1!")
+	}
+
 	watcher := ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.IBMLicensing{}).
 		Owns(&appsv1.Deployment{}).
@@ -106,9 +110,10 @@ type IBMLicensingReconciler struct {
 	// that reads objects from the cache and writes to the apiserver
 	client.Client
 	client.Reader
-	Log               logr.Logger
-	Scheme            *runtime.Scheme
-	OperatorNamespace string
+	Log                     logr.Logger
+	Scheme                  *runtime.Scheme
+	OperatorNamespace       string
+	NamespaceScopeSemaphore chan bool
 }
 
 // //kubebuilder:rbac:namespace=ibm-common-services,groups=,resources=pod,verbs=get;list;watch;create;update;patch;delete
@@ -234,6 +239,20 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 		if err != nil || recResult.Requeue {
 			return recResult, err
 		}
+	}
+
+	// Using 1-size channel
+	// Tries sending data to the channel. If it fails, attempts to clear the channel
+	select {
+	case r.NamespaceScopeSemaphore <- foundInstance.Spec.IsNamespaceScopeEnabled():
+	default:
+		// This select prevents race condition, should the channel be cleared in the meantime
+		select {
+		case <-r.NamespaceScopeSemaphore:
+		default:
+		}
+		// Sends current data. At this point channel will contain only the newest data, without race conditions
+		r.NamespaceScopeSemaphore <- foundInstance.Spec.IsNamespaceScopeEnabled()
 	}
 
 	// Update status logic, using foundInstance, because we do not want to add filled default values to yaml

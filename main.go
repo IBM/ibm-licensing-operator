@@ -38,16 +38,14 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/IBM/ibm-licensing-operator/controllers/resources"
-
+	operatorv1 "github.com/IBM/ibm-licensing-operator/api/v1"
 	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers"
+	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
 	"github.com/IBM/ibm-licensing-operator/version"
 
 	cache "github.com/IBM/controller-filtered-cache/filteredcache"
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
-
-	operatorv1 "github.com/IBM/ibm-licensing-operator/api/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -111,13 +109,13 @@ func main() {
 
 	printVersion()
 
-	watchNamespaces, err := resources.GetWatchNamespaceList()
+	watchNamespaces, err := res.GetWatchNamespaceList()
 	if err != nil {
 		setupLog.Error(err, "unable to get WATCH_NAMESPACE, "+
 			"the manager will watch and manage resources in all namespaces")
 	}
 
-	operatorNamespace, err := resources.GetOperatorNamespace()
+	operatorNamespace, err := res.GetOperatorNamespace()
 	if err != nil {
 		setupLog.Error(err, "unable to get OPERATOR_NAMESPACE")
 	}
@@ -147,12 +145,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	// 1-size channel for communicating namespace scope status between IBMLicensing controller and operandrequest-discovery goroutine
+	nssEnabledSemaphore := make(chan bool, 1)
+
 	controller := &controllers.IBMLicensingReconciler{
-		Client:            mgr.GetClient(),
-		Reader:            mgr.GetAPIReader(),
-		Log:               ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
-		Scheme:            mgr.GetScheme(),
-		OperatorNamespace: operatorNamespace,
+		Client:                  mgr.GetClient(),
+		Reader:                  mgr.GetAPIReader(),
+		Log:                     ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
+		Scheme:                  mgr.GetScheme(),
+		OperatorNamespace:       operatorNamespace,
+		NamespaceScopeSemaphore: nssEnabledSemaphore,
 	}
 	if err = controller.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicensing")
@@ -167,6 +169,36 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicenseServiceReporter")
 		os.Exit(1)
 	}
+
+	operandRequestList := odlm.OperandRequestList{}
+	opreqControllerEnabled, err := res.DoesCRDExist(mgr.GetClient(), &operandRequestList)
+	if err != nil {
+		setupLog.Error(err, "An error occurred while checking for CRD existence. OperandRequest controller will not be started")
+	}
+
+	if opreqControllerEnabled {
+		if err = (&controllers.OperandRequestReconciler{
+			Client:            mgr.GetClient(),
+			Reader:            mgr.GetAPIReader(),
+			Log:               ctrl.Log.WithName("controllers").WithName("OperandRequest"),
+			Scheme:            mgr.GetScheme(),
+			OperatorNamespace: operatorNamespace,
+		}).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "OperandRequest")
+			os.Exit(1)
+		}
+		logger := ctrl.Log.WithName("operandrequest-discovery")
+		go res.DiscoverOperandRequests(&logger, mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
+	} else {
+		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
+		// Set custom time duration for CRD watcher (in seconds)
+		reconcileInterval, err := res.GetCrdReconcileInterval()
+		if err != nil {
+			setupLog.Error(err, "Incorrect reconcile interval set. Defaulting to 3600s", "crd-watcher", "OperandRequest")
+		}
+		go res.WatchForCRD(&logger, mgr.GetClient(), &operandRequestList, reconcileInterval)
+	}
+
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("Creating first instance.")
