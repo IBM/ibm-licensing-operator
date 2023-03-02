@@ -127,11 +127,14 @@ var _ = BeforeSuite(func(done Done) {
 	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
 
+	nssEnabledSemaphore := make(chan bool, 1)
+
 	err = (&IBMLicensingReconciler{
-		Client: mgr.GetClient(),
-		Reader: mgr.GetAPIReader(),
-		Log:    ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
-		Scheme: mgr.GetScheme(),
+		Client:                  mgr.GetClient(),
+		Reader:                  mgr.GetAPIReader(),
+		Log:                     ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
+		Scheme:                  mgr.GetScheme(),
+		NamespaceScopeSemaphore: nssEnabledSemaphore,
 	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
 
