@@ -28,6 +28,7 @@ import (
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+	"go.uber.org/zap/zapcore"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -37,6 +38,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 
 	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
@@ -64,7 +67,12 @@ func TestAPIs(t *testing.T) {
 }
 
 var _ = BeforeSuite(func(done Done) {
-	logf.SetLogger(zap.New(zap.UseDevMode(true), zap.WriteTo(GinkgoWriter)))
+
+	logf.SetLogger(zap.New(func(o *zap.Options) {
+		o.Development = true
+		o.TimeEncoder = zapcore.RFC3339TimeEncoder
+		o.DestWriter = GinkgoWriter
+	}))
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
@@ -89,6 +97,9 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).NotTo(HaveOccurred())
 
 	err = monitoringv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = odlm.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = networkingv1.AddToScheme(scheme.Scheme)
@@ -116,11 +127,14 @@ var _ = BeforeSuite(func(done Done) {
 	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
 
+	nssEnabledSemaphore := make(chan bool, 1)
+
 	err = (&IBMLicensingReconciler{
-		Client: mgr.GetClient(),
-		Reader: mgr.GetAPIReader(),
-		Log:    ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
-		Scheme: mgr.GetScheme(),
+		Client:                  mgr.GetClient(),
+		Reader:                  mgr.GetAPIReader(),
+		Log:                     ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
+		Scheme:                  mgr.GetScheme(),
+		NamespaceScopeSemaphore: nssEnabledSemaphore,
 	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
 

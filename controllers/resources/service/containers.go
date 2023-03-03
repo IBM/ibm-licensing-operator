@@ -92,9 +92,14 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 		})
 	}
 	if spec.IsNamespaceScopeEnabled() {
+		watchNamespaces, _ := resources.GetWatchNamespace()
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "NAMESPACE_SCOPE_ENABLED",
 			Value: "true",
+		})
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "WATCH_NAMESPACE",
+			Value: watchNamespaces,
 		})
 	}
 	if spec.ChargebackRetentionPeriod != nil {

@@ -36,6 +36,7 @@ import (
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 
 	networkingv1 "k8s.io/api/networking/v1"
+	"k8s.io/utils/strings/slices"
 
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 
@@ -45,6 +46,7 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	meta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -55,32 +57,37 @@ import (
 )
 
 // cannot set to const due to k8s struct needing pointers to primitive types
+var (
+	TrueVar  = true
+	FalseVar = false
 
-var TrueVar = true
-var FalseVar = false
+	DefaultSecretMode int32 = 420
+	Seconds60         int64 = 60
 
-var DefaultSecretMode int32 = 420
-var Seconds60 int64 = 60
+	IsRouteAPI                 = true
+	IsServiceCAAPI             = true
+	IsAlertingEnabledByDefault = true
+	RHMPEnabled                = false
+	IsUIEnabled                = false
+	IsODLM                     = true
+	UIPlatformSecretName       = "platform-oidc-credentials"
 
-var IsRouteAPI = true
-var IsServiceCAAPI = true
-var IsAlertingEnabledByDefault = true
-var RHMPEnabled = false
-var IsUIEnabled = false
-var IsODLM = true
-var UIPlatformSecretName = "platform-oidc-credentials"
+	PathType = networkingv1.PathTypeImplementationSpecific
+)
 
-var PathType = networkingv1.PathTypeImplementationSpecific
+const (
+	// Important product values needed for annotations
+	LicensingProductName   = "IBM Cloud Platform Common Services"
+	LicensingProductID     = "068a62892a1e4db39641342e592daa25"
+	LicensingProductMetric = "FREE"
 
-// Important product values needed for annotations
-const LicensingProductName = "IBM Cloud Platform Common Services"
-const LicensingProductID = "068a62892a1e4db39641342e592daa25"
-const LicensingProductMetric = "FREE"
+	randStringCharset    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
 
-const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-const ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
-const OcpCheckString = "ocp-check-secret"
-const OcpPrometheusCheckString = "ocp-prometheus-check-secret"
+	OcpCheckString           = "ocp-check-secret"
+	OcpPrometheusCheckString = "ocp-prometheus-check-secret"
+	OperatorName             = "ibm-licensing-operator"
+)
 
 var randStringCharsetLength = big.NewInt(int64(len(randStringCharset)))
 
@@ -376,11 +383,9 @@ echo "$(date): All required secrets exist"
 }
 
 func UpdateCacheClusterExtensions(client c.Reader) error {
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
-
-	namespace, found := os.LookupEnv(watchNamespaceEnvVar)
-	if !found {
-		return errors.New("WATCH_NAMESPACE not found")
+	namespace, err := GetOperatorNamespace()
+	if err != nil {
+		return errors.New("OPERATOR_NAMESPACE env not found")
 	}
 
 	listOpts := []c.ListOption{
@@ -423,6 +428,11 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 // Returns true if configmaps are equal
 func CompareConfigMap(cm1, cm2 *corev1.ConfigMap) bool {
 	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels) && reflect.DeepEqual(cm1.BinaryData, cm2.BinaryData)
+}
+
+// Returns true if secrets are equal
+func CompareSecrets(s1, s2 *corev1.Secret) bool {
+	return reflect.DeepEqual(s1.Data, s2.Data) && reflect.DeepEqual(s1.Labels, s2.Labels) && reflect.DeepEqual(s1.Type, s2.Type) && reflect.DeepEqual(s1.StringData, s2.StringData)
 }
 
 // Returns true if routes are equal
@@ -576,4 +586,81 @@ func getTLSDataAsString(route *routev1.Route) string {
 	return fmt.Sprintf("{Termination: %v, InsecureEdgeTerminationPolicy: %v, Certificate: %s, CACertificate: %s, DestinationCACertificate: %s}",
 		route.Spec.TLS.Termination, route.Spec.TLS.InsecureEdgeTerminationPolicy,
 		route.Spec.TLS.Certificate, route.Spec.TLS.CACertificate, route.Spec.TLS.DestinationCACertificate)
+}
+
+// Returns true if CRD for provided resource exits
+func DoesCRDExist(client c.Client, foundRes c.ObjectList) (bool, error) {
+	namespace, err := GetOperatorNamespace()
+	if err != nil {
+		return false, errors.New("OPERATOR_NAMESPACE env not found")
+	}
+	listOpts := []c.ListOption{
+		c.InNamespace(namespace),
+	}
+
+	if err := client.List(context.TODO(), foundRes, listOpts...); err != nil {
+		// If CRD is not present on the cluster, NoKindMatchError is returned
+		kindMatchErr := &meta.NoKindMatchError{}
+		if errors.As(err, &kindMatchErr) {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
+// Restarts operator if requested CRD appears on the cluster
+func WatchForCRD(logger *logr.Logger, client c.Client, foundRes c.ObjectList, reconcileInterval time.Duration) {
+	resType := reflect.TypeOf(foundRes)
+	reqLogger := logger.WithValues("action", "Checking for "+resType.String()+" CRD existence")
+	for {
+		if isCrdExists, _ := DoesCRDExist(client, foundRes); isCrdExists {
+			reqLogger.Info(resType.String() + " CRD found on cluster. Operator will be restarted to enable handling it")
+			os.Exit(0)
+		}
+		time.Sleep(reconcileInterval)
+	}
+}
+
+// Looks for OperandRequests (that request for ibm-licensing-operator) in other namespaces
+func DiscoverOperandRequests(logger *logr.Logger, reader c.Reader, watchNamespace []string, namespaceScopeSemaphore chan bool) {
+	nssEnabled := false
+	for {
+		prevNssEnabledState := nssEnabled
+		select {
+		case nssEnabled = <-namespaceScopeSemaphore:
+			if nssEnabled != prevNssEnabledState {
+				if nssEnabled {
+					logger.Info("Namespace scope enabled. Cluster-wide discovering OperandRequests disabled")
+				} else {
+					logger.Info("Namespace scope disabled. Cluster-wide discovering OperandRequests enabled")
+				}
+			}
+		default:
+		}
+
+		if nssEnabled {
+			time.Sleep(30 * time.Second)
+			continue
+		}
+
+		operandRequestList := odlm.OperandRequestList{}
+		err := reader.List(context.TODO(), &operandRequestList)
+		if err != nil {
+			logger.Error(err, "Could not list OperandRequests from cluster")
+		}
+
+		for _, operandRequest := range operandRequestList.Items {
+			for _, request := range operandRequest.Spec.Requests {
+				for _, operand := range request.Operands {
+					if operand.Name == OperatorName {
+						if !slices.Contains(watchNamespace, operandRequest.Namespace) {
+							logger.Info("OperandRequest for "+OperatorName+" detected. Add namespace to IBM Licensing OperatorGroup to handle it", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
+						}
+					}
+				}
+			}
+		}
+
+		time.Sleep(30 * time.Second)
+	}
 }
