@@ -2,14 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ibm-licensing-operator
-  annotations:
-    productID: 068a62892a1e4db39641342e592daa25
-    productMetric: FREE
-    productName: IBM Cloud Platform Common Services
-  labels:
-    app.kubernetes.io/instance: ibm-licensing-operator
-    app.kubernetes.io/managed-by: ibm-licensing-operator
-    app.kubernetes.io/name: ibm-licensing
 spec:
   replicas: 1
   selector:
@@ -43,15 +35,19 @@ spec:
             - ibm-licensing-operator
           env:
             - name: IBM_LICENSING_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-licensing:4.2.12
+              value: icr.io/cpopen/cpfs/ibm-licensing:1.20.2
+            - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
+              value: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.20.2
+            - name: IBM_POSTGRESQL_IMAGE
+              value: icr.io/cpopen/cpfs/ibm-postgresql:1.20.2
+            - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
+              value: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.20.2
+            - name: IBM_LICENSING_USAGE_IMAGE
+              value: icr.io/cpopen/cpfs/ibm-licensing-usage:1.20.2
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.annotations['olm.targetNamespaces']
-            - name: OPERATOR_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
             - name: POD_NAME
               valueFrom:
                 fieldRef:
@@ -62,23 +58,17 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
-            - name: CRD_RECONCILE_INTERVAL
-              value: "300" 
-          image: icr.io/cpopen/ibm-licensing-operator:4.2.12
-          imagePullPolicy: IfNotPresent
+          image: icr.io/cpopen/ibm-licensing-operator:1.20.2
+          imagePullPolicy: Always
           name: ibm-licensing-operator
           resources:
             limits:
               cpu: 20m
               memory: 150Mi
-              ephemeral-storage: 500Mi
             requests:
               cpu: 10m
               memory: 50Mi
-              ephemeral-storage: 250Mi
           securityContext:
-            seccompProfile:
-              type: RuntimeDefault
             allowPrivilegeEscalation: false
             capabilities:
               drop:

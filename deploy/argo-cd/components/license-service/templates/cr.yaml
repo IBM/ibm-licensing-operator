@@ -1,13 +1,11 @@
----
 apiVersion: operator.ibm.com/v1alpha1
-kind: IBMLicensing
+kind: IBMLicenseServiceReporter
 metadata:
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
   name: instance
-  annotations:
-    argocd.argoproj.io/sync-options: ServerSideApply=true
 spec:
-  {{- toYaml .Values.spec | nindent 2 }}
+  version: 1.20.2
+
