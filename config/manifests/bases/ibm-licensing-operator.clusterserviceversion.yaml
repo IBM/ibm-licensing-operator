@@ -6,11 +6,11 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
-    containerImage: icr.io/cpopen/ibm-licensing-operator:1.20.1
+    containerImage: icr.io/cpopen/ibm-licensing-operator:1.20.2
     createdAt: "2020-06-22T10:22:31Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to
       monitor the licensing usage of products.
-    olm.skipRange: '>=1.0.0 <1.20.1'
+    olm.skipRange: '>=1.0.0 <1.20.2'
     operators.operatorframework.io/builder: operator-sdk-v1.25.2
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com",
       "ibmlicensingdefinitions.operator.ibm.com", "ibmlicensingquerysources.operator.ibm.com"]'
@@ -301,16 +301,16 @@ spec:
   provider:
     name: IBM
   relatedImages:
-  - image: icr.io/cpopen/ibm-licensing-operator:1.20.1
+  - image: icr.io/cpopen/ibm-licensing-operator:1.20.2
     name: IBM_LICENSING_OPERATOR_IMAGE
-  - image: icr.io/cpopen/cpfs/ibm-licensing:1.20.1
+  - image: icr.io/cpopen/cpfs/ibm-licensing:1.20.2
     name: IBM_LICENSING_IMAGE
-  - image: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.20.1
+  - image: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.20.2
     name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-  - image: icr.io/cpopen/cpfs/ibm-postgresql:1.20.1
+  - image: icr.io/cpopen/cpfs/ibm-postgresql:1.20.2
     name: IBM_POSTGRESQL_IMAGE
-  - image: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.20.1
+  - image: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.20.2
     name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-  - image: icr.io/cpopen/cpfs/ibm-licensing-usage:1.20.1
+  - image: icr.io/cpopen/cpfs/ibm-licensing-usage:1.20.2
     name: IBM_LICENSING_USAGE_IMAGE
   version: 0.0.0
