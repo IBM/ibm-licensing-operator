@@ -30,9 +30,6 @@ get-cluster-credentials: activate-serviceaccount
 config-docker: get-cluster-credentials
 	@common/scripts/config_docker.sh
 
-config-docker-scratch: get-cluster-credentials
-	@common/scripts/config_docker_scratch.sh
-
 ############################################################
 # install git hooks
 ############################################################
@@ -71,8 +68,8 @@ ifdef MARKDOWN_LINT_WHITELIST
 else
 	@${FINDFILES} -name '*.md' -print0 | ${XARGS} awesome_bot --skip-save-results --allow_ssl --allow-timeout --allow-dupe --allow-redirect
 endif
-# Ignore lint-markdown
-lint-all: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go 
+
+lint-all: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown
 
 format-go:
 	@${FINDFILES} -name '*.go' \( ! \( -name '*.gen.go' -o -name '*.pb.go' -o -name '*_generated.deepcopy.go' \) \) -print0 | ${XARGS} goimports -w -local "github.com/IBM"

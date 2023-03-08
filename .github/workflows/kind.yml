@@ -40,7 +40,7 @@ jobs:
       - name: Build
         run: |
           make build
-          curl -Lo ./operator-sdk "https://github.com/operator-framework/operator-sdk/releases/download/v1.11.0/operator-sdk_linux_amd64"
+          curl -Lo ./operator-sdk "https://github.com/operator-framework/operator-sdk/releases/download/v1.25.2/operator-sdk_linux_amd64"
           curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.11.1/kind-$(uname)-amd64"
           chmod +x ./operator-sdk
           chmod +x ./kind
@@ -121,12 +121,8 @@ jobs:
         export PATH=`pwd`:$PATH
         export SUFIX=$RANDOM
         export USE_EXISTING_CLUSTER=true
-        if [[ $GITHUB_BASE_REF == 'development' || $GITHUB_REF == 'refs/heads/development' ]]
-        then
-          make unit-test-development > ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
-        else
-          make unit-test > ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
-        fi
+        make unit-test | tee ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
+
 
     - name: Check all pods
       if: always()

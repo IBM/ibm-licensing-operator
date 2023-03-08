@@ -1,3 +1,4 @@
+//
 // Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,8 +12,24 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package version
+//
 
-var (
-	Version = "4.0.0"
+package service
+
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )
+
+func GetDefaultIBMLicensing() operatorv1alpha1.IBMLicensing {
+	return operatorv1alpha1.IBMLicensing{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "instance",
+		},
+		Spec: operatorv1alpha1.IBMLicensingSpec{
+			Datasource:  "datacollector",
+			HTTPSEnable: true,
+		},
+	}
+}

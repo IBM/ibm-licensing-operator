@@ -15,9 +15,9 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 1.20.0
+CSV_VERSION ?= 4.0.0
 CSV_VERSION_DEVELOPMENT ?= development
-OLD_CSV_VERSION ?= 1.19.0
+OLD_CSV_VERSION ?= 1.20.0
 
 # Tools versions
 OPM_VERSION ?= v1.26.2
@@ -33,9 +33,11 @@ BUILD_LOCALLY ?= 1
 # Image URL to use all building/pushing image targets;
 # Use your own docker registry and image name for dev/test by overriding the IMG, REGISTRY and CSV_VERSION environment variable.
 IMG ?= ibm-licensing-operator
-REGISTRY ?= hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
 
-SCRATCH_REGISTRY ?= hyc-cloud-private-scratch-docker-local.artifactory.swg-devops.com/ibmcom
+REGISTRY_URL ?= docker-na-public.artifactory.swg-devops.com
+
+REGISTRY ?= ${REGISTRY_URL}/hyc-cloud-private-integration-docker-local/ibmcom
+SCRATCH_REGISTRY ?= ${REGISTRY_URL}/hyc-cloud-private-scratch-docker-local/ibmcom
 
 # Default bundle image tag
 IMAGE_BUNDLE_NAME ?= ibm-licensing-operator-bundle
@@ -174,11 +176,6 @@ ifeq ($(BUILD_LOCALLY),0)
 config-docker:
 endif
 
-ifeq ($(BUILD_LOCALLY),0)
-    export CONFIG_DOCKER_TARGET_SCRATCH = config-docker-scratch
-config-docker-scratch:
-endif
-
 include common/Makefile.common.mk
 
 all: fmt version.properties check test coverage-kind build images
@@ -252,10 +249,9 @@ build-image-development: $(CONFIG_DOCKER_TARGET) build ## Create a docker image 
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
-push-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH) build-image-development ## Push previously created image to scratch registry
+push-image-development: $(CONFIG_DOCKER_TARGET) build-image-development ## Push previously created image to scratch registry
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker push $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
-
 
 ##@ SHA Digest section
 
@@ -275,7 +271,7 @@ multiarch-image-latest: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION)
 
-multiarch-image-development: $(CONFIG_DOCKER_TARGET_SCRATCH)
+multiarch-image-development: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${VERSION} ${GIT_BRANCH}
 	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION) ${VERSION} ${GIT_BRANCH}
@@ -310,20 +306,14 @@ help: ## Display this help
 	@awk 'BEGIN {FS = ":.*##"}; \
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-
-## FROM NEW OPERATOR
-
-##@ Test
-#ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-test:
-	@echo "Running tests for the controllers."
-	#@mkdir -p ${ENVTEST_ASSETS_DIR}
-	#@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
-	#@source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
-
+	
 prepare-unit-test:
 	kubectl create namespace ${NAMESPACE} || echo ""
-	kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo ""
+	@if [ -e ./artifactory.yaml ]; then \
+		kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo "" ;\
+	else \
+		kubectl create secret docker-registry artifactory-token -n ${NAMESPACE} --docker-server=${REGISTRY} --docker-username=${ARTIFACTORY_USER} --docker-password=${ARTIFACTORY_TOKEN} --docker-email=${ARTIFACTORY_USER} || echo "" ;\
+	fi ;\
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml || echo ""
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicensings.yaml || echo ""
 	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
@@ -348,19 +338,6 @@ unit-test: prepare-unit-test
 	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION}; \
 	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}; \
 	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
-	go test -v ./controllers/... -coverprofile cover.out
-
-unit-test-development: prepare-unit-test
-	export USE_EXISTING_CLUSTER=true; \
-	export WATCH_NAMESPACE=${NAMESPACE}; \
-	export NAMESPACE=${NAMESPACE}; \
-	export OCP=${OCP}; \
-	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
-	export IBM_LICENSING_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
-	export IBM_LICENSE_SERVICE_REPORTER_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
-	export IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
-	export IBM_POSTGRESQL_IMAGE=${REGISTRY}/${IBM_POSTGRESQL_IMAGE}:${CSV_VERSION}; \
-	export IBM_LICENSING_USAGE_IMAGE=${SCRATCH_REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION_DEVELOPMENT}; \
 	go test -v ./controllers/... -coverprofile cover.out
 
 # Build manager binary
@@ -556,6 +533,9 @@ catalogsource-development: opm identify-release-stream
 
 ##@ Install
 
+install-linters:  ## Install/verify required linting tools
+	common/scripts/install-linters-development.sh
+
 verify-installed-tools: ## Verify if tools are installed
 	@command -v operator-sdk >/dev/null 2>&1 || { echo >&2 "Required tool: operator-sdk-${OPERATOR_SDK_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
 	@command -v opm >/dev/null 2>&1 || { echo >&2 "Required tool: opm-${OPM_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
@@ -565,7 +545,7 @@ verify-installed-tools: ## Verify if tools are installed
 	@echo "Successfully verified installed tools. Make sure the version matches required to avoid further issues.$'\n"
 
 	@echo "Printing installed tools summary $'\n\
-	Required | Intalled $'\n\
+	Required | Installed $'\n\
 	» operator-sdk-${OPERATOR_SDK_VERSION} | operator-sdk-"$(shell operator-sdk version | awk '{print $$3}')" $'\n\
 	» opm-${OPM_VERSION} | opm-"$(shell opm version | awk '{print $$2}' | awk -F ':' '{print $$2}')" $'\n\
 	» controller-gen-${CONTROLLER_GEN_VERSION} | controller-gen-"$(shell controller-gen --version | awk '{print $$2}')", $'\n\
@@ -629,7 +609,7 @@ ifeq (, $(shell which opm))
 	git clone  --branch ${OPM_VERSION}  https://github.com/operator-framework/operator-registry.git ;\
 	cd ./operator-registry ; \
 	git checkout ${OPM_VERSION};\
-	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.gitCommit=0e53cafe' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=${OPM_VERSION}' -X 'github.com/operator-framework/operator-registry/cmd/opm/version.buildDate=2022-09-21T15:25:25Z'"  -tags "json1" -o bin/opm ./cmd/opm ;\
+	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=${OPM_VERSION}'"  -tags "json1" -o bin/opm ./cmd/opm ;\
 	cp ./bin/opm ~/ ; \
 	rm -rf $$OPM_GEN_TMP_DIR ;\
 	}

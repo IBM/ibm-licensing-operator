@@ -35,6 +35,18 @@ rules:
   - update
   - watch
 - apiGroups:
+  - operator.ibm.com
+  resources:
+  - operandrequests
+  - operandrequests/finalizers
+  - operandrequests/status
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - operator.openshift.io
   resources:
   - servicecas
@@ -177,6 +189,18 @@ rules:
   verbs:
   - create
   - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operator.ibm.com
+  resources:
+  - operandrequests
+  - operandrequests/finalizers
+  - operandrequests/status
+  verbs:
   - get
   - list
   - patch

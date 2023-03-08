@@ -25,37 +25,44 @@ import (
 	"github.com/IBM/ibm-licensing-operator/version"
 )
 
-const LicensingResourceBase = "ibm-licensing-service"
-const LicensingComponentName = "ibm-licensing-service-svc"
-const LicensingReleaseName = "ibm-licensing-service"
-const LicenseServiceInternalCertName = "ibm-license-service-cert-internal"
-const PrometheusServiceOCPCertName = "ibm-licensing-service-prometheus-cert"
-const LicenseServiceExternalCertName = "ibm-license-service-cert"
-const LicenseServiceCustomExternalCertName = "ibm-licensing-certs"
-const LicensingServiceAccount = "ibm-license-service"
-const LicensingServiceAccountRestricted = "ibm-license-service-restricted"
-const UsageServiceName = "ibm-licensing-service-usage"
-const PrometheusServiceName = "ibm-licensing-service-prometheus"
-const PrometheusRHMPServiceMonitor = "ibm-licensing-service-service-monitor"
-const PrometheusAlertingServiceMonitor = "ibm-licensing-service-service-monitor-alerting"
+const (
+	LicensingResourceBase                = "ibm-licensing-service"
+	LicensingComponentName               = "ibm-licensing-service-svc"
+	LicensingReleaseName                 = "ibm-licensing-service"
+	LicenseServiceInternalCertName       = "ibm-license-service-cert-internal"
+	PrometheusServiceOCPCertName         = "ibm-licensing-service-prometheus-cert"
+	LicenseServiceExternalCertName       = "ibm-license-service-cert"
+	LicenseServiceCustomExternalCertName = "ibm-licensing-certs"
+	LicensingServiceAccount              = "ibm-license-service"
+	LicensingServiceAccountRestricted    = "ibm-license-service-restricted"
+	UsageServiceName                     = "ibm-licensing-service-usage"
+	PrometheusServiceName                = "ibm-licensing-service-prometheus"
+	PrometheusRHMPServiceMonitor         = "ibm-licensing-service-service-monitor"
+	PrometheusAlertingServiceMonitor     = "ibm-licensing-service-service-monitor-alerting"
 
-const LicensingServiceAppLabel = "ibm-licensing-service-instance"
+	LicensingServiceAppLabel = "ibm-licensing-service-instance"
 
-//goland:noinspection GoNameStartsWithPackageName
-const ServiceMonitorSelectorLabel = "marketplace.redhat.com/metering"
-const ReleaseLabel = "ibm-licensing-service-prometheus"
-const ReleaseUsageLabel = "ibm-licensing-service-usage"
+	//goland:noinspection GoNameStartsWithPackageName
+	ServiceMonitorSelectorLabel = "marketplace.redhat.com/metering"
+	ReleaseLabel                = "ibm-licensing-service-prometheus"
+	ReleaseUsageLabel           = "ibm-licensing-service-usage"
 
-const NamespaceScopeLabelKey = "intent"
-const NamespaceScopeLabelValue = "projected"
+	NamespaceScopeLabelKey   = "intent"
+	NamespaceScopeLabelValue = "projected"
 
-//goland:noinspection GoNameStartsWithPackageName
-const ServiceAccountSecretName = "ibm-licensing-service-account-token"
-const DefaultReaderTokenName = "ibm-licensing-default-reader-token"
-const DefaultReaderServiceAccountName = "ibm-licensing-default-reader"
+	//goland:noinspection GoNameStartsWithPackageName
+	ServiceAccountSecretName        = "ibm-licensing-service-account-token"
+	DefaultReaderTokenName          = "ibm-licensing-default-reader-token"
+	DefaultReaderServiceAccountName = "ibm-licensing-default-reader"
 
-const ActiveCRState = "ACTIVE"
-const InactiveCRState = "INACTIVE"
+	LicensingToken        = "ibm-licensing-token"
+	LicensingInfo         = "ibm-licensing-info"
+	LicensingUploadToken  = "ibm-licensing-upload-token"
+	LicensingUploadConfig = "ibm-licensing-upload-config"
+
+	ActiveCRState   = "ACTIVE"
+	InactiveCRState = "INACTIVE"
+)
 
 func GetServiceAccountName(instance *operatorv1alpha1.IBMLicensing) string {
 	if instance.Spec.IsNamespaceScopeEnabled() {
@@ -97,9 +104,6 @@ func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]s
 	selectorLabels := LabelsForSelector(instance)
 	for key, value := range selectorLabels {
 		podLabels[key] = value
-	}
-	if instance.Spec.IsNamespaceScopeEnabled() {
-		podLabels[NamespaceScopeLabelKey] = NamespaceScopeLabelValue
 	}
 	return podLabels
 }
