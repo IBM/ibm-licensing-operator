@@ -107,12 +107,13 @@ jobs:
     - name: Download binaries
       env:
         JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
+        ARTIFACTORY_USERNAME: $${{ secrets.ARTIFACTORY_USERNAME }}
+        ARTIFACTORY_TOKEN: $${{ secrets.ARTIFACTORY_TOKEN }}
       run: |
         wget https://github.com/kubernetes-sigs/kind/releases/download/v0.11.1/kind-linux-amd64
         mv ./kind-linux-amd64 ./kind
         chmod +x ./kind
         cp ./common/scripts/tests/kind_config.yaml ./
-        echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
         ./kind create cluster --image kindest/node:${{ matrix.k8s }} --config ./kind_config.yaml --name tests
         kubectl config set-context kind-tests        
         kubectl get nodes
