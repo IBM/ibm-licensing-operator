@@ -309,13 +309,7 @@ help: ## Display this help
 	
 prepare-unit-test:
 	kubectl create namespace ${NAMESPACE} || echo ""
-	@if [ -e ./artifactory.yaml ]; then \
-		echo "GORNY IF";\
-		kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo "" ;\
-	else \
-		echo "DOLNY IF";\
-		kubectl create secret docker-registry artifactory-token -n ${NAMESPACE} --docker-server=${REGISTRY} --docker-username=${ARTIFACTORY_USERNAME} --docker-password=${ARTIFACTORY_TOKEN} || echo "" ;\
-	fi ;\
+	kubectl create secret docker-registry artifactory-token -n ${NAMESPACE} --docker-server=${REGISTRY} --docker-username=${ARTIFACTORY_USERNAME} --docker-password=${ARTIFACTORY_TOKEN} || echo "" ;\
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml || echo ""
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicensings.yaml || echo ""
 	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
