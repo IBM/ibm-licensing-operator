@@ -58,8 +58,8 @@ jobs:
       - name: Deploy Operators YAML
         env:
           JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
-          ARTIFACTORY_USERNAME: $${{ secrets.ARTIFACTORY_USERNAME }}
-          ARTIFACTORY_TOKEN: $${{ secrets.ARTIFACTORY_TOKEN }}
+          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          ARTIFACTORY_TOKEN: ${{ secrets.ARTIFACTORY_TOKEN }}
         run: |
           kubectl create namespace ibm-common-services
           n=0; until ((n >= 60)); do kubectl -n ibm-common-services get serviceaccount default -o name && break; n=$((n + 1)); sleep 60; done; ((n < 60))
@@ -116,8 +116,8 @@ jobs:
 
     - name: Test Unit Operator - License Service
       env:
-        ARTIFACTORY_USERNAME: $${{ secrets.ARTIFACTORY_USERNAME }}
-        ARTIFACTORY_TOKEN: $${{ secrets.ARTIFACTORY_TOKEN }}
+        ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+        ARTIFACTORY_TOKEN: ${{ secrets.ARTIFACTORY_TOKEN }}
       run: |
         export PATH=`pwd`:$PATH
         export SUFIX=$RANDOM
