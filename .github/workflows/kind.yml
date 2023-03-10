@@ -57,12 +57,12 @@ jobs:
 
       - name: Deploy Operators YAML
         env:
-          JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
+          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          ARTIFACTORY_TOKEN: ${{ secrets.ARTIFACTORY_TOKEN }}
         run: |
-          echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
           kubectl create namespace ibm-common-services
           n=0; until ((n >= 60)); do kubectl -n ibm-common-services get serviceaccount default -o name && break; n=$((n + 1)); sleep 60; done; ((n < 60))
-          kubectl create secret generic my-registry-token -n ibm-common-services --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson
+          kubectl create secret docker-registry my-registry-token -n ibm-common-services --docker-server=docker-na-public.artifactory.swg-devops.com --docker-username=${ARTIFACTORY_USERNAME} --docker-password=${ARTIFACTORY_TOKEN}
           kubectl apply -f ./bundle/manifests/operator.ibm.com_ibmlicenseservicereporters.yaml
           kubectl apply -f ./bundle/manifests/operator.ibm.com_ibmlicensings.yaml
           kubectl apply -f ./config/rbac/service_account.yaml -n ibm-common-services
@@ -104,25 +104,24 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Download binaries
-      env:
-        JSON_ARTIFACTORY: ${{ secrets.JSON_ARTIFACTORY }}
       run: |
         wget https://github.com/kubernetes-sigs/kind/releases/download/v0.11.1/kind-linux-amd64
         mv ./kind-linux-amd64 ./kind
         chmod +x ./kind
         cp ./common/scripts/tests/kind_config.yaml ./
-        echo "$JSON_ARTIFACTORY" > ./artifactory.yaml
         ./kind create cluster --image kindest/node:${{ matrix.k8s }} --config ./kind_config.yaml --name tests
         kubectl config set-context kind-tests        
         kubectl get nodes
 
     - name: Test Unit Operator - License Service
+      env:
+        ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+        ARTIFACTORY_TOKEN: ${{ secrets.ARTIFACTORY_TOKEN }}
       run: |
         export PATH=`pwd`:$PATH
         export SUFIX=$RANDOM
         export USE_EXISTING_CLUSTER=true
         make unit-test | tee ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
-
 
     - name: Check all pods
       if: always()
