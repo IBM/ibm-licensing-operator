@@ -104,7 +104,7 @@ Tools can installed using make target:
 make install-all-tools
 ```
 
-Toverify completness of the installed tools and their versions use the target:
+To verify completeness of the installed tools and their versions use the target:
 
 ```shell
 make verify-installed-tools
