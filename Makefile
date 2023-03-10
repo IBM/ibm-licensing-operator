@@ -310,8 +310,10 @@ help: ## Display this help
 prepare-unit-test:
 	kubectl create namespace ${NAMESPACE} || echo ""
 	@if [ -e ./artifactory.yaml ]; then \
+		echo "GORNY IF";\
 		kubectl create secret generic artifactory-token -n ${NAMESPACE} --from-file=.dockerconfigjson=./artifactory.yaml --type=kubernetes.io/dockerconfigjson || echo "" ;\
 	else \
+		echo "DOLNY IF";\
 		kubectl create secret docker-registry artifactory-token -n ${NAMESPACE} --docker-server=${REGISTRY} --docker-username=${ARTIFACTORY_USERNAME} --docker-password=${ARTIFACTORY_TOKEN} || echo "" ;\
 	fi ;\
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml || echo ""
