@@ -47,7 +47,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - operator.ibm.com
+  - operators.coreos.com
   resources:
   - operatorgroup
   - operatorgroup/finalizers

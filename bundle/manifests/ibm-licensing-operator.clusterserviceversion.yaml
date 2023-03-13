@@ -343,7 +343,7 @@ spec:
                 - update
                 - watch
             - apiGroups:
-                - operator.ibm.com
+                - operators.coreos.com
               resources:
                 - operatorgroup
                 - operatorgroup/finalizers
@@ -674,18 +674,6 @@ spec:
                 - operandrequests
                 - operandrequests/finalizers
                 - operandrequests/status
-              verbs:
-                - get
-                - list
-                - patch
-                - update
-                - watch
-            - apiGroups:
-                - operator.ibm.com
-              resources:
-                - operatorgroup
-                - operatorgroup/finalizers
-                - operatorgroup/status
               verbs:
                 - get
                 - list
