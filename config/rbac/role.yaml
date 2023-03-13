@@ -47,6 +47,18 @@ rules:
   - update
   - watch
 - apiGroups:
+  - operator.ibm.com
+  resources:
+  - operatorgroup
+  - operatorgroup/finalizers
+  - operatorgroup/status
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - operator.openshift.io
   resources:
   - servicecas
