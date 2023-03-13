@@ -29,7 +29,10 @@ import (
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
-// Looks for OperandRequests (that request for ibm-licensing-operator) in other namespaces
+// Looks for OperandRequests (that have binding for ibm-licensing-operator) in other namespaces
+
+// +kubebuilder:rbac:groups=operators.coreos.com,resources=operatorgroups;operatorgroups/finalizers;operatorgroups/status,verbs=get;list;patch;update;watch
+
 func DiscoverOperandRequests(logger *logr.Logger, client c.Client, watchNamespace []string, namespaceScopeSemaphore chan bool) {
 	var nssEnabled, prevNssEnabledState, skipOpreq bool
 	var operandRequestList odlm.OperandRequestList
