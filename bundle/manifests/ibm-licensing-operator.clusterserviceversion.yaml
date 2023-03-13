@@ -345,9 +345,9 @@ spec:
             - apiGroups:
                 - operators.coreos.com
               resources:
-                - operatorgroup
-                - operatorgroup/finalizers
-                - operatorgroup/status
+                - operatorgroups
+                - operatorgroups/finalizers
+                - operatorgroups/status
               verbs:
                 - get
                 - list
