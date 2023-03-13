@@ -77,7 +77,7 @@ func TestGetReconcileInterval(t *testing.T) {
 				t.Fatalf("\t%s\tShould get a format error", failed)
 			}
 
-			errMsg := envVar + " must be natural number"
+			errMsg := envVar + " must be a natural number"
 			if strings.Contains(err.Error(), errMsg) {
 				t.Logf("\t%s\tShould get an error with a proper message", succeed)
 			} else {

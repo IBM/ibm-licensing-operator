@@ -195,18 +195,6 @@ rules:
   - update
   - watch
 - apiGroups:
-  - operator.ibm.com
-  resources:
-  - operandrequests
-  - operandrequests/finalizers
-  - operandrequests/status
-  verbs:
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - rbac.authorization.k8s.io
   resources:
   - clusterrolebindings

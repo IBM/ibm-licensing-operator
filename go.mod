@@ -10,13 +10,14 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.25.0
 	github.com/openshift/api v0.0.0-20230306181726-ab59d80e2b79
+	github.com/operator-framework/api v0.17.3
 	github.com/redhat-marketplace/redhat-marketplace-operator/v2 v2.0.0-20230228135942-40c6ba166b59
 	go.uber.org/zap v1.21.0
 	k8s.io/api v0.26.1
 	k8s.io/apimachinery v0.26.1
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/utils v0.0.0-20221107191617-1a15be271d1d
-	sigs.k8s.io/controller-runtime v0.12.3
+	sigs.k8s.io/controller-runtime v0.13.0
 )
 
 require (
@@ -59,7 +60,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
-	github.com/operator-framework/api v0.6.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.57.0 // indirect
 	github.com/prometheus/client_golang v1.12.2 // indirect
@@ -104,6 +104,7 @@ replace (
 	k8s.io/apimachinery => k8s.io/apimachinery v0.25.7
 	k8s.io/client-go => k8s.io/client-go v0.25.7
 
+	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.12.3
 	sigs.k8s.io/controller-runtime/pkg/cache => sigs.k8s.io/controller-runtime/pkg/cache v0.10.0
 	sigs.k8s.io/controller-runtime/pkg/client => sigs.k8s.io/controller-runtime/pkg/client v0.6.4
 )

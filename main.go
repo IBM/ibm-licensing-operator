@@ -26,7 +26,9 @@ import (
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+
 	"go.uber.org/zap/zapcore"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -38,14 +40,16 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
+
+	cache "github.com/IBM/controller-filtered-cache/filteredcache"
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
+
 	operatorv1 "github.com/IBM/ibm-licensing-operator/api/v1"
 	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers"
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
 	"github.com/IBM/ibm-licensing-operator/version"
-
-	cache "github.com/IBM/controller-filtered-cache/filteredcache"
-	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -90,6 +94,8 @@ func init() {
 	utilruntime.Must(odlm.AddToScheme(scheme))
 
 	utilruntime.Must(operatorv1.AddToScheme(scheme))
+
+	utilruntime.Must(operatorframeworkv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -171,7 +177,7 @@ func main() {
 	}
 
 	operandRequestList := odlm.OperandRequestList{}
-	opreqControllerEnabled, err := res.DoesCRDExist(mgr.GetClient(), &operandRequestList)
+	opreqControllerEnabled, err := res.DoesCRDExist(mgr.GetAPIReader(), &operandRequestList)
 	if err != nil {
 		setupLog.Error(err, "An error occurred while checking for CRD existence. OperandRequest controller will not be started")
 	}
@@ -188,7 +194,7 @@ func main() {
 			os.Exit(1)
 		}
 		logger := ctrl.Log.WithName("operandrequest-discovery")
-		go res.DiscoverOperandRequests(&logger, mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
+		go controllers.DiscoverOperandRequests(&logger, mgr.GetClient(), watchNamespaces, nssEnabledSemaphore)
 	} else {
 		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
 		// Set custom time duration for CRD watcher (in seconds)
@@ -196,7 +202,7 @@ func main() {
 		if err != nil {
 			setupLog.Error(err, "Incorrect reconcile interval set. Defaulting to 3600s", "crd-watcher", "OperandRequest")
 		}
-		go res.WatchForCRD(&logger, mgr.GetClient(), &operandRequestList, reconcileInterval)
+		go res.RestartOnCRDCreation(&logger, mgr.GetClient(), &operandRequestList, reconcileInterval)
 	}
 
 	// +kubebuilder:scaffold:builder
