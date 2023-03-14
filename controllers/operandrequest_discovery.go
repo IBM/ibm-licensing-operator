@@ -33,7 +33,7 @@ import (
 
 // +kubebuilder:rbac:groups=operators.coreos.com,resources=operatorgroups;operatorgroups/finalizers;operatorgroups/status,verbs=get;list;patch;update;watch
 
-func DiscoverOperandRequests(logger *logr.Logger, client c.Client, watchNamespace []string, namespaceScopeSemaphore chan bool) {
+func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Reader, watchNamespace []string, namespaceScopeSemaphore chan bool) {
 	var nssEnabled, prevNssEnabledState, skipOpreq bool
 	var operandRequestList odlm.OperandRequestList
 	var namespaceListToExtend []string
@@ -67,7 +67,7 @@ func DiscoverOperandRequests(logger *logr.Logger, client c.Client, watchNamespac
 		}
 
 		operandRequestList = odlm.OperandRequestList{}
-		err := client.List(context.TODO(), &operandRequestList)
+		err := reader.List(context.TODO(), &operandRequestList)
 		if err != nil {
 			logger.Error(err, "Could not list OperandRequests from cluster")
 		}
@@ -93,13 +93,13 @@ func DiscoverOperandRequests(logger *logr.Logger, client c.Client, watchNamespac
 		}
 
 		if len(namespaceListToExtend) > 0 {
-			operatorGroup, err := res.GetOperatorGroup(client, operatorNamespace)
+			operatorGroup, err := res.GetOperatorGroup(reader, operatorNamespace)
 			if err != nil {
 				logger.Error(err, "An error occurred while retrieving IBMLicensing OperatorGroup")
 			} else if operatorGroup != nil {
 				logger.Info("Extending IBMLicensing OperatorGroup with namespaces", "OperatorGroup", operatorGroup.Name, "NamespaceList", namespaceListToExtend)
 				operatorGroup = res.ExtendOperatorGroupWithNamespaceList(namespaceListToExtend, operatorGroup)
-				err := client.Update(context.TODO(), operatorGroup)
+				err := writer.Update(context.TODO(), operatorGroup)
 				if err != nil {
 					logger.Error(err, "An error occurred while extending IBMLicensing OperatorGroup", "OperatorGroup", operatorGroup.Name, "Namespace", operatorNamespace)
 				}

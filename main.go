@@ -194,7 +194,7 @@ func main() {
 			os.Exit(1)
 		}
 		logger := ctrl.Log.WithName("operandrequest-discovery")
-		go controllers.DiscoverOperandRequests(&logger, mgr.GetClient(), watchNamespaces, nssEnabledSemaphore)
+		go controllers.DiscoverOperandRequests(&logger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
 	} else {
 		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
 		// Set custom time duration for CRD watcher (in seconds)
