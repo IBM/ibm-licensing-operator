@@ -38,9 +38,13 @@ func DiscoverOperandRequests(logger *logr.Logger, client c.Client, watchNamespac
 	var operandRequestList odlm.OperandRequestList
 	var namespaceListToExtend []string
 
+	// TODO REMOVE FORM PRODUCTION
+	time.Sleep(20 * time.Second)
+
 	operatorNamespace, err := res.GetOperatorNamespace()
 	if err != nil {
 		logger.Error(err, "Could not retrieve operator namespace. Discovering OperandRequests will be disabled")
+		return
 	}
 
 	for {
@@ -75,7 +79,7 @@ func DiscoverOperandRequests(logger *logr.Logger, client c.Client, watchNamespac
 				for _, operand := range request.Operands {
 					if operand.Name == res.OperatorName {
 						if !slices.Contains(watchNamespace, operandRequest.Namespace) {
-							logger.Info("OperandRequest for "+res.OperatorName+" detected. IBM Licensing OperatorGroup to handle it", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
+							logger.Info("OperandRequest for "+res.OperatorName+" detected. IBMLicensing OperatorGroup will be extended", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
 							namespaceListToExtend = append(namespaceListToExtend, operandRequest.Namespace)
 							skipOpreq = true
 							break
@@ -88,19 +92,20 @@ func DiscoverOperandRequests(logger *logr.Logger, client c.Client, watchNamespac
 			}
 		}
 
-		operatorGroup, err := res.GetLicensingOperatorGroup(client, operatorNamespace)
-		if err != nil {
-			logger.Error(err, "An error occurred while retrieving IBMLicensing OperatorGroup")
-		}
-
-		if operatorGroup != nil {
-			operatorGroup = res.ExtendOperatorGroupWithNamespaceList(namespaceListToExtend, operatorGroup)
-			err := client.Update(context.TODO(), operatorGroup)
+		if len(namespaceListToExtend) > 0 {
+			operatorGroup, err := res.GetOperatorGroup(client, operatorNamespace)
 			if err != nil {
-				logger.Error(err, "An error occurred while extending IBMLicensing OperatorGroup", "OperatorGroup", operatorGroup.Name, "Namespace", operatorNamespace)
+				logger.Error(err, "An error occurred while retrieving IBMLicensing OperatorGroup")
+			} else if operatorGroup != nil {
+				logger.Info("Extending IBMLicensing OperatorGroup with namespaces", "OperatorGroup", operatorGroup.Name, "NamespaceList", namespaceListToExtend)
+				operatorGroup = res.ExtendOperatorGroupWithNamespaceList(namespaceListToExtend, operatorGroup)
+				err := client.Update(context.TODO(), operatorGroup)
+				if err != nil {
+					logger.Error(err, "An error occurred while extending IBMLicensing OperatorGroup", "OperatorGroup", operatorGroup.Name, "Namespace", operatorNamespace)
+				}
+			} else {
+				logger.Info("OperatorGroup for IBMLicensing operator not found", "Namespace", operatorNamespace)
 			}
-		} else {
-			logger.Info("OperatorGroup for IBMLicensing operator not found", "Namespace", operatorNamespace)
 		}
 
 		time.Sleep(30 * time.Second)
