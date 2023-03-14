@@ -3,7 +3,6 @@
 # It should be run by config/default
 resources:
 - bases/operator.ibm.com_ibmlicensings.yaml
-- bases/operator.ibm.com_ibmlicenseservicereporters.yaml
 - bases/operator.ibm.com_ibmlicensingmetadatas.yaml
 - bases/operator.ibm.com_ibmlicensingdefinitions.yaml
 - bases/operator.ibm.com_ibmlicensingquerysources.yaml
