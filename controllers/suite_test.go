@@ -130,7 +130,7 @@ var _ = BeforeSuite(func(done Done) {
 	nssEnabledSemaphore := make(chan bool, 1)
 
 	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
-	Expect(operatorNamespace).ToNot(BeNil())
+	Expect(operatorNamespace).ToNot(BeEmpty())
 
 	err = (&IBMLicensingReconciler{
 		Client:                  mgr.GetClient(),

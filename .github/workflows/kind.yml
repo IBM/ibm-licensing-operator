@@ -59,6 +59,7 @@ jobs:
         env:
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
           ARTIFACTORY_TOKEN: ${{ secrets.ARTIFACTORY_TOKEN }}
+          OPERATOR_NAMESPACE: ibm-licensing
         run: |
           kubectl create namespace ibm-licensing
           n=0; until ((n >= 60)); do kubectl -n ibm-licensing get serviceaccount default -o name && break; n=$((n + 1)); sleep 60; done; ((n < 60))
