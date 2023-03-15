@@ -129,20 +129,21 @@ var _ = BeforeSuite(func(done Done) {
 
 	nssEnabledSemaphore := make(chan bool, 1)
 
+	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
+	Expect(operatorNamespace).ToNot(BeNil())
+
 	err = (&IBMLicensingReconciler{
 		Client:                  mgr.GetClient(),
 		Reader:                  mgr.GetAPIReader(),
 		Log:                     ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
 		Scheme:                  mgr.GetScheme(),
+		OperatorNamespace:       operatorNamespace,
 		NamespaceScopeSemaphore: nssEnabledSemaphore,
 	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
 
 	k8sClient = mgr.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
-
-	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
-	Expect(operatorNamespace).ToNot(BeNil())
 
 	namespace, _ = os.LookupEnv("NAMESPACE")
 	Expect(namespace).ToNot(BeNil())
