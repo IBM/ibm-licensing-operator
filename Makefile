@@ -312,11 +312,11 @@ prepare-unit-test:
 	kubectl create secret docker-registry artifactory-token -n ${NAMESPACE} --docker-server=${REGISTRY} --docker-username=${ARTIFACTORY_USERNAME} --docker-password=${ARTIFACTORY_TOKEN} || echo "" ;\
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicenseservicereporters.yaml || echo ""
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicensings.yaml || echo ""
-	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
+	sed "s/ibm-licensing/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
 	kubectl apply -f ./config/rbac/role_ns.yaml || echo ""
-	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/service_account.yaml > ./config/rbac/service_account_ns.yaml
+	sed "s/ibm-licensing/${NAMESPACE}/g" < ./config/rbac/service_account.yaml > ./config/rbac/service_account_ns.yaml
 	kubectl apply -f ./config/rbac/service_account_ns.yaml|| echo ""
-	sed "s/ibm-common-services/${NAMESPACE}/g" < ./config/rbac/role_binding.yaml > ./config/rbac/role_binding_ns.yaml
+	sed "s/ibm-licensing/${NAMESPACE}/g" < ./config/rbac/role_binding.yaml > ./config/rbac/role_binding_ns.yaml
 	kubectl apply -f ./config/rbac/role_binding_ns.yaml || echo ""
 	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/master/v2/config/crd/bases/marketplace.redhat.com_meterdefinitions.yaml
 	kubectl apply -f marketplace.redhat.com_meterdefinitions.yaml

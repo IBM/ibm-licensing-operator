@@ -25,7 +25,7 @@ metadata:
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
   name: ibm-licensing-operator.v0.0.0
-  namespace: ibm-common-services
+  namespace: ibm-licensing
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
