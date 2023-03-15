@@ -84,7 +84,7 @@ func ignoreDeletionPredicate() predicate.Predicate {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=operandrequests;operandrequests/finalizers;operandrequests/status,verbs=get;list;patch;update;watch
-// +kubebuilder:rbac:groups="",resources=configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 
 func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 

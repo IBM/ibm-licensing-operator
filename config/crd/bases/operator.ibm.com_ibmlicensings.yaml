@@ -1,10 +1,9 @@
-
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.10.0
   creationTimestamp: null
   name: ibmlicensings.operator.ibm.com
 spec:
@@ -295,6 +294,10 @@ spec:
                           router providing TLS termination * reencrypt - TLS termination
                           is done by the router and https is used to communicate with
                           the backend"
+                        enum:
+                        - edge
+                        - reencrypt
+                        - passthrough
                         type: string
                     required:
                     - termination
@@ -620,8 +623,7 @@ spec:
                       type: array
                     ephemeralContainerStatuses:
                       description: Status for any ephemeral containers that have run
-                        in this pod. This field is beta-level and available on clusters
-                        that haven't disabled the EphemeralContainers feature gate.
+                        in this pod.
                       items:
                         description: ContainerStatus contains details for the current
                           status of this container.
@@ -1014,9 +1016,9 @@ spec:
                         each of IPv4 and IPv6. This list is empty if no IPs have been
                         allocated yet.
                       items:
-                        description: 'IP address information for entries in the (plural)
-                          PodIPs field. Each entry includes:    IP: An IP address
-                          allocated to the pod. Routable at least within the cluster.'
+                        description: "IP address information for entries in the (plural)
+                          PodIPs field. Each entry includes: \n IP: An IP address
+                          allocated to the pod. Routable at least within the cluster."
                         properties:
                           ip:
                             description: ip is an IP address (IPv4 or IPv6) assigned
@@ -1050,9 +1052,3 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
