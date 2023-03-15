@@ -34,12 +34,9 @@ import (
 // +kubebuilder:rbac:groups=operators.coreos.com,resources=operatorgroups;operatorgroups/finalizers;operatorgroups/status,verbs=get;list;patch;update;watch
 
 func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Reader, watchNamespace []string, namespaceScopeSemaphore chan bool) {
-	var nssEnabled, prevNssEnabledState, skipOpreq bool
+	var nssEnabled, prevNssEnabledState bool
 	var operandRequestList odlm.OperandRequestList
 	var namespaceListToExtend []string
-
-	// TODO REMOVE FORM PRODUCTION
-	time.Sleep(20 * time.Second)
 
 	operatorNamespace, err := res.GetOperatorNamespace()
 	if err != nil {
@@ -74,34 +71,24 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 
 		namespaceListToExtend = []string{}
 		for _, operandRequest := range operandRequestList.Items {
-			skipOpreq = false
-			for _, request := range operandRequest.Spec.Requests {
-				for _, operand := range request.Operands {
-					if operand.Name == res.OperatorName {
-						if !slices.Contains(watchNamespace, operandRequest.Namespace) {
-							logger.Info("OperandRequest for "+res.OperatorName+" detected. IBMLicensing OperatorGroup will be extended", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
-							namespaceListToExtend = append(namespaceListToExtend, operandRequest.Namespace)
-							skipOpreq = true
-							break
-						}
-					}
-				}
-				if skipOpreq {
-					break
+			if hasBinding := hasOperandRequestBindingForLicensing(operandRequest); hasBinding {
+				if !slices.Contains(watchNamespace, operandRequest.Namespace) {
+					logger.Info("OperandRequest for "+res.OperatorName+" detected. IBMLicensing OperatorGroup will be extended", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
+					namespaceListToExtend = append(namespaceListToExtend, operandRequest.Namespace)
 				}
 			}
 		}
 
 		if len(namespaceListToExtend) > 0 {
-			operatorGroup, err := res.GetOperatorGroup(reader, operatorNamespace)
+			licensingOperatorGroup, err := res.GetOperatorGroup(reader, operatorNamespace)
 			if err != nil {
 				logger.Error(err, "An error occurred while retrieving IBMLicensing OperatorGroup")
-			} else if operatorGroup != nil {
-				logger.Info("Extending IBMLicensing OperatorGroup with namespaces", "OperatorGroup", operatorGroup.Name, "NamespaceList", namespaceListToExtend)
-				operatorGroup = res.ExtendOperatorGroupWithNamespaceList(namespaceListToExtend, operatorGroup)
-				err := writer.Update(context.TODO(), operatorGroup)
+			} else if licensingOperatorGroup != nil {
+				logger.Info("Extending IBMLicensing OperatorGroup with namespaces", "OperatorGroup", licensingOperatorGroup.Name, "NamespaceList", namespaceListToExtend)
+				licensingOperatorGroup = res.ExtendOperatorGroupWithNamespaceList(namespaceListToExtend, licensingOperatorGroup)
+				err := writer.Update(context.TODO(), licensingOperatorGroup)
 				if err != nil {
-					logger.Error(err, "An error occurred while extending IBMLicensing OperatorGroup", "OperatorGroup", operatorGroup.Name, "Namespace", operatorNamespace)
+					logger.Error(err, "An error occurred while extending IBMLicensing OperatorGroup", "OperatorGroup", licensingOperatorGroup.Name, "Namespace", operatorNamespace)
 				}
 			} else {
 				logger.Info("OperatorGroup for IBMLicensing operator not found", "Namespace", operatorNamespace)
@@ -110,4 +97,15 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 
 		time.Sleep(30 * time.Second)
 	}
+}
+
+func hasOperandRequestBindingForLicensing(operandRequest odlm.OperandRequest) bool {
+	for _, request := range operandRequest.Spec.Requests {
+		for _, operand := range request.Operands {
+			if operand.Name == res.OperatorName {
+				return true
+			}
+		}
+	}
+	return false
 }
