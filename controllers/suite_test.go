@@ -49,13 +49,13 @@ import (
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
 var (
-	cfg       *rest.Config
-	k8sClient client.Client
-	testEnv   *envtest.Environment
-	namespace string
-	ocp       bool
-	timeout   = time.Second * 300
-	interval  = time.Second * 5
+	cfg                          *rest.Config
+	k8sClient                    client.Client
+	testEnv                      *envtest.Environment
+	namespace, operatorNamespace string
+	ocp                          bool
+	timeout                      = time.Second * 300
+	interval                     = time.Second * 5
 )
 
 func TestAPIs(t *testing.T) {
@@ -140,6 +140,9 @@ var _ = BeforeSuite(func(done Done) {
 
 	k8sClient = mgr.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
+
+	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
+	Expect(operatorNamespace).ToNot(BeNil())
 
 	namespace, _ = os.LookupEnv("NAMESPACE")
 	Expect(namespace).ToNot(BeNil())
