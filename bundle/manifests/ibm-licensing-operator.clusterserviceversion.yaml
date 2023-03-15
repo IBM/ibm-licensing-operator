@@ -274,6 +274,19 @@ spec:
       clusterPermissions:
         - rules:
             - apiGroups:
+                - ""
+              resources:
+                - configmaps
+                - secrets
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
                 - operator.ibm.com
               resources:
                 - ibmlicensings
@@ -437,10 +450,6 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: metadata.annotations['olm.targetNamespaces']
-                      - name: OPERATOR_NAMESPACE
-                        valueFrom:
-                          fieldRef:
-                            fieldPath: metadata.namespace
                       - name: POD_NAME
                         valueFrom:
                           fieldRef:
@@ -451,8 +460,6 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: spec.serviceAccountName
-                      - name: CRD_RECONCILE_INTERVAL
-                        value: "3600"
                     image: icr.io/cpopen/ibm-licensing-operator:4.0.0
                     imagePullPolicy: Always
                     name: ibm-licensing-operator
@@ -587,18 +594,6 @@ spec:
               verbs:
                 - create
                 - delete
-                - get
-                - list
-                - patch
-                - update
-                - watch
-            - apiGroups:
-                - operator.ibm.com
-              resources:
-                - operandrequests
-                - operandrequests/finalizers
-                - operandrequests/status
-              verbs:
                 - get
                 - list
                 - patch
