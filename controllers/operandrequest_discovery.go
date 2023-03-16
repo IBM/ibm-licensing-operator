@@ -44,6 +44,9 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 		return
 	}
 
+	// synchronize with reconciliation of IBMLicensing instance
+	nssEnabled = <-namespaceScopeSemaphore
+
 	for {
 		prevNssEnabledState = nssEnabled
 		select {
