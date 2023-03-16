@@ -146,7 +146,7 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(k8sClient).ToNot(BeNil())
 
 	namespace, _ = os.LookupEnv("NAMESPACE")
-	Expect(namespace).ToNot(BeNil())
+	Expect(namespace).ToNot(BeEmpty())
 
 	ocpEnvVar, _ := os.LookupEnv("OCP")
 	if ocpEnvVar == "" {

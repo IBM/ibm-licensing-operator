@@ -325,7 +325,7 @@ prepare-unit-test:
 
 unit-test: prepare-unit-test
 	export USE_EXISTING_CLUSTER=true; \
-	export OPERATOR_NAMESPACE=${NAMESAPCE}
+	export OPERATOR_NAMESPACE=${NAMESPACE}; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
 	export OCP=${OCP}; \
