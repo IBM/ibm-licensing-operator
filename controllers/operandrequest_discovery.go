@@ -83,7 +83,7 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 		}
 
 		if len(namespaceListToExtend) > 0 {
-			licensingOperatorGroup, err := res.GetOperatorGroup(reader, operatorNamespace)
+			licensingOperatorGroup, err := res.GetLicensingOperatorGroupInNamespace(reader, operatorNamespace)
 			if err != nil {
 				logger.Error(err, "An error occurred while retrieving IBMLicensing OperatorGroup")
 			} else if licensingOperatorGroup != nil {
