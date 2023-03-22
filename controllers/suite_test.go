@@ -50,13 +50,15 @@ import (
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
 var (
-	cfg                          *rest.Config
-	k8sClient                    client.Client
-	testEnv                      *envtest.Environment
-	namespace, operatorNamespace string
-	ocp                          bool
-	timeout                      = time.Second * 300
-	interval                     = time.Second * 5
+	cfg               *rest.Config
+	k8sClient         client.Client
+	testEnv           *envtest.Environment
+	namespace         string
+	operatorNamespace string
+	opreqNamespace    string
+	ocp               bool
+	timeout           = time.Second * 300
+	interval          = time.Second * 5
 )
 
 func TestAPIs(t *testing.T) {
@@ -112,6 +114,15 @@ var _ = BeforeSuite(func(done Done) {
 	err = operatorframeworkv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
+	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
+	Expect(operatorNamespace).ToNot(BeEmpty())
+
+	namespace, _ = os.LookupEnv("NAMESPACE")
+	Expect(namespace).ToNot(BeEmpty())
+
+	opreqNamespace, _ = os.LookupEnv("OPREQ_TEST_NAMESPACE")
+	Expect(opreqNamespace).NotTo(BeEmpty())
+
 	// +kubebuilder:scaffold:scheme
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).ToNot(HaveOccurred())
@@ -132,9 +143,6 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 
 	nssEnabledSemaphore := make(chan bool, 1)
-
-	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
-	Expect(operatorNamespace).ToNot(BeEmpty())
 
 	err = (&IBMLicensingReconciler{
 		Client:                  mgr.GetClient(),
@@ -157,9 +165,6 @@ var _ = BeforeSuite(func(done Done) {
 
 	k8sClient = mgr.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
-
-	namespace, _ = os.LookupEnv("NAMESPACE")
-	Expect(namespace).ToNot(BeEmpty())
 
 	ocpEnvVar, _ := os.LookupEnv("OCP")
 	if ocpEnvVar == "" {

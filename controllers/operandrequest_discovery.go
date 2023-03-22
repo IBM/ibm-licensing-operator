@@ -74,7 +74,7 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 
 		namespaceListToExtend = []string{}
 		for _, operandRequest := range operandRequestList.Items {
-			if hasBinding := hasOperandRequestBindingForLicensing(operandRequest); hasBinding {
+			if hasBinding := res.HasOperandRequestBindingForLicensing(operandRequest); hasBinding {
 				if !slices.Contains(watchNamespace, operandRequest.Namespace) {
 					logger.Info("OperandRequest for "+res.OperatorName+" detected. IBMLicensing OperatorGroup will be extended", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
 					namespaceListToExtend = append(namespaceListToExtend, operandRequest.Namespace)
@@ -100,15 +100,4 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 
 		time.Sleep(30 * time.Second)
 	}
-}
-
-func hasOperandRequestBindingForLicensing(operandRequest odlm.OperandRequest) bool {
-	for _, request := range operandRequest.Spec.Requests {
-		for _, operand := range request.Operands {
-			if operand.Name == res.OperatorName {
-				return true
-			}
-		}
-	}
-	return false
 }

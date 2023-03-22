@@ -55,10 +55,6 @@ jobs:
           kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.16.1/crds.yaml
           kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.16.1/olm.yaml
 
-      - name: Install ODLM OperandRequest CRD
-        run: |
-          kubectl apply -f https://raw.githubusercontent.com/IBM/operand-deployment-lifecycle-manager/v1.21.0/bundle/manifests/operator.ibm.com_operandrequests.yaml
-
       - name: Deploy Operators YAML
         env:
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
@@ -74,8 +70,7 @@ jobs:
           kubectl apply -f ./config/rbac/role.yaml
           kubectl apply -f ./config/rbac/role_binding.yaml
           kubectl apply -f ./config/rbac/role_operands.yaml
-          kubectl get sa -n ibm-licensing 
-          kubectl create namespace cp-test
+          kubectl get sa -n ibm-licensing
 
       - name: Run Scorecard tests
         run: |
@@ -89,7 +84,6 @@ jobs:
         with:
           name: scorecard results
           path: ./*.txt
-
 
   setup-build-publish-deploy:
     name: Operator tests on KinD

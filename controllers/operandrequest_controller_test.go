@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -37,7 +38,6 @@ var _ = Describe("OperandRequest controller", func() {
 	const (
 		name               = "operandrequest-test"
 		operandRequestName = "ibm-licensing-opreq-1"
-		namespace          = "cp-test"
 		lsBindInfoName     = "ibm-licensing-bindinfo"
 		secret1Name        = lsBindInfoName + svcres.LicensingToken
 		secret2Name        = lsBindInfoName + svcres.LicensingUploadToken
@@ -46,29 +46,18 @@ var _ = Describe("OperandRequest controller", func() {
 	)
 
 	var (
-		ctx context.Context
-		// cp-test namespace must be created during Kind configuration
-		operandRequest = res.OperandRequestObj(operandRequestName, namespace, res.OperatorName)
+		ctx            context.Context
+		operandRequest = res.OperandRequestObj(operandRequestName, opreqNamespace, res.OperatorName)
 	)
 
-	BeforeEach(func() {
-		ctx = context.Background()
-		k8sClient.Create(ctx, operandRequest)
-	})
+	Context("(Setup) OperandRequest instance", func() {
+		It("Should be created in namespace "+opreqNamespace, func() {
 
-	AfterEach(func() {
-		k8sClient.Delete(ctx, operandRequest)
-	})
-
-	// AfterEach(func() {})
-
-	Context("OperandRequest instance", func() {
-		It("Should be created in namespace "+namespace, func() {
-			By("")
 			Eventually(func() bool {
 				operandRequestInstance := odlm.OperandRequest{}
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: operandRequestName, Namespace: namespace}, &operandRequestInstance)).Should(Succeed())
-				return operandRequestInstance.Name == operandRequestName && operandRequestInstance.Spec.Requests != nil
+				Expect(k8sClient.Create(ctx, operandRequest)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: operandRequestName, Namespace: opreqNamespace}, &operandRequestInstance)).Should(Succeed())
+				return operandRequestInstance.Name == operandRequestName && reflect.DeepEqual(operandRequestInstance.Spec.Requests, operandRequest.Spec.Requests)
 			}, timeout, interval).Should(BeTrue())
 		})
 	})
@@ -81,8 +70,8 @@ var _ = Describe("OperandRequest controller", func() {
 				secret1 := corev1.Secret{}
 				secret1Copy := corev1.Secret{}
 
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingToken, Namespace: operatorNamespace}, &secret1)).Should(Succeed())
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: secret1Name, Namespace: namespace}, &secret1Copy)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingToken, Namespace: namespace}, &secret1)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: secret1Name, Namespace: opreqNamespace}, &secret1Copy)).Should(Succeed())
 
 				return res.CompareSecrets(&secret1, &secret1Copy)
 			}, timeout, interval).Should(BeTrue())
@@ -92,8 +81,8 @@ var _ = Describe("OperandRequest controller", func() {
 				secret2 := corev1.Secret{}
 				secret2Copy := corev1.Secret{}
 
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingUploadToken, Namespace: operatorNamespace}, &secret2)).Should(Succeed())
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: secret2Name, Namespace: namespace}, &secret2Copy)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingUploadToken, Namespace: namespace}, &secret2)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: secret2Name, Namespace: opreqNamespace}, &secret2Copy)).Should(Succeed())
 
 				return res.CompareSecrets(&secret2, &secret2Copy)
 			}, timeout, interval).Should(BeTrue())
@@ -103,8 +92,8 @@ var _ = Describe("OperandRequest controller", func() {
 				cm1 := corev1.ConfigMap{}
 				cm1Copy := corev1.ConfigMap{}
 
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingInfo, Namespace: operatorNamespace}, &cm1)).Should(Succeed())
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: cm1Name, Namespace: namespace}, &cm1Copy)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingInfo, Namespace: namespace}, &cm1)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: cm1Name, Namespace: opreqNamespace}, &cm1Copy)).Should(Succeed())
 
 				return res.CompareConfigMap(&cm1, &cm1Copy)
 			}, timeout, interval).Should(BeTrue())
@@ -114,8 +103,8 @@ var _ = Describe("OperandRequest controller", func() {
 				cm2 := corev1.ConfigMap{}
 				cm2Copy := corev1.ConfigMap{}
 
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingUploadConfig, Namespace: operatorNamespace}, &cm2)).Should(Succeed())
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: cm1Name, Namespace: namespace}, &cm2Copy)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingUploadConfig, Namespace: namespace}, &cm2)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: cm1Name, Namespace: opreqNamespace}, &cm2Copy)).Should(Succeed())
 
 				return res.CompareConfigMap(&cm2, &cm2Copy)
 			}, timeout, interval).Should(BeTrue())

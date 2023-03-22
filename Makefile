@@ -307,6 +307,8 @@ help: ## Display this help
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 	
+OPREQ_TEST_NAMESPACE = opreq-ns
+
 prepare-unit-test:
 	kubectl create namespace ${NAMESPACE} || echo ""
 	kubectl create secret docker-registry artifactory-token -n ${NAMESPACE} --docker-server=${REGISTRY} --docker-username=${ARTIFACTORY_USERNAME} --docker-password=${ARTIFACTORY_TOKEN} || echo "" ;\
@@ -322,12 +324,16 @@ prepare-unit-test:
 	kubectl apply -f marketplace.redhat.com_meterdefinitions.yaml
 	curl -O https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
 	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
+	curl -O https://raw.githubusercontent.com/IBM/operand-deployment-lifecycle-manager/v1.21.0/bundle/manifests/operator.ibm.com_operandrequests.yaml
+	kubectl apply -f operator.ibm.com_operandrequests.yaml
+	kubectl create namespace ${OPREQ_TEST_NAMESPACE}
 
 unit-test: prepare-unit-test
 	export USE_EXISTING_CLUSTER=true; \
 	export OPERATOR_NAMESPACE=${NAMESPACE}; \
 	export WATCH_NAMESPACE=${NAMESPACE}; \
 	export NAMESPACE=${NAMESPACE}; \
+	export OPREQ_TEST_NAMESPACE=${OPREQ_TEST_NAMESPACE}; \
 	export OCP=${OCP}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \

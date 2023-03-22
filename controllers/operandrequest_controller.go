@@ -89,7 +89,6 @@ func ignoreDeletionPredicate() predicate.Predicate {
 func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
 	reqLogger := r.Log.WithValues("operandrequest", req.NamespacedName)
-	reqLogger.Info("Reconciling OperandRequest")
 
 	if err := res.UpdateCacheClusterExtensions(r.Reader); err != nil {
 		reqLogger.Error(err, "Error during checking K8s API")
@@ -102,11 +101,16 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	if isForLicensing := res.HasOperandRequestBindingForLicensing(operandRequest); !isForLicensing {
+		return ctrl.Result{}, nil
+	}
+
+	reqLogger.Info("Reconciling OperandRequest")
+
 	var infoConfigMapName, tokenSecretName, uploadConfigName, uploadTokenName string
 	var requeueTokenSec, requeueUploadSec, requeueInfoCm, requeueUploadCm bool
 	var err error
 
-	licensingOpreqHandled := false
 	for _, request := range operandRequest.Spec.Requests {
 		for _, operand := range request.Operands {
 			if operand.Name == res.OperatorName {
@@ -158,13 +162,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				if requeueUploadCm {
 					return reconcile.Result{Requeue: true}, err
 				}
-
-				licensingOpreqHandled = true
-				break
 			}
-		}
-		if licensingOpreqHandled {
-			break
 		}
 	}
 
