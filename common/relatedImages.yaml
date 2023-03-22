@@ -2,11 +2,5 @@
   name: IBM_LICENSING_OPERATOR_IMAGE
 - image: icr.io/cpopen/cpfs/ibm-licensing:4.0.0
   name: IBM_LICENSING_IMAGE
-- image: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:4.0.0
-  name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-- image: icr.io/cpopen/cpfs/ibm-postgresql:4.0.0
-  name: IBM_POSTGRESQL_IMAGE
-- image: icr.io/cpopen/cpfs/ibm-license-service-reporter:4.0.0
-  name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
 - image: icr.io/cpopen/cpfs/ibm-licensing-usage:4.0.0
   name: IBM_LICENSING_USAGE_IMAGE

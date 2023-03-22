@@ -128,13 +128,13 @@ func main() {
 
 	gvkLabelMap := map[schema.GroupVersionKind]cache.Selector{
 		corev1.SchemeGroupVersion.WithKind("Secret"): {
-			LabelSelector: "release in (ibm-license-service-reporter, ibm-licensing-service)",
+			LabelSelector: "release in (ibm-licensing-service)",
 		},
 		appsv1.SchemeGroupVersion.WithKind("Deployment"): {
-			LabelSelector: "release in (ibm-license-service-reporter, ibm-licensing-service)",
+			LabelSelector: "release in (ibm-licensing-service)",
 		},
 		corev1.SchemeGroupVersion.WithKind("Pod"): {
-			LabelSelector: "release in (ibm-license-service-reporter, ibm-licensing-service)",
+			LabelSelector: "release in (ibm-licensing-service)",
 		},
 	}
 
@@ -164,15 +164,6 @@ func main() {
 	}
 	if err = controller.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicensing")
-		os.Exit(1)
-	}
-	if err = (&controllers.IBMLicenseServiceReporterReconciler{
-		Client: mgr.GetClient(),
-		Reader: mgr.GetAPIReader(),
-		Log:    ctrl.Log.WithName("controllers").WithName("IBMLicenseServiceReporter"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "IBMLicenseServiceReporter")
 		os.Exit(1)
 	}
 

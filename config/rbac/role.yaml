@@ -6,11 +6,10 @@ metadata:
   name: ibm-licensing-operator
 rules:
 - apiGroups:
-  - operator.ibm.com
+  - ""
   resources:
-  - ibmlicenseservicereporters
-  - ibmlicenseservicereporters/finalizers
-  - ibmlicenseservicereporters/status
+  - configmaps
+  - secrets
   verbs:
   - create
   - delete
@@ -186,21 +185,6 @@ rules:
   - delete
   - get
   - list
-  - update
-  - watch
-- apiGroups:
-  - operator.ibm.com
-  resources:
-  - ibmlicenseservicereporters
-  - ibmlicenseservicereporters/finalizers
-  - ibmlicenseservicereporters/status
-  - operandbindinfos
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
   - update
   - watch
 - apiGroups:

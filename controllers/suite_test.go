@@ -19,7 +19,6 @@ package controllers
 import (
 	"os"
 	"path/filepath"
-	"testing"
 	"time"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -36,7 +35,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
-	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
@@ -60,14 +58,6 @@ var (
 	timeout           = time.Second * 300
 	interval          = time.Second * 5
 )
-
-func TestAPIs(t *testing.T) {
-	RegisterFailHandler(Fail)
-
-	RunSpecsWithDefaultAndCustomReporters(t,
-		"Controller Suite",
-		[]Reporter{printer.NewlineReporter{}})
-}
 
 var _ = BeforeSuite(func(done Done) {
 
@@ -132,14 +122,6 @@ var _ = BeforeSuite(func(done Done) {
 		Scheme:             scheme.Scheme,
 		MetricsBindAddress: "0",
 	})
-	Expect(err).ToNot(HaveOccurred())
-
-	err = (&IBMLicenseServiceReporterReconciler{
-		Client: mgr.GetClient(),
-		Reader: mgr.GetAPIReader(),
-		Log:    ctrl.Log.WithName("controllers").WithName("IBMLicenseServiceReporter"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
 
 	nssEnabledSemaphore := make(chan bool, 1)

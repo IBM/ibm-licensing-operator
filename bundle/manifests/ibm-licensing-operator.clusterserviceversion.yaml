@@ -24,21 +24,6 @@ metadata:
         },
         {
           "apiVersion": "operator.ibm.com/v1alpha1",
-          "kind": "IBMLicenseServiceReporter",
-          "metadata": {
-            "labels": {
-              "app.kubernetes.io/instance": "ibm-licensing-operator",
-              "app.kubernetes.io/managed-by": "ibm-licensing-operator",
-              "app.kubernetes.io/name": "ibm-licensing"
-            },
-            "name": "instance"
-          },
-          "spec": {
-            "version": "4.0.0"
-          }
-        },
-        {
-          "apiVersion": "operator.ibm.com/v1alpha1",
           "kind": "OperandBindInfo",
           "metadata": {
             "name": "ibm-licensing-bindinfo"
@@ -142,9 +127,6 @@ spec:
           - kind: configmaps
             name: ""
             version: v1
-          - kind: ibmlicenseservicereporters
-            name: ""
-            version: v1alpha1
           - kind: ibmlicensingmetadatas
             name: ""
             version: v1alpha1
@@ -271,17 +253,6 @@ spec:
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:hidden
         version: v1alpha1
-      - description: 'IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters API. Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install. License By installing this product you accept the license terms https://ibm.biz/icpfs39license.'
-        displayName: IBMLicense Service Reporter
-        kind: IBMLicenseServiceReporter
-        name: ibmlicenseservicereporters.operator.ibm.com
-        specDescriptors:
-          - description: Environment variable setting
-            displayName: Environment variable setting
-            path: envVariable
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:hidden
-        version: v1alpha1
       - kind: IBMLicensingDefinition
         name: ibmlicensingdefinitions.operator.ibm.com
         version: v1
@@ -303,11 +274,10 @@ spec:
       clusterPermissions:
         - rules:
             - apiGroups:
-                - operator.ibm.com
+                - ""
               resources:
-                - ibmlicenseservicereporters
-                - ibmlicenseservicereporters/finalizers
-                - ibmlicenseservicereporters/status
+                - configmaps
+                - secrets
               verbs:
                 - create
                 - delete
@@ -486,12 +456,6 @@ spec:
                     env:
                       - name: IBM_LICENSING_IMAGE
                         value: icr.io/cpopen/cpfs/ibm-licensing:4.0.0
-                      - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:4.0.0
-                      - name: IBM_POSTGRESQL_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-postgresql:4.0.0
-                      - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-license-service-reporter:4.0.0
                       - name: IBM_LICENSING_USAGE_IMAGE
                         value: icr.io/cpopen/cpfs/ibm-licensing-usage:4.0.0
                       - name: WATCH_NAMESPACE
@@ -655,21 +619,6 @@ spec:
             - apiGroups:
                 - operator.ibm.com
               resources:
-                - ibmlicenseservicereporters
-                - ibmlicenseservicereporters/finalizers
-                - ibmlicenseservicereporters/status
-                - operandbindinfos
-              verbs:
-                - create
-                - delete
-                - get
-                - list
-                - patch
-                - update
-                - watch
-            - apiGroups:
-                - operator.ibm.com
-              resources:
                 - ibmlicensings
                 - ibmlicensings/finalizers
                 - ibmlicensings/status
@@ -777,11 +726,5 @@ spec:
       name: IBM_LICENSING_OPERATOR_IMAGE
     - image: icr.io/cpopen/cpfs/ibm-licensing:4.0.0
       name: IBM_LICENSING_IMAGE
-    - image: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:4.0.0
-      name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-    - image: icr.io/cpopen/cpfs/ibm-postgresql:4.0.0
-      name: IBM_POSTGRESQL_IMAGE
-    - image: icr.io/cpopen/cpfs/ibm-license-service-reporter:4.0.0
-      name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
     - image: icr.io/cpopen/cpfs/ibm-licensing-usage:4.0.0
       name: IBM_LICENSING_USAGE_IMAGE

@@ -63,7 +63,6 @@ jobs:
           kubectl create namespace ibm-licensing
           n=0; until ((n >= 60)); do kubectl -n ibm-licensing get serviceaccount default -o name && break; n=$((n + 1)); sleep 60; done; ((n < 60))
           kubectl create secret docker-registry my-registry-token -n ibm-licensing --docker-server=docker-na-public.artifactory.swg-devops.com --docker-username=${ARTIFACTORY_USERNAME} --docker-password=${ARTIFACTORY_TOKEN}
-          kubectl apply -f ./bundle/manifests/operator.ibm.com_ibmlicenseservicereporters.yaml
           kubectl apply -f ./bundle/manifests/operator.ibm.com_ibmlicensings.yaml
           kubectl apply -f ./config/rbac/service_account.yaml -n ibm-licensing
           kubectl -n ibm-licensing patch serviceaccount ibm-licensing-operator -p '{"imagePullSecrets": [{"name": "my-registry-token"}]}'
