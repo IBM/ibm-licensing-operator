@@ -107,11 +107,10 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	reqLogger.Info("Reconciling OperandRequest")
 
-	var infoConfigMapName, tokenSecretName, uploadConfigName, uploadTokenName string
-	var requeueTokenSec, requeueUploadSec, requeueInfoCm, requeueUploadCm bool
-	var err error
-
 	for _, request := range operandRequest.Spec.Requests {
+		var infoConfigMapName, tokenSecretName, tokenSecretName2, uploadConfigName, uploadTokenName string
+		var requeueTokenSec, requeueToken2Sec, requeueUploadSec, requeueInfoCm, requeueUploadCm bool
+		var err error
 		for _, operand := range request.Operands {
 			if operand.Name == res.OperatorName {
 
@@ -122,7 +121,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 					}
 
 					if key == "public-api-token" {
-						tokenSecretName = binding.Secret
+						tokenSecretName2 = binding.Secret
 					}
 
 					if key == "public-api-upload" {
@@ -136,6 +135,14 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 					reqLogger.Error(err, "Cannot copy Secret", "name", svcres.LicensingToken, "namespace", operandRequest.Namespace)
 				}
 				if requeueTokenSec {
+					return reconcile.Result{Requeue: true}, err
+				}
+
+				requeueToken2Sec, err = r.copySecret(ctx, req, svcres.LicensingToken, tokenSecretName2, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
+				if err != nil {
+					reqLogger.Error(err, "Cannot copy Secret", "name", svcres.LicensingToken, "namespace", operandRequest.Namespace)
+				}
+				if requeueToken2Sec {
 					return reconcile.Result{Requeue: true}, err
 				}
 
