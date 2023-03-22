@@ -27,6 +27,7 @@ import (
 	. "github.com/onsi/gomega"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 	"go.uber.org/zap/zapcore"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -108,6 +109,9 @@ var _ = BeforeSuite(func(done Done) {
 	err = meterdefv1beta1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
+	err = operatorframeworkv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
 	// +kubebuilder:scaffold:scheme
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).ToNot(HaveOccurred())
@@ -141,6 +145,15 @@ var _ = BeforeSuite(func(done Done) {
 		NamespaceScopeSemaphore: nssEnabledSemaphore,
 	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
+
+	err = (&OperandRequestReconciler{
+		Client:            mgr.GetClient(),
+		Reader:            mgr.GetAPIReader(),
+		Log:               ctrl.Log.WithName("controllers").WithName("OperandRequest"),
+		Scheme:            mgr.GetScheme(),
+		OperatorNamespace: operatorNamespace,
+	}).SetupWithManager(mgr)
+	Expect(err).NotTo(HaveOccurred())
 
 	k8sClient = mgr.GetClient()
 	Expect(k8sClient).ToNot(BeNil())

@@ -20,18 +20,18 @@ import (
 	"reflect"
 	"testing"
 
-	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
+
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
 func TestGetLicensingOperatorGroupInNamespace(t *testing.T) {
 	operatorNamespace := "ibm-licensing"
-	scheme := runtime.NewScheme()
-	odlm.AddToScheme(scheme)
-	operatorframeworkv1.AddToScheme(scheme)
+	odlm.AddToScheme(scheme.Scheme)
+	operatorframeworkv1.AddToScheme(scheme.Scheme)
 
 	t.Log("Given the need to get IBMLicensing OperatorGroup in certain namespace")
 	{
@@ -40,7 +40,7 @@ func TestGetLicensingOperatorGroupInNamespace(t *testing.T) {
 			licensingOperatorGroup := OperatorGroupObj("ibm-licensing-og1", operatorNamespace, []string{operatorNamespace})
 			operatorGroup := OperatorGroupObj("olm-default-og", operatorNamespace, []string{operatorNamespace})
 
-			client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&operatorGroup, &licensingOperatorGroup).Build()
+			client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(&operatorGroup, &licensingOperatorGroup).Build()
 
 			foundOperatorGroup, err := GetLicensingOperatorGroupInNamespace(client, operatorNamespace)
 			if err != nil {
@@ -59,7 +59,7 @@ func TestGetLicensingOperatorGroupInNamespace(t *testing.T) {
 		{
 			operatorGroup := OperatorGroupObj("olm-default-og", operatorNamespace, []string{operatorNamespace})
 
-			client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&operatorGroup).Build()
+			client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(&operatorGroup).Build()
 
 			foundOperatorGroup, err := GetLicensingOperatorGroupInNamespace(client, operatorNamespace)
 			if err != nil {
