@@ -62,10 +62,6 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{})
 
-	if res.IsRouteAPI {
-		watcher.Owns(&operatorv1alpha1.IBMLicenseServiceReporter{})
-	}
-
 	return watcher.Complete(r)
 }
 

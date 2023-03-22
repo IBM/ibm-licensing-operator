@@ -64,17 +64,9 @@ else
         ret=$?
     done
 
-    echo DELETE CRD ibmlicensings.operator.ibm.com and ibmlicenseservicereporters.operator.ibm.com
+    echo DELETE CRD ibmlicensings.operator.ibm.com and meterdefinitions.marketplace.redhat.com
     kubectl delete crd ibmlicensings.operator.ibm.com
-    kubectl delete crd ibmlicenseservicereporters.operator.ibm.com
     kubectl delete crd meterdefinitions.marketplace.redhat.com
-
-    export ret=0
-    while [ $ret -eq 0 ] ; do
-       sleep 3
-       kubectl get crd ibmlicenseservicereporters.operator.ibm.com
-       ret=$?
-    done
 
     export ret=0
     while [ $ret -eq 0 ] ; do
