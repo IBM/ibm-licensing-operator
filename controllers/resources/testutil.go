@@ -18,6 +18,7 @@ package resources
 
 import (
 	v1 "github.com/operator-framework/api/pkg/operators/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
@@ -44,8 +45,8 @@ func OperatorGroupObj(name, namespace string, targetNamespaces []string) v1.Oper
 	}
 }
 
-func OperandRequestObj(name, namespace, requestedOperandName string) *odlm.OperandRequest {
-	return &odlm.OperandRequest{
+func OperandRequestObj(name, namespace, requestedOperandName string) odlm.OperandRequest {
+	return odlm.OperandRequest{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "operator.ibm.com/v1alpha1",
 			Kind:       "OperandRequest",
@@ -70,8 +71,8 @@ func OperandRequestObj(name, namespace, requestedOperandName string) *odlm.Opera
 	}
 }
 
-func OperandRequestObjWithBindings(name, namespace, requestedOperandName string) *odlm.OperandRequest {
-	return &odlm.OperandRequest{
+func OperandRequestObjWithBindings(name, namespace, requestedOperandName string) odlm.OperandRequest {
+	return odlm.OperandRequest{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -102,5 +103,30 @@ func OperandRequestObjWithBindings(name, namespace, requestedOperandName string)
 				},
 			},
 		},
+	}
+}
+
+func SecretObj(name, namespace string, data, labels, annotations map[string]string) corev1.Secret {
+	return corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Namespace:   namespace,
+			Labels:      labels,
+			Annotations: annotations,
+		},
+		StringData: data,
+		Type:       corev1.SecretTypeOpaque,
+	}
+}
+
+func ConfigMapObj(name, namespace string, data, labels, annotations map[string]string) corev1.ConfigMap {
+	return corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Namespace:   name,
+			Labels:      labels,
+			Annotations: annotations,
+		},
+		Data: data,
 	}
 }

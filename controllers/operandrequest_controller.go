@@ -215,9 +215,10 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 
 	secretCopy := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      targetName,
-			Namespace: targetNs,
-			Labels:    secretLabel,
+			Name:        targetName,
+			Namespace:   targetNs,
+			Labels:      secretLabel,
+			Annotations: secret.Annotations,
 		},
 		Type:       secret.Type,
 		Data:       secret.Data,
@@ -292,9 +293,10 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 
 	cmCopy := corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      targetName,
-			Namespace: targetNs,
-			Labels:    cmLabel,
+			Name:        targetName,
+			Namespace:   targetNs,
+			Labels:      cmLabel,
+			Annotations: cm.Annotations,
 		},
 		Data:       cm.Data,
 		BinaryData: cm.BinaryData,

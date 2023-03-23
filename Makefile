@@ -81,6 +81,9 @@ MARKDOWN_LINT_WHITELIST ?= https://quay.io/cnr,https://www-03preprod.ibm.com/sup
 # The namespace that operator will be deployed in
 NAMESPACE ?= ibm-licensing
 
+# Namespaces for Kind tests
+OPREQ_TEST_NAMESPACE ?= opreq-ns
+
 # Github host to use for checking the source tree;
 # Override this variable ue with your own value if you're working on forked repo.
 GIT_HOST ?= github.com/IBM
@@ -303,11 +306,10 @@ help: ## Display this help
 	@awk 'BEGIN {FS = ":.*##"}; \
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-	
-OPREQ_TEST_NAMESPACE=opreq-ns
 
 prepare-unit-test:
 	kubectl create namespace ${NAMESPACE} || echo ""
+	kubectl create namespace ${OPREQ_TEST_NAMESPACE} || echo ""
 	kubectl create secret docker-registry artifactory-token -n ${NAMESPACE} --docker-server=${REGISTRY} --docker-username=${ARTIFACTORY_USERNAME} --docker-password=${ARTIFACTORY_TOKEN} || echo "" ;\
 	kubectl apply -f ./config/crd/bases/operator.ibm.com_ibmlicensings.yaml || echo ""
 	sed "s/ibm-licensing/${NAMESPACE}/g" < ./config/rbac/role.yaml > ./config/rbac/role_ns.yaml
@@ -322,7 +324,6 @@ prepare-unit-test:
 	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
 	curl -O https://raw.githubusercontent.com/IBM/operand-deployment-lifecycle-manager/v1.21.0/bundle/manifests/operator.ibm.com_operandrequests.yaml
 	kubectl apply -f operator.ibm.com_operandrequests.yaml
-	kubectl create namespace ${OPREQ_TEST_NAMESPACE}
 
 unit-test: prepare-unit-test
 	export USE_EXISTING_CLUSTER=true; \
