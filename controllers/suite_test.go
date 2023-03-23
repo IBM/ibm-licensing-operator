@@ -19,6 +19,7 @@ package controllers
 import (
 	"os"
 	"path/filepath"
+	"testing"
 	"time"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -35,6 +36,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
+	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
@@ -58,6 +60,14 @@ var (
 	timeout           = time.Second * 300
 	interval          = time.Second * 5
 )
+
+func TestAPIs(t *testing.T) {
+	RegisterFailHandler(Fail)
+
+	RunSpecsWithDefaultAndCustomReporters(t,
+		"Controller Suite",
+		[]Reporter{printer.NewlineReporter{}})
+}
 
 var _ = BeforeSuite(func(done Done) {
 
@@ -111,7 +121,7 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(namespace).ToNot(BeEmpty())
 
 	opreqNamespace, _ = os.LookupEnv("OPREQ_TEST_NAMESPACE")
-	Expect(opreqNamespace).NotTo(BeEmpty())
+	Expect(opreqNamespace).ToNot(BeEmpty())
 
 	// +kubebuilder:scaffold:scheme
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
@@ -143,7 +153,7 @@ var _ = BeforeSuite(func(done Done) {
 		Scheme:            mgr.GetScheme(),
 		OperatorNamespace: operatorNamespace,
 	}).SetupWithManager(mgr)
-	Expect(err).NotTo(HaveOccurred())
+	Expect(err).ToNot(HaveOccurred())
 
 	k8sClient = mgr.GetClient()
 	Expect(k8sClient).ToNot(BeNil())

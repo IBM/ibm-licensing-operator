@@ -304,7 +304,7 @@ help: ## Display this help
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 	
-OPREQ_TEST_NAMESPACE = opreq-ns
+OPREQ_TEST_NAMESPACE=opreq-ns
 
 prepare-unit-test:
 	kubectl create namespace ${NAMESPACE} || echo ""
