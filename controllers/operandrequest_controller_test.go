@@ -38,10 +38,10 @@ var _ = Describe("OperandRequest controller", func() {
 		name               = "operandrequest-test"
 		operandRequestName = "ibm-licensing-opreq-1"
 		lsBindInfoName     = "ibm-licensing-bindinfo"
-		secret1Name        = lsBindInfoName + svcres.LicensingToken
-		secret2Name        = lsBindInfoName + svcres.LicensingUploadToken
-		cm1Name            = lsBindInfoName + svcres.LicensingInfo
-		cm2Name            = lsBindInfoName + svcres.LicensingUploadConfig
+		secret1Name        = lsBindInfoName + "-" + svcres.LicensingToken
+		secret2Name        = lsBindInfoName + "-" + svcres.LicensingUploadToken
+		cm1Name            = lsBindInfoName + "-" + svcres.LicensingInfo
+		cm2Name            = lsBindInfoName + "-" + svcres.LicensingUploadConfig
 	)
 
 	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
@@ -51,40 +51,16 @@ var _ = Describe("OperandRequest controller", func() {
 	Expect(opreqNamespace).ToNot(BeEmpty())
 
 	var (
-		ctx              context.Context
-		operandRequest   = res.OperandRequestObj(operandRequestName, opreqNamespace, res.OperatorName)
-		lsLabels         = map[string]string{"app": "ibm-licensing"}
-		lsAnnotations    = map[string]string{"owned-by": "ibm-licensing"}
-		lsTokenSecret    = res.SecretObj(svcres.LicensingToken, operatorNamespace, map[string]string{"token": "aaaa"}, lsLabels, lsAnnotations)
-		lsUploadToken    = res.SecretObj(svcres.LicensingUploadToken, operatorNamespace, map[string]string{"token": "bbbb"}, lsLabels, lsAnnotations)
-		lsInfoCm         = res.ConfigMapObj(svcres.LicensingInfo, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
-		lsUploadConfigCm = res.ConfigMapObj(svcres.LicensingUploadConfig, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
+		ctx            context.Context
+		operandRequest = res.OperandRequestObj(operandRequestName, opreqNamespace, res.OperatorName)
 	)
 
-	Context("(Setup) Licensing ConfigMaps and Secrets", func() {
-		It("should create IbmLicensingToken Secret in namespace "+operatorNamespace, func() {
-			lsTokenSecret = res.SecretObj(svcres.LicensingToken, operatorNamespace, map[string]string{"token": "aaaa"}, lsLabels, lsAnnotations)
-			Expect(k8sClient.Create(ctx, &lsTokenSecret)).Should(Succeed())
-		})
-
-		It("should create IbmLicensingUploadToken Secret in namespace "+operatorNamespace, func() {
-			lsUploadToken = res.SecretObj(svcres.LicensingUploadToken, operatorNamespace, map[string]string{"token": "bbbb"}, lsLabels, lsAnnotations)
-			Expect(k8sClient.Create(ctx, &lsUploadToken)).Should(Succeed())
-		})
-
-		It("should create IbmLicensingInfo ConfigMap in namespace "+operatorNamespace, func() {
-			lsInfoCm = res.ConfigMapObj(svcres.LicensingInfo, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
-			Expect(k8sClient.Create(ctx, &lsInfoCm)).Should(Succeed())
-		})
-
-		It("should be create IbmLicensingUploadConfig ConfigMap in namespace "+operatorNamespace, func() {
-			lsUploadConfigCm = res.ConfigMapObj(svcres.LicensingUploadConfig, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
-			Expect(k8sClient.Create(ctx, &lsUploadConfigCm)).Should(Succeed())
-		})
+	BeforeEach(func() {
+		ctx = context.Background()
 	})
 
 	Context("(Setup) OperandRequest instance", func() {
-		It("Should created in namespace "+opreqNamespace, func() {
+		It("Should be created in namespace "+opreqNamespace, func() {
 			operandRequest = res.OperandRequestObj(operandRequestName, opreqNamespace, res.OperatorName)
 			Expect(k8sClient.Create(ctx, &operandRequest)).Should(Succeed())
 		})
@@ -95,46 +71,46 @@ var _ = Describe("OperandRequest controller", func() {
 
 			By("Copying " + svcres.LicensingToken + " Secret to OperandRequest's namespace")
 			Eventually(func() bool {
-				lsTokenSecret = res.SecretObj(svcres.LicensingToken, operatorNamespace, map[string]string{"token": "aaaa"}, lsLabels, lsAnnotations)
+				secret1 := corev1.Secret{}
 				secret1Copy := corev1.Secret{}
 
-				// Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingToken, Namespace: namespace}, &secret1)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingToken, Namespace: namespace}, &secret1)).Should(Succeed())
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: secret1Name, Namespace: opreqNamespace}, &secret1Copy)).Should(Succeed())
 
-				return res.CompareSecrets(&lsTokenSecret, &secret1Copy)
+				return res.CompareSecrets(&secret1, &secret1Copy)
 			}, timeout, interval).Should(BeTrue())
 
 			By("Copying " + svcres.LicensingUploadToken + " Secret to OperandRequest's namespace")
 			Eventually(func() bool {
-				// secret2 := corev1.Secret{}
+				secret2 := corev1.Secret{}
 				secret2Copy := corev1.Secret{}
 
-				// Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingUploadToken, Namespace: namespace}, &secret2)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingUploadToken, Namespace: namespace}, &secret2)).Should(Succeed())
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: secret2Name, Namespace: opreqNamespace}, &secret2Copy)).Should(Succeed())
 
-				return res.CompareSecrets(&lsUploadToken, &secret2Copy)
+				return res.CompareSecrets(&secret2, &secret2Copy)
 			}, timeout, interval).Should(BeTrue())
 
 			By("Copying " + svcres.LicensingInfo + " ConfigMap to OperandRequest's namespace")
 			Eventually(func() bool {
-				// cm1 := corev1.ConfigMap{}
+				cm1 := corev1.ConfigMap{}
 				cm1Copy := corev1.ConfigMap{}
 
-				// Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingInfo, Namespace: namespace}, &cm1)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingInfo, Namespace: namespace}, &cm1)).Should(Succeed())
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: cm1Name, Namespace: opreqNamespace}, &cm1Copy)).Should(Succeed())
 
-				return res.CompareConfigMap(&lsInfoCm, &cm1Copy)
+				return res.CompareConfigMap(&cm1, &cm1Copy)
 			}, timeout, interval).Should(BeTrue())
 
 			By("Copying " + svcres.LicensingUploadConfig + " ConfigMap to OperandRequest's namespace")
 			Eventually(func() bool {
-				// cm2 := corev1.ConfigMap{}
+				cm2 := corev1.ConfigMap{}
 				cm2Copy := corev1.ConfigMap{}
 
-				// Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingUploadConfig, Namespace: namespace}, &cm2)).Should(Succeed())
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingUploadConfig, Namespace: namespace}, &cm2)).Should(Succeed())
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: cm1Name, Namespace: opreqNamespace}, &cm2Copy)).Should(Succeed())
 
-				return res.CompareConfigMap(&lsUploadConfigCm, &cm2Copy)
+				return res.CompareConfigMap(&cm2, &cm2Copy)
 			}, timeout, interval).Should(BeTrue())
 		})
 	})

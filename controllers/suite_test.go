@@ -30,6 +30,7 @@ import (
 	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 	"go.uber.org/zap/zapcore"
+	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -93,6 +94,9 @@ var _ = BeforeSuite(func(done Done) {
 	err = operatoribmcomv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
+	err = corev1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
 	err = routev1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -131,6 +135,7 @@ var _ = BeforeSuite(func(done Done) {
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme.Scheme,
 		MetricsBindAddress: "0",
+		Namespace:          "",
 	})
 	Expect(err).ToNot(HaveOccurred())
 
