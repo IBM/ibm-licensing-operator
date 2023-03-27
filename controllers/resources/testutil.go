@@ -29,15 +29,16 @@ const (
 	FAIL    = "\u2717"
 )
 
-func OperatorGroupObj(name, namespace string, targetNamespaces []string) v1.OperatorGroup {
+func OperatorGroupObj(name, namespace string, annotations map[string]string, targetNamespaces []string) v1.OperatorGroup {
 	return v1.OperatorGroup{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "operators.coreos.com/v1",
 			Kind:       "OperatorGroup",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
+			Name:        name,
+			Namespace:   namespace,
+			Annotations: annotations,
 		},
 		Spec: v1.OperatorGroupSpec{
 			TargetNamespaces: targetNamespaces,

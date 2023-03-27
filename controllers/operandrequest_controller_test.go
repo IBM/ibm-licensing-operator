@@ -24,6 +24,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
@@ -53,10 +54,47 @@ var _ = Describe("OperandRequest controller", func() {
 	var (
 		ctx            context.Context
 		operandRequest = res.OperandRequestObj(operandRequestName, opreqNamespace, res.OperatorName)
+		lsLabels       = map[string]string{"app": "ibm-licensing"}
+		lsAnnotations  = map[string]string{"owned-by": "ibm-licensing"}
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
+	})
+
+	Context("(Setup) Licensing ConfigMaps and Secrets", func() {
+		It("IbmLicensingToken Secret should be created in namespace "+operatorNamespace, func() {
+			secret := corev1.Secret{}
+			if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingToken}, &secret); err != nil && k8serr.IsNotFound(err) {
+				lsTokenSecret := res.SecretObj(svcres.LicensingToken, operatorNamespace, map[string]string{"token": "aaaa"}, lsLabels, lsAnnotations)
+				Expect(k8sClient.Create(ctx, &lsTokenSecret)).Should(Succeed())
+			}
+		})
+
+		It("IbmLicensingUploadToken Secret should be created in namespace "+operatorNamespace, func() {
+			secret := corev1.Secret{}
+			if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingUploadToken}, &secret); err != nil && k8serr.IsNotFound(err) {
+				lsUploadToken := res.SecretObj(svcres.LicensingUploadToken, operatorNamespace, map[string]string{"token": "bbbb"}, lsLabels, lsAnnotations)
+				Expect(k8sClient.Create(ctx, &lsUploadToken)).Should(Succeed())
+			}
+
+		})
+
+		It("IbmLicensingInfo ConfigMap should be created in namespace "+operatorNamespace, func() {
+			cm := corev1.ConfigMap{}
+			if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingInfo}, &cm); err != nil && k8serr.IsNotFound(err) {
+				lsInfoCm := res.ConfigMapObj(svcres.LicensingInfo, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
+				Expect(k8sClient.Create(ctx, &lsInfoCm)).Should(Succeed())
+			}
+		})
+
+		It("IbmLicensingUploadConfig ConfigMap should be created in namespace "+operatorNamespace, func() {
+			cm := corev1.ConfigMap{}
+			if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingUploadConfig}, &cm); err != nil && k8serr.IsNotFound(err) {
+				lsUploadConfigCm := res.ConfigMapObj(svcres.LicensingUploadConfig, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
+				Expect(k8sClient.Create(ctx, &lsUploadConfigCm)).Should(Succeed())
+			}
+		})
 	})
 
 	Context("(Setup) OperandRequest instance", func() {

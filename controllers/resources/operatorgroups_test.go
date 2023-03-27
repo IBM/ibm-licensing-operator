@@ -37,8 +37,10 @@ func TestGetLicensingOperatorGroupInNamespace(t *testing.T) {
 	{
 		t.Log("\tTest 0:\tWhen there is licensing OperatorGroup in the namespace")
 		{
-			licensingOperatorGroup := OperatorGroupObj("ibm-licensing-og1", operatorNamespace, []string{operatorNamespace})
-			operatorGroup := OperatorGroupObj("olm-default-og", operatorNamespace, []string{operatorNamespace})
+			licensingOperatorGroup := OperatorGroupObj("ibm-licensing-og1", operatorNamespace,
+				map[string]string{"olm.providedAPIs": "IBMLicensing.v1alpha1.operator.ibm.com"}, []string{operatorNamespace})
+			operatorGroup := OperatorGroupObj("olm-default-og", operatorNamespace,
+				map[string]string{"olm.providedAPIs": "Fake.v1alpha1.operator.ibm.com"}, []string{operatorNamespace})
 
 			client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(&operatorGroup, &licensingOperatorGroup).Build()
 
@@ -46,18 +48,17 @@ func TestGetLicensingOperatorGroupInNamespace(t *testing.T) {
 			if err != nil {
 				t.Fatalf("\t%s\tShould get licensing OperatorGroup without an error %s : %v", FAIL, operatorNamespace, err)
 			}
-			if !reflect.DeepEqual(foundOperatorGroup.TypeMeta, licensingOperatorGroup.TypeMeta) ||
-				!reflect.DeepEqual(foundOperatorGroup.ObjectMeta, licensingOperatorGroup.ObjectMeta) ||
-				!reflect.DeepEqual(foundOperatorGroup.Spec, licensingOperatorGroup.Spec) {
-				t.Errorf("\t%s\tShould get licensing OperatorGroup", FAIL)
-			} else {
+			if foundOperatorGroup != nil && reflect.DeepEqual(foundOperatorGroup, &licensingOperatorGroup) {
 				t.Logf("\t%s\tShould get licensing OperatorGroup", SUCCESS)
+			} else {
+				t.Errorf("\t%s\tShould get licensing OperatorGroup", FAIL)
 			}
 		}
 
 		t.Log("\tTest 1:\tWhen there is no licensing OperatorGroup in the namespace")
 		{
-			operatorGroup := OperatorGroupObj("olm-default-og", operatorNamespace, []string{operatorNamespace})
+			operatorGroup := OperatorGroupObj("olm-default-og", operatorNamespace,
+				map[string]string{"olm.ProvidedAPIs": "Fake.v1alpha1.operator.ibm.com"}, []string{operatorNamespace})
 
 			client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(&operatorGroup).Build()
 

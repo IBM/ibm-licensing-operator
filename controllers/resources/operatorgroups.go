@@ -25,7 +25,7 @@ import (
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const OperatorGroupPrefix = "ibm-licensing"
+const ibmLicensingPrefix = "IBMLicensing"
 
 // Returns first found OperatorGroup with `ibm-licensing` in name, otherwise empty object
 func GetLicensingOperatorGroupInNamespace(reader c.Reader, namespace string) (*v1.OperatorGroup, error) {
@@ -40,9 +40,14 @@ func GetLicensingOperatorGroupInNamespace(reader c.Reader, namespace string) (*v
 		return nil, err
 	}
 
+	var foundOperatorGroup v1.OperatorGroup
+
 	for _, operatorGroup := range operatorGroupList.Items {
-		if strings.Contains(operatorGroup.GetName(), OperatorGroupPrefix) {
-			return &operatorGroup, nil
+		if val, exists := operatorGroup.Annotations["olm.providedAPIs"]; exists {
+			if strings.Contains(val, ibmLicensingPrefix) {
+				foundOperatorGroup = operatorGroup
+				return &foundOperatorGroup, nil
+			}
 		}
 	}
 
