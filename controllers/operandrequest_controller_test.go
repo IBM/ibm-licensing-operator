@@ -103,7 +103,6 @@ var _ = Describe("OperandRequest controller", func() {
 				Eventually(func() bool {
 					lsInfoCm := res.ConfigMapObj(svcres.LicensingInfo, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
 					err := k8sCFromMgr.Create(ctx, &lsInfoCm)
-					Expect(err).ToNot(HaveOccurred())
 					return err == nil || k8serr.IsAlreadyExists(err)
 				}, timeout, interval).Should(BeTrue())
 			}
