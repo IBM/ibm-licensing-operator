@@ -239,7 +239,7 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 				return false, err
 			}
 			// Update existing Secret only if it has same name and set of labels
-			if needUpdate := !res.CompareSecrets(&secretCopy, &existingSecret); needUpdate {
+			if needUpdate := !res.CompareSecretsData(&secretCopy, &existingSecret); needUpdate {
 				if err := r.Update(ctx, &secretCopy); err != nil {
 					reqLogger.Error(err, "failed to update Secret", "name", targetName, "namespace", targetNs)
 					return false, err
@@ -317,7 +317,7 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 				return false, err
 			}
 			// Update existing ConfigMap only if it has same name and set of labels
-			if needUpdate := !res.CompareConfigMap(&cmCopy, &existingCm); needUpdate {
+			if needUpdate := !res.CompareConfigMapData(&cmCopy, &existingCm); needUpdate {
 				if err := r.Update(ctx, &cmCopy); err != nil {
 					reqLogger.Error(err, "failed to update ConfigMap", "name", targetName, "namespace", targetNs)
 					return false, err

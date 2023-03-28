@@ -53,6 +53,8 @@ import (
 var (
 	cfg               *rest.Config
 	k8sClient         client.Client
+	k8sCFromMgr       client.Client
+	k8sRFromMgr       client.Reader
 	testEnv           *envtest.Environment
 	namespace         string
 	operatorNamespace string
@@ -138,6 +140,9 @@ var _ = BeforeSuite(func(done Done) {
 		Namespace:          "",
 	})
 	Expect(err).ToNot(HaveOccurred())
+
+	k8sCFromMgr = mgr.GetClient()
+	k8sRFromMgr = mgr.GetAPIReader()
 
 	nssEnabledSemaphore := make(chan bool, 1)
 

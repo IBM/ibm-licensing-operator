@@ -124,7 +124,7 @@ func ConfigMapObj(name, namespace string, data, labels, annotations map[string]s
 	return corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
-			Namespace:   name,
+			Namespace:   namespace,
 			Labels:      labels,
 			Annotations: annotations,
 		},

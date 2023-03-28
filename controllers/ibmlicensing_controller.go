@@ -468,7 +468,7 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
 		}
-		if !res.CompareConfigMap(expectedCM, foundCM) {
+		if !res.CompareConfigMapData(expectedCM, foundCM) {
 			if updateReconcileResult, err := res.UpdateResource(&reqLogger, r.Client, expectedCM, foundCM); err != nil || updateReconcileResult.Requeue {
 				return updateReconcileResult, err
 			}

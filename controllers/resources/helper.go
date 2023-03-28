@@ -419,13 +419,13 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 	return nil
 }
 
-// Returns true if configmaps are equal
-func CompareConfigMap(cm1, cm2 *corev1.ConfigMap) bool {
+// Returns true if configmaps are equal in terms of stored data
+func CompareConfigMapData(cm1, cm2 *corev1.ConfigMap) bool {
 	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels) && reflect.DeepEqual(cm1.BinaryData, cm2.BinaryData)
 }
 
-// Returns true if secrets are equal
-func CompareSecrets(s1, s2 *corev1.Secret) bool {
+// Returns true if secrets are equal in terms of stored data
+func CompareSecretsData(s1, s2 *corev1.Secret) bool {
 	return reflect.DeepEqual(s1.Data, s2.Data) && reflect.DeepEqual(s1.Labels, s2.Labels) && reflect.DeepEqual(s1.Type, s2.Type) && reflect.DeepEqual(s1.StringData, s2.StringData)
 }
 

@@ -65,34 +65,47 @@ var _ = Describe("OperandRequest controller", func() {
 	Context("(Setup) Licensing ConfigMaps and Secrets", func() {
 		It("IbmLicensingToken Secret should be created in namespace "+operatorNamespace, func() {
 			secret := corev1.Secret{}
-			if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingToken}, &secret); err != nil && k8serr.IsNotFound(err) {
-				lsTokenSecret := res.SecretObj(svcres.LicensingToken, operatorNamespace, map[string]string{"token": "aaaa"}, lsLabels, lsAnnotations)
-				Expect(k8sClient.Create(ctx, &lsTokenSecret)).Should(Succeed())
+			if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingToken}, &secret); err != nil {
+				Eventually(func() bool {
+					lsTokenSecret := res.SecretObj(svcres.LicensingToken, operatorNamespace, map[string]string{"token": "aaaa"}, lsLabels, lsAnnotations)
+					err := k8sCFromMgr.Create(ctx, &lsTokenSecret)
+					return err == nil || k8serr.IsAlreadyExists(err)
+				}, timeout, interval).Should(BeTrue())
 			}
 		})
 
 		It("IbmLicensingUploadToken Secret should be created in namespace "+operatorNamespace, func() {
 			secret := corev1.Secret{}
-			if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingUploadToken}, &secret); err != nil && k8serr.IsNotFound(err) {
-				lsUploadToken := res.SecretObj(svcres.LicensingUploadToken, operatorNamespace, map[string]string{"token": "bbbb"}, lsLabels, lsAnnotations)
-				Expect(k8sClient.Create(ctx, &lsUploadToken)).Should(Succeed())
+			if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingUploadToken}, &secret); err != nil {
+				Eventually(func() bool {
+					lsUploadToken := res.SecretObj(svcres.LicensingUploadToken, operatorNamespace, map[string]string{"token": "bbbb"}, lsLabels, lsAnnotations)
+					err := k8sCFromMgr.Create(ctx, &lsUploadToken)
+					return err == nil || k8serr.IsAlreadyExists(err)
+				}, timeout, interval).Should(BeTrue())
 			}
 
-		})
-
-		It("IbmLicensingInfo ConfigMap should be created in namespace "+operatorNamespace, func() {
-			cm := corev1.ConfigMap{}
-			if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingInfo}, &cm); err != nil && k8serr.IsNotFound(err) {
-				lsInfoCm := res.ConfigMapObj(svcres.LicensingInfo, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
-				Expect(k8sClient.Create(ctx, &lsInfoCm)).Should(Succeed())
-			}
 		})
 
 		It("IbmLicensingUploadConfig ConfigMap should be created in namespace "+operatorNamespace, func() {
 			cm := corev1.ConfigMap{}
-			if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingUploadConfig}, &cm); err != nil && k8serr.IsNotFound(err) {
-				lsUploadConfigCm := res.ConfigMapObj(svcres.LicensingUploadConfig, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
-				Expect(k8sClient.Create(ctx, &lsUploadConfigCm)).Should(Succeed())
+			if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingUploadConfig}, &cm); err != nil {
+				Eventually(func() bool {
+					lsUploadConfigCm := res.ConfigMapObj(svcres.LicensingUploadConfig, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
+					err := k8sCFromMgr.Create(ctx, &lsUploadConfigCm)
+					return err == nil || k8serr.IsAlreadyExists(err)
+				}, timeout, interval).Should(BeTrue())
+			}
+		})
+
+		It("IbmLicensingInfo ConfigMap should be created in namespace "+operatorNamespace, func() {
+			cm := corev1.ConfigMap{}
+			if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingInfo}, &cm); err != nil {
+				Eventually(func() bool {
+					lsInfoCm := res.ConfigMapObj(svcres.LicensingInfo, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
+					err := k8sCFromMgr.Create(ctx, &lsInfoCm)
+					Expect(err).ToNot(HaveOccurred())
+					return err == nil || k8serr.IsAlreadyExists(err)
+				}, timeout, interval).Should(BeTrue())
 			}
 		})
 	})
@@ -100,7 +113,8 @@ var _ = Describe("OperandRequest controller", func() {
 	Context("(Setup) OperandRequest instance", func() {
 		It("Should be created in namespace "+opreqNamespace, func() {
 			operandRequest = res.OperandRequestObj(operandRequestName, opreqNamespace, res.OperatorName)
-			Expect(k8sClient.Create(ctx, &operandRequest)).Should(Succeed())
+			err := k8sCFromMgr.Create(ctx, &operandRequest)
+			Expect(err == nil || k8serr.IsAlreadyExists(err)).To(BeTrue())
 		})
 	})
 
@@ -112,10 +126,14 @@ var _ = Describe("OperandRequest controller", func() {
 				secret1 := corev1.Secret{}
 				secret1Copy := corev1.Secret{}
 
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingToken, Namespace: namespace}, &secret1)).Should(Succeed())
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: secret1Name, Namespace: opreqNamespace}, &secret1Copy)).Should(Succeed())
+				if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Name: svcres.LicensingToken, Namespace: namespace}, &secret1); err != nil {
+					return false
+				}
+				if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Name: secret1Name, Namespace: opreqNamespace}, &secret1Copy); err != nil {
+					return false
+				}
 
-				return res.CompareSecrets(&secret1, &secret1Copy)
+				return res.CompareSecretsData(&secret1, &secret1Copy)
 			}, timeout, interval).Should(BeTrue())
 
 			By("Copying " + svcres.LicensingUploadToken + " Secret to OperandRequest's namespace")
@@ -123,10 +141,14 @@ var _ = Describe("OperandRequest controller", func() {
 				secret2 := corev1.Secret{}
 				secret2Copy := corev1.Secret{}
 
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingUploadToken, Namespace: namespace}, &secret2)).Should(Succeed())
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: secret2Name, Namespace: opreqNamespace}, &secret2Copy)).Should(Succeed())
+				if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Name: svcres.LicensingUploadToken, Namespace: namespace}, &secret2); err != nil {
+					return false
+				}
+				if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Name: secret2Name, Namespace: opreqNamespace}, &secret2Copy); err != nil {
+					return false
+				}
 
-				return res.CompareSecrets(&secret2, &secret2Copy)
+				return res.CompareSecretsData(&secret2, &secret2Copy)
 			}, timeout, interval).Should(BeTrue())
 
 			By("Copying " + svcres.LicensingInfo + " ConfigMap to OperandRequest's namespace")
@@ -134,10 +156,14 @@ var _ = Describe("OperandRequest controller", func() {
 				cm1 := corev1.ConfigMap{}
 				cm1Copy := corev1.ConfigMap{}
 
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingInfo, Namespace: namespace}, &cm1)).Should(Succeed())
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: cm1Name, Namespace: opreqNamespace}, &cm1Copy)).Should(Succeed())
+				if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Name: svcres.LicensingInfo, Namespace: namespace}, &cm1); err != nil {
+					return false
+				}
+				if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Name: cm1Name, Namespace: opreqNamespace}, &cm1Copy); err != nil {
+					return false
+				}
 
-				return res.CompareConfigMap(&cm1, &cm1Copy)
+				return res.CompareConfigMapData(&cm1, &cm1Copy)
 			}, timeout, interval).Should(BeTrue())
 
 			By("Copying " + svcres.LicensingUploadConfig + " ConfigMap to OperandRequest's namespace")
@@ -145,10 +171,14 @@ var _ = Describe("OperandRequest controller", func() {
 				cm2 := corev1.ConfigMap{}
 				cm2Copy := corev1.ConfigMap{}
 
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: svcres.LicensingUploadConfig, Namespace: namespace}, &cm2)).Should(Succeed())
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: cm1Name, Namespace: opreqNamespace}, &cm2Copy)).Should(Succeed())
+				if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Name: svcres.LicensingUploadConfig, Namespace: namespace}, &cm2); err != nil {
+					return false
+				}
+				if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Name: cm2Name, Namespace: opreqNamespace}, &cm2Copy); err != nil {
+					return false
+				}
 
-				return res.CompareConfigMap(&cm2, &cm2Copy)
+				return res.CompareConfigMapData(&cm2, &cm2Copy)
 			}, timeout, interval).Should(BeTrue())
 		})
 	})
