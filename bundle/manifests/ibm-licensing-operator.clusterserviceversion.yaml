@@ -62,11 +62,11 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.0.0
-    createdAt: "2020-06-22T10:22:31Z"
+    createdAt: "2023-03-27T16:15:41Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the licensing usage of products.
     olm.skipRange: '>=1.0.0 <4.0.0'
     operatorframework.io/suggested-namespace: ibm-licensing
-    operators.operatorframework.io/builder: operator-sdk-v1.25.2
+    operators.operatorframework.io/builder: operator-sdk-v1.28.0
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com", "ibmlicensingdefinitions.operator.ibm.com", "ibmlicensingquerysources.operator.ibm.com"]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
   labels:
@@ -78,7 +78,7 @@ metadata:
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
   name: ibm-licensing-operator.v4.0.0
-  namespace: ibm-common-services
+  namespace: ibm-licensing
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
@@ -273,19 +273,6 @@ spec:
     spec:
       clusterPermissions:
         - rules:
-            - apiGroups:
-                - ""
-              resources:
-                - configmaps
-                - secrets
-              verbs:
-                - create
-                - delete
-                - get
-                - list
-                - patch
-                - update
-                - watch
             - apiGroups:
                 - operator.ibm.com
               resources:
@@ -511,6 +498,19 @@ spec:
             - apiGroups:
                 - ""
               resources:
+                - configmaps
+                - secrets
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - ""
+              resources:
                 - namespaces
                 - nodes
                 - pods
@@ -600,6 +600,18 @@ spec:
               verbs:
                 - create
                 - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - operators.coreos.com
+              resources:
+                - operatorgroups
+                - operatorgroups/finalizers
+                - operatorgroups/status
+              verbs:
                 - get
                 - list
                 - patch

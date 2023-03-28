@@ -18,7 +18,7 @@
 ##### Constants
 
 # Namespace where workload will be created (operator and operand)
-INSTALL_NAMESPACE=${INSTALL_NAMESPACE:-ibm-common-services}
+INSTALL_NAMESPACE=${INSTALL_NAMESPACE:-ibm-licensing}
 
 ##### Functions
 

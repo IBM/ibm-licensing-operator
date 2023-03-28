@@ -28,10 +28,10 @@ jobs:
     name: Scorecrd tests
     runs-on: ubuntu-22.04
     steps:
-      - name: Set up Go 1.x
-        uses: actions/setup-go@v2
+      - name: Set up Go environment
+        uses: actions/setup-go@v3.5.0
         with:
-          go-version: ^1.17
+          go-version: '1.20.2'
         id: go
 
       - name: Checkout
@@ -59,17 +59,18 @@ jobs:
         env:
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
           ARTIFACTORY_TOKEN: ${{ secrets.ARTIFACTORY_TOKEN }}
+          LICENSING_NAMESPACE: ibm-licensing
         run: |
-          kubectl create namespace ibm-common-services
-          n=0; until ((n >= 60)); do kubectl -n ibm-common-services get serviceaccount default -o name && break; n=$((n + 1)); sleep 60; done; ((n < 60))
-          kubectl create secret docker-registry my-registry-token -n ibm-common-services --docker-server=docker-na-public.artifactory.swg-devops.com --docker-username=${ARTIFACTORY_USERNAME} --docker-password=${ARTIFACTORY_TOKEN}
+          kubectl create namespace ${LICENSING_NAMESPACE}
+          n=0; until ((n >= 60)); do kubectl -n ${LICENSING_NAMESPACE} get serviceaccount default -o name && break; n=$((n + 1)); sleep 60; done; ((n < 60))
+          kubectl create secret docker-registry my-registry-token -n ${LICENSING_NAMESPACE} --docker-server=docker-na-public.artifactory.swg-devops.com --docker-username=${ARTIFACTORY_USERNAME} --docker-password=${ARTIFACTORY_TOKEN}
           kubectl apply -f ./bundle/manifests/operator.ibm.com_ibmlicensings.yaml
-          kubectl apply -f ./config/rbac/service_account.yaml -n ibm-common-services
-          kubectl -n ibm-common-services patch serviceaccount ibm-licensing-operator -p '{"imagePullSecrets": [{"name": "my-registry-token"}]}'
+          kubectl apply -f ./config/rbac/service_account.yaml -n ${LICENSING_NAMESPACE}
+          kubectl -n ${LICENSING_NAMESPACE} patch serviceaccount ibm-licensing-operator -p '{"imagePullSecrets": [{"name": "my-registry-token"}]}'
           kubectl apply -f ./config/rbac/role.yaml
           kubectl apply -f ./config/rbac/role_binding.yaml
           kubectl apply -f ./config/rbac/role_operands.yaml
-          kubectl get sa -n ibm-common-services 
+          kubectl get sa -n ${LICENSING_NAMESPACE}
 
       - name: Run Scorecard tests
         run: |
@@ -84,19 +85,18 @@ jobs:
           name: scorecard results
           path: ./*.txt
 
-
   setup-build-publish-deploy:
     name: Operator tests on KinD
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        k8s: [v1.19.11, v1.20.7, v1.21.1]
+        k8s: [v1.24.7, v1.25.3, v1.26.0]
     steps:
 
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
+    - name: Set up Go environment
+      uses: actions/setup-go@v3.5.0
       with:
-        go-version: ^1.17
+        go-version: '1.20.2'
       id: go
 
     - name: Checkout
@@ -104,7 +104,7 @@ jobs:
 
     - name: Download binaries
       run: |
-        wget https://github.com/kubernetes-sigs/kind/releases/download/v0.11.1/kind-linux-amd64
+        wget https://github.com/kubernetes-sigs/kind/releases/download/v0.17.0/kind-linux-amd64
         mv ./kind-linux-amd64 ./kind
         chmod +x ./kind
         cp ./common/scripts/tests/kind_config.yaml ./

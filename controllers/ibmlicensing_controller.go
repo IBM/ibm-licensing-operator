@@ -112,7 +112,7 @@ type IBMLicensingReconciler struct {
 	NamespaceScopeSemaphore chan bool
 }
 
-// //kubebuilder:rbac:namespace=ibm-common-services,groups=,resources=pod,verbs=get;list;watch;create;update;patch;delete
+// //kubebuilder:rbac:namespace=ibm-licensing,groups=,resources=pod,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile reads that state of the cluster for a IBMLicensing object and makes changes based on the state read
 // and what is in the IBMLicensing.Spec
@@ -120,19 +120,19 @@ type IBMLicensingReconciler struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:namespace=ibm-common-services,groups="apps",resources=deployments/finalizers,verbs=update
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;watch;list;delete;update
-// +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods,verbs=get
-// +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods,verbs=get
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=apps,resources=replicasets;deployments,verbs=get
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=rbac.authorization.k8s.io,resources=clusterroles;clusterrolebindings;roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods;nodes;namespaces,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=route.openshift.io,resources=routes;routes/custom-host,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=marketplace.redhat.com,resources=meterdefinitions,verbs=get;list;create;update;watch
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=networking.k8s.io;extensions,resources=ingresses;networkpolicies,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:namespace=ibm-common-services,groups=apps,resources=deployments;daemonsets;replicasets;statefulsets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods;services;services/finalizers;endpoints;persistentvolumeclaims;events;configmaps;secrets;namespaces;serviceaccounts,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-licensing,groups="apps",resources=deployments/finalizers,verbs=update
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;watch;list;delete;update
+// +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods,verbs=get
+// +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods,verbs=get
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=apps,resources=replicasets;deployments,verbs=get
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=rbac.authorization.k8s.io,resources=clusterroles;clusterrolebindings;roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods;nodes;namespaces,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=route.openshift.io,resources=routes;routes/custom-host,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=marketplace.redhat.com,resources=meterdefinitions,verbs=get;list;create;update;watch
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=networking.k8s.io;extensions,resources=ingresses;networkpolicies,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=apps,resources=deployments;daemonsets;replicasets;statefulsets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods;services;services/finalizers;endpoints;persistentvolumeclaims;events;configmaps;secrets;namespaces;serviceaccounts,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=operator.openshift.io,resources=servicecas,verbs=list
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 
@@ -468,7 +468,7 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
 		}
-		if !res.CompareConfigMap(expectedCM, foundCM) {
+		if !res.CompareConfigMapData(expectedCM, foundCM) {
 			if updateReconcileResult, err := res.UpdateResource(&reqLogger, r.Client, expectedCM, foundCM); err != nil || updateReconcileResult.Requeue {
 				return updateReconcileResult, err
 			}

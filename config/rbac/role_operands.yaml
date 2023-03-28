@@ -67,7 +67,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: ibm-license-service
-  namespace: ibm-common-services
+  namespace: ibm-licensing
 rules:
   - apiGroups:
       - ""
@@ -118,7 +118,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: ibm-license-service-restricted
-  namespace: ibm-common-services
+  namespace: ibm-licensing
 rules:
   - apiGroups:
       - ""
