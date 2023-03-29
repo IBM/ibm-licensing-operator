@@ -84,12 +84,11 @@ func ignoreDeletionPredicate() predicate.Predicate {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=operandrequests;operandrequests/finalizers;operandrequests/status,verbs=get;list;patch;update;watch
-// +kubebuilder:rbac:groups="",resources=configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 
 func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
 	reqLogger := r.Log.WithValues("operandrequest", req.NamespacedName)
-	reqLogger.Info("Reconciling OperandRequest")
 
 	if err := res.UpdateCacheClusterExtensions(r.Reader); err != nil {
 		reqLogger.Error(err, "Error during checking K8s API")
@@ -102,12 +101,16 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	var infoConfigMapName, tokenSecretName, uploadConfigName, uploadTokenName string
-	var requeueTokenSec, requeueUploadSec, requeueInfoCm, requeueUploadCm bool
-	var err error
+	if isForLicensing := res.HasOperandRequestBindingForLicensing(operandRequest); !isForLicensing {
+		return ctrl.Result{}, nil
+	}
 
-	licensingOpreqHandled := false
+	reqLogger.Info("Reconciling OperandRequest")
+
 	for _, request := range operandRequest.Spec.Requests {
+		var infoConfigMapName, tokenSecretName, tokenSecretName2, uploadConfigName, uploadTokenName string
+		var requeueTokenSec, requeueToken2Sec, requeueUploadSec, requeueInfoCm, requeueUploadCm bool
+		var err error
 		for _, operand := range request.Operands {
 			if operand.Name == res.OperatorName {
 
@@ -118,7 +121,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 					}
 
 					if key == "public-api-token" {
-						tokenSecretName = binding.Secret
+						tokenSecretName2 = binding.Secret
 					}
 
 					if key == "public-api-upload" {
@@ -132,6 +135,14 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 					reqLogger.Error(err, "Cannot copy Secret", "name", svcres.LicensingToken, "namespace", operandRequest.Namespace)
 				}
 				if requeueTokenSec {
+					return reconcile.Result{Requeue: true}, err
+				}
+
+				requeueToken2Sec, err = r.copySecret(ctx, req, svcres.LicensingToken, tokenSecretName2, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
+				if err != nil {
+					reqLogger.Error(err, "Cannot copy Secret", "name", svcres.LicensingToken, "namespace", operandRequest.Namespace)
+				}
+				if requeueToken2Sec {
 					return reconcile.Result{Requeue: true}, err
 				}
 
@@ -158,13 +169,7 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				if requeueUploadCm {
 					return reconcile.Result{Requeue: true}, err
 				}
-
-				licensingOpreqHandled = true
-				break
 			}
-		}
-		if licensingOpreqHandled {
-			break
 		}
 	}
 
@@ -210,9 +215,10 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 
 	secretCopy := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      targetName,
-			Namespace: targetNs,
-			Labels:    secretLabel,
+			Name:        targetName,
+			Namespace:   targetNs,
+			Labels:      secretLabel,
+			Annotations: secret.Annotations,
 		},
 		Type:       secret.Type,
 		Data:       secret.Data,
@@ -233,7 +239,7 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 				return false, err
 			}
 			// Update existing Secret only if it has same name and set of labels
-			if needUpdate := !res.CompareSecrets(&secretCopy, &existingSecret); needUpdate {
+			if needUpdate := !res.CompareSecretsData(&secretCopy, &existingSecret); needUpdate {
 				if err := r.Update(ctx, &secretCopy); err != nil {
 					reqLogger.Error(err, "failed to update Secret", "name", targetName, "namespace", targetNs)
 					return false, err
@@ -287,9 +293,10 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 
 	cmCopy := corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      targetName,
-			Namespace: targetNs,
-			Labels:    cmLabel,
+			Name:        targetName,
+			Namespace:   targetNs,
+			Labels:      cmLabel,
+			Annotations: cm.Annotations,
 		},
 		Data:       cm.Data,
 		BinaryData: cm.BinaryData,
@@ -310,7 +317,7 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 				return false, err
 			}
 			// Update existing ConfigMap only if it has same name and set of labels
-			if needUpdate := !res.CompareConfigMap(&cmCopy, &existingCm); needUpdate {
+			if needUpdate := !res.CompareConfigMapData(&cmCopy, &existingCm); needUpdate {
 				if err := r.Update(ctx, &cmCopy); err != nil {
 					reqLogger.Error(err, "failed to update ConfigMap", "name", targetName, "namespace", targetNs)
 					return false, err

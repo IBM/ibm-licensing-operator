@@ -1,5 +1,5 @@
 # Adds namespace to all resources.
-namespace: ibm-common-services
+namespace: ibm-licensing
 
 commonLabels:
   app.kubernetes.io/instance: "ibm-licensing-operator"

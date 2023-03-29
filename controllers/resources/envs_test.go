@@ -24,11 +24,6 @@ import (
 	"time"
 )
 
-const (
-	succeed = "\u2713"
-	failed  = "\u2717"
-)
-
 func TestGetReconcileInterval(t *testing.T) {
 	envVar := "CRD_RECONCILE_INTERVAL"
 
@@ -44,12 +39,12 @@ func TestGetReconcileInterval(t *testing.T) {
 
 			actualInterval, err := GetCrdReconcileInterval()
 			if err != nil {
-				t.Fatalf("\t%s\tShould get time interval in seconds : %v", failed, err)
+				t.Fatalf("\t%s\tShould get time interval in seconds : %v", FAIL, err)
 			}
 			if actualInterval == time.Duration(expectedInterval)*time.Second {
-				t.Logf("\t%s\tShould get time interval %s", succeed, actualInterval)
+				t.Logf("\t%s\tShould get time interval %s", SUCCESS, actualInterval)
 			} else {
-				t.Errorf("\t%s\tShould get time interval %ds : %s", succeed, expectedInterval, actualInterval)
+				t.Errorf("\t%s\tShould get time interval %ds : %s", SUCCESS, expectedInterval, actualInterval)
 			}
 
 			os.Unsetenv(envVar)
@@ -60,12 +55,12 @@ func TestGetReconcileInterval(t *testing.T) {
 			expectedInterval := 3600 * time.Second
 			actualInterval, err := GetCrdReconcileInterval()
 			if err != nil {
-				t.Fatalf("\t%s\tShould get time interval in seconds : %v", failed, err)
+				t.Fatalf("\t%s\tShould get time interval in seconds : %v", FAIL, err)
 			}
 			if actualInterval == 3600*time.Second {
-				t.Logf("\t%s\tShould get default time interval %s", succeed, actualInterval)
+				t.Logf("\t%s\tShould get default time interval %s", SUCCESS, actualInterval)
 			} else {
-				t.Errorf("\t%s\tShould get default time interval %s : %s", succeed, expectedInterval, actualInterval)
+				t.Errorf("\t%s\tShould get default time interval %s : %s", SUCCESS, expectedInterval, actualInterval)
 			}
 		}
 
@@ -74,14 +69,14 @@ func TestGetReconcileInterval(t *testing.T) {
 			os.Setenv(envVar, "1.5")
 			_, err := GetCrdReconcileInterval()
 			if err == nil {
-				t.Fatalf("\t%s\tShould get a format error", failed)
+				t.Fatalf("\t%s\tShould get a format error", FAIL)
 			}
 
-			errMsg := envVar + " must be natural number"
+			errMsg := envVar + " must be a natural number"
 			if strings.Contains(err.Error(), errMsg) {
-				t.Logf("\t%s\tShould get an error with a proper message", succeed)
+				t.Logf("\t%s\tShould get an error with a proper message", SUCCESS)
 			} else {
-				t.Errorf("\t%s\tShould get an error with a proper message : %s", failed, "\""+errMsg+"\"")
+				t.Errorf("\t%s\tShould get an error with a proper message : %s", FAIL, "\""+errMsg+"\"")
 			}
 			os.Unsetenv(envVar)
 		}

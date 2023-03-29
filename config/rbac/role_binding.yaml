@@ -2,11 +2,11 @@ kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: ibm-licensing-operator
-  namespace: ibm-common-services
+  namespace: ibm-licensing
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-operator
-    namespace: ibm-common-services
+    namespace: ibm-licensing
 roleRef:
   kind: ClusterRole
   name: ibm-licensing-operator
@@ -16,11 +16,11 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: ibm-licensing-operator
-  namespace: ibm-common-services
+  namespace: ibm-licensing
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-operator
-    namespace: ibm-common-services
+    namespace: ibm-licensing
 roleRef:
   kind: Role
   name: ibm-licensing-operator
@@ -30,11 +30,11 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: ibm-license-service
-  namespace: ibm-common-services
+  namespace: ibm-licensing
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service
-    namespace: ibm-common-services
+    namespace: ibm-licensing
 roleRef:
   kind: Role
   name: ibm-license-service
@@ -44,11 +44,11 @@ kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: ibm-license-service
-  namespace: ibm-common-services
+  namespace: ibm-licensing
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service
-    namespace: ibm-common-services
+    namespace: ibm-licensing
 roleRef:
   kind: ClusterRole
   name: ibm-license-service
@@ -58,11 +58,11 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: ibm-license-service-restricted
-  namespace: ibm-common-services
+  namespace: ibm-licensing
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-restricted
-    namespace: ibm-common-services
+    namespace: ibm-licensing
 roleRef:
   kind: Role
   name: ibm-license-service-restricted
@@ -72,11 +72,11 @@ kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: ibm-license-service-restricted
-  namespace: ibm-common-services
+  namespace: ibm-licensing
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-restricted
-    namespace: ibm-common-services
+    namespace: ibm-licensing
 roleRef:
   kind: ClusterRole
   name: ibm-license-service-restricted
@@ -87,7 +87,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: ibm-licensing-default-reader
-  namespace: ibm-common-services
+  namespace: ibm-licensing
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -95,4 +95,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-default-reader
-    namespace: ibm-common-services
+    namespace: ibm-licensing

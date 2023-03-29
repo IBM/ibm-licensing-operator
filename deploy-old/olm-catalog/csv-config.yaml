@@ -1,5 +1,0 @@
-crd-cr-paths:
-- deploy/crds
-operator-path: config/manager/manager.yaml
-role-paths:
-- deploy/role.yaml
