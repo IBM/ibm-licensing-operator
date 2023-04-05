@@ -50,7 +50,7 @@ IBM_LICENSE_SERVICE_REPORTER_IMAGE ?= ibm-license-service-reporter
 IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 
 CHANNELS=v3,v3.20,v3.21,v3.22,v3.23,beta,dev,stable-v1
-DEFAULT_CHANNEL=v3.23
+DEFAULT_CHANNEL=v3.0
 
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
@@ -155,10 +155,13 @@ CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
 DEVOPS_STREAM :=
 ifeq ($(GIT_BRANCH),master) 
 	DEVOPS_STREAM="cd"
+	DEFAULT_CHANNEL=v4.0
 else ifeq ($(GIT_BRANCH),release-ltsr)
 	DEVOPS_STREAM="ltsr"
+	DEFAULT_CHANNEL=v3.0
 else ifeq ($(GIT_BRANCH),release-future)
 	DEVOPS_STREAM="future"
+	DEFAULT_CHANNEL=v4.0
 endif
 
 DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
@@ -474,18 +477,7 @@ bundle-build-development:
 scorecard:
 	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
 
-identify-release-stream: SHELL = /bin/bash
-identify-release-stream:
-	@for tag in $(BRANCH_TAGS) ; do \
-		if [[ $$tag =~ v?1.16.[1-9][0-9]? ]]; then \
-			echo "Detected stream: LTSR."; \
-			CHANNELS=v3,beta,dev,stable-v1 \
-			DEFAULT_CHANNEL=v3 ;\
-			break ;\
-		fi; \
-	done; \
-
-catalogsource: opm identify-release-stream
+catalogsource: opm
 	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
@@ -506,7 +498,7 @@ ifneq (${DEVOPS_STREAM},)
 	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
 endif
 
-catalogsource-development: opm identify-release-stream
+catalogsource-development: opm
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
 	chmod +x ./yq
