@@ -50,7 +50,7 @@ IBM_LICENSE_SERVICE_REPORTER_IMAGE ?= ibm-license-service-reporter
 IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 
 CHANNELS=v3,v3.20,v3.21,v3.22,v3.23,beta,dev,stable-v1
-DEFAULT_CHANNEL=v3.0
+DEFAULT_CHANNEL=v3
 
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
@@ -158,7 +158,7 @@ ifeq ($(GIT_BRANCH),master)
 	DEFAULT_CHANNEL=v4.0
 else ifeq ($(GIT_BRANCH),release-ltsr)
 	DEVOPS_STREAM="ltsr"
-	DEFAULT_CHANNEL=v3.0
+	DEFAULT_CHANNEL=v3
 else ifeq ($(GIT_BRANCH),release-future)
 	DEVOPS_STREAM="future"
 	DEFAULT_CHANNEL=v4.0
