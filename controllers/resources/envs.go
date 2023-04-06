@@ -16,14 +16,20 @@
 package resources
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	k8serr "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/client-go/dynamic"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-// GetWatchNamespace returns the Namespace the operator should be watching for changes
+// GetWatchNamespace returns the Namespace the operator should be watching for changes.
 func GetWatchNamespace() (string, error) {
 	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
 	// which specifies the Namespace to watch.
@@ -35,11 +41,24 @@ func GetWatchNamespace() (string, error) {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
 
+	isNssInstalled, err := IsNamespaceScopeOperatorInstalled()
+	if err != nil {
+		return "", err
+	}
+	if isNssInstalled {
+		nssNs, err := getWatchNamespaceFromNssConfigMap()
+		if err != nil {
+			return "", err
+		}
+
+		return nssNs, nil
+	}
+
 	return ns, nil
 }
 
-// GetWatchNamespaceList returns the Namespace the operator should be watching for changes in form of list
-func GetWatchNamespaceList() ([]string, error) {
+// GetWatchNamespaceList returns list of namespaces operator should watch for changes.
+func GetWatchNamespaceAsList() ([]string, error) {
 
 	ns, err := GetWatchNamespace()
 	if err != nil {
@@ -49,7 +68,7 @@ func GetWatchNamespaceList() ([]string, error) {
 	return strings.Split(ns, ","), nil
 }
 
-// GetOperatorNamespace returns the Namespace the operator should be watching for changes
+// GetOperatorNamespace returns the Namespace the operator should be watching for changes.
 func GetOperatorNamespace() (string, error) {
 	// OperatorNamespaceEnvVar is the constant for env variable OPERATOR_NAMESPACE
 	// which describes the namespace where operator is working.
@@ -63,19 +82,105 @@ func GetOperatorNamespace() (string, error) {
 	return ns, nil
 }
 
-// GetCrdReconcileInterval returns time duration in seconds for requested CRD watching
+// GetCrdReconcileInterval returns time duration in seconds for requested CRD watching. Defaults to 300s.
 func GetCrdReconcileInterval() (time.Duration, error) {
 	crdReconcileEnvVar := "CRD_RECONCILE_INTERVAL"
 
-	reconcileInterval := 3600 * time.Second
+	defaultReconcileInterval := 300 * time.Second
 	env, found := os.LookupEnv(crdReconcileEnvVar)
 
 	if found {
 		envVal, err := strconv.Atoi(env)
 		if err != nil {
-			return 3600 * time.Second, fmt.Errorf("%s must be a natural number", crdReconcileEnvVar)
+			return defaultReconcileInterval, fmt.Errorf("%s must be a natural number", crdReconcileEnvVar)
 		}
 		return time.Duration(envVal) * time.Second, nil
 	}
-	return reconcileInterval, nil
+	return defaultReconcileInterval, nil
+}
+
+func IsNamespaceScopeOperatorInstalled() (bool, error) {
+	nssCr, err := getNamespaceScopeCR()
+	if err != nil {
+		if k8serr.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return nssCr != nil, nil
+}
+
+// Get namespaces to watch from Namespace Scope Operator ConfigMap. Should only be used in CP2/CP3 coexistence scenario.
+func getWatchNamespaceFromNssConfigMap() (string, error) {
+	ctx := context.Background()
+	config := ctrl.GetConfigOrDie()
+	dynamicClient := dynamic.NewForConfigOrDie(config)
+	namespace, err := GetOperatorNamespace()
+	if err != nil {
+		return "", err // TODO
+	}
+
+	// List Namespace Scope CRs in the namespace.
+	nssCrList, err := ListResourcesDynamically(ctx, dynamicClient, "operator.com.ibm", "v1", "namespacescope", namespace)
+	if err != nil {
+		return "", err // TODO
+	}
+
+	var nssConfigmapName string
+	if len(nssCrList) == 0 {
+		return "", nil // TODO
+	}
+
+	// Find first CR with configmapName set.
+	for _, nssCr := range nssCrList {
+		if spec, ok := nssCr.Object["spec"]; ok {
+			if cmName, ok := spec.(map[string]interface{})["configmapName"]; ok {
+				nssConfigmapName = cmName.(string)
+				break
+			}
+		}
+	}
+	if nssConfigmapName == "" {
+		return "", nil // TODO
+	}
+
+	// Get Config Map with name specified in Namespace Scope CR
+	nssCm, err := GetResourceDynamically(ctx, dynamicClient, nssConfigmapName, "", "v1", "configmap", namespace)
+	if err != nil {
+		return "", err
+	}
+	if nssCm == nil {
+		return "", nil
+	}
+
+	if data, ok := nssCm.Object["data"]; ok {
+		if namespaces, ok := data.(map[string]interface{})["namespaces"]; ok {
+			return namespaces.(string), nil
+		}
+	}
+
+	return "", nil // TODO
+}
+
+func getNamespaceScopeCR() (*unstructured.Unstructured, error) {
+	ctx := context.Background()
+	config := ctrl.GetConfigOrDie()
+	dynamicClient := dynamic.NewForConfigOrDie(config)
+	namespace, err := GetOperatorNamespace()
+	if err != nil {
+		return nil, err
+	}
+
+	// List Namespace Scope Operator CRs in the namespace.
+	nssCrList, err := ListResourcesDynamically(ctx, dynamicClient, "operator.com.ibm", "v1", "namespacescope", namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(nssCrList) == 0 {
+		return nil, nil
+	}
+
+	return &nssCrList[0], nil
 }

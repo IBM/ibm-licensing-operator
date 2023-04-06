@@ -115,15 +115,20 @@ func main() {
 
 	printVersion()
 
-	watchNamespaces, err := res.GetWatchNamespaceList()
-	if err != nil {
-		setupLog.Error(err, "unable to get WATCH_NAMESPACE, "+
-			"the manager will watch and manage resources in all namespaces")
-	}
-
 	operatorNamespace, err := res.GetOperatorNamespace()
 	if err != nil {
 		setupLog.Error(err, "unable to get OPERATOR_NAMESPACE")
+	}
+
+	watchNamespaces, err := res.GetWatchNamespaceAsList()
+	if err != nil {
+		setupLog.Error(err, "unable to get WATCH_NAMESPACE")
+		if operatorNamespace != "" {
+			setupLog.Info("Manager will watch and manage resources only in operator namespace")
+			watchNamespaces = []string{operatorNamespace}
+		} else {
+			setupLog.Info("Manager will watch and manage resources only in all namespaces")
+		}
 	}
 
 	gvkLabelMap := map[schema.GroupVersionKind]cache.Selector{
@@ -167,6 +172,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	// TODO if we are in cs-control ns and there is nss operator then:
+	// - We want to read namespaces into WATCH_NAMESPACE env var from nss cm
+	// - We don't want to discover new OperandRequests cluster-wide
+	// - We don't want to modify (extend) OperatorGroup in our namespace
+
 	operandRequestList := odlm.OperandRequestList{}
 	opreqControllerEnabled, err := res.DoesCRDExist(mgr.GetAPIReader(), &operandRequestList)
 	if err != nil {
@@ -185,13 +195,16 @@ func main() {
 			os.Exit(1)
 		}
 		logger := ctrl.Log.WithName("operandrequest-discovery")
-		go controllers.DiscoverOperandRequests(&logger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
+		// In Cloud Pak 2.0/3.0 coexistence scenario, License Service Operator 4.x.x leverages Namespace Scope Operator and must not modify OperatorGroup.
+		if isNssActive, _ := res.IsNamespaceScopeOperatorInstalled(); isNssActive {
+			go controllers.DiscoverOperandRequests(&logger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
+		}
 	} else {
 		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
 		// Set custom time duration for CRD watcher (in seconds)
 		reconcileInterval, err := res.GetCrdReconcileInterval()
 		if err != nil {
-			setupLog.Error(err, "Incorrect reconcile interval set. Defaulting to 3600s", "crd-watcher", "OperandRequest")
+			setupLog.Error(err, "Incorrect reconcile interval set. Defaulting to 300s", "crd-watcher", "OperandRequest")
 		}
 		go res.RestartOnCRDCreation(&logger, mgr.GetClient(), &operandRequestList, reconcileInterval)
 	}
