@@ -46,7 +46,7 @@ IMAGE_CATALOG_NAME ?= ibm-licensing-operator-catalog
 IBM_LICENSING_IMAGE ?= ibm-licensing
 IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 
-CHANNELS=v3,v3.20,v3.21,v3.22,beta,dev,stable-v1
+CHANNELS=v3,v3.20,v3.21,v3.22,v4.0,beta,dev,stable-v1
 DEFAULT_CHANNEL=v4.0
 
 # Identify default channel based on tag of parent branch
