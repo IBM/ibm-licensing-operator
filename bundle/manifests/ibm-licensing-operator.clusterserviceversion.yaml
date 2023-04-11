@@ -63,7 +63,7 @@ metadata:
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.0.0
     createdAt: "2023-03-27T16:15:41Z"
-    description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the licensing usage of products.
+    description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     olm.skipRange: '>=1.0.0 <4.0.0'
     operatorframework.io/suggested-namespace: ibm-licensing
     operators.operatorframework.io/builder: operator-sdk-v1.28.0
@@ -696,6 +696,8 @@ spec:
     - IBMLicensing
     - IBM
     - Cloud
+    - License
+    - Service
   labels:
     name: ibm-licensing-operator
   links:
