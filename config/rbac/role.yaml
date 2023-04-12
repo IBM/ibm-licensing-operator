@@ -163,6 +163,16 @@ rules:
   - update
   - watch
 - apiGroups:
+  - operator.com.ibm
+  resources:
+  - namespacescope
+  - namespacescope/finalizers
+  - namespacescope/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - operator.ibm.com
   resources:
   - ibmlicensings

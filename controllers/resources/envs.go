@@ -50,7 +50,6 @@ func GetWatchNamespace() (string, error) {
 		if err != nil {
 			return "", err
 		}
-
 		return nssNs, nil
 	}
 
@@ -99,6 +98,8 @@ func GetCrdReconcileInterval() (time.Duration, error) {
 	return defaultReconcileInterval, nil
 }
 
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=operator.com.ibm,resources=namespacescope;namespacescope/finalizers;namespacescope/status,verbs=get;list;watch
+
 func IsNamespaceScopeOperatorInstalled() (bool, error) {
 	nssCr, err := getNamespaceScopeCR()
 	if err != nil {
@@ -110,6 +111,8 @@ func IsNamespaceScopeOperatorInstalled() (bool, error) {
 
 	return nssCr != nil, nil
 }
+
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=operator.com.ibm,resources=namespacescope;namespacescope/finalizers;namespacescope/status,verbs=get;list;watch
 
 // Get namespaces to watch from Namespace Scope Operator ConfigMap. Should only be used in CP2/CP3 coexistence scenario.
 func getWatchNamespaceFromNssConfigMap() (string, error) {
@@ -162,6 +165,8 @@ func getWatchNamespaceFromNssConfigMap() (string, error) {
 
 	return "", nil // TODO
 }
+
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=operator.com.ibm,resources=namespacescope;namespacescope/finalizers;namespacescope/status,verbs=get;list;watch
 
 func getNamespaceScopeCR() (*unstructured.Unstructured, error) {
 	ctx := context.Background()
