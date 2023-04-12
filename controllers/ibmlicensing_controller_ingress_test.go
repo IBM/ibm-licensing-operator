@@ -21,8 +21,6 @@ import (
 	"errors"
 	"testing"
 
-	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
-	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
 	"go.uber.org/zap/zapcore"
 	networkingv1 "k8s.io/api/networking/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,6 +31,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
 
 	k8errors "k8s.io/apimachinery/pkg/api/errors"
 )
