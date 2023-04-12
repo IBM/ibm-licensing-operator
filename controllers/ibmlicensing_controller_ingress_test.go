@@ -482,6 +482,6 @@ func TestReconcileIngress(t *testing.T) {
 		if err == nil || !k8errors.IsNotFound(err) {
 			t.Fatalf("\t%s\tIngress should be deleted when IngressEnabled is false: %v", FAIL, foundIngress)
 		}
-		t.Logf("\t%s\tIngress deleted correctly", SUCCESS)
+		t.Logf("\t%s\tIngress deleted", SUCCESS)
 	}
 }
