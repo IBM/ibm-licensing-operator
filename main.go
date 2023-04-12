@@ -196,7 +196,7 @@ func main() {
 		}
 		logger := ctrl.Log.WithName("operandrequest-discovery")
 		// In Cloud Pak 2.0/3.0 coexistence scenario, License Service Operator 4.x.x leverages Namespace Scope Operator and must not modify OperatorGroup.
-		if isNssActive, _ := res.IsNamespaceScopeOperatorInstalled(); isNssActive {
+		if isNssActive, _ := res.IsNamespaceScopeOperatorInstalled(); !isNssActive {
 			go controllers.DiscoverOperandRequests(&logger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
 		}
 	} else {
