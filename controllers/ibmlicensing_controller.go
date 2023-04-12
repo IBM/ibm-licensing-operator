@@ -748,7 +748,7 @@ func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBM
 		err := r.Client.Get(context.TODO(), namespacedName, &foundIngress)
 		if err != nil {
 			if errors.IsNotFound(err) {
-				// expected behaviour
+				// expected behavior
 				return reconcile.Result{}, nil
 			}
 			reqLogger.Error(err, "Failed to get ingress but its ok to continue as it should not exist.", "Name", expectedIngress.GetName(),
