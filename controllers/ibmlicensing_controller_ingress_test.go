@@ -117,6 +117,7 @@ func TestReconcileIngress(t *testing.T) {
 			if !service.IsIngressInDesiredState(foundIngress, expectedIngress, reconciler.Log) {
 				t.Fatalf("\t%s\tFake k8s client should find correct foundIngress: %v, expectedIngress: %v", FAIL, foundIngress, expectedIngress)
 			}
+			t.Logf("\t%s\tIngress stays correct unchanged", SUCCESS)
 		}
 	}
 	t.Log("\tTest 1:\tWhen instance.Spec.IsIngressEnabled() returns true and an error occurs during reconciling")
@@ -158,6 +159,7 @@ func TestReconcileIngress(t *testing.T) {
 		if err != ErrFakeClientGet {
 			t.Fatalf("\t%s\tReconciling ingress should return an error when reconcileResourceNamespacedExistence fails", FAIL)
 		}
+		t.Logf("\t%s\tReconciling ingress forwards error that it got from client", SUCCESS)
 	}
 	t.Log("\tTest 2:\tWhen instance.Spec.IsIngressEnabled() returns true and the ingress needs an update")
 	{
@@ -214,6 +216,7 @@ func TestReconcileIngress(t *testing.T) {
 		if !service.IsIngressInDesiredState(foundIngress, expectedIngress, reconciler.Log) {
 			t.Fatalf("\t%s\tFake k8s client should find updated foundIngress: %v, expectedIngress: %v", FAIL, foundIngress, expectedIngress)
 		}
+		t.Logf("\t%s\tReconciling ingress updates ingress to correct state", SUCCESS)
 	}
 	t.Log("\tTest 3:\tWhen instance.Spec.IsIngressEnabled() returns true and the ingress has a different owner and should not be updated")
 	{
@@ -274,6 +277,7 @@ func TestReconcileIngress(t *testing.T) {
 		if foundIngress.OwnerReferences[0].Name == instance.Name {
 			t.Fatalf("\t%s\tIngress should not be updated when it has a different owner: %v", FAIL, foundIngress)
 		}
+		t.Logf("\t%s\tIngress not updated due to different owner", SUCCESS)
 	}
 	t.Log("\tTest 4:\tWhen instance.Spec.IsIngressEnabled() returns false and the ingress does not exist (as expected)")
 	{
@@ -322,6 +326,7 @@ func TestReconcileIngress(t *testing.T) {
 		if len(foundIngresses.Items) != 0 {
 			t.Fatalf("\t%s\tIngress should not be created when IngressEnabled is false, ingresses: %v", FAIL, foundIngresses)
 		}
+		t.Logf("\t%s\tIngress not created when disabled", SUCCESS)
 	}
 	t.Log("\tTest 5:\tWhen instance.Spec.IsIngressEnabled() returns false and an error occurs while getting the ingress")
 	{
@@ -364,6 +369,7 @@ func TestReconcileIngress(t *testing.T) {
 		if result != (reconcile.Result{}) {
 			t.Fatalf("\t%s\tReconciling ingress should return nil to allow continue, even thou there was a fail during reconcilation, got result: %v", FAIL, result)
 		}
+		t.Logf("\t%s\tReconciling ingress fails but it doesn't return error and allows continue on different resources", SUCCESS)
 	}
 	t.Log("\tTest 6:\tWhen instance.Spec.IsIngressEnabled() returns false and the ingress exists but has a different owner and should not be deleted")
 	{
@@ -424,6 +430,7 @@ func TestReconcileIngress(t *testing.T) {
 		if foundIngress.OwnerReferences[0].Name != "testowner" {
 			t.Fatalf("\t%s\tIngress should not be deleted when it has a different owner: %v", FAIL, foundIngress)
 		}
+		t.Logf("\t%s\tIngress not deleted as it had different owner", SUCCESS)
 	}
 
 	t.Log("\tTest 7:\tWhen instance.Spec.IsIngressEnabled() returns false, the ingress exists, and it should be deleted")
@@ -475,5 +482,6 @@ func TestReconcileIngress(t *testing.T) {
 		if err == nil || !k8errors.IsNotFound(err) {
 			t.Fatalf("\t%s\tIngress should be deleted when IngressEnabled is false: %v", FAIL, foundIngress)
 		}
+		t.Logf("\t%s\tIngress deleted correctly", SUCCESS)
 	}
 }
