@@ -178,7 +178,7 @@ func getNamespaceScopeCR() (*unstructured.Unstructured, error) {
 	}
 
 	// List Namespace Scope Operator CRs in the namespace.
-	nssCrList, err := ListResourcesDynamically(ctx, dynamicClient, "operator.com.ibm", "v1", "namespacescope", namespace)
+	nssCrList, err := ListResourcesDynamically(ctx, dynamicClient, "operator.ibm.com", "v1", "namespacescope", namespace)
 	if err != nil {
 		return nil, err
 	}
