@@ -728,37 +728,39 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 
 func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	expectedIngress := service.GetLicensingIngress(instance)
-	foundIngress := &networkingv1.Ingress{}
-
+	foundIngress := networkingv1.Ingress{}
+	reqLogger := r.Log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
 	if instance.Spec.IsIngressEnabled() {
-		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedIngress, foundIngress)
+		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, &expectedIngress, &foundIngress)
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
 		}
-		possibleUpdateNeeded := true
-		reqLogger := r.Log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
-		if foundIngress.ObjectMeta.Name != expectedIngress.ObjectMeta.Name {
-			reqLogger.Info("Names not equal", "old", foundIngress.ObjectMeta.Name, "new", expectedIngress.ObjectMeta.Name)
-		} else if !reflect.DeepEqual(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
-			reqLogger.Info("Labels not equal",
-				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Labels),
-				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Labels))
-		} else if !reflect.DeepEqual(foundIngress.ObjectMeta.Annotations, expectedIngress.ObjectMeta.Annotations) {
-			reqLogger.Info("Annotations not equal",
-				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Annotations),
-				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Annotations))
-		} else if !reflect.DeepEqual(foundIngress.Spec, expectedIngress.Spec) {
-			reqLogger.Info("Specs not equal",
-				"old", fmt.Sprintf("%v", foundIngress.Spec),
-				"new", fmt.Sprintf("%v", expectedIngress.Spec))
-		} else {
-			possibleUpdateNeeded = false
-		}
-		if possibleUpdateNeeded {
-			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
+		if !service.IsIngressInDesiredState(foundIngress, expectedIngress, reqLogger) {
+			if !metav1.IsControlledBy(&foundIngress, instance) {
+				reqLogger.Info("Not updating ingress with different owner reference.")
+				return reconcile.Result{}, nil
+			}
+			return res.UpdateResource(&reqLogger, r.Client, &expectedIngress, &foundIngress)
 		}
 	} else {
-		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
+		// here we want to ensure ingress doesnt exist but only if our owner reference
+		namespacedName := types.NamespacedName{Name: expectedIngress.GetName(), Namespace: expectedIngress.GetNamespace()}
+		err := r.Client.Get(context.TODO(), namespacedName, &foundIngress)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				// expected behaviour
+				return reconcile.Result{}, nil
+			}
+			reqLogger.Error(err, "Failed to get ingress but its ok to continue as it should not exist.", "Name", expectedIngress.GetName(),
+				"Namespace", expectedIngress.GetNamespace())
+			return reconcile.Result{}, nil
+		}
+		// ingress that should be deleted exists, need to check owner reference and delete if it is owned
+		if !metav1.IsControlledBy(&foundIngress, instance) {
+			reqLogger.Info("Not deleting ingress with different owner reference.")
+			return reconcile.Result{}, nil
+		}
+		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, &expectedIngress, &foundIngress)
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
 		}
