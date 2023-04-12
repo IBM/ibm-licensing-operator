@@ -194,10 +194,13 @@ func main() {
 			setupLog.Error(err, "unable to create controller", "controller", "OperandRequest")
 			os.Exit(1)
 		}
-		logger := ctrl.Log.WithName("operandrequest-discovery")
+		crdLogger := ctrl.Log.WithName("operandrequest-discovery")
 		// In Cloud Pak 2.0/3.0 coexistence scenario, License Service Operator 4.x.x leverages Namespace Scope Operator and must not modify OperatorGroup.
-		if isNssActive, _ := res.IsNamespaceScopeOperatorInstalled(); !isNssActive {
-			go controllers.DiscoverOperandRequests(&logger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
+		isNssActive, _ := res.IsNamespaceScopeOperatorInstalled()
+		if isNssActive {
+			setupLog.Info("Namespace Scope CR detected. OperandRequest-discovery disabled")
+		} else {
+			go controllers.DiscoverOperandRequests(&crdLogger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
 		}
 	} else {
 		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
