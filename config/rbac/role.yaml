@@ -179,9 +179,9 @@ rules:
 - apiGroups:
   - operator.ibm.com
   resources:
-  - namespacescope
-  - namespacescope/finalizers
-  - namespacescope/status
+  - namespacescopes
+  - namespacescopes/finalizers
+  - namespacescopes/status
   verbs:
   - get
   - list

@@ -25,18 +25,16 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-// +kubebuilder:rbac:namespace=ibm-licensing,groups=operator.ibm.com,resources=namespacescope;namespacescope/finalizers;namespacescope/status,verbs=get;list;watch
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=operator.ibm.com,resources=namespacescopes;namespacescopes/finalizers;namespacescopes/status,verbs=get;list;watch
 
+// Return true if Namespace Scope CR is available in operator's namespace
 func IsNamespaceScopeOperatorInstalled() (bool, error) {
 	nssCr, err := getNamespaceScopeCR()
 	if err != nil {
-		if k8serr.IsNotFound(err) {
-			return false, nil
-		}
 		return false, err
 	}
 
-	return nssCr != nil, nil
+	return nssCr != nil && nssCr.Object != nil, nil
 }
 
 // Get namespaces to watch from Namespace Scope Operator ConfigMap. Should only be used in CP2/CP3 coexistence scenario.
@@ -46,21 +44,21 @@ func getWatchNamespaceFromNssConfigMap() (string, error) {
 	dynamicClient := dynamic.NewForConfigOrDie(config)
 	namespace, err := GetOperatorNamespace()
 	if err != nil {
-		return "", err // TODO
+		return "", err
 	}
 
 	// List Namespace Scope CRs in the namespace.
-	nssCrList, err := ListResourcesDynamically(ctx, dynamicClient, "operator.ibm.com", "v1", "namespacescope", namespace)
+	nssCrList, err := ListResourcesDynamically(ctx, dynamicClient, "operator.ibm.com", "v1", "namespacescopes", namespace)
 	if err != nil {
-		return "", err // TODO
+		return "", err
 	}
 
-	var nssConfigmapName string
 	if len(nssCrList) == 0 {
-		return "", nil // TODO
+		return "", nil
 	}
 
 	// Find first CR with configmapName set.
+	var nssConfigmapName string
 	for _, nssCr := range nssCrList {
 		if spec, ok := nssCr.Object["spec"]; ok {
 			if cmName, ok := spec.(map[string]interface{})["configmapName"]; ok {
@@ -70,11 +68,11 @@ func getWatchNamespaceFromNssConfigMap() (string, error) {
 		}
 	}
 	if nssConfigmapName == "" {
-		return "", nil // TODO
+		return "", nil
 	}
 
 	// Get Config Map with name specified in Namespace Scope CR
-	nssCm, err := GetResourceDynamically(ctx, dynamicClient, nssConfigmapName, "", "v1", "configmap", namespace)
+	nssCm, err := GetResourceDynamically(ctx, dynamicClient, "", "v1", "configmaps", nssConfigmapName, namespace)
 	if err != nil {
 		return "", err
 	}
@@ -102,8 +100,11 @@ func getNamespaceScopeCR() (*unstructured.Unstructured, error) {
 	}
 
 	// List Namespace Scope Operator CRs in the namespace.
-	nssCrList, err := ListResourcesDynamically(ctx, dynamicClient, "operator.ibm.com", "v1", "namespacescope", namespace)
+	nssCrList, err := ListResourcesDynamically(ctx, dynamicClient, "operator.ibm.com", "v1", "namespacescopes", namespace)
 	if err != nil {
+		if k8serr.IsNotFound(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
