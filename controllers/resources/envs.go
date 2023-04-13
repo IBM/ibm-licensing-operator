@@ -35,18 +35,6 @@ func GetWatchNamespace() (string, error) {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
 
-	isNssInstalled, err := IsNamespaceScopeOperatorInstalled()
-	if err != nil {
-		return "", err
-	}
-	if isNssInstalled {
-		nssNs, err := getWatchNamespaceFromNssConfigMap()
-		if err != nil {
-			return "", err
-		}
-		return nssNs, nil
-	}
-
 	return ns, nil
 }
 

@@ -123,12 +123,8 @@ func main() {
 	watchNamespaces, err := res.GetWatchNamespaceAsList()
 	if err != nil {
 		setupLog.Error(err, "unable to get WATCH_NAMESPACE")
-		if operatorNamespace != "" {
-			setupLog.Info("Manager will watch and manage resources only in operator namespace")
-			watchNamespaces = []string{operatorNamespace}
-		} else {
-			setupLog.Info("Manager will watch and manage resources only in all namespaces")
-		}
+		setupLog.Info("Manager will watch and manage resources only in operator namespace")
+		watchNamespaces = []string{operatorNamespace}
 	}
 
 	gvkLabelMap := map[schema.GroupVersionKind]cache.Selector{
@@ -172,11 +168,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO if we are in cs-control ns and there is nss operator then:
-	// - We want to read namespaces into WATCH_NAMESPACE env var from nss cm
-	// - We don't want to discover new OperandRequests cluster-wide
-	// - We don't want to modify (extend) OperatorGroup in our namespace
-
 	operandRequestList := odlm.OperandRequestList{}
 	opreqControllerEnabled, err := res.DoesCRDExist(mgr.GetAPIReader(), &operandRequestList)
 	if err != nil {
@@ -196,7 +187,7 @@ func main() {
 		}
 		crdLogger := ctrl.Log.WithName("operandrequest-discovery")
 		// In Cloud Pak 2.0/3.0 coexistence scenario, License Service Operator 4.x.x leverages Namespace Scope Operator and must not modify OperatorGroup.
-		isNssActive, _ := res.IsNamespaceScopeOperatorInstalled()
+		isNssActive, _ := res.IsNamespaceScopeOperatorAvailable()
 		if isNssActive {
 			setupLog.Info("Namespace Scope CR detected. OperandRequest-discovery disabled")
 		} else {
