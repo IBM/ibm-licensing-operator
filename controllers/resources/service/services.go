@@ -39,7 +39,7 @@ var (
 	usageTargetPortName = intstr.FromString("usage-port")
 )
 
-func GetServices(instance *operatorv1alpha1.IBMLicensing) (expected []*corev1.Service, notExpected []*corev1.Service) {
+func GetServices(instance *operatorv1alpha1.IBMLicensing) (expected, notExpected []*corev1.Service) {
 	expected = append(expected, GetLicensingService(instance))
 
 	prometheusService := GetPrometheusService(instance)
