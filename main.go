@@ -17,6 +17,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -201,6 +202,17 @@ func main() {
 			setupLog.Error(err, "Incorrect reconcile interval set. Defaulting to 300s", "crd-watcher", "OperandRequest")
 		}
 		go res.RestartOnCRDCreation(&logger, mgr.GetClient(), &operandRequestList, reconcileInterval)
+	}
+
+	// If OperandBindInfo CRD, attempt finding bm-licensing-bindinfo and deleting it.
+	opernadBindInfoList := odlm.OperandBindInfoList{}
+	bindInfoCrdExists, err := res.DoesCRDExist(mgr.GetAPIReader(), &opernadBindInfoList)
+	if err != nil {
+		setupLog.Error(err, "An error occurred while checking for CRD existence. OperandBindInfo will not be removed, even if exists")
+	}
+
+	if bindInfoCrdExists {
+		go res.DeleteLicensingOperandBindInfo(context.Background(), mgr.GetClient(), operatorNamespace)
 	}
 
 	// +kubebuilder:scaffold:builder

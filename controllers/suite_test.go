@@ -72,7 +72,7 @@ func TestAPIs(t *testing.T) {
 	RunSpecs(t, "Controller suite", suiteConfig, reporterConfig)
 }
 
-var _ = BeforeSuite(func(done Done) {
+var _ = BeforeSuite(func() {
 
 	logf.SetLogger(zap.New(func(o *zap.Options) {
 		o.Development = true
@@ -180,8 +180,6 @@ var _ = BeforeSuite(func(done Done) {
 		err = mgr.Start(ctrl.SetupSignalHandler())
 		Expect(err).ToNot(HaveOccurred())
 	}()
-
-	close(done)
 })
 
 var _ = AfterSuite(func() {
