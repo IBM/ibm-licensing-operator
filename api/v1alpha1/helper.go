@@ -44,7 +44,7 @@ var memory128Mi = resource.NewQuantity(128*1024*1024, resource.BinarySI)
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
-var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)
+var memory1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
 
 type Container struct {
 	// IBM Licensing Service docker Image Registry, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
@@ -158,7 +158,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 	}
 
 	spec.Container.initResourcesIfNil()
-	spec.Container.setResourceLimitMemoryIfNotSet(*memory512Mi)
+	spec.Container.setResourceLimitMemoryIfNotSet(*memory1Gi)
 	spec.Container.setResourceRequestMemoryIfNotSet(*memory256Mi)
 	spec.Container.setResourceLimitCPUIfNotSet(*cpu500m)
 	spec.Container.setResourceRequestCPUIfNotSet(*cpu200m)
