@@ -205,14 +205,14 @@ func main() {
 	}
 
 	// If OperandBindInfo CRD, attempt finding bm-licensing-bindinfo and deleting it.
-	opernadBindInfoList := odlm.OperandBindInfoList{}
-	bindInfoCrdExists, err := res.DoesCRDExist(mgr.GetAPIReader(), &opernadBindInfoList)
+	operandBindInfoList := odlm.OperandBindInfoList{}
+	bindInfoCrdExists, err := res.DoesCRDExist(mgr.GetAPIReader(), &operandBindInfoList)
 	if err != nil {
-		setupLog.Error(err, "An error occurred while checking for CRD existence. OperandBindInfo will not be removed, even if exists")
+		setupLog.Error(err, "An error occurred while checking for OperandBindInfo CRD existence")
 	}
 
 	if bindInfoCrdExists {
-		go res.DeleteLicensingOperandBindInfo(context.Background(), mgr.GetClient(), operatorNamespace)
+		go res.DeleteLicensingOperandBindInfo(context.TODO(), mgr.GetAPIReader(), mgr.GetClient(), operatorNamespace)
 	}
 
 	// +kubebuilder:scaffold:builder

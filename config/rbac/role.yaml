@@ -187,6 +187,15 @@ rules:
   - list
   - watch
 - apiGroups:
+  - operator.ibm.com
+  resources:
+  - operandbindinfos
+  verbs:
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
   - operators.coreos.com
   resources:
   - operatorgroups

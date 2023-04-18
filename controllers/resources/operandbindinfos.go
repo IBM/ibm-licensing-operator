@@ -29,15 +29,17 @@ import (
 
 const LsBindInfoName = "ibm-licensing-bindinfo"
 
+// +kubebuilder:rbac:namespace=ibm-licensing,groups="operator.ibm.com",resources=operandbindinfos,verbs=get;list;watch;delete
+
 // Detect and delete existing IBM Licensing OperandBindInfo. It can still be left on cluster left after upgrade from 1.x.x to 4.x.x
-func DeleteLicensingOperandBindInfo(ctx context.Context, client client.Client, namespace string) {
+func DeleteLicensingOperandBindInfo(ctx context.Context, reader client.Reader, writer client.Writer, namespace string) {
 
 	bindinfo := odlm.OperandBindInfo{}
 
 	for {
 		time.Sleep(5 * time.Second)
 
-		err := client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: LsBindInfoName}, &bindinfo)
+		err := reader.Get(ctx, types.NamespacedName{Namespace: namespace, Name: LsBindInfoName}, &bindinfo)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return
@@ -45,7 +47,7 @@ func DeleteLicensingOperandBindInfo(ctx context.Context, client client.Client, n
 			continue
 		}
 
-		err = client.Delete(ctx, &bindinfo)
+		err = writer.Delete(ctx, &bindinfo)
 		if err != nil {
 			continue
 		}
