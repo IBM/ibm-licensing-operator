@@ -20,6 +20,7 @@ import (
 	"context"
 	"time"
 
+	"emperror.dev/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -27,31 +28,40 @@ import (
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
-const LsBindInfoName = "ibm-licensing-bindinfo"
+const (
+	LsBindInfoName = "ibm-licensing-bindinfo"
+	retryTime      = 10 * time.Second
+)
 
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="operator.ibm.com",resources=operandbindinfos,verbs=get;list;watch;delete
 
 // Detect and delete existing IBM Licensing OperandBindInfo. It can still be left on cluster left after upgrade from 1.x.x to 4.x.x
-func DeleteLicensingOperandBindInfo(ctx context.Context, reader client.Reader, writer client.Writer, namespace string) {
+func DeleteBindInfoIfExists(ctx context.Context, client client.Client, namespace string) error {
 
+	var err error
 	bindinfo := odlm.OperandBindInfo{}
+	retries := 3
 
-	for {
-		time.Sleep(5 * time.Second)
-
-		err := reader.Get(ctx, types.NamespacedName{Namespace: namespace, Name: LsBindInfoName}, &bindinfo)
+	for retries > 0 {
+		err = client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: LsBindInfoName}, &bindinfo)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				return
+				return nil
 			}
+			time.Sleep(retryTime)
+			retries = retries - 1
 			continue
 		}
 
-		err = writer.Delete(ctx, &bindinfo)
+		err = client.Delete(ctx, &bindinfo)
 		if err != nil {
+			time.Sleep(retryTime)
+			retries = retries - 1
 			continue
 		}
 
-		return
+		return nil
 	}
+
+	return errors.Wrap(err, "Could not delete "+LsBindInfoName+" after 3 retires")
 }

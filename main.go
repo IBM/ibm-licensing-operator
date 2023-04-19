@@ -212,7 +212,14 @@ func main() {
 	}
 
 	if bindInfoCrdExists {
-		go res.DeleteLicensingOperandBindInfo(context.TODO(), mgr.GetAPIReader(), mgr.GetClient(), operatorNamespace)
+		go func() {
+			err := res.DeleteBindInfoIfExists(context.TODO(), mgr.GetClient(), operatorNamespace)
+			if err != nil {
+				ctrl.Log.Error(err, "An error occurred while detecting and deleting "+res.LsBindInfoName)
+			} else {
+				ctrl.Log.Info(res.LsBindInfoName + " deleted")
+			}
+		}()
 	}
 
 	// +kubebuilder:scaffold:builder
