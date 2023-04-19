@@ -19,40 +19,23 @@ package resources
 import (
 	"context"
 
-	"k8s.io/client-go/dynamic"
-	ctrl "sigs.k8s.io/controller-runtime"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const namespaceScopeCmName = "namespace-scope"
 
-// +kubebuilder:rbac:namespace=ibm-licensing,groups=operator.ibm.com,resources=namespacescopes;namespacescopes/finalizers;namespacescopes/status,verbs=get;list;watch
-
 // Return true if Namespace Scope Config Map is available in operator's namespace.
-func IsNamespaceScopeOperatorAvailable() (bool, error) {
-	ctx := context.Background()
-	config := ctrl.GetConfigOrDie()
-	dynamicClient := dynamic.NewForConfigOrDie(config)
-	namespace, err := GetOperatorNamespace()
+func IsNamespaceScopeOperatorAvailable(ctx context.Context, reader client.Reader, namespace string) (bool, error) {
+	nssCm := corev1.ConfigMap{}
+	err := reader.Get(ctx, types.NamespacedName{Namespace: namespace, Name: namespaceScopeCmName}, &nssCm)
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
 		return false, err
 	}
-
-	nssCrExists, err := isNamespaceScopeCmExists(ctx, dynamicClient, namespace)
-	if err != nil {
-		return false, err
-	}
-
-	return nssCrExists, nil
-}
-
-func isNamespaceScopeCmExists(ctx context.Context, client dynamic.Interface, namespace string) (bool, error) {
-	nssCm, err := GetResourceDynamically(ctx, client, "", "v1", "configmaps", namespaceScopeCmName, namespace)
-	if err != nil {
-		return false, err
-	}
-	if nssCm == nil {
-		return false, nil
-	}
-
 	return true, nil
 }

@@ -188,11 +188,11 @@ func main() {
 		}
 		crdLogger := ctrl.Log.WithName("operandrequest-discovery")
 		// In Cloud Pak 2.0/3.0 coexistence scenario, License Service Operator 4.x.x leverages Namespace Scope Operator and must not modify OperatorGroup.
-		isNssActive, _ := res.IsNamespaceScopeOperatorAvailable()
-		if isNssActive {
-			setupLog.Info("Namespace Scope CR detected. OperandRequest-discovery disabled")
-		} else {
+		isNssActive, _ := res.IsNamespaceScopeOperatorAvailable(context.Background(), mgr.GetClient(), operatorNamespace)
+		if !isNssActive {
 			go controllers.DiscoverOperandRequests(&crdLogger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
+		} else {
+			setupLog.Info("Namespace Scope Config Map detected. operandrequest-discovery disabled")
 		}
 	} else {
 		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")

@@ -179,16 +179,6 @@ rules:
 - apiGroups:
   - operator.ibm.com
   resources:
-  - namespacescopes
-  - namespacescopes/finalizers
-  - namespacescopes/status
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - operator.ibm.com
-  resources:
   - operandbindinfos
   verbs:
   - delete
