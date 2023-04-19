@@ -69,6 +69,8 @@ func TestDeleteBindInfoIfExists(t *testing.T) {
 			client := fake.NewClientBuilder().WithScheme(scheme.Scheme).Build()
 			err := DeleteBindInfoIfExists(context.Background(), client, namespace)
 			if err != nil {
+				t.Errorf("\t%s\tShould not return an error when OperandBindInfo does not exist : %v", FAIL, err)
+			} else {
 				t.Logf("\t%s\tShould not return an error when OperandBindInfo does not exist", SUCCESS)
 			}
 		}

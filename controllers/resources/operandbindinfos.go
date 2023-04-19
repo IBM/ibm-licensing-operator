@@ -28,16 +28,14 @@ import (
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
-const (
-	LsBindInfoName = "ibm-licensing-bindinfo"
-	retryTime      = 10 * time.Second
-)
+const LsBindInfoName = "ibm-licensing-bindinfo"
 
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="operator.ibm.com",resources=operandbindinfos,verbs=get;list;watch;delete
 
-// Detect and delete existing IBM Licensing OperandBindInfo. It can still be left on cluster left after upgrade from 1.x.x to 4.x.x
+// Detect and delete existing IBM Licensing OperandBindInfo.
 func DeleteBindInfoIfExists(ctx context.Context, client client.Client, namespace string) error {
 
+	const retryTime = 10 * time.Second
 	var err error
 	bindinfo := odlm.OperandBindInfo{}
 	retries := 3

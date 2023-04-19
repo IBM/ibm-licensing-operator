@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"testing"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	. "github.com/onsi/ginkgo/v2"
@@ -34,10 +33,7 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
 )
 
-func TestCheckReconcileLicensing(t *testing.T) {
-}
-
-var _ = Describe("IBMLicensing controller", func() {
+var _ = Describe("IBMLicensing controller", Ordered, func() {
 	const (
 		name = "instance-test"
 	)
