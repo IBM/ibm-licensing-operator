@@ -190,10 +190,10 @@ func main() {
 		// In Cloud Pak 2.0/3.0 coexistence scenario, License Service Operator 4.x.x leverages Namespace Scope Operator and must not modify OperatorGroup.
 		isNssActive, err := res.IsNamespaceScopeOperatorAvailable(context.Background(), mgr.GetAPIReader(), operatorNamespace)
 		if err != nil {
-			setupLog.Error(err, "Could not detect Namespace Scope Operator")
+			setupLog.Error(err, "Error occurred while detecting Namespace Scope Operator")
 		}
 		if isNssActive {
-			setupLog.Info("Namespace Scope Config Map detected. operandrequest-discovery disabled")
+			setupLog.Info("Namespace Scope ConfigMap detected. operandrequest-discovery disabled")
 		} else {
 			go controllers.DiscoverOperandRequests(&crdLogger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
 		}
@@ -207,7 +207,7 @@ func main() {
 		go res.RestartOnCRDCreation(&logger, mgr.GetClient(), &operandRequestList, reconcileInterval)
 	}
 
-	// If OperandBindInfo CRD, attempt finding bm-licensing-bindinfo and deleting it.
+	// If OperandBindInfo CRD exists, try to find ibm-licensing-bindinfo and delete it.
 	operandBindInfoList := odlm.OperandBindInfoList{}
 	bindInfoCrdExists, err := res.DoesCRDExist(mgr.GetAPIReader(), &operandBindInfoList)
 	if err != nil {

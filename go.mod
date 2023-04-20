@@ -3,6 +3,7 @@ module github.com/IBM/ibm-licensing-operator
 go 1.20
 
 require (
+	emperror.dev/errors v0.8.0
 	github.com/IBM/controller-filtered-cache v0.3.5
 	github.com/IBM/operand-deployment-lifecycle-manager v1.21.0
 	github.com/coreos/prometheus-operator v0.41.0
@@ -23,7 +24,6 @@ require (
 require (
 	cloud.google.com/go/compute v1.18.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
-	emperror.dev/errors v0.8.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
