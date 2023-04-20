@@ -33,7 +33,7 @@ const LsBindInfoName = "ibm-licensing-bindinfo"
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="operator.ibm.com",resources=operandbindinfos,verbs=get;list;watch;delete
 
 // Detect and delete existing IBM Licensing OperandBindInfo.
-func DeleteBindInfoIfExists(ctx context.Context, client client.Client, namespace string) error {
+func DeleteBindInfoIfExists(ctx context.Context, reader client.Reader, writer client.Writer, namespace string) error {
 
 	const retryTime = 10 * time.Second
 	var err error
@@ -41,7 +41,7 @@ func DeleteBindInfoIfExists(ctx context.Context, client client.Client, namespace
 	retries := 3
 
 	for retries > 0 {
-		err = client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: LsBindInfoName}, &bindinfo)
+		err = reader.Get(ctx, types.NamespacedName{Namespace: namespace, Name: LsBindInfoName}, &bindinfo)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				return nil
@@ -51,7 +51,7 @@ func DeleteBindInfoIfExists(ctx context.Context, client client.Client, namespace
 			continue
 		}
 
-		err = client.Delete(ctx, &bindinfo)
+		err = writer.Delete(ctx, &bindinfo)
 		if err != nil {
 			time.Sleep(retryTime)
 			retries = retries - 1

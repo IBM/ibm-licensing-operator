@@ -45,7 +45,7 @@ func TestDeleteBindInfoIfExists(t *testing.T) {
 				t.Fatalf("\t%s\tFake Client setup error. Could not verify OperandBindInfo existence", FAIL)
 			}
 
-			err = DeleteBindInfoIfExists(context.Background(), client, namespace)
+			err = DeleteBindInfoIfExists(context.Background(), client, client, namespace)
 			if err != nil {
 				t.Fatalf("\t%s\tShould not return an error during deleting OperandBindInfo", FAIL)
 			}
@@ -67,7 +67,7 @@ func TestDeleteBindInfoIfExists(t *testing.T) {
 		t.Log("\tTest 1:\tWhen there is no licensing OperandBindInfo in the namespace")
 		{
 			client := fake.NewClientBuilder().WithScheme(scheme.Scheme).Build()
-			err := DeleteBindInfoIfExists(context.Background(), client, namespace)
+			err := DeleteBindInfoIfExists(context.Background(), client, client, namespace)
 			if err != nil {
 				t.Errorf("\t%s\tShould not return an error when OperandBindInfo does not exist : %v", FAIL, err)
 			} else {
