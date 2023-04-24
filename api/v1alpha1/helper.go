@@ -53,7 +53,7 @@ var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 var memory300Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 var memory384Mi = resource.NewQuantity(384*1024*1024, resource.BinarySI)
 var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
-var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)
+var memory1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
 var size1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
 
 type Container struct {
@@ -168,7 +168,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 	}
 
 	spec.Container.initResourcesIfNil()
-	spec.Container.setResourceLimitMemoryIfNotSet(*memory512Mi)
+	spec.Container.setResourceLimitMemoryIfNotSet(*memory1Gi)
 	spec.Container.setResourceRequestMemoryIfNotSet(*memory256Mi)
 	spec.Container.setResourceLimitCPUIfNotSet(*cpu500m)
 	spec.Container.setResourceRequestCPUIfNotSet(*cpu200m)
