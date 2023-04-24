@@ -17,6 +17,7 @@
 package v1alpha1
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -27,23 +28,33 @@ import (
 	"github.com/go-logr/logr"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	client_reader "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const (
-	defaultLicensingTokenSecretName = "ibm-licensing-token"                //#nosec
-	defaultReporterTokenSecretName  = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
-	OperandLicensingImageEnvVar     = "IBM_LICENSING_IMAGE"
-)
+const localReporterURL = "https://ibm-license-service-reporter:8080"
+const defaultLicensingTokenSecretName = "ibm-licensing-token"         //#nosec
+const defaultReporterTokenSecretName = "ibm-licensing-reporter-token" //#nosec
+const OperandLicensingImageEnvVar = "IBM_LICENSING_IMAGE"
+const OperandUsageImageEnvVar = "IBM_LICENSING_USAGE_IMAGE"
+const OperandReporterDatabaseImageEnvVar = "IBM_POSTGRESQL_IMAGE"
+const OperandReporterUIImageEnvVar = "IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE"
+const OperandReporterReceiverImageEnvVar = "IBM_LICENSE_SERVICE_REPORTER_IMAGE"
 
-var (
-	cpu200m     = resource.NewMilliQuantity(200, resource.DecimalSI)
-	memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
-	cpu500m     = resource.NewMilliQuantity(500, resource.DecimalSI)
-	memory1Gi   = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
+var cpu50m = resource.NewMilliQuantity(50, resource.DecimalSI)
+var cpu100m = resource.NewMilliQuantity(100, resource.DecimalSI)
+var memory64Mi = resource.NewQuantity(64*1024*1024, resource.BinarySI)
+var memory128Mi = resource.NewQuantity(128*1024*1024, resource.BinarySI)
 
-	ephemeralStorage256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
-)
+var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
+var cpu300m = resource.NewMilliQuantity(300, resource.DecimalSI)
+var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
+var memory300Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
+var memory384Mi = resource.NewQuantity(384*1024*1024, resource.BinarySI)
+var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
+var memory1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
+var size1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
 
 type Container struct {
 	// IBM Licensing Service docker Image Registry, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
@@ -161,10 +172,21 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 	spec.Container.setResourceRequestMemoryIfNotSet(*memory256Mi)
 	spec.Container.setResourceLimitCPUIfNotSet(*cpu500m)
 	spec.Container.setResourceRequestCPUIfNotSet(*cpu200m)
-	spec.Container.setResourceRequestEphemeralStorageIfNotSet(*ephemeralStorage256Mi)
 
 	if err := spec.setContainer(OperandLicensingImageEnvVar); err != nil {
 		return err
+	}
+
+	if spec.UsageEnabled {
+		spec.UsageContainer.setImagePullPolicyIfNotSet()
+		spec.UsageContainer.initResourcesIfNil()
+		spec.UsageContainer.setResourceLimitMemoryIfNotSet(*memory128Mi)
+		spec.UsageContainer.setResourceRequestMemoryIfNotSet(*memory64Mi)
+		spec.UsageContainer.setResourceLimitCPUIfNotSet(*cpu100m)
+		spec.UsageContainer.setResourceRequestCPUIfNotSet(*cpu50m)
+		if err := spec.UsageContainer.setContainer(OperandUsageImageEnvVar); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -191,6 +213,91 @@ func (spec *IBMLicensingSpec) IsChargebackEnabled() bool {
 		return true
 	}
 	return spec.ChargebackEnabled != nil && *spec.ChargebackEnabled
+}
+
+func (spec *IBMLicenseServiceReporterSpec) FillDefaultValues(reqLogger logr.Logger, r client_reader.Reader) error {
+	if err := spec.DatabaseContainer.setContainer(OperandReporterDatabaseImageEnvVar); err != nil {
+		return err
+	}
+	if err := spec.ReporterUIContainer.setContainer(OperandReporterUIImageEnvVar); err != nil {
+		return err
+	}
+	if err := spec.ReceiverContainer.setContainer(OperandReporterReceiverImageEnvVar); err != nil {
+		return err
+	}
+
+	spec.DatabaseContainer.initResourcesIfNil()
+	spec.DatabaseContainer.setImagePullPolicyIfNotSet()
+	spec.DatabaseContainer.setResourceLimitMemoryIfNotSet(*memory300Mi)
+	spec.DatabaseContainer.setResourceRequestMemoryIfNotSet(*memory256Mi)
+	spec.DatabaseContainer.setResourceLimitCPUIfNotSet(*cpu300m)
+	spec.DatabaseContainer.setResourceRequestCPUIfNotSet(*cpu200m)
+
+	spec.ReceiverContainer.initResourcesIfNil()
+	spec.ReceiverContainer.setImagePullPolicyIfNotSet()
+	spec.ReceiverContainer.setResourceLimitMemoryIfNotSet(*memory384Mi)
+	spec.ReceiverContainer.setResourceRequestMemoryIfNotSet(*memory256Mi)
+	spec.ReceiverContainer.setResourceLimitCPUIfNotSet(*cpu300m)
+	spec.ReceiverContainer.setResourceRequestCPUIfNotSet(*cpu200m)
+
+	spec.ReporterUIContainer.initResourcesIfNil()
+	spec.ReporterUIContainer.setImagePullPolicyIfNotSet()
+	spec.ReporterUIContainer.setResourceLimitMemoryIfNotSet(*memory300Mi)
+	spec.ReporterUIContainer.setResourceRequestMemoryIfNotSet(*memory256Mi)
+	spec.ReporterUIContainer.setResourceLimitCPUIfNotSet(*cpu300m)
+	spec.ReporterUIContainer.setResourceRequestCPUIfNotSet(*cpu200m)
+
+	if spec.Capacity.IsZero() {
+		spec.Capacity = *size1Gi
+	}
+
+	if spec.APISecretToken == "" {
+		spec.APISecretToken = defaultReporterTokenSecretName
+	}
+	if spec.HTTPSCertsSource == "" {
+		spec.HTTPSCertsSource = OcpCertsSource
+	}
+	if spec.StorageClass == "" {
+		storageClass, err := getStorageClass(reqLogger, r)
+		if err != nil {
+			reqLogger.Error(err, "Failed to get StorageCLass for IBM License Service Reporter")
+			return err
+		}
+		spec.StorageClass = storageClass
+	}
+	return nil
+
+}
+
+func getStorageClass(reqLogger logr.Logger, r client_reader.Reader) (string, error) {
+	var defaultSC []string
+
+	scList := &storagev1.StorageClassList{}
+	reqLogger.Info("getStorageClass")
+	err := r.List(context.TODO(), scList)
+	if err != nil {
+		return "", err
+	}
+	if len(scList.Items) == 0 {
+		return "", fmt.Errorf("could not find storage class in the cluster")
+	}
+
+	for _, sc := range scList.Items {
+		if sc.Provisioner == "kubernetes.io/no-provisioner" {
+			continue
+		}
+		if sc.ObjectMeta.GetAnnotations()["storageclass.kubernetes.io/is-default-class"] == "true" {
+			defaultSC = append(defaultSC, sc.GetName())
+			continue
+		}
+	}
+
+	if len(defaultSC) != 0 {
+		reqLogger.Info("StorageClass configuration", "Name", defaultSC[0])
+		return defaultSC[0], nil
+	}
+
+	return "", fmt.Errorf("could not find dynamic provisioner default storage class in the cluster")
 }
 
 func (container *Container) initResourcesIfNil() {
@@ -223,12 +330,6 @@ func (container *Container) setResourceLimitMemoryIfNotSet(value resource.Quanti
 func (container *Container) setResourceRequestMemoryIfNotSet(value resource.Quantity) {
 	if container.Resources.Requests.Memory().IsZero() {
 		container.Resources.Requests[corev1.ResourceMemory] = value
-	}
-}
-
-func (container *Container) setResourceRequestEphemeralStorageIfNotSet(value resource.Quantity) {
-	if container.Resources.Requests.StorageEphemeral().IsZero() {
-		container.Resources.Requests[corev1.ResourceEphemeralStorage] = value
 	}
 }
 
@@ -294,6 +395,15 @@ func CheckOperandEnvVar() error {
 	if err := c.getImageParametersFromEnv(OperandLicensingImageEnvVar); err != nil {
 		return err
 	}
+	if err := c.getImageParametersFromEnv(OperandReporterDatabaseImageEnvVar); err != nil {
+		return err
+	}
+	if err := c.getImageParametersFromEnv(OperandReporterUIImageEnvVar); err != nil {
+		return err
+	}
+	if err := c.getImageParametersFromEnv(OperandReporterReceiverImageEnvVar); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -302,4 +412,40 @@ func (container *Container) setImagePullPolicyIfNotSet() {
 	if container.ImagePullPolicy == "" {
 		container.ImagePullPolicy = corev1.PullIfNotPresent
 	}
+}
+
+func (spec *IBMLicensingSpec) SetDefaultSenderParameters() bool {
+
+	//returns true if any changes were made
+	changed := false
+
+	if spec.Sender == nil {
+		spec.Sender = &IBMLicensingSenderSpec{}
+	}
+
+	if spec.Sender.ReporterURL == "" {
+		spec.Sender.ReporterURL = localReporterURL
+		changed = true
+	}
+
+	if spec.Sender.ReporterSecretToken == "" {
+		spec.Sender.ReporterSecretToken = defaultReporterTokenSecretName
+		changed = true
+	}
+
+	return changed
+}
+
+func (spec *IBMLicensingSpec) RemoveDefaultSenderParameters() bool {
+
+	//returns true if any changes were made
+
+	//checking only token because secret removes automatically and may cause k8s config error
+	//if checking also url and not removing on only url change
+	if spec.Sender != nil && spec.Sender.ReporterSecretToken == defaultReporterTokenSecretName {
+		spec.Sender = nil
+		return true
+	}
+
+	return false
 }
