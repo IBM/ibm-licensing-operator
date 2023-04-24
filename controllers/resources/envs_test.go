@@ -52,12 +52,12 @@ func TestGetReconcileInterval(t *testing.T) {
 
 		t.Log("\tTest 1:\tWhen env var is not set")
 		{
-			expectedInterval := 3600 * time.Second
+			expectedInterval := 300 * time.Second
 			actualInterval, err := GetCrdReconcileInterval()
 			if err != nil {
 				t.Fatalf("\t%s\tShould get time interval in seconds : %v", FAIL, err)
 			}
-			if actualInterval == 3600*time.Second {
+			if actualInterval == expectedInterval {
 				t.Logf("\t%s\tShould get default time interval %s", SUCCESS, actualInterval)
 			} else {
 				t.Errorf("\t%s\tShould get default time interval %s : %s", SUCCESS, expectedInterval, actualInterval)

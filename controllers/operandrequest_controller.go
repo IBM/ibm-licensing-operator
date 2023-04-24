@@ -38,8 +38,6 @@ import (
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
-const lsBindInfoName = "ibm-licensing-bindinfo"
-
 var operandBindInfoInfix, _ = regexp.Compile(`^(.*)(opbi|bindinfo)(.*)$`)
 
 // OperandRequestReconciler reconciles a OperandRequest object
@@ -191,7 +189,7 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 	}
 
 	if targetName == "" {
-		targetName = lsBindInfoName + "-" + sourceName
+		targetName = res.LsBindInfoName + "-" + sourceName
 	}
 
 	secret := corev1.Secret{}
@@ -269,7 +267,7 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 	}
 
 	if targetName == "" {
-		targetName = lsBindInfoName + "-" + sourceName
+		targetName = res.LsBindInfoName + "-" + sourceName
 	}
 
 	cm := corev1.ConfigMap{}

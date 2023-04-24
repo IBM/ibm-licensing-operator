@@ -107,6 +107,33 @@ func OperandRequestObjWithBindings(name, namespace, requestedOperandName string)
 	}
 }
 
+func LicensingOperandBindInfo(name, namespace string) odlm.OperandBindInfo {
+	return odlm.OperandBindInfo{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: odlm.OperandBindInfoSpec{
+			Bindings: map[string]odlm.SecretConfigmap{
+				"public-api-data": {
+					Configmap: "ibm-licensing-info",
+					Secret:    "ibm-licensing-token",
+				},
+				"public-api-token": {
+					Secret: "ibm-licensing-token",
+				},
+				"public-api-upload": {
+					Configmap: "ibm-licensing-upload-config",
+					Secret:    "ibm-licensing-upload-token",
+				},
+			},
+			Description: "Binding information that should be accessible to licensing adopters",
+			Operand:     "ibm-licensing-operator",
+			Registry:    "common-service",
+		},
+	}
+}
+
 func SecretObj(name, namespace string, data, labels, annotations map[string]string) corev1.Secret {
 	return corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{

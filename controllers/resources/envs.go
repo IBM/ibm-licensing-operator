@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-// GetWatchNamespace returns the Namespace the operator should be watching for changes
+// GetWatchNamespace returns the Namespace the operator should be watching for changes.
 func GetWatchNamespace() (string, error) {
 	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
 	// which specifies the Namespace to watch.
@@ -38,8 +38,8 @@ func GetWatchNamespace() (string, error) {
 	return ns, nil
 }
 
-// GetWatchNamespaceList returns the Namespace the operator should be watching for changes in form of list
-func GetWatchNamespaceList() ([]string, error) {
+// GetWatchNamespaceList returns list of namespaces operator should watch for changes.
+func GetWatchNamespaceAsList() ([]string, error) {
 
 	ns, err := GetWatchNamespace()
 	if err != nil {
@@ -49,7 +49,7 @@ func GetWatchNamespaceList() ([]string, error) {
 	return strings.Split(ns, ","), nil
 }
 
-// GetOperatorNamespace returns the Namespace the operator should be watching for changes
+// GetOperatorNamespace returns the Namespace the operator should be watching for changes.
 func GetOperatorNamespace() (string, error) {
 	// OperatorNamespaceEnvVar is the constant for env variable OPERATOR_NAMESPACE
 	// which describes the namespace where operator is working.
@@ -63,19 +63,19 @@ func GetOperatorNamespace() (string, error) {
 	return ns, nil
 }
 
-// GetCrdReconcileInterval returns time duration in seconds for requested CRD watching
+// GetCrdReconcileInterval returns time duration in seconds for requested CRD watching. Defaults to 300s.
 func GetCrdReconcileInterval() (time.Duration, error) {
 	crdReconcileEnvVar := "CRD_RECONCILE_INTERVAL"
 
-	reconcileInterval := 3600 * time.Second
+	defaultReconcileInterval := 300 * time.Second
 	env, found := os.LookupEnv(crdReconcileEnvVar)
 
 	if found {
 		envVal, err := strconv.Atoi(env)
 		if err != nil {
-			return 3600 * time.Second, fmt.Errorf("%s must be a natural number", crdReconcileEnvVar)
+			return defaultReconcileInterval, fmt.Errorf("%s must be a natural number", crdReconcileEnvVar)
 		}
 		return time.Duration(envVal) * time.Second, nil
 	}
-	return reconcileInterval, nil
+	return defaultReconcileInterval, nil
 }
