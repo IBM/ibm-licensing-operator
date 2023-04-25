@@ -49,6 +49,9 @@ spec:
                 description: Secret name used to store application token, either one
                   that exists, or one that will be created
                 type: string
+              licenseAccept:
+                description: License acceptance for IBM Licensing operator
+                type: boolean
               chargebackEnabled:
                 description: Consider updating to enable chargeback feature
                 type: boolean

@@ -42,6 +42,13 @@ spec:
           spec:
             description: IBMLicensingSpec defines the desired state of IBMLicensing
             properties:
+              # license:
+                # accept:
+                #   description: By installing the operator for IBM Licensing, you accept the license terms found here <link>.
+                #   type: boolean
+              licenseAccept:
+                description: By installing the operator for IBM Licensing, you accept the license terms found here <link>.
+                type: boolean
               apiSecretToken:
                 description: Secret name used to store application token, either one
                   that exists, or one that will be created

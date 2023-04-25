@@ -950,6 +950,11 @@ func (r *IBMLicensingReconciler) getSelfSignedCertWithOwnerReference(
 }
 
 func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBMLicensing) {
+	if instance.Spec.IsLicenseAccepted() {
+		r.Log.Info("License has been accepted")
+	} else {
+		r.Log.Info("ERROR - license not accepted")
+	}
 	if res.IsRouteAPI {
 		r.Log.Info("Route feature is enabled")
 	} else {

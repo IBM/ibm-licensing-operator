@@ -182,6 +182,10 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 	return nil
 }
 
+func (spec *IBMLicensingSpec) IsLicenseAccepted() bool {
+	return spec.LicenseAccept != nil && *spec.LicenseAccept
+}
+
 func (spec *IBMLicensingSpec) IsRouteEnabled() bool {
 	return spec.RouteEnabled != nil && *spec.RouteEnabled
 }
