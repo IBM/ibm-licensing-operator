@@ -91,9 +91,9 @@ spec:
       - description: License agreement https://ibm.biz/oms-license must be accepted
           during install of this component.
         displayName: License Acceptance
-        path: license.accept
+        path: license
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:checkbox
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Consider updating to enable chargeback feature
         displayName: Chargeback Enabled
         path: chargebackEnabled

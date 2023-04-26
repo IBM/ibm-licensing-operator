@@ -116,7 +116,6 @@ type IBMLicensingSpec struct {
 
 	// IBM License Service license acceptance.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="License Acceptance",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
-	// +optional
 	License *License `json:"license"`
 
 	// Consider updating to enable chargeback feature
