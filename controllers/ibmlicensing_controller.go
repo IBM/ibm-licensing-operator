@@ -955,7 +955,7 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 		r.Log.Info("License has been accepted")
 	} else {
 		err := errors.New("license not accepted")
-		r.Log.Error(err, "License not accepted. Please accept it in the IBMLicensing CR")
+		r.Log.Error(err, "License not accepted. Please accept it in the IBMLicensing CR", "namespace", r.OperatorNamespace, "ibmlicensingname", instance.Name)
 	}
 	if res.IsRouteAPI {
 		r.Log.Info("Route feature is enabled")

@@ -17,11 +17,11 @@
 package v1alpha1
 
 type License struct {
-	// Accept license terms of usage: https://ibm.biz/icpfs39license.
+	// Accept license terms of usage: https://ibm.biz/oms-license.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="License acceptance",xDescriptors="urn:alm:descriptor:com.tectonic.ui:checkbox"
-	Accept *bool `json:"accept,omitempty"`
+	Accept bool `json:"accept"`
 }
 
 func (spec *IBMLicensingSpec) IsLicenseAccepted() bool {
-	return spec.License != nil && spec.License.Accept != nil && *spec.License.Accept
+	return spec.License != nil && spec.License.Accept
 }

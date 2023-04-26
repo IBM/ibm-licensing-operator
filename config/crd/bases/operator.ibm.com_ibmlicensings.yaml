@@ -211,8 +211,10 @@ spec:
                 description: IBM License Service license acceptance.
                 properties:
                   accept:
-                    description: 'Accept license terms of usage: https://ibm.biz/icpfs39license.'
+                    description: 'Accept license terms of usage: https://ibm.biz/oms-license.'
                     type: boolean
+                required:
+                - accept
                 type: object
               logLevel:
                 description: 'Should application pod show additional information,
