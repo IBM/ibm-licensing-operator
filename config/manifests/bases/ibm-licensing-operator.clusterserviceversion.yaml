@@ -88,11 +88,11 @@ spec:
         name: ""
         version: v1alpha1
       specDescriptors:
-      - description: License acceptance for IBM Licensing operator
+      - description: License acceptance for IBM License Service
         displayName: License Acceptance
-        path: licenseAccept
+        path: license.accept
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:checkbox       
+        - urn:alm:descriptor:com.tectonic.ui:checkbox
       - description: Consider updating to enable chargeback feature
         displayName: Chargeback Enabled
         path: chargebackEnabled

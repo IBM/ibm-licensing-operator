@@ -62,7 +62,7 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.0.0
-    createdAt: "2023-04-19T08:43:42Z"
+    createdAt: "2023-04-26T12:13:54Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     nss.operator.ibm.com/managed-operators: ibm-licensing-operator-app
     olm.skipRange: '>=1.0.0 <4.0.0'
@@ -139,9 +139,9 @@ spec:
             name: ""
             version: v1alpha1
         specDescriptors:
-          - description: License acceptance for IBM Licensing operator
-            displayName: License Accepted
-            path: licenseAccept
+          - description: License acceptance for IBM License Service
+            displayName: License Acceptance
+            path: license.accept
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:checkbox
           - description: Consider updating to enable chargeback feature

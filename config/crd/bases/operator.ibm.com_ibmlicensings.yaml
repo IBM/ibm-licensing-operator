@@ -42,13 +42,6 @@ spec:
           spec:
             description: IBMLicensingSpec defines the desired state of IBMLicensing
             properties:
-              # license:
-                # accept:
-                #   description: By installing the operator for IBM Licensing, you accept the license terms found here <link>.
-                #   type: boolean
-              licenseAccept:
-                description: By installing the operator for IBM Licensing, you accept the license terms found here <link>.
-                type: boolean
               apiSecretToken:
                 description: Secret name used to store application token, either one
                   that exists, or one that will be created
@@ -214,6 +207,13 @@ spec:
                   will start. In case metering data collection is used, should be
                   the same namespace as metering components
                 type: string
+              license:
+                description: Is license of IBM Licensing operator is accepted?
+                properties:
+                  accepted:
+                    description: Is license accepted.
+                    type: boolean
+                type: object
               logLevel:
                 description: 'Should application pod show additional information,
                   options: DEBUG, INFO, VERBOSE'

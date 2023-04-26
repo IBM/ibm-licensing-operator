@@ -117,7 +117,7 @@ type IBMLicensingSpec struct {
 	// Is license of IBM Licensing operator is accepted?
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="License Acceptance",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
-	LicenseAccept *bool `json:"LicenseAccept,omitempty"`
+	License *License `json:"license,omitempty"`
 
 	// Consider updating to enable chargeback feature
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
