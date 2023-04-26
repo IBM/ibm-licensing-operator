@@ -211,10 +211,10 @@ spec:
                   the same namespace as metering components
                 type: string
               license:
-                description: Is license of IBM Licensing operator is accepted?
+                description: IBM License Service license acceptance.
                 properties:
-                  accepted:
-                    description: Is license accepted.
+                  accept:
+                    description: 'Accept license terms of usage: https://ibm.biz/icpfs39license.'
                     type: boolean
                 type: object
               logLevel:

@@ -88,7 +88,8 @@ spec:
         name: ""
         version: v1alpha1
       specDescriptors:
-      - description: License acceptance for IBM License Service
+      - description: License agreement https://ibm.biz/oms-license must be accepted
+          during install of this component.
         displayName: License Acceptance
         path: license.accept
         x-descriptors:
