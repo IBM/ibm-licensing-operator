@@ -194,7 +194,7 @@ type IBMLicensingFeaturesStatus struct {
 
 // IBM License Service is the Schema for the ibmlicensings API.
 // Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
-// License By installing this product you accept the license terms https://ibm.biz/icpfs39license.
+// License By installing this product you accept the license terms https://ibm.biz/lsvc-lic.
 // +kubebuilder:printcolumn:name="Pod Phase",type=string,JSONPath=`.status..phase`
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ibmlicensings,scope=Cluster

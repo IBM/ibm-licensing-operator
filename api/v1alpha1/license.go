@@ -17,7 +17,7 @@
 package v1alpha1
 
 type License struct {
-	// By installing the IBM License Service, you accept the license terms found here https://ibm.biz/icpfs39license.'
+	// By installing the IBM License Service, you accept the license terms found here https://ibm.biz/lsvc-lic.'
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="License acceptance",xDescriptors="urn:alm:descriptor:com.tectonic.ui:checkbox"
 	// +optional
 	Accept bool `json:"accept"`
