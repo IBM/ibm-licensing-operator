@@ -216,8 +216,6 @@ spec:
                   accept:
                     description: 'Accept license terms of usage: https://ibm.biz/oms-license.'
                     type: boolean
-                required:
-                - accept
                 type: object
               logLevel:
                 description: 'Should application pod show additional information,
@@ -409,7 +407,6 @@ spec:
             required:
             - datasource
             - httpsEnable
-            - license
             type: object
             x-kubernetes-preserve-unknown-fields: true
           status:
