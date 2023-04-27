@@ -62,4 +62,3 @@ For the overview and documentation, see [License Service deployment without an I
 --->
 
 **Note:** License Service Reporter, which is an extension of License Service that aggregates the license usage data from multiple clusters, is not available without an IBM Cloud Pak on OpenShift Container Platform. License Service Reporter is only available as a part of an IBM Cloud Pak on OpenShift Container Platform (included in IBM Cloud Pak foundational services).
-
