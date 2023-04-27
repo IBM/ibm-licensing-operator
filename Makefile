@@ -434,10 +434,8 @@ update-roles-alm-example: alm-example
 alm-example:
 	mkdir -p /tmp/json
 	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml > /tmp/json/ibmlicensing.json
-	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingbindinfo.yaml > /tmp/json/ibmlicensingbindinfo.json
-	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensingrequest.yaml > /tmp/json/ibmlicensingrequest.json
 
-	jq -s '.' /tmp/json/ibmlicensing.json /tmp/json/ibmlicensingbindinfo.json /tmp/json/ibmlicensingrequest.json > /tmp/json/merged.json
+	jq -s '.' /tmp/json/ibmlicensing.json > /tmp/json/merged.json
 	yq -i '.metadata.annotations.alm-examples |= load_str("/tmp/json/merged.json")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
 	rm -r /tmp/json
