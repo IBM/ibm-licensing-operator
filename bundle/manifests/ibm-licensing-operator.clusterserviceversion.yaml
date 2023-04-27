@@ -62,7 +62,7 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.0.0
-    createdAt: "2023-04-27T09:17:27Z"
+    createdAt: "2023-04-27T12:07:22Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     nss.operator.ibm.com/managed-operators: ibm-licensing-operator-app
     olm.skipRange: '>=1.0.0 <4.0.0'
@@ -85,7 +85,7 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-      - description: 'IBM License Service is the Schema for the ibmlicensings API. Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install. License By installing this product you accept the license terms https://ibm.biz/icpfs39license.'
+      - description: 'IBM License Service is the Schema for the ibmlicensings API. Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install. By installing the IBM License Service, you accept the license terms found here https://ibm.biz/icpfs39license.'
         displayName: IBM License Service
         kind: IBMLicensing
         name: ibmlicensings.operator.ibm.com
@@ -139,7 +139,7 @@ spec:
             name: ""
             version: v1alpha1
         specDescriptors:
-          - description: License agreement https://ibm.biz/oms-license must be accepted during install of this component.
+          - description: 'Please read and accept before installing IBM License Service: https://ibm.biz/icpfs39license.'
             displayName: License Acceptance
             path: license
             x-descriptors:
@@ -263,7 +263,7 @@ spec:
       - kind: IBMLicensingDefinition
         name: ibmlicensingdefinitions.operator.ibm.com
         version: v1
-      - description: 'IBMLicensingMetadata is the schema for IBM License Service. Thanks to IBMLicensingMetadata, you can track the license usage of Virtual Processor Core (VPC) metric by Pods that are managed by automation, for which licensing annotations are not defined at the time of deployment, such as the open source OpenLiberty. / For more information, see documentation: https://ibm.biz/icpfs39install. License: By installing this product you accept the license terms. For more information about the license, see https://ibm.biz/icpfs39license.'
+      - description: 'IBMLicensingMetadata is the schema for IBM License Service. Thanks to IBMLicensingMetadata, you can track the license usage of Virtual Processor Core (VPC) metric by Pods that are managed by automation, for which licensing annotations are not defined at the time of deployment, such as the open source OpenLiberty. / For more information, see documentation: https://ibm.biz/icpfs39install. By installing the operator for IBM License Service, you accept the license terms found here https://ibm.biz/icpfs39license.'
         displayName: IBMLicensing Metadata
         kind: IBMLicensingMetadata
         name: ibmlicensingmetadatas.operator.ibm.com

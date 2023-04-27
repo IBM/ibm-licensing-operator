@@ -214,7 +214,8 @@ spec:
                 description: IBM License Service license acceptance.
                 properties:
                   accept:
-                    description: 'Accept license terms of usage: https://ibm.biz/oms-license.'
+                    description: By installing the IBM License Service, you accept
+                      the license terms found here https://ibm.biz/icpfs39license.'
                     type: boolean
                 type: object
               logLevel:
