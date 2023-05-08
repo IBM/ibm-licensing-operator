@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"reflect"
 	goruntime "runtime"
@@ -954,8 +953,8 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 	if instance.Spec.IsLicenseAccepted() {
 		r.Log.Info("License has been accepted")
 	} else {
-		err := errors.New("license not accepted")
-		r.Log.Error(err, "Please read <link> and accept it in the IBMLicensing CR, under spec.license.accept", "ibmlicensingname", instance.Name)
+		err := fmt.Errorf("license not accepted")
+		r.Log.Error(err, "Please read https://ibm.biz/lsvc-lic and accept it in the IBMLicensing CR, under spec.license.accept", "ibmlicensingname", instance.Name)
 	}
 	if res.IsRouteAPI {
 		r.Log.Info("Route feature is enabled")
