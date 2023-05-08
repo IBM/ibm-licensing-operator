@@ -215,7 +215,7 @@ spec:
                 properties:
                   accept:
                     description: By installing the IBM License Service, you accept
-                      the license terms found here https://ibm.biz/lsvc-lic.'
+                      the license terms found here https://ibm.biz/lsvc-lic
                     type: boolean
                 type: object
               logLevel:
