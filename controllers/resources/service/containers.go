@@ -78,12 +78,6 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "true",
 		})
 	}
-	if spec.IsLicenseAccepted() {
-		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "LICENSE_ACCEPTED",
-			Value: "true",
-		})
-	}
 	if spec.IsChargebackEnabled() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "ENABLE_CHARGEBACK",
