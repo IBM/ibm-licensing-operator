@@ -216,6 +216,12 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 				return newInstance.Spec.IsChargebackEnabled()
 			}, timeout, interval).Should(Equal(false))
 
+			By("Checking if license is accepted")
+			Eventually(func() bool {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
+				return newInstance.Spec.IsLicenseAccepted()
+			}, timeout, interval).Should(Equal(false))
+
 		})
 
 		It("Should create IBMLicensing with RHMP enabled", func() {

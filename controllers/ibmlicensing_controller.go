@@ -31,7 +31,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -69,7 +69,7 @@ func (r *IBMLicensingReconciler) createDefaultInstanceAfterCheck() error {
 	reqLogger := r.Log.WithValues("action", "Default IBMLicensing instance creation")
 	ibmLicensing := service.GetDefaultIBMLicensing()
 	err := r.Client.Create(context.TODO(), &ibmLicensing)
-	if err != nil && !errors.IsAlreadyExists(err) {
+	if err != nil && !apierrors.IsAlreadyExists(err) {
 		reqLogger.Error(err, "Failure.")
 		return err
 	}
@@ -879,12 +879,12 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	// foundRes already initialized before and passed via parameter
 	err = r.Client.Get(context.TODO(), namespacedName, foundRes)
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
 				"Namespace", expectedRes.GetNamespace())
 			err = r.Client.Create(context.TODO(), expectedRes)
 			if err != nil {
-				if !errors.IsAlreadyExists(err) {
+				if !apierrors.IsAlreadyExists(err) {
 					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
 						"Namespace", expectedRes.GetNamespace())
 					return reconcile.Result{}, err
@@ -920,7 +920,7 @@ func (r *IBMLicensingReconciler) reconcileResourceWhichShouldNotExist(
 
 	err := r.Client.Get(context.TODO(), namespacedName, foundRes)
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			return reconcile.Result{}, nil
 		} else if metaErrors.IsNoMatchError(err) {
 			return reconcile.Result{}, nil
@@ -950,6 +950,12 @@ func (r *IBMLicensingReconciler) getSelfSignedCertWithOwnerReference(
 }
 
 func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBMLicensing) {
+	if instance.Spec.IsLicenseAccepted() {
+		r.Log.Info("License has been accepted")
+	} else {
+		err := fmt.Errorf("license not accepted")
+		r.Log.Error(err, "Please read https://ibm.biz/lsvc-lic and accept it in the IBMLicensing CR, under spec.license.accept", "ibmlicensingname", instance.Name)
+	}
 	if res.IsRouteAPI {
 		r.Log.Info("Route feature is enabled")
 	} else {

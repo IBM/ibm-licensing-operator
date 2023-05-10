@@ -25,7 +25,7 @@ spec:
         description: 'IBM License Service is the Schema for the ibmlicensings API.
           Documentation For additional details regarding install parameters check:
           https://ibm.biz/icpfs39install. License By installing this product you accept
-          the license terms https://ibm.biz/icpfs39license.'
+          the license terms https://ibm.biz/lsvc-lic.'
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -207,6 +207,14 @@ spec:
                   will start. In case metering data collection is used, should be
                   the same namespace as metering components
                 type: string
+              license:
+                description: IBM License Service license acceptance.
+                properties:
+                  accept:
+                    description: By installing the IBM License Service, you accept
+                      the license terms found here https://ibm.biz/lsvc-lic
+                    type: boolean
+                type: object
               logLevel:
                 description: 'Should application pod show additional information,
                   options: DEBUG, INFO, VERBOSE'

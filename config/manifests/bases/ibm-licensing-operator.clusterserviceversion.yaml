@@ -34,7 +34,7 @@ spec:
     owned:
     - description: 'IBM License Service is the Schema for the ibmlicensings API. Documentation
         For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
-        License By installing this product you accept the license terms https://ibm.biz/icpfs39license.'
+        By installing the IBM License Service, you accept the license terms: https://ibm.biz/lsvc-lic'
       displayName: IBM License Service
       kind: IBMLicensing
       name: ibmlicensings.operator.ibm.com
@@ -88,6 +88,12 @@ spec:
         name: ""
         version: v1alpha1
       specDescriptors:
+      - description: 'Please read and accept before installing IBM License Service:
+          https://ibm.biz/lsvc-lic'
+        displayName: License Acceptance
+        path: license
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Consider updating to enable chargeback feature
         displayName: Chargeback Enabled
         path: chargebackEnabled
@@ -220,8 +226,8 @@ spec:
         Core (VPC) metric by Pods that are managed by automation, for which licensing
         annotations are not defined at the time of deployment, such as the open source
         OpenLiberty. / For more information, see documentation: https://ibm.biz/icpfs39install.
-        License: By installing this product you accept the license terms. For more
-        information about the license, see https://ibm.biz/icpfs39license.'
+        By installing the operator for IBM License Service, you accept the license
+        terms: https://ibm.biz/icpfs39license.'
       displayName: IBMLicensing Metadata
       kind: IBMLicensingMetadata
       name: ibmlicensingmetadatas.operator.ibm.com
