@@ -32,9 +32,11 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: 'IBM License Service is the Schema for the ibmlicensings API. Documentation
+    - description: 'IBM License Service is the Schema for the ibmlicensings API. Documentation:
         For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
-        By installing the IBM License Service, you accept the license terms: https://ibm.biz/lsvc-lic'
+        License: Please refer to the IBM Terms website (ibm.biz/lsvc-lic) to find
+        the license terms for the particular IBM product for which you are deploying
+        this component.'
       displayName: IBM License Service
       kind: IBMLicensing
       name: ibmlicensings.operator.ibm.com
@@ -88,8 +90,9 @@ spec:
         name: ""
         version: v1alpha1
       specDescriptors:
-      - description: 'Please read and accept before installing IBM License Service:
-          https://ibm.biz/lsvc-lic'
+      - description: Please refer to the IBM Terms website (ibm.biz/lsvc-lic) to find
+          the license terms for the particular IBM product for which you are deploying
+          this component.
         displayName: License Acceptance
         path: license
         x-descriptors:
