@@ -1,7 +1,0 @@
-apiVersion: operator.ibm.com/v1alpha1
-kind: OperandRequest
-metadata: 
-  name: ibm-licensing-request
-spec: 
-  requests: []
-          

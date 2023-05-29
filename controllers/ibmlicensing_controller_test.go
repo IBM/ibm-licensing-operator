@@ -18,10 +18,9 @@ package controllers
 
 import (
 	"context"
-	"testing"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	routev1 "github.com/openshift/api/route/v1"
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
@@ -34,10 +33,7 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
 )
 
-func TestCheckReconcileLicensing(t *testing.T) {
-}
-
-var _ = Describe("IBMLicensing controller", func() {
+var _ = Describe("IBMLicensing controller", Ordered, func() {
 	const (
 		name = "instance-test"
 	)
@@ -218,6 +214,12 @@ var _ = Describe("IBMLicensing controller", func() {
 			Eventually(func() bool {
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
 				return newInstance.Spec.IsChargebackEnabled()
+			}, timeout, interval).Should(Equal(false))
+
+			By("Checking if license is accepted")
+			Eventually(func() bool {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
+				return newInstance.Spec.IsLicenseAccepted()
 			}, timeout, interval).Should(Equal(false))
 
 		})

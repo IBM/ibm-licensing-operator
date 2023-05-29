@@ -114,6 +114,11 @@ type IBMLicensingSpec struct {
 	// +optional
 	UsageContainer Container `json:"usageContainer,omitempty"`
 
+	// IBM License Service license acceptance.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="License Acceptance",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	License *License `json:"license"`
+
 	// Consider updating to enable chargeback feature
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
@@ -188,8 +193,9 @@ type IBMLicensingFeaturesStatus struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // IBM License Service is the Schema for the ibmlicensings API.
-// Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
-// License By installing this product you accept the license terms https://ibm.biz/icpfs39license.
+// Documentation: For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
+// License: Please refer to the IBM Terms website (ibm.biz/lsvc-lic)
+// to find the license terms for the particular IBM product for which you are deploying this component.
 // +kubebuilder:printcolumn:name="Pod Phase",type=string,JSONPath=`.status..phase`
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ibmlicensings,scope=Cluster
