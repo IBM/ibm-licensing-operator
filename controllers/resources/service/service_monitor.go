@@ -29,7 +29,7 @@ import (
 func GetRHMPServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.ServiceMonitor {
 	interval := "3h"
 	name := PrometheusRHMPServiceMonitor
-	tlsConfig := getTLSConfigForRHMP(instance)
+	tlsConfig := getTLSConfigForServiceMonitor(instance)
 	metricRelabelConfigs := getMetricRelabelConfigsForRHMP()
 	return GetServiceMonitor(instance, name, interval, tlsConfig, metricRelabelConfigs)
 }
@@ -37,7 +37,7 @@ func GetRHMPServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv
 func GetAlertingServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.ServiceMonitor {
 	interval := "5m"
 	name := PrometheusAlertingServiceMonitor
-	tlsConfig := getTLSConfigForAlerting(instance)
+	tlsConfig := getTLSConfigForServiceMonitor(instance)
 	metricRelabelConfigs := getMetricRelabelConfigsForAlerting()
 	return GetServiceMonitor(instance, name, interval, tlsConfig, metricRelabelConfigs)
 }
@@ -142,23 +142,7 @@ func getRelabelConfigs(instance *operatorv1alpha1.IBMLicensing) []*monitoringv1.
 	return relabelConfigs
 }
 
-func getTLSConfigForRHMP(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConfig {
-	if instance.Spec.HTTPSEnable {
-		return &monitoringv1.TLSConfig{
-			CA: monitoringv1.SecretOrConfigMap{
-				ConfigMap: &corev1.ConfigMapKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: "ibm-cs-operator-webhook-ca",
-					},
-					Key: "service-ca.crt",
-				},
-			},
-		}
-	}
-	return nil
-}
-
-func getTLSConfigForAlerting(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConfig {
+func getTLSConfigForServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConfig {
 	if instance.Spec.HTTPSEnable {
 		return &monitoringv1.TLSConfig{
 			CA: monitoringv1.SecretOrConfigMap{
