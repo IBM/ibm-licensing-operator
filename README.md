@@ -21,7 +21,7 @@ Red Hat OpenShift Container Platform 4.2 or newer installed on Linux x86_64, Lin
 
 ## Operator versions
 
-- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.2, 1.2.3, 1.3.1, 1.4.1, 1.5.0, 1.6.0, 1.7.0, 1.8.0, 1.9.0, 1.10.0, 1.11.0, 1.12.0, 1.13.0, 1.14.0, 1.15.0, 1.16.0, 1.17.0, 1.18.0, 1.19.0, 1.20.0, 1.20.1, 1.20.2, 1.20.3
+- 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.2.2, 1.2.3, 1.3.1, 1.4.1, 1.5.0, 1.6.0, 1.7.0, 1.8.0, 1.9.0, 1.10.0, 1.11.0, 1.12.0, 1.13.0, 1.14.0, 1.15.0, 1.16.0, 1.17.0, 1.18.0, 1.19.0, 1.20.0, 1.20.1, 1.20.2, 1.20.3, 1.20.4
 
 ## Prerequisites
 
@@ -62,4 +62,3 @@ For the overview and documentation, see [License Service deployment without an I
 --->
 
 **Note:** License Service Reporter, which is an extension of License Service that aggregates the license usage data from multiple clusters, is not available without an IBM Cloud Pak on OpenShift Container Platform. License Service Reporter is only available as a part of an IBM Cloud Pak on OpenShift Container Platform (included in IBM Cloud Pak foundational services).
-
