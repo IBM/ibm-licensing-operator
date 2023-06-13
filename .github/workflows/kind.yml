@@ -22,6 +22,10 @@ on:
   push:
       branches:
         - master
+
+env:
+  GO_VERSION: "1.20.5"
+          
 jobs:
 
   scorecard:
@@ -31,7 +35,7 @@ jobs:
       - name: Set up Go environment
         uses: actions/setup-go@v3.5.0
         with:
-          go-version: '1.20.5'
+          go-version: ${{ env.GO_VERSION }}
         id: go
 
       - name: Checkout
@@ -96,7 +100,7 @@ jobs:
     - name: Set up Go environment
       uses: actions/setup-go@v3.5.0
       with:
-        go-version: '1.20.5'
+        go-version: ${{ env.GO_VERSION }}
       id: go
 
     - name: Checkout
