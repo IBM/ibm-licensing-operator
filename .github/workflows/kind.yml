@@ -110,7 +110,7 @@ jobs:
 
     - name: Download binaries
       run: |
-        wget https://github.com/kubernetes-sigs/kind/releases/download/v0.11.1/kind-linux-amd64
+        wget https://github.com/kubernetes-sigs/kind/releases/download/v0.17.0/kind-linux-amd64
         mv ./kind-linux-amd64 ./kind
         chmod +x ./kind
         cp ./common/scripts/tests/kind_config.yaml ./
