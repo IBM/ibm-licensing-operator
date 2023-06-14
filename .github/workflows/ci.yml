@@ -25,8 +25,7 @@ on:
   workflow_dispatch:
     
 env:
-  GO_VERSION: "1.22"
-  GOLANGCI_LINT_VERSION: 1.62.2
+  GO_VERSION: "1.20.5"
 
 jobs:
 
@@ -47,29 +46,17 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-22.04
-    # This image moves up to ubuntu focal and node 20.18.0.
     container: 
-      image: quay.io/cicdtest/check-tool:v20241203-df2ce26d0
+      image: quay.io/multicloudlab/check-tool:v20221107-59a355d03
     steps:
-      - name: Check Node.js and GLIBC versions
-        run: |
-          node -v
-          ldd --version
-
-      # it must be v3 to avoid fetching dependencies using newer version of GLIBC
       - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1  # Fetch only the latest commit
+        uses: actions/checkout@v3
 
-      - name: Install golangci-lint v${{ env.GOLANGCI_LINT_VERSION }}
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v${{ env.GOLANGCI_LINT_VERSION }}
+      - name: Upgrade golangci-lint
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.50.1
 
-      # add flag to get rid of the version control warning
       - name: Check
-        run: |
-          go env -w GOFLAGS=-buildvcs=false
-          make check
+        run: make check
           
   build:
     needs: detect-docs-only-changes
@@ -84,8 +71,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 1  # Fetch only the latest commit
 
       - name: Find the Go Build Cache
         id: go
@@ -97,8 +82,7 @@ jobs:
           path: ${{ steps.go.outputs.cache }}
           key: ${{ runner.os }}-build-check-diff-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-build-check-diff-
-          fetch-depth: 1  # Fetch only the latest commit
-            
+
       - name: Cache Go Dependencies
         uses: actions/cache@v3
         with:
