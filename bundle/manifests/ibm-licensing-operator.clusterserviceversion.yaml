@@ -27,12 +27,12 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.1.0
-    createdAt: "2023-05-16T13:32:37Z"
+    createdAt: "2023-06-26T11:23:18Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     nss.operator.ibm.com/managed-operators: ibm-licensing-operator-app
     olm.skipRange: '>=1.0.0 <4.1.0'
     operatorframework.io/suggested-namespace: ibm-licensing
-    operators.operatorframework.io/builder: operator-sdk-v1.28.0
+    operators.operatorframework.io/builder: operator-sdk-v1.29.0
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com", "ibmlicensingdefinitions.operator.ibm.com", "ibmlicensingquerysources.operator.ibm.com"]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
   labels:
@@ -426,7 +426,7 @@ spec:
                       - name: CRD_RECONCILE_INTERVAL
                         value: "300"
                     image: icr.io/cpopen/ibm-licensing-operator:4.1.0
-                    imagePullPolicy: Always
+                    imagePullPolicy: IfNotPresent
                     name: ibm-licensing-operator
                     resources:
                       limits:
