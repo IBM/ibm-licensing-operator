@@ -2,7 +2,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.14.0
+    controller-gen.kubebuilder.io/version: v0.10.0
   creationTimestamp: null
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
@@ -22,28 +22,23 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: |-
-          IBMLicensingMetadata is the schema for IBM License Service. Thanks to IBMLicensingMetadata, you can track
-          the license usage of Virtual Processor Core (VPC) metric by Pods that are managed by automation,
-          for which licensing annotations are not defined at the time of deployment, such as the open source OpenLiberty.
-          / For more information, see documentation: https://ibm.biz/icpfs39install.
-          License: By installing this product you accept the license terms. For more information about the license,
-          see https://ibm.biz/icpfs39license.
+        description: 'IBMLicensingMetadata is the schema for IBM License Service.
+          Thanks to IBMLicensingMetadata, you can track the license usage of Virtual
+          Processor Core (VPC) metric by Pods that are managed by automation, for
+          which licensing annotations are not defined at the time of deployment, such
+          as the open source OpenLiberty. / For more information, see documentation:
+          https://ibm.biz/icpfs39install. License: By installing this product you
+          accept the license terms. For more information about the license, see https://ibm.biz/icpfs39license.'
         properties:
           apiVersion:
-            description: |-
-              APIVersion defines the versioned schema of this representation of an object.
-              Servers should convert recognized schemas to the latest internal value, and
-              may reject unrecognized values.
-              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: |-
-              Kind is a string value representing the REST resource this object represents.
-              Servers may infer this from the endpoint the client submits requests to.
-              Cannot be updated.
-              In CamelCase.
-              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object

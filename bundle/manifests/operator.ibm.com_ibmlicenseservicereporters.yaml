@@ -1,29 +1,28 @@
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.10.0
   creationTimestamp: null
-  name: ibmlicensings.operator.ibm.com
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+  name: ibmlicenseservicereporters.operator.ibm.com
 spec:
   group: operator.ibm.com
   names:
-    kind: IBMLicensing
-    listKind: IBMLicensingList
-    plural: ibmlicensings
-    singular: ibmlicensing
-  scope: Cluster
+    kind: IBMLicenseServiceReporter
+    listKind: IBMLicenseServiceReporterList
+    plural: ibmlicenseservicereporters
+    singular: ibmlicenseservicereporter
+  scope: Namespaced
   versions:
-  - additionalPrinterColumns:
-    - jsonPath: .status..phase
-      name: Pod Phase
-      type: string
-    name: v1alpha1
+  - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: 'IBM License Service is the Schema for the ibmlicensings API.
-          Documentation For additional details regarding install parameters check:
+        description: 'IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters
+          API. Documentation For additional details regarding install parameters check:
           https://ibm.biz/icpfs39install. License By installing this product you accept
           the license terms https://ibm.biz/icpfs39license.'
         properties:
@@ -40,298 +39,22 @@ spec:
           metadata:
             type: object
           spec:
-            description: IBMLicensingSpec defines the desired state of IBMLicensing
+            description: IBMLicenseServiceReporterSpec defines the desired state of
+              IBMLicenseServiceReporter
             properties:
               apiSecretToken:
                 description: Secret name used to store application token, either one
                   that exists, or one that will be created
                 type: string
-              chargebackEnabled:
-                description: Consider updating to enable chargeback feature
-                type: boolean
-              chargebackRetentionPeriod:
-                description: Chargeback data retention period in days. Default value
-                  is 62 days.
-                type: integer
-              datasource:
-                description: 'Where should data be collected, options: metering, datacollector'
-                enum:
-                - metering
-                - datacollector
-                type: string
-              envVariable:
-                additionalProperties:
-                  type: string
-                description: Environment variable setting
-                type: object
-              features:
-                description: Set additional features under this field
-                properties:
-                  alerting:
-                    description: Change alerting settings.
-                    properties:
-                      enabled:
-                        description: Should this function be enabled.
-                        type: boolean
-                    type: object
-                  auth:
-                    description: Authorization settings.
-                    properties:
-                      urlBasedEnabled:
-                        description: Enable URL based Auth
-                        type: boolean
-                    required:
-                    - urlBasedEnabled
-                    type: object
-                  hyperThreading:
-                    description: Configure if you have HyperThreading (HT) or Symmetrical
-                      Multi-Threading (SMT) enabled
-                    properties:
-                      threadsPerCore:
-                        description: Set the value based on the lowest HT/SMT value
-                          based on the lowest configuration of worker nodes
-                        enum:
-                        - 1
-                        - 2
-                        - 4
-                        - 8
-                        type: integer
-                    required:
-                    - threadsPerCore
-                    type: object
-                  nssEnabled:
-                    description: Special terms, must be granted by IBM Pricing.
-                    type: boolean
-                  prometheusQuerySource:
-                    description: Change prometheus query source settings.
-                    properties:
-                      enabled:
-                        description: Should this function be enabled (by default it
-                          is).
-                        type: boolean
-                      url:
-                        description: What url to use for prometheus API (by default
-                          use OCP Thanos Querier).
-                        type: string
-                    type: object
-                type: object
-              httpsCertsSource:
-                description: 'options: self-signed or custom'
-                enum:
-                - self-signed
-                - custom
-                - ocp
-                type: string
-              httpsEnable:
-                description: Enables https access at pod level, httpsCertsSource needed
-                  if true
-                type: boolean
-              imageName:
-                description: IBM Licensing Service docker Image Name, will override
-                  default value and disable IBM_LICENSING_IMAGE env value in operator
-                  deployment
-                type: string
-              imagePullPolicy:
-                description: PullPolicy describes a policy for if/when to pull a container
-                  image
-                enum:
-                - Always
-                - IfNotPresent
-                - Never
-                type: string
-              imagePullSecrets:
-                description: Array of pull secrets which should include existing at
-                  InstanceNamespace secret to allow pulling IBM Licensing image
-                items:
-                  type: string
-                type: array
-              imageRegistry:
-                description: IBM Licensing Service docker Image Registry, will override
-                  default value and disable IBM_LICENSING_IMAGE env value in operator
-                  deployment
-                type: string
-              imageTagPostfix:
-                description: IBM Licensing Service docker Image Tag or Digest, will
-                  override default value and disable IBM_LICENSING_IMAGE env value
-                  in operator deployment
-                type: string
-              ingressEnabled:
-                description: Should Ingress be created to expose IBM Licensing Service
-                  API?
-                type: boolean
-              ingressOptions:
-                description: If ingress is enabled, you can set its parameters
-                properties:
-                  annotations:
-                    additionalProperties:
-                      type: string
-                    description: Additional annotations that should include f.e. ingress
-                      class if using not default ingress controller
-                    type: object
-                  host:
-                    description: If you use non-default host include it here
-                    type: string
-                  path:
-                    description: Path after host where API will be available f.e.
-                      https://<hostname>:<port>/ibm-licensing-service-instance
-                    type: string
-                  tls:
-                    description: TLS Options to enable secure connection
-                    items:
-                      description: IngressTLS describes the transport layer security
-                        associated with an Ingress.
-                      properties:
-                        hosts:
-                          description: Hosts are a list of hosts included in the TLS
-                            certificate. The values in this list must match the name/s
-                            used in the tlsSecret. Defaults to the wildcard host setting
-                            for the loadbalancer controller fulfilling this Ingress,
-                            if left unspecified.
-                          items:
-                            type: string
-                          type: array
-                          x-kubernetes-list-type: atomic
-                        secretName:
-                          description: SecretName is the name of the secret used to
-                            terminate TLS traffic on port 443. Field is left optional
-                            to allow TLS routing based on SNI hostname alone. If the
-                            SNI host in a listener conflicts with the "Host" header
-                            field used by an IngressRule, the SNI host is used for
-                            termination and value of the Host header is used for routing.
-                          type: string
-                      type: object
-                    type: array
-                type: object
-              instanceNamespace:
-                description: Existing or to be created namespace where application
-                  will start. In case metering data collection is used, should be
-                  the same namespace as metering components
-                type: string
-              logLevel:
-                description: 'Should application pod show additional information,
-                  options: DEBUG, INFO, VERBOSE'
-                enum:
-                - DEBUG
-                - INFO
-                - VERBOSE
-                type: string
-              resources:
-                description: ResourceRequirements describes the compute resource requirements.
-                properties:
-                  limits:
-                    additionalProperties:
-                      anyOf:
-                      - type: integer
-                      - type: string
-                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                      x-kubernetes-int-or-string: true
-                    description: 'Limits describes the maximum amount of compute resources
-                      allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
-                    type: object
-                  requests:
-                    additionalProperties:
-                      anyOf:
-                      - type: integer
-                      - type: string
-                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                      x-kubernetes-int-or-string: true
-                    description: 'Requests describes the minimum amount of compute
-                      resources required. If Requests is omitted for a container,
-                      it defaults to Limits if that is explicitly specified, otherwise
-                      to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
-                    type: object
-                type: object
-              rhmpEnabled:
-                description: Is Red Hat Marketplace enabled
-                type: boolean
-              routeEnabled:
-                description: Should Route be created to expose IBM Licensing Service
-                  API? (only on OpenShift cluster)
-                type: boolean
-              routeOptions:
-                description: Route parameters
-                properties:
-                  tls:
-                    description: TLSConfig defines config used to secure a route and
-                      provide termination
-                    properties:
-                      caCertificate:
-                        description: caCertificate provides the cert authority certificate
-                          contents
-                        type: string
-                      certificate:
-                        description: certificate provides certificate contents. This
-                          should be a single serving certificate, not a certificate
-                          chain. Do not include a CA certificate.
-                        type: string
-                      destinationCACertificate:
-                        description: destinationCACertificate provides the contents
-                          of the ca certificate of the final destination.  When using
-                          reencrypt termination this file should be provided in order
-                          to have routers use it for health checks on the secure connection.
-                          If this field is not specified, the router may provide its
-                          own destination CA and perform hostname validation using
-                          the short service name (service.namespace.svc), which allows
-                          infrastructure generated certificates to automatically verify.
-                        type: string
-                      insecureEdgeTerminationPolicy:
-                        description: "insecureEdgeTerminationPolicy indicates the
-                          desired behavior for insecure connections to a route. While
-                          each router may make its own decisions on which ports to
-                          expose, this is normally port 80. \n * Allow - traffic is
-                          sent to the server on the insecure port (default) * Disable
-                          - no traffic is allowed on the insecure port. * Redirect
-                          - clients are redirected to the secure port."
-                        type: string
-                      key:
-                        description: key provides key file contents
-                        type: string
-                      termination:
-                        description: "termination indicates termination type. \n *
-                          edge - TLS termination is done by the router and http is
-                          used to communicate with the backend (default) * passthrough
-                          - Traffic is sent straight to the destination without the
-                          router providing TLS termination * reencrypt - TLS termination
-                          is done by the router and https is used to communicate with
-                          the backend"
-                        type: string
-                    required:
-                    - termination
-                    type: object
-                type: object
-              securityContext:
-                description: If default SCC user ID fails, you can set runAsUser option
-                  to fix that
-                properties:
-                  runAsUser:
-                    format: int64
-                    type: integer
-                required:
-                - runAsUser
-                type: object
-              sender:
-                description: Sender configuration, set if you have multi-cluster environment
-                  from which you collect data
-                properties:
-                  clusterID:
-                    description: Unique ID of reporting cluster
-                    type: string
-                  clusterName:
-                    description: What is the name of this reporting cluster in multi-cluster
-                      system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME
-                      at Operand level
-                    type: string
-                  reporterSecretToken:
-                    description: License Service Reporter authentication token, provided
-                      by secret that you need to create in instance namespace
-                    type: string
-                  reporterURL:
-                    description: URL for License Service Reporter receiver that collects
-                      and aggregate multi cluster licensing data.
-                    type: string
-                type: object
-              usageContainer:
-                description: Usage Container Settings
+              capacity:
+                anyOf:
+                - type: integer
+                - type: string
+                description: Persistent Volume Claim Capacity
+                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                x-kubernetes-int-or-string: true
+              databaseContainer:
+                description: Database Settings
                 properties:
                   imageName:
                     description: IBM Licensing Service docker Image Name, will override
@@ -384,27 +107,207 @@ spec:
                         type: object
                     type: object
                 type: object
-              usageEnabled:
-                description: Should collect usage based metrics?
-                type: boolean
+              envVariable:
+                additionalProperties:
+                  type: string
+                description: Environment variable setting
+                type: object
+              httpsCertsSource:
+                description: 'options: self-signed or custom'
+                enum:
+                - self-signed
+                - custom
+                - ocp
+                type: string
+              imagePullSecrets:
+                description: Array of pull secrets which should include existing at
+                  InstanceNamespace secret to allow pulling IBM Licensing image
+                items:
+                  type: string
+                type: array
+              logLevel:
+                description: 'Should application pod show additional information,
+                  options: DEBUG, INFO, VERBOSE'
+                enum:
+                - DEBUG
+                - INFO
+                - VERBOSE
+                type: string
+              receiverContainer:
+                description: Receiver Settings
+                properties:
+                  imageName:
+                    description: IBM Licensing Service docker Image Name, will override
+                      default value and disable IBM_LICENSING_IMAGE env value in operator
+                      deployment
+                    type: string
+                  imagePullPolicy:
+                    description: PullPolicy describes a policy for if/when to pull
+                      a container image
+                    enum:
+                    - Always
+                    - IfNotPresent
+                    - Never
+                    type: string
+                  imageRegistry:
+                    description: IBM Licensing Service docker Image Registry, will
+                      override default value and disable IBM_LICENSING_IMAGE env value
+                      in operator deployment
+                    type: string
+                  imageTagPostfix:
+                    description: IBM Licensing Service docker Image Tag or Digest,
+                      will override default value and disable IBM_LICENSING_IMAGE
+                      env value in operator deployment
+                    type: string
+                  resources:
+                    description: ResourceRequirements describes the compute resource
+                      requirements.
+                    properties:
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: 'Limits describes the maximum amount of compute
+                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: 'Requests describes the minimum amount of compute
+                          resources required. If Requests is omitted for a container,
+                          it defaults to Limits if that is explicitly specified, otherwise
+                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        type: object
+                    type: object
+                type: object
+              reporterUIContainer:
+                description: Receiver Settings
+                properties:
+                  imageName:
+                    description: IBM Licensing Service docker Image Name, will override
+                      default value and disable IBM_LICENSING_IMAGE env value in operator
+                      deployment
+                    type: string
+                  imagePullPolicy:
+                    description: PullPolicy describes a policy for if/when to pull
+                      a container image
+                    enum:
+                    - Always
+                    - IfNotPresent
+                    - Never
+                    type: string
+                  imageRegistry:
+                    description: IBM Licensing Service docker Image Registry, will
+                      override default value and disable IBM_LICENSING_IMAGE env value
+                      in operator deployment
+                    type: string
+                  imageTagPostfix:
+                    description: IBM Licensing Service docker Image Tag or Digest,
+                      will override default value and disable IBM_LICENSING_IMAGE
+                      env value in operator deployment
+                    type: string
+                  resources:
+                    description: ResourceRequirements describes the compute resource
+                      requirements.
+                    properties:
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: 'Limits describes the maximum amount of compute
+                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: 'Requests describes the minimum amount of compute
+                          resources required. If Requests is omitted for a container,
+                          it defaults to Limits if that is explicitly specified, otherwise
+                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        type: object
+                    type: object
+                type: object
+              routeOptions:
+                description: Route parameters
+                properties:
+                  tls:
+                    description: TLSConfig defines config used to secure a route and
+                      provide termination
+                    properties:
+                      caCertificate:
+                        description: caCertificate provides the cert authority certificate
+                          contents
+                        type: string
+                      certificate:
+                        description: certificate provides certificate contents. This
+                          should be a single serving certificate, not a certificate
+                          chain. Do not include a CA certificate.
+                        type: string
+                      destinationCACertificate:
+                        description: destinationCACertificate provides the contents
+                          of the ca certificate of the final destination.  When using
+                          reencrypt termination this file should be provided in order
+                          to have routers use it for health checks on the secure connection.
+                          If this field is not specified, the router may provide its
+                          own destination CA and perform hostname validation using
+                          the short service name (service.namespace.svc), which allows
+                          infrastructure generated certificates to automatically verify.
+                        type: string
+                      insecureEdgeTerminationPolicy:
+                        description: "insecureEdgeTerminationPolicy indicates the
+                          desired behavior for insecure connections to a route. While
+                          each router may make its own decisions on which ports to
+                          expose, this is normally port 80. \n * Allow - traffic is
+                          sent to the server on the insecure port (default) * Disable
+                          - no traffic is allowed on the insecure port. * Redirect
+                          - clients are redirected to the secure port."
+                        type: string
+                      key:
+                        description: key provides key file contents
+                        type: string
+                      termination:
+                        description: "termination indicates termination type. \n *
+                          edge - TLS termination is done by the router and http is
+                          used to communicate with the backend (default) * passthrough
+                          - Traffic is sent straight to the destination without the
+                          router providing TLS termination * reencrypt - TLS termination
+                          is done by the router and https is used to communicate with
+                          the backend"
+                        type: string
+                    required:
+                    - termination
+                    type: object
+                type: object
+              storageClass:
+                description: Storage class used by database to provide persistency
+                type: string
               version:
                 description: Version
                 type: string
-            required:
-            - datasource
-            - httpsEnable
             type: object
             x-kubernetes-preserve-unknown-fields: true
           status:
-            description: IBMLicensingStatus defines the observed state of IBMLicensing
+            description: IBMLicenseServiceReporterStatus defines the observed state
+              of IBMLicenseServiceReporter
             properties:
-              features:
-                properties:
-                  rhmpEnabled:
-                    type: boolean
-                type: object
-              licensingPods:
-                description: The status of IBM License Service Pods.
+              LicensingReporterPods:
+                description: 'Important: Run "operator-sdk generate k8s" to regenerate
+                  code after modifying this file Add custom validation using kubebuilder
+                  tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
                 items:
                   description: PodStatus represents information about the status of
                     a pod. Status may trail the actual state of a system, especially
@@ -1040,12 +943,17 @@ spec:
                       type: string
                   type: object
                 type: array
-              state:
-                description: State field that defines status of the IBMLicensing
-                type: string
+            required:
+            - LicensingReporterPods
             type: object
         type: object
     served: true
     storage: true
     subresources:
       status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: null
+  storedVersions: null

@@ -2,7 +2,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.14.0
+    controller-gen.kubebuilder.io/version: v0.10.0
   creationTimestamp: null
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
@@ -21,24 +21,17 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: |-
-          IBMLicensingDefinition is a custom resource for internal use only. It is used by some IBM products to assign their pods to the licensed products for the licensing specific calculation, performed by the IBM License Service.
-          It is prepared in close collaboration with those IBM products, and affects only them. It cannot be modified by a customer, to ensure compliance with the license usage metering and reporting.
+        description: IBMLicensingDefinition is the schema for IBM License Service.
         properties:
           apiVersion:
-            description: |-
-              APIVersion defines the versioned schema of this representation of an object.
-              Servers should convert recognized schemas to the latest internal value, and
-              may reject unrecognized values.
-              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: |-
-              Kind is a string value representing the REST resource this object represents.
-              Servers may infer this from the endpoint the client submits requests to.
-              Cannot be updated.
-              In CamelCase.
-              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -68,12 +61,6 @@ spec:
                         type: object
                     type: object
                 type: object
-              remove:
-                description: List of annotation keys that will be removed from matched
-                  pod
-                items:
-                  type: string
-                type: array
               scope:
                 description: Scope of Custom Resource
                 enum:
@@ -88,6 +75,7 @@ spec:
             - action
             - condition
             - scope
+            - set
             type: object
             x-kubernetes-preserve-unknown-fields: true
           status:
