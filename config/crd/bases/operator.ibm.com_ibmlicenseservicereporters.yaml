@@ -1,10 +1,9 @@
-
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
+    controller-gen.kubebuilder.io/version: v0.10.0
   creationTimestamp: null
   name: ibmlicenseservicereporters.operator.ibm.com
 spec:
@@ -89,7 +88,7 @@ spec:
                           pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                           x-kubernetes-int-or-string: true
                         description: 'Limits describes the maximum amount of compute
-                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                         type: object
                       requests:
                         additionalProperties:
@@ -101,7 +100,7 @@ spec:
                         description: 'Requests describes the minimum amount of compute
                           resources required. If Requests is omitted for a container,
                           it defaults to Limits if that is explicitly specified, otherwise
-                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                         type: object
                     type: object
                 type: object
@@ -169,7 +168,7 @@ spec:
                           pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                           x-kubernetes-int-or-string: true
                         description: 'Limits describes the maximum amount of compute
-                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                         type: object
                       requests:
                         additionalProperties:
@@ -181,7 +180,7 @@ spec:
                         description: 'Requests describes the minimum amount of compute
                           resources required. If Requests is omitted for a container,
                           it defaults to Limits if that is explicitly specified, otherwise
-                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                         type: object
                     type: object
                 type: object
@@ -223,7 +222,7 @@ spec:
                           pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                           x-kubernetes-int-or-string: true
                         description: 'Limits describes the maximum amount of compute
-                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                         type: object
                       requests:
                         additionalProperties:
@@ -235,7 +234,7 @@ spec:
                         description: 'Requests describes the minimum amount of compute
                           resources required. If Requests is omitted for a container,
                           it defaults to Limits if that is explicitly specified, otherwise
-                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                         type: object
                     type: object
                 type: object
@@ -251,7 +250,9 @@ spec:
                           contents
                         type: string
                       certificate:
-                        description: certificate provides certificate contents
+                        description: certificate provides certificate contents. This
+                          should be a single serving certificate, not a certificate
+                          chain. Do not include a CA certificate.
                         type: string
                       destinationCACertificate:
                         description: destinationCACertificate provides the contents
@@ -276,7 +277,13 @@ spec:
                         description: key provides key file contents
                         type: string
                       termination:
-                        description: termination indicates termination type.
+                        description: "termination indicates termination type. \n *
+                          edge - TLS termination is done by the router and http is
+                          used to communicate with the backend (default) * passthrough
+                          - Traffic is sent straight to the destination without the
+                          router providing TLS termination * reencrypt - TLS termination
+                          is done by the router and https is used to communicate with
+                          the backend"
                         type: string
                     required:
                     - termination
@@ -341,20 +348,17 @@ spec:
                       type: array
                     containerStatuses:
                       description: 'The list has one entry per container in the manifest.
-                        Each entry is currently the output of `docker inspect`. More
-                        info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-and-container-status'
+                        More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-and-container-status'
                       items:
                         description: ContainerStatus contains details for the current
                           status of this container.
                         properties:
                           containerID:
-                            description: Container's ID in the format 'docker://<container_id>'.
+                            description: Container's ID in the format '<type>://<container_id>'.
                             type: string
                           image:
                             description: 'The image the container is running. More
-                              info: https://kubernetes.io/docs/concepts/containers/images
-                              TODO(dchen1107): Which image the container is running
-                              with?'
+                              info: https://kubernetes.io/docs/concepts/containers/images.'
                             type: string
                           imageID:
                             description: ImageID of the container's image.
@@ -376,7 +380,7 @@ spec:
                                 description: Details about a terminated container
                                 properties:
                                   containerID:
-                                    description: Container's ID in the format 'docker://<container_id>'
+                                    description: Container's ID in the format '<type>://<container_id>'
                                     type: string
                                   exitCode:
                                     description: Exit status from the last termination
@@ -432,11 +436,7 @@ spec:
                             type: boolean
                           restartCount:
                             description: The number of times the container has been
-                              restarted, currently based on the number of dead containers
-                              that have not yet been removed. Note that this is calculated
-                              from dead containers. But those containers are subject
-                              to garbage collection. This value will get capped at
-                              5 by GC.
+                              restarted.
                             format: int32
                             type: integer
                           started:
@@ -463,7 +463,7 @@ spec:
                                 description: Details about a terminated container
                                 properties:
                                   containerID:
-                                    description: Container's ID in the format 'docker://<container_id>'
+                                    description: Container's ID in the format '<type>://<container_id>'
                                     type: string
                                   exitCode:
                                     description: Exit status from the last termination
@@ -519,20 +519,18 @@ spec:
                       type: array
                     ephemeralContainerStatuses:
                       description: Status for any ephemeral containers that have run
-                        in this pod. This field is alpha-level and is only populated
-                        by servers that enable the EphemeralContainers feature.
+                        in this pod. This field is beta-level and available on clusters
+                        that haven't disabled the EphemeralContainers feature gate.
                       items:
                         description: ContainerStatus contains details for the current
                           status of this container.
                         properties:
                           containerID:
-                            description: Container's ID in the format 'docker://<container_id>'.
+                            description: Container's ID in the format '<type>://<container_id>'.
                             type: string
                           image:
                             description: 'The image the container is running. More
-                              info: https://kubernetes.io/docs/concepts/containers/images
-                              TODO(dchen1107): Which image the container is running
-                              with?'
+                              info: https://kubernetes.io/docs/concepts/containers/images.'
                             type: string
                           imageID:
                             description: ImageID of the container's image.
@@ -554,7 +552,7 @@ spec:
                                 description: Details about a terminated container
                                 properties:
                                   containerID:
-                                    description: Container's ID in the format 'docker://<container_id>'
+                                    description: Container's ID in the format '<type>://<container_id>'
                                     type: string
                                   exitCode:
                                     description: Exit status from the last termination
@@ -610,11 +608,7 @@ spec:
                             type: boolean
                           restartCount:
                             description: The number of times the container has been
-                              restarted, currently based on the number of dead containers
-                              that have not yet been removed. Note that this is calculated
-                              from dead containers. But those containers are subject
-                              to garbage collection. This value will get capped at
-                              5 by GC.
+                              restarted.
                             format: int32
                             type: integer
                           started:
@@ -641,7 +635,7 @@ spec:
                                 description: Details about a terminated container
                                 properties:
                                   containerID:
-                                    description: Container's ID in the format 'docker://<container_id>'
+                                    description: Container's ID in the format '<type>://<container_id>'
                                     type: string
                                   exitCode:
                                     description: Exit status from the last termination
@@ -709,13 +703,11 @@ spec:
                           status of this container.
                         properties:
                           containerID:
-                            description: Container's ID in the format 'docker://<container_id>'.
+                            description: Container's ID in the format '<type>://<container_id>'.
                             type: string
                           image:
                             description: 'The image the container is running. More
-                              info: https://kubernetes.io/docs/concepts/containers/images
-                              TODO(dchen1107): Which image the container is running
-                              with?'
+                              info: https://kubernetes.io/docs/concepts/containers/images.'
                             type: string
                           imageID:
                             description: ImageID of the container's image.
@@ -737,7 +729,7 @@ spec:
                                 description: Details about a terminated container
                                 properties:
                                   containerID:
-                                    description: Container's ID in the format 'docker://<container_id>'
+                                    description: Container's ID in the format '<type>://<container_id>'
                                     type: string
                                   exitCode:
                                     description: Exit status from the last termination
@@ -793,11 +785,7 @@ spec:
                             type: boolean
                           restartCount:
                             description: The number of times the container has been
-                              restarted, currently based on the number of dead containers
-                              that have not yet been removed. Note that this is calculated
-                              from dead containers. But those containers are subject
-                              to garbage collection. This value will get capped at
-                              5 by GC.
+                              restarted.
                             format: int32
                             type: integer
                           started:
@@ -824,7 +812,7 @@ spec:
                                 description: Details about a terminated container
                                 properties:
                                   containerID:
-                                    description: Container's ID in the format 'docker://<container_id>'
+                                    description: Container's ID in the format '<type>://<container_id>'
                                     type: string
                                   exitCode:
                                     description: Exit status from the last termination
@@ -926,8 +914,8 @@ spec:
                         allocated yet.
                       items:
                         description: 'IP address information for entries in the (plural)
-                          PodIPs field. Each entry includes:    IP: An IP address
-                          allocated to the pod. Routable at least within the cluster.'
+                          PodIPs field. Each entry includes: IP: An IP address allocated
+                          to the pod. Routable at least within the cluster.'
                         properties:
                           ip:
                             description: ip is an IP address (IPv4 or IPv6) assigned
@@ -960,9 +948,3 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
