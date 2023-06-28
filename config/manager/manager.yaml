@@ -59,7 +59,7 @@ spec:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
           image: icr.io/cpopen/ibm-licensing-operator:1.20.5
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           name: ibm-licensing-operator
           resources:
             limits:
