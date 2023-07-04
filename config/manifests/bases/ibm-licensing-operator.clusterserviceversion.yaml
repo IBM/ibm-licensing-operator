@@ -248,11 +248,11 @@ spec:
     dedicated API call and generate an audit snapshot on demand.\n\n**Supported platforms**\n\n
     Red Hat OpenShift Container Platform 4.10 or newer installed on Linux x86_64,
     Linux on Power (ppc64le), Linux on IBM Z and LinuxONE.\n\n**Prerequisites**\n\n
-    Prerequisites differs depending on License Service is part of an IBM Cloud Pak
-    or is used with IBM Containerized Software. For details see either the documentation
-    of the particular IBM Cloud Pak or [ibm-licensing-operator for stand-alone IBM
-    Containerized Software](https://ibm.biz/BdyGwh). \n\n**Documentation**\n\n- If
-    you are using the IBM Licensing Operator as part of an IBM Cloud Pak, see the
+    Prerequisites differ depending on whether the License Service is part of an IBM
+    Cloud Pak or is used with IBM Containerized Software. For more information, see
+    the applicable IBM Cloud Pak documentation or [ibm-licensing-operator for stand-alone
+    IBM Containerized Software](https://ibm.biz/BdyGwh). \n\n**Documentation**\n\n-
+    If you are using the IBM Licensing Operator as part of an IBM Cloud Pak, see the
     documentation for that IBM Cloud Pak, for a list of IBM Cloud Paks, see [IBM Cloud
     Paks that use Common Services](https://ibm.biz/BdyGwb). \n- If you are using the
     operator with an IBM Containerized Software, to install License Service directly,
