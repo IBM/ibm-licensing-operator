@@ -245,9 +245,9 @@ spec:
     overview**\n\nIBM Licensing Operator installs License Service. You can use License
     Service to collect information about license usage of IBM Containerized products
     and IBM Cloud Paks per cluster. You can retrieve license usage data through a
-    dedicated API call and generate an audit snapshot on demand.\n\n**Supported platforms**\n\nIBM
-    License Service is supported on all supported, by RedHat, versions of OpenShift
-    installed on Linux x86_64, Linux on Power (ppc64le), Linux on IBM Z and LinuxONE.\n\n**Prerequisites**\n\n
+    dedicated API call and generate an audit snapshot on demand.\n\n**Supported platforms**\n\n
+    Red Hat OpenShift Container Platform 4.10 or newer installed on Linux x86_64,
+    Linux on Power (ppc64le), Linux on IBM Z and LinuxONE.\n\n**Prerequisites**\n\n
     Prerequisites differs depending on License Service is part of an IBM Cloud Pak
     or is used with IBM Containerized Software. For details see either the documentation
     of the particular IBM Cloud Pak or [ibm-licensing-operator for stand-alone IBM
