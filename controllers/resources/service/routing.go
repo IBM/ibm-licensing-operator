@@ -17,6 +17,10 @@
 package service
 
 import (
+	"fmt"
+	"reflect"
+
+	"github.com/go-logr/logr"
 	routev1 "github.com/openshift/api/route/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,7 +63,7 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS 
 	}, nil
 }
 
-func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.Ingress {
+func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) networkingv1.Ingress {
 	var (
 		tls         []networkingv1.IngressTLS
 		path, host  string
@@ -77,7 +81,7 @@ func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.
 		}
 		annotations = options.Annotations
 	}
-	return &networkingv1.Ingress{
+	return networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        GetResourceName(instance),
 			Namespace:   instance.Spec.InstanceNamespace,
@@ -110,4 +114,25 @@ func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.
 			},
 		},
 	}
+}
+
+func IsIngressInDesiredState(foundIngress, expectedIngress networkingv1.Ingress, reqLogger logr.Logger) bool {
+	if foundIngress.ObjectMeta.Name != expectedIngress.ObjectMeta.Name {
+		reqLogger.Info("Names not equal", "old", foundIngress.ObjectMeta.Name, "new", expectedIngress.ObjectMeta.Name)
+	} else if !reflect.DeepEqual(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
+		reqLogger.Info("Labels not equal",
+			"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Labels),
+			"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Labels))
+	} else if !reflect.DeepEqual(foundIngress.ObjectMeta.Annotations, expectedIngress.ObjectMeta.Annotations) {
+		reqLogger.Info("Annotations not equal",
+			"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Annotations),
+			"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Annotations))
+	} else if !reflect.DeepEqual(foundIngress.Spec, expectedIngress.Spec) {
+		reqLogger.Info("Specs not equal",
+			"old", fmt.Sprintf("%v", foundIngress.Spec),
+			"new", fmt.Sprintf("%v", expectedIngress.Spec))
+	} else {
+		return true
+	}
+	return false
 }
