@@ -454,8 +454,14 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 	certificateNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 
 	if err := r.Client.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
-		r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
-		return reconcile.Result{Requeue: true}, err
+		// Generate certificate only when route is enabled
+		if instance.Spec.IsRouteEnabled() {
+			r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
+			return reconcile.Result{Requeue: true}, err
+		}
+
+		// Skip verification of certificates when Route is disabled
+		return reconcile.Result{}, nil
 	}
 
 	expectedCMs := []*corev1.ConfigMap{
