@@ -612,6 +612,10 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceExternalCertName}
 		hostname = []string{route.Spec.Host}
 		rolloutPods = false
+	} else {
+		// IBM Licensing Service route isn't exposed - skip certificate creation for it
+		r.Log.Info("Skipping certificate creation - route is disabled via configuration")
+		return reconcile.Result{}, nil
 	}
 
 	// Reconcile internal certificate only on non-OCP environments
