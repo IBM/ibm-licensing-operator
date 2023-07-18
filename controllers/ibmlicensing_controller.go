@@ -689,9 +689,16 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 }
 
 func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	defaultRouteTLS := &routev1.TLSConfig{
+		Termination:                   routev1.TLSTerminationReencrypt,
+		InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
+	}
+
+	route := &routev1.Route{}
+	expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
+
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
 		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.GetResourceName(instance)}
-		route := &routev1.Route{}
 		if err := r.Client.Get(context.TODO(), routeNamespacedName, route); err != nil {
 			r.Log.Info("Route does not exist, reconciling route without certificates")
 
@@ -701,17 +708,19 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 			}
 			return r.reconcileRouteWithTLS(instance, defaultRouteTLS)
 		}
+	} else {
+		r.Log.Info("Route is disabled, deleting current route if exists")
+		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedRoute, route)
+		if err != nil || reconcileResult.Requeue {
+			return reconcileResult, err
+		}
 	}
 	return reconcile.Result{}, nil
 }
 
 func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
-		expectedRoute, err := service.GetLicensingRoute(instance, defaultRouteTLS)
-		if err != nil {
-			r.Log.Error(err, "error getting licensing route")
-			return reconcile.Result{}, nil
-		}
+		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
 		foundRoute := &routev1.Route{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
 		if err != nil || reconcileResult.Requeue {
