@@ -25,7 +25,7 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
-func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) (*routev1.Route, error) {
+func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) *routev1.Route {
 	var tls *routev1.TLSConfig
 
 	if instance.Spec.RouteOptions != nil {
@@ -56,7 +56,7 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS 
 			},
 			TLS: tls,
 		},
-	}, nil
+	}
 }
 
 func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.Ingress {
