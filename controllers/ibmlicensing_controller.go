@@ -405,8 +405,14 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 	certificateNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 
 	if err := r.Client.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
-		r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
-		return reconcile.Result{Requeue: true}, err
+		// Generate certificate only when route is enabled
+		if instance.Spec.IsRouteEnabled() {
+			r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
+			return reconcile.Result{Requeue: true}, err
+		}
+
+		// Skip verification of certificates when Route is disabled
+		return reconcile.Result{}, nil
 	}
 
 	expectedCMs := []*corev1.ConfigMap{
@@ -563,6 +569,10 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceExternalCertName}
 		hostname = []string{route.Spec.Host}
 		rolloutPods = false
+	} else {
+		// IBM Licensing Service route isn't exposed - skip certificate creation for it
+		r.Log.Info("Skipping certificate creation - route is disabled via configuration")
+		return reconcile.Result{}, nil
 	}
 
 	// Reconcile internal certificate only on non-OCP environments
@@ -630,9 +640,16 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 }
 
 func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	defaultRouteTLS := &routev1.TLSConfig{
+		Termination:                   routev1.TLSTerminationReencrypt,
+		InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
+	}
+
+	route := &routev1.Route{}
+	expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
+
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
 		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.GetResourceName(instance)}
-		route := &routev1.Route{}
 		if err := r.Client.Get(context.TODO(), routeNamespacedName, route); err != nil {
 			r.Log.Info("Route does not exist, reconciling route without certificates")
 
@@ -642,17 +659,19 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 			}
 			return r.reconcileRouteWithTLS(instance, defaultRouteTLS)
 		}
+	} else {
+		r.Log.Info("Route is disabled, deleting current route if exists")
+		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedRoute, route)
+		if err != nil || reconcileResult.Requeue {
+			return reconcileResult, err
+		}
 	}
 	return reconcile.Result{}, nil
 }
 
 func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
-		expectedRoute, err := service.GetLicensingRoute(instance, defaultRouteTLS)
-		if err != nil {
-			r.Log.Error(err, "error getting licensing route")
-			return reconcile.Result{}, nil
-		}
+		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
 		foundRoute := &routev1.Route{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
 		if err != nil || reconcileResult.Requeue {
