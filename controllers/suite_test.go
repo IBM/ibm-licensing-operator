@@ -151,6 +151,7 @@ var _ = BeforeSuite(func() {
 		Reader:                  mgr.GetAPIReader(),
 		Log:                     ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
 		Scheme:                  mgr.GetScheme(),
+		Recorder:                mgr.GetEventRecorderFor("IBMLicensing"),
 		OperatorNamespace:       operatorNamespace,
 		NamespaceScopeSemaphore: nssEnabledSemaphore,
 	}).SetupWithManager(mgr)
