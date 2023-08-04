@@ -6,6 +6,13 @@ metadata:
   name: ibm-licensing-operator
 rules:
 - apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
   - operator.ibm.com
   resources:
   - ibmlicensings
