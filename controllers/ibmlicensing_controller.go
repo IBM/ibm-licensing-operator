@@ -107,9 +107,8 @@ type IBMLicensingReconciler struct {
 	// that reads objects from the cache and writes to the apiserver
 	client.Client
 	client.Reader
-	Log    logr.Logger
-	Scheme *runtime.Scheme
-	// record.EventRecorder allows reconciler to send events to k8s API
+	Log                     logr.Logger
+	Scheme                  *runtime.Scheme
 	Recorder                record.EventRecorder
 	OperatorNamespace       string
 	NamespaceScopeSemaphore chan bool
