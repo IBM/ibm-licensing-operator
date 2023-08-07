@@ -730,6 +730,7 @@ func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBM
 			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
 		}
 	} else {
+		r.Log.Info("Ingress is disabled, deleting current ingress if exists")
 		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
