@@ -405,13 +405,13 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 	certificateNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 
 	if err := r.Client.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
-		// Generate certificate only when route is enabled
-		if instance.Spec.IsRouteEnabled() {
+		// Generate certificate only when route/ingress is enabled
+		if instance.Spec.IsRouteEnabled() || instance.Spec.IsIngressEnabled() {
 			r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
 			return reconcile.Result{Requeue: true}, err
 		}
 
-		// Skip verification of certificates when Route is disabled
+		// Skip verification of certificates route/ingress Route is disabled
 		return reconcile.Result{}, nil
 	}
 
@@ -569,10 +569,6 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceExternalCertName}
 		hostname = []string{route.Spec.Host}
 		rolloutPods = false
-	} else {
-		// IBM Licensing Service route isn't exposed - skip certificate creation for it
-		r.Log.Info("Skipping certificate creation - route is disabled via configuration")
-		return reconcile.Result{}, nil
 	}
 
 	// Reconcile internal certificate only on non-OCP environments
