@@ -569,6 +569,12 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceExternalCertName}
 		hostname = []string{route.Spec.Host}
 		rolloutPods = false
+	} else {
+		// skip certificate creation only for OCP environment if route is disabled
+		if res.IsServiceCAAPI {
+			r.Log.Info("Skipping certificate creation for OCP - route is disabled via configuration")
+			return reconcile.Result{}, nil
+		}
 	}
 
 	// Reconcile internal certificate only on non-OCP environments
