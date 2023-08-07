@@ -411,7 +411,7 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 			return reconcile.Result{Requeue: true}, err
 		}
 
-		// Skip verification of certificates route/ingress Route is disabled
+		// Skip verification of certificates when route/ingress is disabled
 		return reconcile.Result{}, nil
 	}
 
