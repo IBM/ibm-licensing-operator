@@ -36,6 +36,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -108,6 +109,7 @@ type IBMLicensingReconciler struct {
 	client.Reader
 	Log                     logr.Logger
 	Scheme                  *runtime.Scheme
+	Recorder                record.EventRecorder
 	OperatorNamespace       string
 	NamespaceScopeSemaphore chan bool
 }
@@ -124,7 +126,6 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="apps",resources=deployments/finalizers,verbs=update
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;watch;list;delete;update
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods,verbs=get
-// +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods,verbs=get
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=apps,resources=replicasets;deployments,verbs=get
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=rbac.authorization.k8s.io,resources=clusterroles;clusterrolebindings;roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods;nodes;namespaces,verbs=get;list;watch;create;update;patch;delete
@@ -135,6 +136,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods;services;services/finalizers;endpoints;persistentvolumeclaims;events;configmaps;secrets;namespaces;serviceaccounts,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=operator.openshift.io,resources=servicecas,verbs=list
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 
 func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 
@@ -975,9 +977,7 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 	if instance.Spec.IsLicenseAccepted() {
 		r.Log.Info("License has been accepted")
 	} else {
-		err := fmt.Errorf("license not accepted")
-		r.Log.Error(err, "Please find the license terms for the particular IBM product for which you are deploying this component: https://ibm.biz/lsvc-lic"+
-			" and accept it in the IBMLicensing CR, under spec.license.accept", "ibmlicensingname", instance.Name)
+		r.handleLicenseNotAccepted(instance)
 	}
 	if res.IsRouteAPI {
 		r.Log.Info("Route feature is enabled")
@@ -1104,4 +1104,13 @@ func (r *IBMLicensingReconciler) rolloutRestartDeployment(deploymentNsName types
 			Name:      deploymentNsName.Name,
 		},
 	}, client.RawPatch(types.MergePatchType, patch))
+}
+
+func (r *IBMLicensingReconciler) handleLicenseNotAccepted(instance *operatorv1alpha1.IBMLicensing) {
+	// Generate the current timestamp in the specified format
+	timestamp := time.Now().UTC().Format("2006-01-02T15:04:05Z")
+	// Format the ERROR log message without stacktrace
+	fmt.Printf("%s ERROR "+operatorv1alpha1.LicenseNotAcceptedMessage+"\n", timestamp)
+	// Publish an event with error message
+	r.Recorder.Event(instance, "Warning", "LicenseNotAccepted", operatorv1alpha1.LicenseNotAcceptedMessage)
 }

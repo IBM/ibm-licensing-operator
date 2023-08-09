@@ -261,6 +261,13 @@ spec:
       clusterPermissions:
         - rules:
             - apiGroups:
+                - ""
+              resources:
+                - events
+              verbs:
+                - create
+                - patch
+            - apiGroups:
                 - operator.ibm.com
               resources:
                 - ibmlicensings

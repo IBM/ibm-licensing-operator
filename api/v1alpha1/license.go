@@ -16,6 +16,8 @@
 
 package v1alpha1
 
+const LicenseNotAcceptedMessage = "Please accept license terms (ibm.biz/lsvc-lic) by setting field \"spec.license.accept: true\" to finish creation of the IBMLicensing instance."
+
 type License struct {
 	// By installing the IBM License Service, you accept the license terms for the particular IBM product for which you are deploying this component: ibm.biz/lsvc-lic.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="License acceptance",xDescriptors="urn:alm:descriptor:com.tectonic.ui:checkbox"
