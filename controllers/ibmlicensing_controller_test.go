@@ -255,7 +255,7 @@ var _ = Describe("IBMLicensing controller", func() {
 				prometheusService := &v1.Service{}
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: service.GetPrometheusServiceName(), Namespace: namespace}, prometheusService)).Should(Succeed())
 				return prometheusService != nil
-			}, timeout, interval).Should(BeFalse()) //mock error
+			}, timeout, interval).Should(BeTrue())
 
 			By("Checking if service monitor exists")
 			Eventually(func() bool {
