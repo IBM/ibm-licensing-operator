@@ -127,7 +127,7 @@ jobs:
         export PATH=`pwd`:$PATH
         export SUFIX=$RANDOM
         export USE_EXISTING_CLUSTER=true
-        make unit-test | tee ./unittest_logs_${{ matrix.k8s }}.txt 2>&1 || exit 1
+        make unit-test | tee ./unittest_logs_${{ matrix.k8s }}.txt 2>&1 || { exit_code=$?; echo "Command exited with an error $exit_code"; exit $exit_code; }
 
     - name: Check all pods
       if: always()
