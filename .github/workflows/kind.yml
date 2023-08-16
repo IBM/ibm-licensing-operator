@@ -49,7 +49,7 @@ jobs:
           curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.11.1/kind-$(uname)-amd64"
           chmod +x ./operator-sdk
           chmod +x ./kind
-          ./kind create cluster --image kindest/node:v1.21.1
+          ./kind create cluster --image kindest/node:v1.24.16
           ./kind get clusters
           kubectl config get-contexts
           kubectl config set-context kind-kind
