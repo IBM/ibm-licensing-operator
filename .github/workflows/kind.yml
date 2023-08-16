@@ -125,7 +125,7 @@ jobs:
         export SUFIX=$RANDOM
         export USE_EXISTING_CLUSTER=true
         set -o pipefail
-        make unit-test | tee ./unittest_logs_${{ matrix.k8s }}.txt 2>&1
+        make unit-test 2>&1 | tee ./unittest_logs_${{ matrix.k8s }}.txt
 
     - name: Check all pods
       if: always()
