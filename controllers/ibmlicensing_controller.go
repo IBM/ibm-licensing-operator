@@ -36,6 +36,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -108,6 +109,7 @@ type IBMLicensingReconciler struct {
 	client.Reader
 	Log                     logr.Logger
 	Scheme                  *runtime.Scheme
+	Recorder                record.EventRecorder
 	OperatorNamespace       string
 	NamespaceScopeSemaphore chan bool
 }
@@ -124,7 +126,6 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="apps",resources=deployments/finalizers,verbs=update
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;watch;list;delete;update
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods,verbs=get
-// +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods,verbs=get
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=apps,resources=replicasets;deployments,verbs=get
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=rbac.authorization.k8s.io,resources=clusterroles;clusterrolebindings;roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods;nodes;namespaces,verbs=get;list;watch;create;update;patch;delete
@@ -135,6 +136,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods;services;services/finalizers;endpoints;persistentvolumeclaims;events;configmaps;secrets;namespaces;serviceaccounts,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=operator.openshift.io,resources=servicecas,verbs=list
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 
 func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 
@@ -454,8 +456,14 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 	certificateNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 
 	if err := r.Client.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
-		r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
-		return reconcile.Result{Requeue: true}, err
+		// Generate certificate only when route/ingress is enabled
+		if instance.Spec.IsRouteEnabled() || instance.Spec.IsIngressEnabled() {
+			r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
+			return reconcile.Result{Requeue: true}, err
+		}
+
+		// Skip verification of certificates when route/ingress is disabled
+		return reconcile.Result{}, nil
 	}
 
 	expectedCMs := []*corev1.ConfigMap{
@@ -612,6 +620,12 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 		namespacedName = types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceExternalCertName}
 		hostname = []string{route.Spec.Host}
 		rolloutPods = false
+	} else {
+		// skip certificate creation only for OCP environment if route is disabled
+		if res.IsServiceCAAPI {
+			r.Log.Info("Skipping certificate creation for OCP - route is disabled via configuration")
+			return reconcile.Result{}, nil
+		}
 	}
 
 	// Reconcile internal certificate only on non-OCP environments
@@ -679,9 +693,16 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 }
 
 func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	defaultRouteTLS := &routev1.TLSConfig{
+		Termination:                   routev1.TLSTerminationReencrypt,
+		InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
+	}
+
+	route := &routev1.Route{}
+	expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
+
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
 		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.GetResourceName(instance)}
-		route := &routev1.Route{}
 		if err := r.Client.Get(context.TODO(), routeNamespacedName, route); err != nil {
 			r.Log.Info("Route does not exist, reconciling route without certificates")
 
@@ -691,17 +712,19 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 			}
 			return r.reconcileRouteWithTLS(instance, defaultRouteTLS)
 		}
+	} else {
+		r.Log.Info("Route is disabled, deleting current route if exists")
+		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedRoute, route)
+		if err != nil || reconcileResult.Requeue {
+			return reconcileResult, err
+		}
 	}
 	return reconcile.Result{}, nil
 }
 
 func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
-		expectedRoute, err := service.GetLicensingRoute(instance, defaultRouteTLS)
-		if err != nil {
-			r.Log.Error(err, "error getting licensing route")
-			return reconcile.Result{}, nil
-		}
+		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
 		foundRoute := &routev1.Route{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
 		if err != nil || reconcileResult.Requeue {
@@ -758,6 +781,7 @@ func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBM
 			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
 		}
 	} else {
+		r.Log.Info("Ingress is disabled, deleting current ingress if exists")
 		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
@@ -953,9 +977,7 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 	if instance.Spec.IsLicenseAccepted() {
 		r.Log.Info("License has been accepted")
 	} else {
-		err := fmt.Errorf("license not accepted")
-		r.Log.Error(err, "Please find the license terms for the particular IBM product for which you are deploying this component: https://ibm.biz/lsvc-lic"+
-			" and accept it in the IBMLicensing CR, under spec.license.accept", "ibmlicensingname", instance.Name)
+		r.handleLicenseNotAccepted(instance)
 	}
 	if res.IsRouteAPI {
 		r.Log.Info("Route feature is enabled")
@@ -1082,4 +1104,13 @@ func (r *IBMLicensingReconciler) rolloutRestartDeployment(deploymentNsName types
 			Name:      deploymentNsName.Name,
 		},
 	}, client.RawPatch(types.MergePatchType, patch))
+}
+
+func (r *IBMLicensingReconciler) handleLicenseNotAccepted(instance *operatorv1alpha1.IBMLicensing) {
+	// Generate the current timestamp in the specified format
+	timestamp := time.Now().UTC().Format("2006-01-02T15:04:05Z")
+	// Format the ERROR log message without stacktrace
+	fmt.Printf("%s ERROR "+operatorv1alpha1.LicenseNotAcceptedMessage+"\n", timestamp)
+	// Publish an event with error message
+	r.Recorder.Event(instance, "Warning", "LicenseNotAccepted", operatorv1alpha1.LicenseNotAcceptedMessage)
 }
