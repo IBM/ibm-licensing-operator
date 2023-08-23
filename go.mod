@@ -1,6 +1,6 @@
 module github.com/IBM/ibm-licensing-operator
 
-go 1.17
+go 1.20
 
 require (
 	github.com/IBM/controller-filtered-cache v0.3.5
@@ -12,8 +12,8 @@ require (
 	github.com/openshift/api v0.0.0-20221013123533-341d389bd4a7
 	github.com/redhat-marketplace/redhat-marketplace-operator/v2 v2.0.0-20210125205956-4eda6b4abf4e
 	go.uber.org/zap v1.21.0
-	k8s.io/api v0.25.0
-	k8s.io/apimachinery v0.25.0
+	k8s.io/api v0.24.9
+	k8s.io/apimachinery v0.24.9
 	k8s.io/client-go v12.0.0+incompatible
 	sigs.k8s.io/controller-runtime v0.12.3
 )
@@ -57,13 +57,13 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
@@ -74,8 +74,8 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiextensions-apiserver v0.25.0 // indirect
-	k8s.io/component-base v0.25.0 // indirect
+	k8s.io/apiextensions-apiserver v0.24.9 // indirect
+	k8s.io/component-base v0.24.9 // indirect
 	k8s.io/klog v1.0.0 // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221012153701-172d655c2280 // indirect
@@ -90,6 +90,7 @@ replace (
 
 	k8s.io/api => k8s.io/api v0.24.9
 	k8s.io/apimachinery => k8s.io/apimachinery v0.24.9
+	k8s.io/apiserver => k8s.io/apiserver v0.24.9
 	k8s.io/client-go => k8s.io/client-go v0.24.9
 
 	sigs.k8s.io/controller-runtime/pkg/cache => sigs.k8s.io/controller-runtime/pkg/cache v0.10.0
