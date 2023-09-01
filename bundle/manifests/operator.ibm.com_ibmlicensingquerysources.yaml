@@ -45,6 +45,7 @@ spec:
                 enum:
                 - MAX
                 - ADD
+                - ADD_MONTHLY
                 type: string
               annotations:
                 additionalProperties:
