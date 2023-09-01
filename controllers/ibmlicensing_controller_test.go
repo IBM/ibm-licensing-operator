@@ -103,6 +103,9 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
 					},
+					License: &operatorv1alpha1.License{
+						Accept: true,
+					},
 				},
 			}
 
@@ -130,6 +133,9 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
+					},
+					License: &operatorv1alpha1.License{
+						Accept: true,
 					},
 				},
 			}
@@ -164,6 +170,9 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
 					},
+					License: &operatorv1alpha1.License{
+						Accept: true,
+					},
 				},
 			}
 
@@ -197,6 +206,9 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
+					},
+					License: &operatorv1alpha1.License{
+						Accept: true,
 					},
 				},
 			}
@@ -246,6 +258,9 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
+					},
+					License: &operatorv1alpha1.License{
+						Accept: true,
 					},
 				},
 			}
