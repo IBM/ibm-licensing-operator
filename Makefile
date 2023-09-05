@@ -339,6 +339,8 @@ unit-test: prepare-unit-test
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
 	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
 	go test -v ./controllers/... -coverprofile cover.out
+	POD_NAME=$(kubectl get pod -n local-path-storage -o=name | sed 's/^.*\///')
+	kubectl logs -n ibm-licensing ${POD_NAME}
 
 # Build manager binary
 manager: generate
