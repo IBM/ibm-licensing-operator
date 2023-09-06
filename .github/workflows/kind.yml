@@ -106,6 +106,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
+    - name: Login to Artifactory
+      uses: docker/login-action@v1
+      with:
+        registry: docker-na-public.artifactory.swg-devops.com
+        username: ${{ secrets.ARTIFACTORY_USERNAME }}
+        password: ${{ secrets.ARTIFACTORY_TOKEN }}  
+
     - name: Download binaries
       run: |
         wget https://github.com/kubernetes-sigs/kind/releases/download/v0.17.0/kind-linux-amd64
@@ -133,8 +140,6 @@ jobs:
         export PATH=`pwd`:$PATH
         kubectl config set-context kind-tests
         kubectl describe pods --all-namespaces  > ./pods_${{ matrix.k8s }}.txt 2>&1
-        POD_NAME=$(kubectl get pod -n ibm-licensing -o=name | sed 's/^.*\///')
-        kubectl logs -n ibm-licensing ${POD_NAME} --previous
 
     - name: Archive logs
       uses: actions/upload-artifact@v2
