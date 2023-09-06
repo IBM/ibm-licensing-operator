@@ -65,9 +65,6 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 				},
 				Spec: operatorv1alpha1.IBMLicensingSpec{
 					InstanceNamespace: namespace,
-					License: &operatorv1alpha1.License{
-						Accept: true,
-					},
 				},
 			}
 
@@ -81,9 +78,6 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 				Spec: operatorv1alpha1.IBMLicensingSpec{
 					InstanceNamespace: namespace,
 					Datasource:        "datacollector1",
-					License: &operatorv1alpha1.License{
-						Accept: true,
-					},
 				},
 			}
 			Expect(k8sClient.Create(ctx, instance)).Should(MatchError(ContainSubstring("spec.datasource")))
@@ -108,9 +102,6 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
-					},
-					License: &operatorv1alpha1.License{
-						Accept: true,
 					},
 				},
 			}
@@ -139,9 +130,6 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
-					},
-					License: &operatorv1alpha1.License{
-						Accept: true,
 					},
 				},
 			}
@@ -176,9 +164,6 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
 					},
-					License: &operatorv1alpha1.License{
-						Accept: true,
-					},
 				},
 			}
 
@@ -212,9 +197,6 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
-					},
-					License: &operatorv1alpha1.License{
-						Accept: true,
 					},
 				},
 			}
@@ -264,9 +246,6 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					},
 					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
 						ImagePullSecrets: []string{"artifactory-token"},
-					},
-					License: &operatorv1alpha1.License{
-						Accept: true,
 					},
 				},
 			}
