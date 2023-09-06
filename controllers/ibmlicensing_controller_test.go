@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	. "github.com/onsi/ginkgo/v2"
@@ -29,6 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
+	"github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
 )
@@ -89,6 +91,55 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 			Expect(k8sClient.Create(ctx, instance)).Should(MatchError(ContainSubstring("spec.datasource")))
 		})
 
+		It("Should create specific license not accepted logs and events", func() {
+			By("Creating IBMLicensing instance without license field")
+			instance = &operatorv1alpha1.IBMLicensing{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: name,
+				},
+				Spec: operatorv1alpha1.IBMLicensingSpec{
+					InstanceNamespace: namespace,
+					Datasource:        "datacollector",
+					Container: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
+					UsageContainer: operatorv1alpha1.Container{
+						ImagePullPolicy: v1.PullAlways,
+					},
+					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
+						ImagePullSecrets: []string{"artifactory-token"},
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, instance)).Should(Succeed())
+
+			newInstance := &operatorv1alpha1.IBMLicensing{}
+			events := &v1.EventList{}
+
+			By("Checking if license is not accepted")
+			Eventually(func() bool {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
+				return newInstance.Spec.IsLicenseAccepted()
+			}, timeout, interval).Should(Equal(false))
+
+			By("Checking if 'license not accepted' event was created")
+			Eventually(func() bool {
+				Expect(k8sClient.List(ctx, events)).Should(Succeed())
+
+				fmt.Println(events.Items)
+
+				for _, event := range events.Items {
+					if event.Message == v1alpha1.LicenseNotAcceptedMessage {
+						// Pass test if event was created correctly
+						return true
+					}
+				}
+
+				return false
+			}, timeout, interval).Should(Equal(true))
+		})
+
 		It("Should create IBMLicensing instance HTTP", func() {
 			By("Creating the IBMLicensing")
 			newInstance := &operatorv1alpha1.IBMLicensing{}
@@ -117,6 +168,11 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 
 			checkBasicRequirements(ctx, instance, newInstance)
 
+			By("Checking if license is accepted")
+			Eventually(func() bool {
+				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
+				return newInstance.Spec.IsLicenseAccepted()
+			}, timeout, interval).Should(Equal(true))
 		})
 
 		It("Should create IBMLicensing instance HTTPS", func() {
@@ -232,12 +288,6 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 			Eventually(func() bool {
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
 				return newInstance.Spec.IsChargebackEnabled()
-			}, timeout, interval).Should(Equal(false))
-
-			By("Checking if license is accepted")
-			Eventually(func() bool {
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
-				return newInstance.Spec.IsLicenseAccepted()
 			}, timeout, interval).Should(Equal(false))
 
 		})
