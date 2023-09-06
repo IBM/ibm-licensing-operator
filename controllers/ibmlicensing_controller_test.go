@@ -30,7 +30,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
 )
@@ -123,14 +122,14 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 				return newInstance.Spec.IsLicenseAccepted()
 			}, timeout, interval).Should(Equal(false))
 
-			By("Checking if 'license not accepted' event was created")
+			By("Checking if 'license not accepted' event was created successfully")
 			Eventually(func() bool {
 				Expect(k8sClient.List(ctx, events)).Should(Succeed())
 
 				for _, event := range events.Items {
-					if event.Message == v1alpha1.LicenseNotAcceptedMessage {
+					if event.Message == operatorv1alpha1.LicenseNotAcceptedMessage {
 						// Pass test if event was created correctly
-						fmt.Println(event.Message)
+						fmt.Println("License not accepted event found: " + event.Message)
 						return true
 					}
 				}
