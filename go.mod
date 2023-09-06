@@ -22,7 +22,7 @@ require (
 	cloud.google.com/go v0.97.0 // indirect
 	emperror.dev/errors v0.8.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/blang/semver v3.5.1+incompatible // indirect
+	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.10.1 // indirect
@@ -87,6 +87,7 @@ require (
 
 replace (
 	github.com/emicklei/go-restful/v3 => github.com/emicklei/go-restful/v3 v3.10.1
+	github.com/operator-framework/api => github.com/operator-framework/api v0.5.0
 
 	k8s.io/api => k8s.io/api v0.24.9
 	k8s.io/apimachinery => k8s.io/apimachinery v0.24.9
