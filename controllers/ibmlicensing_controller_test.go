@@ -127,11 +127,10 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 			Eventually(func() bool {
 				Expect(k8sClient.List(ctx, events)).Should(Succeed())
 
-				fmt.Println(events.Items)
-
 				for _, event := range events.Items {
 					if event.Message == v1alpha1.LicenseNotAcceptedMessage {
 						// Pass test if event was created correctly
+						fmt.Println(event.Message)
 						return true
 					}
 				}
