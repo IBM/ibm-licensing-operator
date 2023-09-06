@@ -134,7 +134,7 @@ jobs:
         kubectl config set-context kind-tests
         kubectl describe pods --all-namespaces  > ./pods_${{ matrix.k8s }}.txt 2>&1
         POD_NAME=$(kubectl get pod -n ibm-licensing -o=name | sed 's/^.*\///')
-        kubectl logs -n ibm-licensing ${POD_NAME}
+        kubectl logs -n ibm-licensing ${POD_NAME} --previous
 
     - name: Archive logs
       uses: actions/upload-artifact@v2
