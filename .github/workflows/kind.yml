@@ -45,10 +45,10 @@ jobs:
         run: |
           make build
           curl -Lo ./operator-sdk "https://github.com/operator-framework/operator-sdk/releases/download/v1.25.2/operator-sdk_linux_amd64"
-          curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.11.1/kind-$(uname)-amd64"
+          curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.17.0/kind-$(uname)-amd64"
           chmod +x ./operator-sdk
           chmod +x ./kind
-          ./kind create cluster --image kindest/node:v1.21.1
+          ./kind create cluster --image kindest/node:v1.24.15
           ./kind get clusters
           kubectl config get-contexts
           kubectl config set-context kind-kind
@@ -56,8 +56,8 @@ jobs:
 
       - name: Install OLM
         run: |
-          kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.16.1/crds.yaml
-          kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.16.1/olm.yaml
+          kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.19.1/crds.yaml
+          kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.19.1/olm.yaml
 
       - name: Deploy Operators YAML
         env:
@@ -105,6 +105,13 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@v2
+
+    - name: Login to Artifactory
+      uses: docker/login-action@v1
+      with:
+        registry: docker-na-public.artifactory.swg-devops.com
+        username: ${{ secrets.ARTIFACTORY_USERNAME }}
+        password: ${{ secrets.ARTIFACTORY_TOKEN }}  
 
     - name: Download binaries
       run: |
