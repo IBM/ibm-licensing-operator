@@ -22,6 +22,7 @@ import (
 	"reflect"
 
 	"github.com/go-logr/logr"
+	"github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	operatorv1alpha1 "github.com/ibm/ibm-licensing-operator/api/v1alpha1"
 	res "github.com/ibm/ibm-licensing-operator/controllers/resources"
 	"github.com/ibm/ibm-licensing-operator/version"
@@ -54,7 +55,9 @@ const LicenseReporterUIBase = "ibm-license-service-reporter-ui"
 const LicenseReporterResourceBase = "ibm-license-service-reporter"
 const LicenseReporterComponentName = "ibm-license-service-reporter-svc"
 const LicenseReporterReleaseName = "ibm-license-service-reporter"
-const LicenseReportOCPCertName = "ibm-license-reporter-cert"
+const LicenseReportOCPCertName = "ibm-license-reporter-cert-internal"
+const LicenseReportExternalCertName = "ibm-license-reporter-cert"
+const LicenseReportCustomExternalCertName = "ibm-licensing-reporter-certs"
 
 const OperatorName = "ibm-licensing-operator"
 
@@ -89,7 +92,7 @@ func getReciverEnvVariables(spec operatorv1alpha1.IBMLicenseServiceReporterSpec)
 	environmentVariables := []corev1.EnvVar{
 		{
 			Name:  "HTTPS_CERTS_SOURCE",
-			Value: string(spec.HTTPSCertsSource),
+			Value: string(v1alpha1.ExternalCertsSource),
 		},
 	}
 	if spec.IsDebug() {

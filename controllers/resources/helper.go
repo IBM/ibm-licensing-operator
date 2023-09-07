@@ -23,8 +23,16 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"regexp"
+
 	"reflect"
 	"time"
+
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
+	mathRand "math/rand"
 
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 
@@ -150,7 +158,7 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 }
 
 func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isHTTPS bool, certName string) map[string]string {
-	if IsServiceCAAPI && isHTTPS && httpCertSource == v1alpha1.OcpCertsSource {
+	if IsServiceCAAPI && isHTTPS {
 		return map[string]string{ocpCertSecretNameTag: certName}
 	}
 	return map[string]string{}
@@ -333,28 +341,28 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		c.InNamespace(namespace),
 	}
 
-	MeterDefinitionCRD := &rhmp.MeterDefinition{}
+	MeterDefinitionCRD := &rhmp.MeterDefinitionList{}
 	if err := client.List(context.TODO(), MeterDefinitionCRD, listOpts...); err == nil {
 		RHMPEnabled = true
 	} else {
 		RHMPEnabled = false
 	}
 
-	routeTestInstance := &routev1.Route{}
+	routeTestInstance := &routev1.RouteList{}
 	if err := client.List(context.TODO(), routeTestInstance, listOpts...); err == nil {
 		IsRouteAPI = true
 	} else {
 		IsRouteAPI = false
 	}
 
-	serviceCAInstance := &servicecav1.ServiceCA{}
+	serviceCAInstance := &servicecav1.ServiceCAList{}
 	if err := client.List(context.TODO(), serviceCAInstance, listOpts...); err == nil {
 		IsServiceCAAPI = true
 	} else {
 		IsServiceCAAPI = false
 	}
 
-	odlmTestInstance := &odlm.OperandBindInfo{}
+	odlmTestInstance := &odlm.OperandBindInfoList{}
 	if err := client.List(context.TODO(), odlmTestInstance, listOpts...); err == nil {
 		IsODLM = true
 	} else {
@@ -366,7 +374,7 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 
 // Returns true if configmaps are equal
 func CompareConfigMap(cm1, cm2 *corev1.ConfigMap) bool {
-	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels)
+	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels) && reflect.DeepEqual(cm1.BinaryData, cm2.BinaryData)
 }
 
 func CompareRoutes(reqLogger logr.Logger, expectedRoute, foundRoute *routev1.Route) bool {
@@ -420,6 +428,97 @@ func areTLSCertsSame(expected, found routev1.TLSConfig) bool {
 		expected.Certificate == found.Certificate &&
 		expected.Key == found.Key &&
 		expected.DestinationCACertificate == found.DestinationCACertificate)
+}
+
+func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, dns []string) (*corev1.Secret, error) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate a pem block with the private key
+	keyPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	})
+
+	commonName := ""
+	if len(dns) > 0 {
+		commonName = dns[0]
+	}
+
+	tml := x509.Certificate{
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().AddDate(1, 0, 0),
+		// need to generate a different serial number each execution
+		SerialNumber: big.NewInt(int64(mathRand.Intn(1000000))),
+		Subject: pkix.Name{
+			CommonName:   commonName,
+			Organization: []string{"IBM"},
+		},
+		BasicConstraintsValid: true,
+	}
+
+	if dns != nil {
+		tml.DNSNames = dns
+	}
+
+	cert, err := x509.CreateCertificate(rand.Reader, &tml, &tml, &key.PublicKey, key)
+	if err != nil {
+		return nil, err
+	}
+
+	certPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: cert,
+	})
+
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      namespacedName.Name,
+			Namespace: namespacedName.Namespace,
+			Labels: map[string]string{
+				"release": "ibm-licensing-service",
+			},
+		},
+		Data: map[string][]byte{
+			"tls.crt": certPem,
+			"tls.key": keyPem,
+		},
+		Type: corev1.SecretTypeTLS,
+	}, nil
+}
+
+func ProcessCerfiticateSecret(secret corev1.Secret) (cert, caCert, key string, err error) {
+
+	certChain := string(secret.Data["tls.crt"])
+	key = string(secret.Data["tls.key"])
+	re := regexp.MustCompile("(?s)-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----")
+	externalCerts := re.FindAllString(certChain, -1)
+
+	if len(externalCerts) == 0 {
+		err = errors.New("invalid certificate format under tls.crt section")
+		return
+	}
+
+	cert = externalCerts[0]
+
+	if len(externalCerts) == 2 {
+		caCert = externalCerts[1]
+	} else {
+		caCert = ""
+	}
+	return
+}
+
+func ParseCertificate(rawCertData []byte) (*x509.Certificate, error) {
+	block, _ := pem.Decode(rawCertData)
+
+	if block != nil {
+		return x509.ParseCertificate(block.Bytes)
+	}
+
+	return nil, errors.New("unable to decode pem block")
 }
 
 func getTLSDataAsString(route *routev1.Route) string {

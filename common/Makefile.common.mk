@@ -16,8 +16,8 @@
 # GKE section
 ############################################################
 PROJECT ?= oceanic-guard-191815
-ZONE    ?= us-west1-a
-CLUSTER ?= prow
+ZONE    ?= us-east5-c
+CLUSTER ?= bedrock-prow
 
 activate-serviceaccount:
 ifdef GOOGLE_APPLICATION_CREDENTIALS
@@ -29,9 +29,6 @@ get-cluster-credentials: activate-serviceaccount
 
 config-docker: get-cluster-credentials
 	@common/scripts/config_docker.sh
-
-config-docker-scratch: get-cluster-credentials
-	@common/scripts/config_docker_scratch.sh
 
 ############################################################
 # install git hooks
