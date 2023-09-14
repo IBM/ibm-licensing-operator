@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	. "github.com/onsi/ginkgo/v2"
@@ -118,6 +119,7 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 
 			By("Checking if license is not accepted")
 			Eventually(func() bool {
+				time.Sleep(60 * time.Second)
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
 				fmt.Println(newInstance)
 				return newInstance.Spec.IsLicenseAccepted()
