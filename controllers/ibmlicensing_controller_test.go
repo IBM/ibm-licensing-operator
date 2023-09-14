@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"time"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	. "github.com/onsi/ginkgo/v2"
@@ -117,13 +116,12 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 			newInstance := &operatorv1alpha1.IBMLicensing{}
 			events := &v1.EventList{}
 
-			time.Sleep(30 * time.Second)
-
 			By("Checking if license is not accepted")
 			Eventually(func() bool {
-				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
-				fmt.Println(newInstance)
-				return newInstance.Spec.IsLicenseAccepted()
+				if err := k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance); err != nil {
+					return newInstance.Spec.IsLicenseAccepted()
+				}
+				return true
 			}, timeout, interval).Should(Equal(false))
 
 			By("Checking if 'license not accepted' event was created successfully")
