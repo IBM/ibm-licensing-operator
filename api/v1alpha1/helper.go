@@ -31,8 +31,8 @@ import (
 )
 
 const localReporterURL = "https://ibm-license-service-reporter:8080"
-const defaultLicensingTokenSecretName = "ibm-licensing-token"         //#nosec
-const defaultReporterTokenSecretName = "ibm-licensing-reporter-token" //#nosec
+const defaultLicensingTokenSecretName = "ibm-licensing-token"               //#nosec
+const defaultReporterTokenSecretName = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
 const OperandLicensingImageEnvVar = "IBM_LICENSING_IMAGE"
 const OperandUsageImageEnvVar = "IBM_LICENSING_USAGE_IMAGE"
 
