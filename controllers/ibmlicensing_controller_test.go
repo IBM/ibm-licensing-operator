@@ -119,10 +119,8 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 			By("Checking if license is not accepted")
 			Eventually(func() bool {
 				Expect(k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance)).Should(Succeed())
-				if newInstance.Spec != nil {
-					return newInstance.Spec.IsLicenseAccepted()
-				}
-				return true
+				fmt.Println(newInstance)
+				return newInstance.Spec.IsLicenseAccepted()
 			}, timeout, interval).Should(Equal(false))
 
 			By("Checking if 'license not accepted' event was created successfully")
