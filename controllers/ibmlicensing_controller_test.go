@@ -119,9 +119,9 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 			By("Checking if license is not accepted")
 			Eventually(func() bool {
 				if err := k8sClient.Get(ctx, types.NamespacedName{Name: instance.Name}, newInstance); err != nil {
-					return newInstance.Spec.IsLicenseAccepted()
+					return true
 				}
-				return true
+				return newInstance.Spec.IsLicenseAccepted()
 			}, timeout, interval).Should(Equal(false))
 
 			By("Checking if 'license not accepted' event was created successfully")
