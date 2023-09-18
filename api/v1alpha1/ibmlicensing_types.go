@@ -192,7 +192,8 @@ type IBMLicensingFeaturesStatus struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// IBM License Service is the Schema for the ibmlicensings API.
+// IBMLicensing custom resource is used to create an instance of the License Service, used to collect information about license usage of IBM containerized products and IBM Cloud Paks per cluster.
+// You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 // Documentation: For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
 // License: Please refer to the IBM Terms website (ibm.biz/lsvc-lic)
 // to find the license terms for the particular IBM product for which you are deploying this component.
