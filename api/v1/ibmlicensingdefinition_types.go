@@ -54,7 +54,8 @@ type IBMLicensingDefinitionStatus struct {
 
 // +kubebuilder:object:root=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// IBMLicensingDefinition is the schema for IBM License Service.
+// IBMLicensingDefinition is a custom resource for internal use only. It is used by some IBM products to assign their pods to the licensed products for the licensing specific calculation, performed by the IBM License Service.
+// It is prepared in close collaboration with those IBM products, and affects only them. It cannot be modified by a customer, to ensure compliance with the license usage metering and reporting.
 // +operator-sdk:csv:customresourcedefinitions:displayName="IBM Licensing Definition"
 // +kubebuilder:resource:path=ibmlicensingdefinitions,scope=Namespaced
 // +kubebuilder:subresource:status
