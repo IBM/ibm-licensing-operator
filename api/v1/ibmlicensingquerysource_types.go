@@ -39,7 +39,8 @@ type IBMLicensingQuerySourceStatus struct {
 
 // +kubebuilder:object:root=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// IBMLicensingQuerySource is the schema for IBM License Service.
+// IBMLicensingQuerySource is a Custom Resource which holds information about prometheus query
+// that will used by IBM Licensing Service for license usage calculations.
 // +operator-sdk:csv:customresourcedefinitions:displayName="IBM Licensing Query Source"
 // +kubebuilder:resource:path=ibmlicensingquerysources,scope=Namespaced
 // +kubebuilder:subresource:status
