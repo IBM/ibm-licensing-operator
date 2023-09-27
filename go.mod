@@ -88,6 +88,7 @@ require (
 replace (
 	github.com/emicklei/go-restful/v3 => github.com/emicklei/go-restful/v3 v3.10.1
 	github.com/operator-framework/api => github.com/operator-framework/api v0.5.0
+	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.11.1
 
 	k8s.io/api => k8s.io/api v0.24.9
 	k8s.io/apimachinery => k8s.io/apimachinery v0.24.9
