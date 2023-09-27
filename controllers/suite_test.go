@@ -27,7 +27,10 @@ import (
 	. "github.com/onsi/gomega"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+	"go.uber.org/zap/zapcore"
+	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -37,6 +40,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
+
 	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
@@ -45,23 +50,35 @@ import (
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
 var (
-	cfg       *rest.Config
-	k8sClient client.Client
-	testEnv   *envtest.Environment
-	namespace string
-	ocp       bool
-	timeout   = time.Second * 300
-	interval  = time.Second * 5
+	cfg               *rest.Config
+	k8sClient         client.Client
+	k8sCFromMgr       client.Client
+	k8sRFromMgr       client.Reader
+	testEnv           *envtest.Environment
+	namespace         string
+	operatorNamespace string
+	opreqNamespace    string
+	ocp               bool
+	timeout           = time.Second * 300
+	interval          = time.Second * 5
 )
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	RunSpecs(t, "Controller Suite")
+	suiteConfig, reporterConfig := GinkgoConfiguration()
+	reporterConfig.FullTrace = true
+
+	RunSpecs(t, "Controller suite", suiteConfig, reporterConfig)
 }
 
-var _ = BeforeSuite(func(done Done) {
-	logf.SetLogger(zap.New(zap.UseDevMode(true), zap.WriteTo(GinkgoWriter)))
+var _ = BeforeSuite(func() {
+
+	logf.SetLogger(zap.New(func(o *zap.Options) {
+		o.Development = true
+		o.TimeEncoder = zapcore.RFC3339TimeEncoder
+		o.DestWriter = GinkgoWriter
+	}))
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
@@ -79,6 +96,9 @@ var _ = BeforeSuite(func(done Done) {
 	err = operatoribmcomv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
+	err = corev1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
 	err = routev1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -88,11 +108,26 @@ var _ = BeforeSuite(func(done Done) {
 	err = monitoringv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
+	err = odlm.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
 	err = networkingv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = meterdefv1beta1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
+
+	err = operatorframeworkv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
+	Expect(operatorNamespace).ToNot(BeEmpty())
+
+	namespace, _ = os.LookupEnv("NAMESPACE")
+	Expect(namespace).ToNot(BeEmpty())
+
+	opreqNamespace, _ = os.LookupEnv("OPREQ_TEST_NAMESPACE")
+	Expect(opreqNamespace).ToNot(BeEmpty())
 
 	// +kubebuilder:scaffold:scheme
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
@@ -102,30 +137,33 @@ var _ = BeforeSuite(func(done Done) {
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme.Scheme,
 		MetricsBindAddress: "0",
+		Namespace:          "",
 	})
 	Expect(err).ToNot(HaveOccurred())
 
-	err = (&IBMLicenseServiceReporterReconciler{
-		Client: mgr.GetClient(),
-		Reader: mgr.GetAPIReader(),
-		Log:    ctrl.Log.WithName("controllers").WithName("IBMLicenseServiceReporter"),
-		Scheme: mgr.GetScheme(),
+	k8sCFromMgr = mgr.GetClient()
+	k8sRFromMgr = mgr.GetAPIReader()
+
+	err = (&IBMLicensingReconciler{
+		Client:            mgr.GetClient(),
+		Reader:            mgr.GetAPIReader(),
+		Log:               ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
+		Scheme:            mgr.GetScheme(),
+		OperatorNamespace: operatorNamespace,
 	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
 
 	err = (&IBMLicensingReconciler{
-		Client: mgr.GetClient(),
-		Reader: mgr.GetAPIReader(),
-		Log:    ctrl.Log.WithName("controllers").WithName("IBMLicensing"),
-		Scheme: mgr.GetScheme(),
+		Client:            mgr.GetClient(),
+		Reader:            mgr.GetAPIReader(),
+		Log:               ctrl.Log.WithName("controllers").WithName("OperandRequest"),
+		Scheme:            mgr.GetScheme(),
+		OperatorNamespace: operatorNamespace,
 	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
 
 	k8sClient = mgr.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
-
-	namespace, _ = os.LookupEnv("NAMESPACE")
-	Expect(namespace).ToNot(BeNil())
 
 	ocpEnvVar, _ := os.LookupEnv("OCP")
 	if ocpEnvVar == "" {
@@ -139,9 +177,7 @@ var _ = BeforeSuite(func(done Done) {
 		err = mgr.Start(ctrl.SetupSignalHandler())
 		Expect(err).ToNot(HaveOccurred())
 	}()
-
-	close(done)
-}, 600)
+})
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
