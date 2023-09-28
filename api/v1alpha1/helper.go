@@ -390,6 +390,7 @@ func (container *Container) setContainer(envVar string) error {
 	return nil
 }
 
+//nolint:revive
 func CheckOperandEnvVar() error {
 	c := Container{}
 	if err := c.getImageParametersFromEnv(OperandLicensingImageEnvVar); err != nil {
