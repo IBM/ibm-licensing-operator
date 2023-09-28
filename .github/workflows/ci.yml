@@ -61,7 +61,11 @@ jobs:
         run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.52.2
 
       - name: Clear cache for golangci-lint
-        run: golangci-lint cache clean && go clean -modcache -cache -i  
+        run: |
+          go mod tidy
+          go mod vendor
+          golangci-lint cache clean
+          go clean -modcache -cache -i
       
       - name: Check
         run: make check
