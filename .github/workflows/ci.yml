@@ -48,6 +48,7 @@ jobs:
     name: Check
     runs-on: ubuntu-22.04
     container: 
+      # This image can cause some issues if it outdated - golanglint_ci might have an issues
       image: quay.io/cicdtest/check-tool:v20230310-111111111
     steps:
       - name: Checkout
