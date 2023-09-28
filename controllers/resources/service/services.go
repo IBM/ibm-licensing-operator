@@ -69,7 +69,7 @@ func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servic
 			Name:        GetLicensingServiceName(instance),
 			Namespace:   instance.Spec.InstanceNamespace,
 			Labels:      metaLabels,
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, LicenseServiceInternalCertName),
+			Annotations: resources.AnnotateForService(instance.Spec.HTTPSEnable, LicenseServiceInternalCertName),
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
@@ -100,7 +100,7 @@ func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servi
 			Name:        GetPrometheusServiceName(),
 			Namespace:   instance.Spec.InstanceNamespace,
 			Labels:      getPrometheusLabels(),
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, instance.Spec.HTTPSEnable, PrometheusServiceOCPCertName),
+			Annotations: resources.AnnotateForService(instance.Spec.HTTPSEnable, PrometheusServiceOCPCertName),
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,

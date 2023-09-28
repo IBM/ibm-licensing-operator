@@ -62,7 +62,7 @@ func GetService(instance *operatorv1alpha1.IBMLicenseServiceReporter) *corev1.Se
 			Name:        LicenseReporterResourceBase,
 			Namespace:   instance.GetNamespace(),
 			Labels:      metaLabels,
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSCertsSource, true, LicenseReportOCPCertName),
+			Annotations: resources.AnnotateForService(true, LicenseReportOCPCertName),
 		},
 		Spec: getServiceSpec(instance),
 	}

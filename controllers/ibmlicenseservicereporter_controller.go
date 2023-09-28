@@ -95,6 +95,7 @@ type reconcileLRFunctionType = func(*operatorv1alpha1.IBMLicenseServiceReporter)
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=operator.ibm.com,resources=ibmlicenseservicereporters;ibmlicenseservicereporters/status;ibmlicenseservicereporters/finalizers;operandbindinfos,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicenseservicereporters;ibmlicenseservicereporters/status;ibmlicenseservicereporters/finalizers,verbs=get;list;watch;create;update;patch;delete
 
+//nolint:revive
 func (r *IBMLicenseServiceReporterReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("Request", req)
 	reqLogger.Info("Reconciling IBMLicenseServiceReporter")
@@ -580,6 +581,7 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileIngressProxy(instance *op
 	return r.reconcileResourceExistence(instance, expectedIngress, foundIngress, namespacedName)
 }
 
+//nolint:revive
 //goland:noinspection GoUnusedParameter
 func (r *IBMLicenseServiceReporterReconciler) reconcileSenderConfiguration(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
 	return reconcile.Result{}, reporter.AddSenderConfiguration(r.Client, r.Log)
