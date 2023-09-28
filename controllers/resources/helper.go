@@ -19,73 +19,96 @@ package resources
 import (
 	"context"
 	"crypto/rand"
+	"errors"
+	"fmt"
+	"math/big"
+	"os"
+	"regexp"
+
+	"reflect"
+	"time"
+
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"errors"
-	"fmt"
-	"math/big"
-	"reflect"
-	"regexp"
-	"time"
 
-	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+
+	networkingv1 "k8s.io/api/networking/v1"
+
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
-	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
-
 	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
-	apieq "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
 // cannot set to const due to k8s struct needing pointers to primitive types
-var (
-	TrueVar  = true
-	FalseVar = false
 
-	DefaultSecretMode int32 = 420
-	Seconds60         int64 = 60
+var TrueVar = true
+var FalseVar = false
 
-	IsRouteAPI                 = true
-	IsServiceCAAPI             = true
-	IsAlertingEnabledByDefault = true
-	RHMPEnabled                = false
-	IsODLM                     = true
+var DefaultSecretMode int32 = 420
+var Seconds60 int64 = 60
 
-	PathType = networkingv1.PathTypeImplementationSpecific
-)
+var IsRouteAPI = true
+var IsServiceCAAPI = true
+var IsAlertingEnabledByDefault = true
+var RHMPEnabled = false
+var IsUIEnabled = false
+var IsODLM = true
+var UIPlatformSecretName = "platform-oidc-credentials"
 
-const (
-	// Important product values needed for annotations
-	LicensingProductName   = "IBM Cloud Platform Common Services"
-	LicensingProductID     = "068a62892a1e4db39641342e592daa25"
-	LicensingProductMetric = "FREE"
+var PathType = networkingv1.PathTypeImplementationSpecific
 
-	ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
+// Important product values needed for annotations
+const LicensingProductName = "IBM Cloud Platform Common Services"
+const LicensingProductID = "068a62892a1e4db39641342e592daa25"
+const LicensingProductMetric = "FREE"
 
-	OcpCheckString           = "ocp-check-secret"
-	OcpPrometheusCheckString = "ocp-prometheus-check-secret"
-	OperatorName             = "ibm-licensing-operator"
-)
+const randStringCharset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
+const OcpCheckString = "ocp-check-secret"
+const OcpPrometheusCheckString = "ocp-prometheus-check-secret"
+
+var randStringCharsetLength = big.NewInt(int64(len(randStringCharset)))
 
 var annotationsForServicesToCheck = [...]string{ocpCertSecretNameTag}
 
 type ResourceObject interface {
 	metav1.Object
 	runtime.Object
+}
+
+func RandString(length int) (string, error) {
+	reader := rand.Reader
+	outputStringByte := make([]byte, length)
+	for i := 0; i < length; i++ {
+		charIndex, err := rand.Int(reader, randStringCharsetLength)
+		if err != nil {
+			return "", err
+		}
+		outputStringByte[i] = randStringCharset[charIndex.Int64()]
+	}
+	return string(outputStringByte), nil
+}
+
+func Contains(s []corev1.LocalObjectReference, e corev1.LocalObjectReference) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
 
 // we could use reflection to have this method for all types but for now strings would be enough
@@ -111,53 +134,33 @@ func ListsEqualsLikeSets(list1 []string, list2 []string) bool {
 	return true
 }
 
-func AnnotationsForPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {
-	return mergeWithSpecAnnotations(instance, map[string]string{
-		"productName":   LicensingProductName,
-		"productID":     LicensingProductID,
-		"productMetric": LicensingProductMetric,
-	})
+func AnnotationsForPod() map[string]string {
+	return map[string]string{"productName": LicensingProductName,
+		"productID": LicensingProductID, "productMetric": LicensingProductMetric}
 }
 
-func AnnotateForService(instance *operatorv1alpha1.IBMLicensing, certName string) map[string]string {
-	if IsServiceCAAPI && instance.Spec.HTTPSEnable {
-		return mergeWithSpecAnnotations(instance, map[string]string{ocpCertSecretNameTag: certName})
+func GetSecretToken(name string, namespace string, secretKey string, metaLabels map[string]string) (*corev1.Secret, error) {
+	randString, err := RandString(24)
+	if err != nil {
+		return nil, err
 	}
-	return mergeWithSpecAnnotations(instance, map[string]string{})
+	expectedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+			Labels:    metaLabels,
+		},
+		Type:       corev1.SecretTypeOpaque,
+		StringData: map[string]string{secretKey: randString},
+	}
+	return expectedSecret, nil
 }
 
-// Attach labels existing on the found resource to the expected resource
-func attachExistingLabels(foundResource ResourceObject, expectedResource ResourceObject) {
-	resourceLabels := foundResource.GetLabels()
-	expectedLabels := expectedResource.GetLabels()
-
-	if expectedLabels == nil {
-		expectedLabels = map[string]string{}
+func AnnotateForService(isHTTPS bool, certName string) map[string]string {
+	if IsServiceCAAPI && isHTTPS {
+		return map[string]string{ocpCertSecretNameTag: certName}
 	}
-
-	for key, value := range resourceLabels {
-		_, ok := expectedLabels[key]
-		if !ok {
-			expectedLabels[key] = value
-		}
-	}
-}
-
-// Attach annotations existing on the found resource to the expected resource
-func attachExistingAnnotations(foundResource ResourceObject, expectedResource ResourceObject) {
-	resourceAnnotations := foundResource.GetAnnotations()
-	expectedAnnotations := expectedResource.GetAnnotations()
-
-	if expectedAnnotations == nil {
-		expectedAnnotations = map[string]string{}
-	}
-
-	for key, value := range resourceAnnotations {
-		_, ok := expectedAnnotations[key]
-		if !ok {
-			expectedAnnotations[key] = value
-		}
-	}
+	return map[string]string{}
 }
 
 func UpdateResource(reqLogger *logr.Logger, client c.Client,
@@ -165,29 +168,12 @@ func UpdateResource(reqLogger *logr.Logger, client c.Client,
 	resTypeString := reflect.TypeOf(expectedResource).String()
 	(*reqLogger).Info("Updating " + resTypeString)
 	expectedResource.SetResourceVersion(foundResource.GetResourceVersion())
-
-	// Ensure persistence of existing metadata
-	attachExistingLabels(foundResource, expectedResource)
-	attachExistingAnnotations(foundResource, expectedResource)
-
 	err := client.Update(context.TODO(), expectedResource)
 	if err != nil {
 		// only need to delete resource as new will be recreated on next reconciliation
 		(*reqLogger).Info("Could not update "+resTypeString+", due to having not compatible changes between expected and updated resource, "+
 			"will try to delete it and create new one...", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
-
-		result, err := DeleteResource(reqLogger, client, foundResource)
-		if err != nil {
-			(*reqLogger).Error(err, "Failed deleting the resource")
-			return result, err
-		}
-
-		// Can't create a new resource with a resource version provided, so remove it
-		expectedResource.SetResourceVersion("")
-
-		// Recreate the resource immediately (to avoid losing e.g. previously existing labels)
-		(*reqLogger).Info("Recreating "+resTypeString, "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
-		return reconcile.Result{}, client.Create(context.TODO(), expectedResource)
+		return DeleteResource(reqLogger, client, foundResource)
 	}
 	(*reqLogger).Info("Updated "+resTypeString+" successfully", "Namespace", expectedResource.GetNamespace(), "Name", expectedResource.GetName())
 	// Resource updated - return and do not requeue as it might not consider extra values
@@ -281,7 +267,7 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 	}
 	if expectedEndpoint.TLSConfig != nil {
 		if foundEndpoint.TLSConfig == nil ||
-			!apieq.Semantic.DeepEqual(expectedEndpoint.TLSConfig, foundEndpoint.TLSConfig) {
+			!reflect.DeepEqual(expectedEndpoint.TLSConfig, foundEndpoint.TLSConfig) {
 			return updateResource()
 		}
 	} else {
@@ -289,7 +275,7 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 			return updateResource()
 		}
 	}
-	if !apieq.Semantic.DeepEqual(expectedSpec.Selector, foundSpec.Selector) {
+	if !reflect.DeepEqual(expectedSpec.Selector, foundSpec.Selector) {
 		return updateResource()
 	}
 	return reconcile.Result{}, nil
@@ -388,9 +374,11 @@ echo "$(date): All required secrets exist"
 }
 
 func UpdateCacheClusterExtensions(client c.Reader) error {
-	namespace, err := GetOperatorNamespace()
-	if err != nil {
-		return errors.New("OPERATOR_NAMESPACE env not found")
+	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+
+	namespace, found := os.LookupEnv(watchNamespaceEnvVar)
+	if !found {
+		return errors.New("WATCH_NAMESPACE not found")
 	}
 
 	listOpts := []c.ListOption{
@@ -430,24 +418,9 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 	return nil
 }
 
-// MapHasAllPairsFromOther checks if all key, value pairs present in the second param are in the first param
-func MapHasAllPairsFromOther[K, V comparable](checked, allNeededPairs map[K]V) bool {
-	for key, value := range allNeededPairs {
-		if foundValue, ok := checked[key]; !ok || foundValue != value {
-			return false
-		}
-	}
-	return true
-}
-
-// Returns true if configmaps are equal in terms of stored data
-func CompareConfigMapData(found, expected *corev1.ConfigMap) bool {
-	return apieq.Semantic.DeepEqual(found.Data, expected.Data) && MapHasAllPairsFromOther(found.Labels, expected.Labels) && apieq.Semantic.DeepEqual(found.BinaryData, expected.BinaryData)
-}
-
-// Returns true if secrets are equal in terms of stored data
-func CompareSecretsData(s1, s2 *corev1.Secret) bool {
-	return apieq.Semantic.DeepEqual(s1.Data, s2.Data) && apieq.Semantic.DeepEqual(s1.Labels, s2.Labels) && apieq.Semantic.DeepEqual(s1.Type, s2.Type) && apieq.Semantic.DeepEqual(s1.StringData, s2.StringData)
+// Returns true if configmaps are equal
+func CompareConfigMap(cm1, cm2 *corev1.ConfigMap) bool {
+	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels) && reflect.DeepEqual(cm1.BinaryData, cm2.BinaryData)
 }
 
 // Returns true if routes are equal
@@ -601,17 +574,4 @@ func getTLSDataAsString(route *routev1.Route) string {
 	return fmt.Sprintf("{Termination: %v, InsecureEdgeTerminationPolicy: %v, Certificate: %s, CACertificate: %s, DestinationCACertificate: %s}",
 		route.Spec.TLS.Termination, route.Spec.TLS.InsecureEdgeTerminationPolicy,
 		route.Spec.TLS.Certificate, route.Spec.TLS.CACertificate, route.Spec.TLS.DestinationCACertificate)
-}
-
-/*
-MergeWithSpecAnnotations attaches spec annotations to the provided map of predefined annotations.
-*/
-func mergeWithSpecAnnotations(instance *operatorv1alpha1.IBMLicensing, annotations map[string]string) map[string]string {
-	if instance.Spec.Annotations != nil {
-		for key, value := range instance.Spec.Annotations {
-			annotations[key] = value
-		}
-	}
-
-	return annotations
 }
