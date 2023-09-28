@@ -49,13 +49,16 @@ jobs:
     container: 
       image: quay.io/multicloudlab/check-tool:v20221107-59a355d03
     steps:
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Upgrade golangci-lint
         run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.50.1
-
-      - uses: katexochen/go-tidy-check@v2
       
       - name: Check
         run: make check
