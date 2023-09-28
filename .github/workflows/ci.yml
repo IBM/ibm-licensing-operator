@@ -47,24 +47,13 @@ jobs:
     name: Check
     runs-on: ubuntu-22.04
     container: 
-      image: quay.io/multicloudlab/check-tool:v20221107-59a355d03
+      image: quay.io/cicdtest/check-tool:v20230310-111111111
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@v3.5.0
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
       - name: Upgrade golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.52.2
-
-      - name: Clear cache for golangci-lint
-        run: |
-          go mod download
-          golangci-lint cache clean
-          go clean -modcache -cache -i
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.51.2
       
       - name: Check
         run: make check
