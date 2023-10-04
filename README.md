@@ -9,11 +9,11 @@ You can install License Service with ibm-licensing-operator to collect license u
 
 <b>Scenario: License Service as a part of an IBM Cloud Pak (included in IBM Cloud Pak foundational services)</b>
 
-> **Important:** Do not install this operator directly. Only install this operator using the IBM IBM Cloud Pak foundational services operator. For more information about installing this operator and other foundational services operators, see [Installer documentation](http://ibm.biz/cpcs_opinstall). If you are using this operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For more information about IBM Cloud Paks, see [IBM Cloud Paks that use IBM Cloud Pak foundational services](http://ibm.biz/cpcs_cloudpaks).
+> **Important:** Do not install this operator directly. Only install this operator using the IBM IBM Cloud Pak foundational services operator. For more information about installing this operator and other foundational services operators, see [Installer documentation](https://www.ibm.com/docs/en/cloud-paks/foundational-services/3.23?topic=installer). If you are using this operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For more information about IBM Cloud Paks, see [IBM Cloud Paks that use IBM Cloud Pak foundational services](https://www.ibm.com/docs/en/cloud-paks/foundational-services/3.23?topic=about-cloud-paks).
 
 You can use the `ibm-licensing-operator` to install License Service as a part of IBM Cloud Pak foundational services or an IBM Cloud Pak. You can use License Service to collect information about license usage of IBM containerized products and IBM Cloud Paks per cluster. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 
-For more information about the available IBM Cloud Pak foundational services, see the [IBM Documentation](http://ibm.biz/cpcsdocs).
+For more information about the available IBM Cloud Pak foundational services, see the [IBM Documentation](https://www.ibm.com/docs/en/cloud-paks/foundational-services/3.23).
 
 ## Supported platforms
 
@@ -27,8 +27,8 @@ Red Hat OpenShift Container Platform 4.2 or newer installed on Linux x86_64, Lin
 
 Before you install this operator, you need to first install the operator dependencies and prerequisites:
 
-- For the list of operator dependencies, see [Dependencies of the IBM Cloud Pak foundational services](http://ibm.biz/cpcs_opdependencies) in the IBM Documentation.
-- For the list of prerequisites for installing the operator, see [Preparing to install services documentation](http://ibm.biz/cpcs_opinstprereq) in the IBM Documentation.
+- For the list of operator dependencies, see [Dependencies of the IBM Cloud Pak foundational services](https://www.ibm.com/docs/en/cloud-paks/foundational-services/3.23?topic=operator-dependencies-foundational-services) in the IBM Documentation.
+- For the list of prerequisites for installing the operator, see [Preparing to install services documentation](https://www.ibm.com/docs/en/cloud-paks/foundational-services/3.23?topic=operator-preparing-install-foundational-services) in the IBM Documentation.
 
 > **Important:** If you installed License Service with the stand-alone IBM containerized software and you want to install an IBM Cloud Pak, it is recommended to first uninstall License Service from every cluster. Before uninstalling, the best practice is to retrieve an audit snapshot to ensure no data is lost. The Cloud Pak will install a new instance of License Service. This is a temporary action that we would like to automate in the future.
 
@@ -36,8 +36,8 @@ Before you install this operator, you need to first install the operator depende
 
 To install the operator with the IBM Cloud Pak foundational services Operator follow the installation and configuration instructions within the IBM Documentation.
 
-- If you are using the operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak. For a list of IBM Cloud Paks, see [IBM Cloud Paks that use IBM Cloud Pak foundational services](http://ibm.biz/cpcs_cloudpaks).
-- If you are using the operator with an IBM Containerized Software as a part of IBM Cloud Pak foundational services, see the [Installer documentation](http://ibm.biz/cpcs_opinstall) in IBM Documentation.
+- If you are using the operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak. For a list of IBM Cloud Paks, see [IBM Cloud Paks that use IBM Cloud Pak foundational services](https://www.ibm.com/docs/en/cloud-paks/foundational-services/3.23?topic=about-cloud-paks).
+- If you are using the operator with an IBM Containerized Software as a part of IBM Cloud Pak foundational services, see the [Installer documentation](https://www.ibm.com/docs/en/cloud-paks/foundational-services/3.23?topic=installer) in IBM Documentation.
 
 ## SecurityContextConstraints Requirements
 
