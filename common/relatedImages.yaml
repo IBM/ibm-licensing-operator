@@ -1,12 +1,12 @@
-- image: icr.io/cpopen/ibm-licensing-operator:1.20.8
+- image: icr.io/cpopen/ibm-licensing-operator:1.20.9
   name: IBM_LICENSING_OPERATOR_IMAGE
-- image: icr.io/cpopen/cpfs/ibm-licensing:1.20.8
+- image: icr.io/cpopen/cpfs/ibm-licensing:1.20.9
   name: IBM_LICENSING_IMAGE
-- image: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.20.8
+- image: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.20.9
   name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-- image: icr.io/cpopen/cpfs/ibm-postgresql:1.20.8
+- image: icr.io/cpopen/cpfs/ibm-postgresql:1.20.9
   name: IBM_POSTGRESQL_IMAGE
-- image: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.20.8
+- image: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.20.9
   name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-- image: icr.io/cpopen/cpfs/ibm-licensing-usage:1.20.8
+- image: icr.io/cpopen/cpfs/ibm-licensing-usage:1.20.9
   name: IBM_LICENSING_USAGE_IMAGE
