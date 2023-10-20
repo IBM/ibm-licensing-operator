@@ -47,10 +47,11 @@ func equalEnvVars(envVarArr1, envVarArr2 []corev1.EnvVar) bool {
 	if len(envVarArr1) != len(envVarArr2) {
 		return false
 	}
+
 	for _, env1 := range envVarArr1 {
 		contains := false
 		for _, env2 := range envVarArr2 {
-			if env1.Name == env2.Name && env1.Value == env2.Value {
+			if env1.Name == env2.Name && env1.Value == env2.Value && reflect.DeepEqual(env1.ValueFrom, env2.ValueFrom) {
 				contains = true
 				break
 			}
