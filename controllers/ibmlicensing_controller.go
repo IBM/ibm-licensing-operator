@@ -357,68 +357,74 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 }
 
 /*
-Attach labels from .spec.labels YAML path of the IBMLicensing resource to the given resource object.
+Attach labels from .spec.labels YAML path of the IBMLicensing resource to the given (found) resource object.
 
-Should be called either before any `UpdateResources` function calls, in which case the labels are simply copied into
-the given resource, or after `Get` calls, in which case more operations are performed. The former requires an expected
-resource (which will be used in `UpdateResources`) and will not preserve existing labels. The latter requires a found
-resource (which would have been fetched via `Get`), and will preserve existing labels.
+Should be called either before any `Get` calls, such as the resource existence checks. Requires a found resource
+(which would have been fetched via `Get`) and will preserve existing labels.
 
-This behaviour is controlled via the `beforeUpdate` flag. The reasoning is that `UpdateResources` always overrides
-found resources with the expected one, so there is no need for any extra operations preserving the current state of
-labels. `beforeUpdate` should be set to `true` to avoid extra operations.
+In its current state, may be somewhat costly in terms of performance. Copy and `UpdateResources` calls can be replaced
+with an `Update` call on the resource if needed.
 */
-// TODO: Consider splitting into 2 functions to avoid lint errors on unhandled errors; also because it makes sense
 // TODO: Find out where to apply so that the pod has labels, or replica set too, rest should be marked with todo
 func (r *IBMLicensingReconciler) maybeAttachSpecLabels(
 	instance *operatorv1alpha1.IBMLicensing,
 	resource res.ResourceObject,
 	reqLogger *logr.Logger,
-	precedingUpdate bool,
 ) (reconcile.Result, error) {
 	if instance.Spec.Labels != nil {
+		shouldAttach := false
 
-		// Normally done on an expected resource if precedingUpdate is true, on found resource otherwise
-		if precedingUpdate {
-
-			// Include or override all spec keys with spec labels (directly on the resource)
-			resourceLabels := resource.GetLabels()
-			if resourceLabels == nil {
-				resource.SetLabels(instance.Spec.Labels)
-			} else {
-				for key, value := range instance.Spec.Labels {
-					resourceLabels[key] = value
-				}
-			}
-
+		// Include or override all spec keys with spec labels (on a variable, to override resource labels later)
+		resourceLabels := resource.GetLabels()
+		if resourceLabels == nil {
+			resourceLabels = instance.Spec.Labels
+			shouldAttach = true
 		} else {
-			shouldAttach := false
-
-			// Include or override all spec keys with spec labels (on a variable, to override resource labels later)
-			resourceLabels := resource.GetLabels()
-			if resourceLabels == nil {
-				resourceLabels = instance.Spec.Labels
-				shouldAttach = true
-			} else {
-				// Set flag only in case of a mismatch between spec and resource labels
-				for key, value := range instance.Spec.Labels {
-					if resourceLabels[key] != value {
-						resourceLabels[key] = value
-						shouldAttach = true
-					}
+			// Set flag only in case of a mismatch between spec and resource labels
+			for key, value := range instance.Spec.Labels {
+				if resourceLabels[key] != value {
+					resourceLabels[key] = value
+					shouldAttach = true
 				}
 			}
-			// Need to copy resource for `UpdateResource` call
-			// TODO: if copy too expensive, need to write a new function and use Update directly
-			if shouldAttach {
-				expectedResource := resource
-				expectedResource.SetLabels(resourceLabels)
-				return res.UpdateResource(reqLogger, r.Client, expectedResource, resource)
-			}
+		}
+
+		// Need to copy resource for the `UpdateResource` call
+		if shouldAttach {
+			expectedResource := resource
+			expectedResource.SetLabels(resourceLabels)
+			return res.UpdateResource(reqLogger, r.Client, expectedResource, resource)
 		}
 	}
 
 	return reconcile.Result{}, nil
+}
+
+/*
+Attach labels from .spec.labels YAML path of the IBMLicensing resource to the given (expected) resource object.
+
+Should be called before any `UpdateResources` function calls, in which case the labels are simply copied into
+the given resource. Requires an expected resource (which will be used in `UpdateResources`) and will not preserve
+existing labels.
+
+The reasoning is that `UpdateResources` always overrides the found resource with the expected one, so there is no need
+for any extra operations preserving the current state of (found) labels.
+*/
+func (r *IBMLicensingReconciler) maybeAttachSpecLabelsPrecedingUpdate(
+	instance *operatorv1alpha1.IBMLicensing,
+	resource res.ResourceObject,
+) {
+	// Include or override all spec keys with spec labels (directly on the reference)
+	if instance.Spec.Labels != nil {
+		resourceLabels := resource.GetLabels()
+		if resourceLabels == nil {
+			resource.SetLabels(instance.Spec.Labels)
+		} else {
+			for key, value := range instance.Spec.Labels {
+				resourceLabels[key] = value
+			}
+		}
+	}
 }
 
 func (r *IBMLicensingReconciler) reconcileAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -438,7 +444,7 @@ func (r *IBMLicensingReconciler) reconcileAPISecretToken(instance *operatorv1alp
 		return result, err
 	}
 
-	return r.maybeAttachSpecLabels(instance, foundSecret, &reqLogger, false)
+	return r.maybeAttachSpecLabels(instance, foundSecret, &reqLogger)
 }
 
 // default reader token is not created by default since kubernetes 1.24, we need to ensure it is always generated
@@ -471,7 +477,7 @@ func (r *IBMLicensingReconciler) reconcileDefaultReaderToken(instance *operatorv
 		}, err
 	}
 
-	return r.maybeAttachSpecLabels(instance, foundSecret, &reqLogger, false)
+	return r.maybeAttachSpecLabels(instance, foundSecret, &reqLogger)
 }
 
 func (r *IBMLicensingReconciler) reconcileServiceAccountToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -502,7 +508,7 @@ func (r *IBMLicensingReconciler) reconcileServiceAccountToken(instance *operator
 				RequeueAfter: time.Minute,
 			}, err
 		}
-		return r.maybeAttachSpecLabels(instance, foundSecret, &reqLogger, false)
+		return r.maybeAttachSpecLabels(instance, foundSecret, &reqLogger)
 	}
 	return reconcile.Result{}, nil
 }
@@ -523,7 +529,7 @@ func (r *IBMLicensingReconciler) reconcileUploadToken(instance *operatorv1alpha1
 		return result, err
 	}
 
-	return r.maybeAttachSpecLabels(instance, foundSecret, &reqLogger, false)
+	return r.maybeAttachSpecLabels(instance, foundSecret, &reqLogger)
 }
 
 func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -554,12 +560,12 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 			return reconcileResult, err
 		}
 		if !res.CompareConfigMapData(expectedCM, foundCM) {
-			r.maybeAttachSpecLabels(instance, expectedCM, &reqLogger, true)
+			r.maybeAttachSpecLabelsPrecedingUpdate(instance, expectedCM)
 			if updateReconcileResult, err := res.UpdateResource(&reqLogger, r.Client, expectedCM, foundCM); err != nil || updateReconcileResult.Requeue {
 				return updateReconcileResult, err
 			}
 		} else {
-			reconcileResult, err = r.maybeAttachSpecLabels(instance, foundCM, &reqLogger, false)
+			reconcileResult, err = r.maybeAttachSpecLabels(instance, foundCM, &reqLogger)
 			if err != nil || reconcileResult.Requeue {
 				return reconcileResult, err
 			}
@@ -583,12 +589,12 @@ func (r *IBMLicensingReconciler) reconcileServices(instance *operatorv1alpha1.IB
 			return result, err
 		}
 
-		result, err = r.maybeAttachSpecLabels(instance, found, &reqLogger, false)
+		result, err = r.maybeAttachSpecLabels(instance, found, &reqLogger)
 		if err != nil || result.Requeue {
 			return result, err
 		}
 
-		r.maybeAttachSpecLabels(instance, es, &reqLogger, true) // In case below Update triggers
+		r.maybeAttachSpecLabelsPrecedingUpdate(instance, es) // In case below Update triggers
 		result, err = res.UpdateServiceIfNeeded(&reqLogger, r.Client, es, found)
 	}
 
@@ -638,7 +644,7 @@ func (r *IBMLicensingReconciler) reconcileServiceMonitor(instance *operatorv1alp
 	if err != nil || result.Requeue {
 		return result, err
 	}
-	r.maybeAttachSpecLabels(instance, expectedServiceMonitor, &reqLogger, true)
+	r.maybeAttachSpecLabelsPrecedingUpdate(instance, expectedServiceMonitor)
 	result, err = res.UpdateServiceMonitor(&reqLogger, r.Client, expectedServiceMonitor, foundServiceMonitor)
 
 	return result, err
@@ -659,7 +665,7 @@ func (r *IBMLicensingReconciler) reconcileNetworkPolicy(instance *operatorv1alph
 			return result, err
 		}
 
-		r.maybeAttachSpecLabels(instance, expected, &reqLogger, true)
+		r.maybeAttachSpecLabelsPrecedingUpdate(instance, expected)
 		result, err = res.UpdateResource(&reqLogger, r.Client, expected, found)
 
 		return result, err
@@ -683,11 +689,11 @@ func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.
 		&foundDeployment.Spec.Template,
 	)
 	if shouldUpdate {
-		r.maybeAttachSpecLabels(instance, expectedDeployment, &reqLogger, true)
+		r.maybeAttachSpecLabelsPrecedingUpdate(instance, expectedDeployment)
 		return res.UpdateResource(&reqLogger, r.Client, expectedDeployment, foundDeployment)
 	}
 
-	return r.maybeAttachSpecLabels(instance, foundDeployment, &reqLogger, false)
+	return r.maybeAttachSpecLabels(instance, foundDeployment, &reqLogger)
 }
 
 // TODO: maybeAttachSpecLabels
@@ -875,10 +881,10 @@ func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBM
 			possibleUpdateNeeded = false
 		}
 		if possibleUpdateNeeded {
-			r.maybeAttachSpecLabels(instance, expectedIngress, &reqLogger, true)
+			r.maybeAttachSpecLabelsPrecedingUpdate(instance, expectedIngress)
 			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
 		} else {
-			return r.maybeAttachSpecLabels(instance, foundIngress, &reqLogger, false)
+			return r.maybeAttachSpecLabels(instance, foundIngress, &reqLogger)
 		}
 	} else {
 		r.Log.Info("Ingress is disabled, deleting current ingress if exists")
@@ -963,10 +969,10 @@ func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1al
 			reqLogger.Info("Found MeterDefinition without Meter")
 		}
 		if possibleUpdateNeeded {
-			r.maybeAttachSpecLabels(instance, expected, &reqLogger, true)
+			r.maybeAttachSpecLabelsPrecedingUpdate(instance, expected)
 			return res.UpdateResource(&reqLogger, r.Client, expected, found)
 		} else {
-			return r.maybeAttachSpecLabels(instance, found, &reqLogger, false)
+			return r.maybeAttachSpecLabels(instance, found, &reqLogger)
 		}
 	}
 	return reconcile.Result{}, nil
