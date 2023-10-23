@@ -148,6 +148,11 @@ type IBMLicensingSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Features"
 	// +optional
 	Features *Features `json:"features,omitempty"`
+
+	// Labels to be copied into all relevant resources
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Labels"
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 type IBMLicensingSenderSpec struct {
