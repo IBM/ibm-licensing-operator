@@ -85,18 +85,45 @@ func GetServiceURL(instance *operatorv1alpha1.IBMLicensing) string {
 	return urlPrefix + GetResourceName(instance) + "." + instance.Spec.InstanceNamespace + ".svc.cluster.local:" + licensingServicePort.String()
 }
 
+/*
+MergeWithSpecLabels attaches spec labels to the provided map of predefined labels.
+
+Helps cover some cases and optimise code (so that reconcile functions' `maybeAttachSpecLabels` only do the minimal
+check) by pre-attaching the labels wherever `LabelsFor<Type>` functions are used (generally on resource creation).
+
+In the future, labels addition in reconciliation should be gone and only present in this helper module (or similar).
+However, this would require many changes to the general code flow and usage of update and create functionalities.
+*/
+func MergeWithSpecLabels(instance *operatorv1alpha1.IBMLicensing, labels map[string]string) map[string]string {
+	if instance.Spec.Labels != nil {
+		for key, value := range instance.Spec.Labels {
+			labels[key] = value
+		}
+	}
+
+	return labels
+}
+
 func LabelsForSelector(instance *operatorv1alpha1.IBMLicensing) map[string]string {
-	return map[string]string{"app": GetResourceName(instance), "component": LicensingComponentName, "licensing_cr": instance.GetName()}
+	return MergeWithSpecLabels(instance, map[string]string{
+		"app":          GetResourceName(instance),
+		"component":    LicensingComponentName,
+		"licensing_cr": instance.GetName(),
+	})
 }
 
 func LabelsForMeta(instance *operatorv1alpha1.IBMLicensing) map[string]string {
-	return map[string]string{"app.kubernetes.io/name": GetResourceName(instance), "app.kubernetes.io/component": LicensingComponentName,
-		"app.kubernetes.io/managed-by": "operator", "app.kubernetes.io/instance": LicensingReleaseName, "release": LicensingReleaseName}
+	return MergeWithSpecLabels(instance, map[string]string{
+		"app.kubernetes.io/name":       GetResourceName(instance),
+		"app.kubernetes.io/component":  LicensingComponentName,
+		"app.kubernetes.io/managed-by": "operator",
+		"app.kubernetes.io/instance":   LicensingReleaseName,
+		"release":                      LicensingReleaseName,
+	})
 }
 
-func LabelsForServiceMonitor() map[string]string {
-	return map[string]string{
-		ServiceMonitorSelectorLabel: "true"}
+func LabelsForServiceMonitor(instance *operatorv1alpha1.IBMLicensing) map[string]string {
+	return MergeWithSpecLabels(instance, map[string]string{ServiceMonitorSelectorLabel: "true"})
 }
 
 func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {

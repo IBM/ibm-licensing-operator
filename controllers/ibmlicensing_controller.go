@@ -214,6 +214,12 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 
 	var recResult reconcile.Result
 
+	// TODO: Want to attach labels to the operand YAML itself? If not, remove this code block.
+	recResult, err = r.maybeAttachSpecLabels(instance, instance, &reqLogger)
+	if err != nil || recResult.Requeue {
+		return recResult, err
+	}
+
 	reconcileFunctions := []interface{}{
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
@@ -329,6 +335,11 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 			}
 		}
 		podStatuses = append(podStatuses, pod.Status)
+
+		result, err := r.maybeAttachSpecLabels(instance, &pod, &reqLogger)
+		if err != nil || result.Requeue {
+			return result, err
+		}
 	}
 
 	var featuresStatuses operatorv1alpha1.IBMLicensingFeaturesStatus
@@ -365,7 +376,7 @@ Should be called either before any `Get` calls, such as the resource existence c
 In its current state, may be somewhat costly in terms of performance. Copy and `UpdateResources` calls can be replaced
 with an `Update` call on the resource if needed.
 */
-// TODO: Find out where to apply so that the pod has labels, or replica set too, rest should be marked with todo
+// TODO: Missing: ibm-licensing-service-prometheus-cert, ibm-license-service-cert-internal
 func (r *IBMLicensingReconciler) maybeAttachSpecLabels(
 	instance *operatorv1alpha1.IBMLicensing,
 	resource res.ResourceObject,
@@ -696,7 +707,6 @@ func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.
 	return r.maybeAttachSpecLabels(instance, foundDeployment, &reqLogger)
 }
 
-// TODO: maybeAttachSpecLabels
 func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	var namespacedName types.NamespacedName
 	var hostname []string
@@ -744,7 +754,6 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 	return r.reconcileSelfSignedCertificate(instance, namespacedName, hostname, rolloutPods)
 }
 
-// TODO: maybeAttachSpecLabels
 func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
 		r.Log.Info("Reconciling route with certificate")
@@ -793,7 +802,6 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 	return reconcile.Result{}, nil
 }
 
-// TODO: maybeAttachSpecLabels
 func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	defaultRouteTLS := &routev1.TLSConfig{
 		Termination:                   routev1.TLSTerminationReencrypt,
@@ -824,7 +832,6 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 	return reconcile.Result{}, nil
 }
 
-// TODO: maybeAttachSpecLabels
 func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
 		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
@@ -848,6 +855,8 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 				return reconcileResult, err
 			}
 		}
+
+		return r.maybeAttachSpecLabels(instance, foundRoute, &reqLogger)
 	}
 	return reconcile.Result{}, nil
 }
@@ -1117,7 +1126,6 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 
 }
 
-// TODO: maybeAttachSpecLabels
 func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operatorv1alpha1.IBMLicensing, secretNsName types.NamespacedName, hostname []string, rolloutPods bool) (reconcile.Result, error) {
 	certSecret := &corev1.Secret{}
 
@@ -1178,6 +1186,7 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 			return reconcile.Result{Requeue: true}, err
 
 		}
+		r.maybeAttachSpecLabelsPrecedingUpdate(instance, secret)
 		result, err2 := res.UpdateResource(&reqLogger, r.Client, secret, certSecret)
 		if err2 != nil {
 			return result, err
@@ -1196,6 +1205,11 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 		}
 
 		return result, nil
+	} else {
+		result, err := r.maybeAttachSpecLabels(instance, certSecret, &reqLogger)
+		if err != nil || result.Requeue {
+			return result, err
+		}
 	}
 	r.Log.Info("*v1.Certificate exists!")
 	return reconcile.Result{}, nil
