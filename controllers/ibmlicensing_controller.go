@@ -376,7 +376,7 @@ Should be called either before any `Get` calls, such as the resource existence c
 In its current state, may be somewhat costly in terms of performance. Copy and `UpdateResources` calls can be replaced
 with an `Update` call on the resource if needed.
 */
-// TODO: Missing: ibm-licensing-service-prometheus-cert, ibm-license-service-cert-internal
+// TODO: Missing: ibm-licensing-service-prometheus-cert
 func (r *IBMLicensingReconciler) maybeAttachSpecLabels(
 	instance *operatorv1alpha1.IBMLicensing,
 	resource res.ResourceObject,
@@ -558,6 +558,11 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 
 		// Skip verification of certificates when route/ingress is disabled
 		return reconcile.Result{}, nil
+	}
+
+	result, err := r.maybeAttachSpecLabels(instance, internalCertificate, &reqLogger)
+	if err != nil || result.Requeue {
+		return result, err
 	}
 
 	expectedCMs := []*corev1.ConfigMap{
