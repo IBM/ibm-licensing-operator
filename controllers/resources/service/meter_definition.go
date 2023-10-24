@@ -146,7 +146,7 @@ func getServiceMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.Me
 					WorkloadType:       rhmpcommon.WorkloadTypeService,
 					Metric:             "{{ .Label.parentMetricId}}",
 					Query:              "avg_over_time(cp4d_capability{}[1d])",
-					GroupBy:            []string{"metricId", "productId", "parentMetricId", "parentProductId", "topLevelProductId"},
+					GroupBy:            []string{"metricId", "productId", "parentMetricId", "parentProductId", "topLevelProductId", "topLevelMetricId"},
 					ValueLabelOverride: "{{ .Label.value}}",
 					DateLabelOverride:  "{{ .Label.date}}",
 				},
