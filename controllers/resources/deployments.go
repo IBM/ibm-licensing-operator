@@ -23,6 +23,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+// To make linter happy
+const containerErrorMessageStart = "Container "
+
 func equalProbes(probe1 *corev1.Probe, probe2 *corev1.Probe) bool {
 	if probe1 == nil {
 		return probe2 == nil
@@ -118,31 +121,31 @@ func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container,
 		}
 		potentialDifference = true
 		if foundContainer.Image != expectedContainer.Image {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container image")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container image")
 		} else if foundContainer.ImagePullPolicy != expectedContainer.ImagePullPolicy {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong image pull policy")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong image pull policy")
 		} else if !reflect.DeepEqual(foundContainer.Command, expectedContainer.Command) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container command")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container command")
 		} else if !reflect.DeepEqual(foundContainer.Ports, expectedContainer.Ports) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong containers ports")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong containers ports")
 		} else if !reflect.DeepEqual(foundContainer.VolumeMounts, expectedContainer.VolumeMounts) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong VolumeMounts in container")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong VolumeMounts in container")
 		} else if !equalEnvVars(foundContainer.Env, expectedContainer.Env) { // DeepEqual requires same order of items, which results in false negatives, so we use custom comparison function
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong env variables in container")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong env variables in container")
 		} else if !reflect.DeepEqual(foundContainer.SecurityContext, expectedContainer.SecurityContext) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container security context")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container security context")
 		} else if (foundContainer.Resources.Limits == nil) || (foundContainer.Resources.Requests == nil) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Resources")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Resources")
 		} else if !(foundContainer.Resources.Limits.Cpu().Equal(*expectedContainer.Resources.Limits.Cpu()) &&
 			foundContainer.Resources.Limits.Memory().Equal(*expectedContainer.Resources.Limits.Memory())) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Resources Limits")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Resources Limits")
 		} else if !(foundContainer.Resources.Requests.Cpu().Equal(*expectedContainer.Resources.Requests.Cpu()) &&
 			foundContainer.Resources.Requests.Memory().Equal(*expectedContainer.Resources.Requests.Memory())) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Resources Requests")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Resources Requests")
 		} else if !equalProbes(foundContainer.ReadinessProbe, expectedContainer.ReadinessProbe) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Readiness Probe")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Readiness Probe")
 		} else if !equalProbes(foundContainer.LivenessProbe, expectedContainer.LivenessProbe) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Liveness Probe")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Liveness Probe")
 		} else {
 			potentialDifference = false
 		}

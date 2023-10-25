@@ -138,7 +138,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 
-func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
+func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Request) (reconcile.Result, error) {
 
 	reqLogger := r.Log.WithValues("ibmlicensing", req.NamespacedName)
 	reqLogger.Info("Reconciling IBMLicensing")
@@ -336,6 +336,7 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 		}
 		podStatuses = append(podStatuses, pod.Status)
 
+		pod := pod // Avoid implicit memory aliasing in for loop
 		result, err := r.maybeAttachSpecLabels(instance, &pod, &reqLogger)
 		if err != nil || result.Requeue {
 			return result, err
@@ -897,16 +898,16 @@ func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBM
 		if possibleUpdateNeeded {
 			r.maybeAttachSpecLabelsPrecedingUpdate(instance, expectedIngress)
 			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
-		} else {
-			return r.maybeAttachSpecLabels(instance, foundIngress, &reqLogger)
 		}
-	} else {
-		r.Log.Info("Ingress is disabled, deleting current ingress if exists")
-		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
-		if err != nil || reconcileResult.Requeue {
-			return reconcileResult, err
-		}
+		return r.maybeAttachSpecLabels(instance, foundIngress, &reqLogger)
 	}
+
+	r.Log.Info("Ingress is disabled, deleting current ingress if exists")
+	reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
+	if err != nil || reconcileResult.Requeue {
+		return reconcileResult, err
+	}
+
 	return reconcile.Result{}, nil
 }
 
@@ -985,8 +986,11 @@ func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1al
 		if possibleUpdateNeeded {
 			r.maybeAttachSpecLabelsPrecedingUpdate(instance, expected)
 			return res.UpdateResource(&reqLogger, r.Client, expected, found)
-		} else {
-			return r.maybeAttachSpecLabels(instance, found, &reqLogger)
+		}
+
+		result, err = r.maybeAttachSpecLabels(instance, found, &reqLogger)
+		if err != nil || result.Requeue {
+			return result, err
 		}
 	}
 	return reconcile.Result{}, nil
@@ -1210,12 +1214,13 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 		}
 
 		return result, nil
-	} else {
-		result, err := r.maybeAttachSpecLabels(instance, certSecret, &reqLogger)
-		if err != nil || result.Requeue {
-			return result, err
-		}
 	}
+
+	result, err := r.maybeAttachSpecLabels(instance, certSecret, &reqLogger)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+
 	r.Log.Info("*v1.Certificate exists!")
 	return reconcile.Result{}, nil
 }

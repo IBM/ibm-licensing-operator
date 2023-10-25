@@ -88,7 +88,7 @@ func GetServiceURL(instance *operatorv1alpha1.IBMLicensing) string {
 /*
 MergeWithSpecLabels attaches spec labels to the provided map of predefined labels.
 
-Helps cover some cases and optimise code (so that reconcile functions' `maybeAttachSpecLabels` only do the minimal
+Helps cover some cases and optimize code (so that reconcile functions' `maybeAttachSpecLabels` only do the minimal
 check) by pre-attaching the labels wherever `LabelsFor<Type>` functions are used (generally on resource creation).
 
 In the future, labels addition in reconciliation should be gone and only present in this helper module (or similar).
