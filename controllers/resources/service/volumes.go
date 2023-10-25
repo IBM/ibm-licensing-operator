@@ -31,7 +31,7 @@ const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
 const PrometheusHTTPSCertsVolumeName = "prometheus-https-certs"
 const EmptyDirVolumeName = "tmp"
 
-var emptyDirSizeLimit1Gi, _ = resource.ParseQuantity("1Gi")
+var emptyDirSizeLimit500Mi, _ = resource.ParseQuantity("500Mi")
 
 func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.VolumeMount {
 	var volumeMounts = []corev1.VolumeMount{
@@ -138,7 +138,7 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 		Name: EmptyDirVolumeName,
 		VolumeSource: corev1.VolumeSource{
 			EmptyDir: &corev1.EmptyDirVolumeSource{
-				SizeLimit: &emptyDirSizeLimit1Gi,
+				SizeLimit: &emptyDirSizeLimit500Mi,
 			},
 		},
 	}
