@@ -115,7 +115,8 @@ func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container,
 			foundContainer.Resources.Limits.Memory().Equal(*expectedContainer.Resources.Limits.Memory())) {
 			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Resources Limits")
 		} else if !(foundContainer.Resources.Requests.Cpu().Equal(*expectedContainer.Resources.Requests.Cpu()) &&
-			foundContainer.Resources.Requests.Memory().Equal(*expectedContainer.Resources.Requests.Memory())) {
+			foundContainer.Resources.Requests.Memory().Equal(*expectedContainer.Resources.Requests.Memory()) &&
+			foundContainer.Resources.Requests.StorageEphemeral().Equal(*expectedContainer.Resources.Requests.StorageEphemeral())) {
 			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Resources Requests")
 		} else if !equalProbes(foundContainer.ReadinessProbe, expectedContainer.ReadinessProbe) {
 			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Readiness Probe")
