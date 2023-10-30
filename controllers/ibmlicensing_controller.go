@@ -214,7 +214,6 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 
 	var recResult reconcile.Result
 
-	// TODO: Want to attach labels to the operand YAML itself? If not, remove this code block.
 	recResult, err = r.maybeAttachSpecLabels(instance, instance, &reqLogger)
 	if err != nil || recResult.Requeue {
 		return recResult, err
@@ -236,6 +235,7 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		r.reconcileRHMPServiceMonitor,
 		r.reconcileAlertingServiceMonitor,
 		r.reconcileMeterDefinition,
+		r.reconcilePrometheusCertSecret,
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
@@ -377,7 +377,6 @@ Should be called either before any `Get` calls, such as the resource existence c
 In its current state, may be somewhat costly in terms of performance. Copy and `UpdateResources` calls can be replaced
 with an `Update` call on the resource if needed.
 */
-// TODO: Missing: ibm-licensing-service-prometheus-cert
 func (r *IBMLicensingReconciler) maybeAttachSpecLabels(
 	instance *operatorv1alpha1.IBMLicensing,
 	resource res.ResourceObject,
@@ -442,6 +441,26 @@ func (r *IBMLicensingReconciler) maybeAttachSpecLabelsPrecedingUpdate(
 func (r *IBMLicensingReconciler) reconcileAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("reconcileAPISecretToken", "Entry", "instance.GetName()", instance.GetName())
 	expectedSecret, err := service.GetAPISecretToken(instance)
+	if err != nil {
+		reqLogger.Info("Failed to get expected secret")
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
+	}
+	foundSecret := &corev1.Secret{}
+
+	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+
+	return r.maybeAttachSpecLabels(instance, foundSecret, &reqLogger)
+}
+
+func (r *IBMLicensingReconciler) reconcilePrometheusCertSecret(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcilePrometheusCertSecret", "Entry", "instance.GetName()", instance.GetName())
+	expectedSecret, err := service.GetPrometheusCertSecret(instance)
 	if err != nil {
 		reqLogger.Info("Failed to get expected secret")
 		return reconcile.Result{
