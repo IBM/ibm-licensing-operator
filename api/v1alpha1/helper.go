@@ -46,6 +46,8 @@ var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
 var memory1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
 
+var ephemeralStorage256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
+
 type Container struct {
 	// IBM Licensing Service docker Image Registry, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
 	ImageRegistry string `json:"imageRegistry,omitempty"`
@@ -162,6 +164,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 	spec.Container.setResourceRequestMemoryIfNotSet(*memory256Mi)
 	spec.Container.setResourceLimitCPUIfNotSet(*cpu500m)
 	spec.Container.setResourceRequestCPUIfNotSet(*cpu200m)
+	spec.Container.setResourceRequestEphemeralStorageIfNotSet(*ephemeralStorage256Mi)
 
 	if err := spec.setContainer(OperandLicensingImageEnvVar); err != nil {
 		return err
@@ -174,6 +177,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 		spec.UsageContainer.setResourceRequestMemoryIfNotSet(*memory64Mi)
 		spec.UsageContainer.setResourceLimitCPUIfNotSet(*cpu100m)
 		spec.UsageContainer.setResourceRequestCPUIfNotSet(*cpu50m)
+		spec.Container.setResourceRequestEphemeralStorageIfNotSet(*ephemeralStorage256Mi)
 		if err := spec.UsageContainer.setContainer(OperandUsageImageEnvVar); err != nil {
 			return err
 		}
@@ -235,6 +239,12 @@ func (container *Container) setResourceLimitMemoryIfNotSet(value resource.Quanti
 func (container *Container) setResourceRequestMemoryIfNotSet(value resource.Quantity) {
 	if container.Resources.Requests.Memory().IsZero() {
 		container.Resources.Requests[corev1.ResourceMemory] = value
+	}
+}
+
+func (container *Container) setResourceRequestEphemeralStorageIfNotSet(value resource.Quantity) {
+	if container.Resources.Requests.StorageEphemeral().IsZero() {
+		container.Resources.Requests[corev1.ResourceEphemeralStorage] = value
 	}
 }
 

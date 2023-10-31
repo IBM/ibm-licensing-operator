@@ -122,8 +122,8 @@ func getServiceMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.Me
 			Namespace: instance.Spec.InstanceNamespace,
 		},
 		Spec: rhmp.MeterDefinitionSpec{
-			Group: "{{ .Label.productId}}.adoption.ibm.com",
-			Kind:  "IBMAdoption",
+			Group: "{{ .Label.productId}}.licensing.ibm.com",
+			Kind:  "IBMLicensing-Service",
 			ResourceFilters: []rhmp.ResourceFilter{
 				{
 					Namespace: &rhmp.NamespaceFilter{
@@ -146,7 +146,7 @@ func getServiceMeterDefinition(instance *operatorv1alpha1.IBMLicensing) *rhmp.Me
 					WorkloadType:       rhmpcommon.WorkloadTypeService,
 					Metric:             "{{ .Label.parentMetricId}}",
 					Query:              "avg_over_time(cp4d_capability{}[1d])",
-					GroupBy:            []string{"metricId", "productId", "parentMetricId", "parentProductId"},
+					GroupBy:            []string{"metricId", "productId", "parentMetricId", "parentProductId", "topLevelProductId", "topLevelMetricId"},
 					ValueLabelOverride: "{{ .Label.value}}",
 					DateLabelOverride:  "{{ .Label.date}}",
 				},
