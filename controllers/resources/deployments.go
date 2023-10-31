@@ -63,6 +63,28 @@ func equalEnvVars(envVarArr1, envVarArr2 []corev1.EnvVar) bool {
 	return true
 }
 
+func equalVolumes(foundVolumes, expectedVolumes []corev1.Volume) bool {
+	if len(expectedVolumes) != len(foundVolumes) {
+		return false
+	}
+	for _, expectedVolume := range expectedVolumes {
+		contains := false
+		for _, foundVolume := range foundVolumes {
+			if foundVolume.Name == expectedVolume.Name {
+				if !reflect.DeepEqual(foundVolume, expectedVolume) {
+					return false
+				}
+				contains = true
+				break
+			}
+		}
+		if !contains {
+			return false
+		}
+	}
+	return true
+}
+
 func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container, containers2 []corev1.Container) bool {
 	if len(containers1) != len(containers2) {
 		(*reqLogger).Info("Deployment has wrong amount of containers")
@@ -141,7 +163,7 @@ func ShouldUpdateDeployment(
 		delete(foundSpec.Annotations, "kubectl.kubernetes.io/restartedAt")
 	}
 
-	if !reflect.DeepEqual(foundSpec.Spec.Volumes, expectedSpec.Spec.Volumes) {
+	if !equalVolumes(foundSpec.Spec.Volumes, expectedSpec.Spec.Volumes) {
 		(*reqLogger).Info("Deployment has wrong volumes")
 	} else if !reflect.DeepEqual(foundSpec.Spec.Affinity, expectedSpec.Spec.Affinity) {
 		(*reqLogger).Info("Deployment has wrong affinity")
