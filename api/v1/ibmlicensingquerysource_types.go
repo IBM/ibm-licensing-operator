@@ -21,7 +21,7 @@ import (
 // +kubebuilder:pruning:PreserveUnknownFields
 type IBMLicensingQuerySourceSpec struct {
 	// Policy on how should newly queried data be aggregated to previous data (defaults to MAX)
-	// +kubebuilder:validation:Enum=MAX;ADD
+	// +kubebuilder:validation:Enum=MAX;ADD;ADD_MONTHLY
 	AggregationPolicy string `json:"aggregationPolicy,omitempty"`
 
 	// What query should be send to prometheuses to get the licensing usage
