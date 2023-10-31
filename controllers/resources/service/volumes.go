@@ -18,7 +18,6 @@ package service
 
 import (
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
@@ -30,8 +29,6 @@ const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
 const PrometheusHTTPSCertsVolumeName = "prometheus-https-certs"
 const EmptyDirVolumeName = "tmp"
-
-var emptyDirSizeLimit600Mi, _ = resource.ParseQuantity("600Mi")
 
 func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.VolumeMount {
 	var volumeMounts = []corev1.VolumeMount{
@@ -137,9 +134,7 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 	emptyDirVolume := corev1.Volume{
 		Name: EmptyDirVolumeName,
 		VolumeSource: corev1.VolumeSource{
-			EmptyDir: &corev1.EmptyDirVolumeSource{
-				SizeLimit: &emptyDirSizeLimit600Mi,
-			},
+			EmptyDir: &corev1.EmptyDirVolumeSource{},
 		},
 	}
 	volumes = append(volumes, emptyDirVolume)

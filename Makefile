@@ -344,7 +344,7 @@ unit-test: prepare-unit-test
 manager: generate
 	go build -o bin/$(IMAGE_NAME) main.go
 
-# Run against the configured Kubernetes cluster in ~/.kube/config. Adjust namespace variable according to your environment, e.g. NAMESPACE=lsr-ns make run
+# Run against the configured Kubernetes cluster in ~/.kube/config
 run: fmt vet
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
 	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
