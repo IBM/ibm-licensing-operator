@@ -21,6 +21,7 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	apieq "k8s.io/apimachinery/pkg/api/equality"
 )
 
 func equalProbes(probe1 *corev1.Probe, probe2 *corev1.Probe) bool {
@@ -162,7 +163,7 @@ func ShouldUpdateDeployment(
 		delete(foundSpec.Annotations, "kubectl.kubernetes.io/restartedAt")
 	}
 
-	if !equalVolumes(foundSpec.Spec.Volumes, expectedSpec.Spec.Volumes) {
+	if !apieq.Semantic.DeepEqual(foundSpec.Spec.Volumes, expectedSpec.Spec.Volumes) {
 		(*reqLogger).Info("Deployment has wrong volumes")
 	} else if !reflect.DeepEqual(foundSpec.Spec.Affinity, expectedSpec.Spec.Affinity) {
 		(*reqLogger).Info("Deployment has wrong affinity")
