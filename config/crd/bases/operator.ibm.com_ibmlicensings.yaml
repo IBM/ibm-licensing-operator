@@ -211,6 +211,11 @@ spec:
                   will start. In case metering data collection is used, should be
                   the same namespace as metering components
                 type: string
+              labels:
+                additionalProperties:
+                  type: string
+                description: Labels to be copied into all relevant resources
+                type: object
               license:
                 description: IBM License Service license acceptance.
                 properties:

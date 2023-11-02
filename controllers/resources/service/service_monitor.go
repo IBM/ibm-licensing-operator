@@ -49,11 +49,11 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing, name string, int
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    LabelsForServiceMonitor(),
+			Labels:    LabelsForServiceMonitor(instance),
 		},
 		Spec: monitoringv1.ServiceMonitorSpec{
 			Selector: metav1.LabelSelector{
-				MatchLabels: getPrometheusLabels(),
+				MatchLabels: getPrometheusLabels(instance),
 			},
 			Endpoints: []monitoringv1.Endpoint{
 				{
