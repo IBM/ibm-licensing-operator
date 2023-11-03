@@ -138,7 +138,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 
-func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
+func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Request) (reconcile.Result, error) {
 
 	reqLogger := r.Log.WithValues("ibmlicensing", req.NamespacedName)
 	reqLogger.Info("Reconciling IBMLicensing")
@@ -214,6 +214,11 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 
 	var recResult reconcile.Result
 
+	recResult, err = r.attachSpecLabels(instance, instance, &reqLogger)
+	if err != nil || recResult.Requeue {
+		return recResult, err
+	}
+
 	reconcileFunctions := []interface{}{
 		r.reconcileAPISecretToken,
 		r.reconcileUploadToken,
@@ -230,6 +235,7 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 		r.reconcileRHMPServiceMonitor,
 		r.reconcileAlertingServiceMonitor,
 		r.reconcileMeterDefinition,
+		r.reconcilePrometheusCertSecret,
 	}
 
 	for _, reconcileFunction := range reconcileFunctions {
@@ -329,6 +335,12 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 			}
 		}
 		podStatuses = append(podStatuses, pod.Status)
+
+		pod := pod // Avoid implicit memory aliasing in for loop
+		result, err := r.attachSpecLabels(instance, &pod, &reqLogger)
+		if err != nil || result.Requeue {
+			return result, err
+		}
 	}
 
 	var featuresStatuses operatorv1alpha1.IBMLicensingFeaturesStatus
@@ -356,6 +368,76 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 	return reconcile.Result{}, nil
 }
 
+/*
+Attach labels from .spec.labels YAML path of the IBMLicensing resource to the given (found) resource object.
+
+Should be called either before any `Get` calls, such as the resource existence checks. Requires a found resource
+(which would have been fetched via `Get`) and will preserve existing labels.
+
+In its current state, may be somewhat costly in terms of performance. Copy and `UpdateResources` calls can be replaced
+with an `Update` call on the resource if needed.
+*/
+func (r *IBMLicensingReconciler) attachSpecLabels(
+	instance *operatorv1alpha1.IBMLicensing,
+	resource res.ResourceObject,
+	reqLogger *logr.Logger,
+) (reconcile.Result, error) {
+	if instance.Spec.Labels != nil {
+		shouldAttach := false
+
+		// Include or override all spec keys with spec labels (on a variable, to override resource labels later)
+		resourceLabels := resource.GetLabels()
+		if resourceLabels == nil {
+			resourceLabels = instance.Spec.Labels
+			shouldAttach = true
+		} else {
+			// Set flag only in case of a mismatch between spec and resource labels
+			for key, value := range instance.Spec.Labels {
+				if resourceLabels[key] != value {
+					resourceLabels[key] = value
+					shouldAttach = true
+				}
+			}
+		}
+
+		// Need to copy resource for the `UpdateResource` call
+		if shouldAttach {
+			expectedResource := resource
+			expectedResource.SetLabels(resourceLabels)
+			return res.UpdateResource(reqLogger, r.Client, expectedResource, resource)
+		}
+	}
+
+	return reconcile.Result{}, nil
+}
+
+/*
+Attach labels from .spec.labels YAML path of the IBMLicensing resource to the given (expected) resource object.
+
+Should be called before any `UpdateResources` function calls, in which case the labels are simply copied into
+the given resource. Requires an expected resource (which will be used in `UpdateResources`) and will not preserve
+existing labels.
+
+The reasoning is that `UpdateResources` always overrides the found resource with the expected one, so there is no need
+for any extra operations preserving the current state of (found) labels.
+*/
+func (r *IBMLicensingReconciler) attachSpecLabelsPrecedingUpdate(
+	instance *operatorv1alpha1.IBMLicensing,
+	resource res.ResourceObject,
+) {
+	// Include or override all spec keys with spec labels (directly on the reference)
+	if instance.Spec.Labels != nil {
+		resourceLabels := resource.GetLabels()
+		if resourceLabels == nil {
+			resource.SetLabels(instance.Spec.Labels)
+		} else {
+			for key, value := range instance.Spec.Labels {
+				resourceLabels[key] = value
+			}
+		}
+	}
+}
+
 func (r *IBMLicensingReconciler) reconcileAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("reconcileAPISecretToken", "Entry", "instance.GetName()", instance.GetName())
 	expectedSecret, err := service.GetAPISecretToken(instance)
@@ -367,7 +449,33 @@ func (r *IBMLicensingReconciler) reconcileAPISecretToken(instance *operatorv1alp
 		}, err
 	}
 	foundSecret := &corev1.Secret{}
-	return r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+
+	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+
+	return r.attachSpecLabels(instance, foundSecret, &reqLogger)
+}
+
+func (r *IBMLicensingReconciler) reconcilePrometheusCertSecret(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcilePrometheusCertSecret", "Entry", "instance.GetName()", instance.GetName())
+	expectedSecret, err := service.GetPrometheusCertSecret(instance)
+	if err != nil {
+		reqLogger.Info("Failed to get expected secret")
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
+	}
+	foundSecret := &corev1.Secret{}
+
+	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+
+	return r.attachSpecLabels(instance, foundSecret, &reqLogger)
 }
 
 // default reader token is not created by default since kubernetes 1.24, we need to ensure it is always generated
@@ -399,7 +507,8 @@ func (r *IBMLicensingReconciler) reconcileDefaultReaderToken(instance *operatorv
 			RequeueAfter: time.Minute,
 		}, err
 	}
-	return result, err
+
+	return r.attachSpecLabels(instance, foundSecret, &reqLogger)
 }
 
 func (r *IBMLicensingReconciler) reconcileServiceAccountToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -430,7 +539,7 @@ func (r *IBMLicensingReconciler) reconcileServiceAccountToken(instance *operator
 				RequeueAfter: time.Minute,
 			}, err
 		}
-		return result, err
+		return r.attachSpecLabels(instance, foundSecret, &reqLogger)
 	}
 	return reconcile.Result{}, nil
 }
@@ -446,7 +555,12 @@ func (r *IBMLicensingReconciler) reconcileUploadToken(instance *operatorv1alpha1
 		}, err
 	}
 	foundSecret := &corev1.Secret{}
-	return r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+
+	return r.attachSpecLabels(instance, foundSecret, &reqLogger)
 }
 
 func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -466,6 +580,11 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 		return reconcile.Result{}, nil
 	}
 
+	result, err := r.attachSpecLabels(instance, internalCertificate, &reqLogger)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+
 	expectedCMs := []*corev1.ConfigMap{
 		service.GetUploadConfigMap(instance, string(internalCertificate.Data["tls.crt"])),
 		service.GetInfoConfigMap(instance),
@@ -477,8 +596,14 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 			return reconcileResult, err
 		}
 		if !res.CompareConfigMapData(expectedCM, foundCM) {
+			r.attachSpecLabelsPrecedingUpdate(instance, expectedCM)
 			if updateReconcileResult, err := res.UpdateResource(&reqLogger, r.Client, expectedCM, foundCM); err != nil || updateReconcileResult.Requeue {
 				return updateReconcileResult, err
+			}
+		} else {
+			reconcileResult, err = r.attachSpecLabels(instance, foundCM, &reqLogger)
+			if err != nil || reconcileResult.Requeue {
+				return reconcileResult, err
 			}
 		}
 
@@ -499,6 +624,13 @@ func (r *IBMLicensingReconciler) reconcileServices(instance *operatorv1alpha1.IB
 		if err != nil || result.Requeue {
 			return result, err
 		}
+
+		result, err = r.attachSpecLabels(instance, found, &reqLogger)
+		if err != nil || result.Requeue {
+			return result, err
+		}
+
+		r.attachSpecLabelsPrecedingUpdate(instance, es) // In case below Update triggers
 		result, err = res.UpdateServiceIfNeeded(&reqLogger, r.Client, es, found)
 	}
 
@@ -548,6 +680,7 @@ func (r *IBMLicensingReconciler) reconcileServiceMonitor(instance *operatorv1alp
 	if err != nil || result.Requeue {
 		return result, err
 	}
+	r.attachSpecLabelsPrecedingUpdate(instance, expectedServiceMonitor)
 	result, err = res.UpdateServiceMonitor(&reqLogger, r.Client, expectedServiceMonitor, foundServiceMonitor)
 
 	return result, err
@@ -567,6 +700,8 @@ func (r *IBMLicensingReconciler) reconcileNetworkPolicy(instance *operatorv1alph
 		if err != nil || result.Requeue {
 			return result, err
 		}
+
+		r.attachSpecLabelsPrecedingUpdate(instance, expected)
 		result, err = res.UpdateResource(&reqLogger, r.Client, expected, found)
 
 		return result, err
@@ -590,10 +725,11 @@ func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.
 		&foundDeployment.Spec.Template,
 	)
 	if shouldUpdate {
+		r.attachSpecLabelsPrecedingUpdate(instance, expectedDeployment)
 		return res.UpdateResource(&reqLogger, r.Client, expectedDeployment, foundDeployment)
 	}
 
-	return reconcile.Result{}, nil
+	return r.attachSpecLabels(instance, foundDeployment, &reqLogger)
 }
 
 func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -640,7 +776,6 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 
 		rolloutPods = true
 	}
-
 	return r.reconcileSelfSignedCertificate(instance, namespacedName, hostname, rolloutPods)
 }
 
@@ -745,6 +880,8 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 				return reconcileResult, err
 			}
 		}
+
+		return r.attachSpecLabels(instance, foundRoute, &reqLogger)
 	}
 	return reconcile.Result{}, nil
 }
@@ -778,15 +915,18 @@ func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBM
 			possibleUpdateNeeded = false
 		}
 		if possibleUpdateNeeded {
+			r.attachSpecLabelsPrecedingUpdate(instance, expectedIngress)
 			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
 		}
-	} else {
-		r.Log.Info("Ingress is disabled, deleting current ingress if exists")
-		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
-		if err != nil || reconcileResult.Requeue {
-			return reconcileResult, err
-		}
+		return r.attachSpecLabels(instance, foundIngress, &reqLogger)
 	}
+
+	r.Log.Info("Ingress is disabled, deleting current ingress if exists")
+	reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
+	if err != nil || reconcileResult.Requeue {
+		return reconcileResult, err
+	}
+
 	return reconcile.Result{}, nil
 }
 
@@ -863,7 +1003,13 @@ func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1al
 			reqLogger.Info("Found MeterDefinition without Meter")
 		}
 		if possibleUpdateNeeded {
+			r.attachSpecLabelsPrecedingUpdate(instance, expected)
 			return res.UpdateResource(&reqLogger, r.Client, expected, found)
+		}
+
+		result, err = r.attachSpecLabels(instance, found, &reqLogger)
+		if err != nil || result.Requeue {
+			return result, err
 		}
 	}
 	return reconcile.Result{}, nil
@@ -1068,6 +1214,7 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 			return reconcile.Result{Requeue: true}, err
 
 		}
+		r.attachSpecLabelsPrecedingUpdate(instance, secret)
 		result, err2 := res.UpdateResource(&reqLogger, r.Client, secret, certSecret)
 		if err2 != nil {
 			return result, err
@@ -1087,6 +1234,12 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 
 		return result, nil
 	}
+
+	result, err := r.attachSpecLabels(instance, certSecret, &reqLogger)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+
 	r.Log.Info("*v1.Certificate exists!")
 	return reconcile.Result{}, nil
 }

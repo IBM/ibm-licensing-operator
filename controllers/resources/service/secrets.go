@@ -64,6 +64,10 @@ func GetAPISecretToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret,
 	return resources.GetSecretToken(instance.Spec.APISecretToken, instance.Spec.InstanceNamespace, APISecretTokenKeyName, LabelsForMeta(instance))
 }
 
+func GetPrometheusCertSecret(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
+	return resources.GetSecretToken(PrometheusServiceOCPCertName, instance.Spec.InstanceNamespace, PrometheusServiceOCPCertName, LabelsForMeta(instance))
+}
+
 func GetUploadToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Secret, error) {
 	return resources.GetSecretToken(APIUploadTokenName, instance.Spec.InstanceNamespace, APIUploadTokenKeyName, LabelsForMeta(instance))
 }
