@@ -21,6 +21,7 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	apieq "k8s.io/apimachinery/pkg/api/equality"
 )
 
 // To make linter happy
@@ -140,8 +141,9 @@ func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container,
 			foundContainer.Resources.Limits.Memory().Equal(*expectedContainer.Resources.Limits.Memory())) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Resources Limits")
 		} else if !(foundContainer.Resources.Requests.Cpu().Equal(*expectedContainer.Resources.Requests.Cpu()) &&
-			foundContainer.Resources.Requests.Memory().Equal(*expectedContainer.Resources.Requests.Memory())) {
-			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Resources Requests")
+			foundContainer.Resources.Requests.Memory().Equal(*expectedContainer.Resources.Requests.Memory()) &&
+			foundContainer.Resources.Requests.StorageEphemeral().Equal(*expectedContainer.Resources.Requests.StorageEphemeral())) {
+			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Resources Requests")
 		} else if !equalProbes(foundContainer.ReadinessProbe, expectedContainer.ReadinessProbe) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Readiness Probe")
 		} else if !equalProbes(foundContainer.LivenessProbe, expectedContainer.LivenessProbe) {
@@ -165,7 +167,7 @@ func ShouldUpdateDeployment(
 		delete(foundSpec.Annotations, "kubectl.kubernetes.io/restartedAt")
 	}
 
-	if !equalVolumes(foundSpec.Spec.Volumes, expectedSpec.Spec.Volumes) {
+	if !apieq.Semantic.DeepEqual(foundSpec.Spec.Volumes, expectedSpec.Spec.Volumes) {
 		(*reqLogger).Info("Deployment has wrong volumes")
 	} else if !reflect.DeepEqual(foundSpec.Spec.Affinity, expectedSpec.Spec.Affinity) {
 		(*reqLogger).Info("Deployment has wrong affinity")
