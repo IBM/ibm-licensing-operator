@@ -459,20 +459,23 @@ func (r *IBMLicensingReconciler) reconcileAPISecretToken(instance *operatorv1alp
 }
 
 func (r *IBMLicensingReconciler) reconcilePrometheusCertSecret(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	secret := &corev1.Secret{}
+	secret := corev1.Secret{}
 
-	// Attach labels if there were no errors getting the resource -> it definitely exists
+	// Ignore errors as this is a known special case to handle secret absence only (creation handled via annotations)
 	if err := r.Client.Get(context.TODO(), types.NamespacedName{
 		Namespace: instance.Spec.InstanceNamespace,
 		Name:      service.PrometheusServiceOCPCertName,
-	}, secret); err == nil {
-		resType := reflect.TypeOf(secret)
-		reqLogger := r.Log.WithValues(resType.String(), "Entry", "instance.GetName()", instance.GetName(), "secret.getName()", secret.GetName())
-		reqLogger.Info(resType.String() + " exists!")
-		return r.attachSpecLabels(instance, secret, &reqLogger)
+	}, &secret); err != nil {
+		return reconcile.Result{}, nil
 	}
 
-	return reconcile.Result{}, nil
+	// Match logging format
+	resType := reflect.TypeOf(secret)
+	reqLogger := r.Log.WithValues(resType.String(), "Entry", "instance.GetName()", instance.GetName(), "secret.getName()", secret.GetName())
+	reqLogger.Info(resType.String() + " exists!")
+
+	// Attach labels if there were no errors getting the resource (so it definitely exists)
+	return r.attachSpecLabels(instance, &secret, &reqLogger)
 }
 
 // default reader token is not created by default since kubernetes 1.24, we need to ensure it is always generated
