@@ -37,9 +37,9 @@ spec:
         containerized products and IBM Cloud Paks per cluster. You can retrieve license
         usage data through a dedicated API call and generate an audit snapshot on
         demand. Documentation: For additional details regarding install parameters
-        check: https://ibm.biz/cpfs_4-3_install. License: Please refer to the IBM Terms
-        website (ibm.biz/lsvc-lic) to find the license terms for the particular IBM
-        product for which you are deploying this component.'
+        check: https://ibm.biz/cpfs_4-3_install. License: Please refer to the IBM
+        Terms website (ibm.biz/lsvc-lic) to find the license terms for the particular
+        IBM product for which you are deploying this component.'
       displayName: IBM License Service
       kind: IBMLicensing
       name: ibmlicensings.operator.ibm.com
