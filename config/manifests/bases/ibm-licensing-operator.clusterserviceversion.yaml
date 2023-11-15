@@ -31,7 +31,7 @@ spec:
     owned:
     - description: 'IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters
         API. Documentation For additional details regarding install parameters check:
-        https://ibm.biz/icpfs39install. License By installing this product you accept
+        https://ibm.biz/cpfs_4-3_install. License By installing this product you accept
         the license terms https://ibm.biz/icpfs39license.'
       displayName: IBMLicense Service Reporter
       kind: IBMLicenseServiceReporter
@@ -44,7 +44,7 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:hidden
       version: v1alpha1
     - description: 'IBM License Service is the Schema for the ibmlicensings API. Documentation
-        For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
+        For additional details regarding install parameters check: https://ibm.biz/cpfs_4-3_install.
         License By installing this product you accept the license terms https://ibm.biz/icpfs39license.'
       displayName: IBM License Service
       kind: IBMLicensing
@@ -227,7 +227,7 @@ spec:
         to IBMLicensingMetadata, you can track the license usage of Virtual Processor
         Core (VPC) metric by Pods that are managed by automation, for which licensing
         annotations are not defined at the time of deployment, such as the open source
-        OpenLiberty. / For more information, see documentation: https://ibm.biz/icpfs39install.
+        OpenLiberty. / For more information, see documentation: https://ibm.biz/cpfs_4-3_install.
         License: By installing this product you accept the license terms. For more
         information about the license, see https://ibm.biz/icpfs39license.'
       displayName: IBMLicensing Metadata
@@ -237,11 +237,11 @@ spec:
   description: "**Important:**\n- If you are using the IBM Licensing Operator as part
     of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more
     about how to install and use the operator service. For the link to your IBM Cloud
-    Pak documentation, see [IBM Cloud Paks that use Common Services](https://ibm.biz/cpcs_cloudpaks).\n-
+    Pak documentation, see [IBM Cloud Paks that use Common Services](https://www.ibm.com/docs/en/cloud-paks).\n-
     If you are using the IBM Cloud Platform Common Services, do not install the IBM
     Licensing Operator directly. Only install this operator using the IBM Common Services
     Operator. For more information about installing this operator and other Common
-    Services operators, see [Installer documentation](https://ibm.biz/cpcs_opinstall).
+    Services operators, see [Installer documentation](https://ibm.biz/cpfs_4-3_install).
     Additionally, you can exit this panel and navigate to the IBM Common Services
     tile in **OperatorHub** to learn more about the operator.\n- If you are using
     a stand-alone IBM Container Software, you can use the IBM Licensing Operator directly.
@@ -255,16 +255,16 @@ spec:
     Linux x86_64, Linux on Power (ppc64le), Linux on IBM Z and LinuxONE.\n\n**Prerequisites**\n\nThe
     following prerequisites apply when you install License Service as a part of an
     IBM Cloud Pak or with IBM Cloud Platform Common Services.\n- For the list of operator
-    dependencies, see the IBM Knowledge Center [Common Services dependencies documentation](https://ibm.biz/cpcs_opdependencies).
+    dependencies, see the IBM Knowledge Center [Common Services dependencies documentation](https://ibm.biz/cpfs_4-3_dependencies).
     The dependencies are automatically managed by Operant Deployment Lifecycle Manager.\n-
     For the list of prerequisites for installing the operator, see the IBM Knowledge
-    Center [Preparing to install services documentation](https://ibm.biz/cpcs_opinstprereq).\n\n**Documentation**\n\n-
+    Center [Preparing to install services documentation](https://ibm.biz/cpfs_4-3_prep).\n\n**Documentation**\n\n-
     If you are using the IBM Licensing Operator as part of an IBM Cloud Pak, see the
     documentation for that IBM Cloud Pak, for a list of IBM Cloud Paks, see [IBM Cloud
-    Paks that use Common Services](https://ibm.biz/cpcs_cloudpaks). \n- If you are
+    Paks that use Common Services](https://www.ibm.com/docs/en/cloud-paks). \n- If you are
     using the operator with an IBM Containerized Software:\n    - To install License
     Service as a part of the IBM Cloud Platform Common Services, see the Knowledge
-    Center [Installer documentation](https://ibm.biz/cpcs_opinstall).\n    - To install
+    Center [Installer documentation](https://ibm.biz/cpfs_4-3_install).\n    - To install
     License Service directly, click **Install** and create an **IBM Licensing** resource
     instance. For more information, see [ibm-licensing-operator for stand-alone IBM
     Containerized Software](https://ibm.biz/license_service4containers)."
