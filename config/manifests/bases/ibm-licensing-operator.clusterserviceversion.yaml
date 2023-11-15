@@ -37,7 +37,7 @@ spec:
         containerized products and IBM Cloud Paks per cluster. You can retrieve license
         usage data through a dedicated API call and generate an audit snapshot on
         demand. Documentation: For additional details regarding install parameters
-        check: https://ibm.biz/icpfs39install. License: Please refer to the IBM Terms
+        check: https://ibm.biz/cpfs_4-3_install. License: Please refer to the IBM Terms
         website (ibm.biz/lsvc-lic) to find the license terms for the particular IBM
         product for which you are deploying this component.'
       displayName: IBM License Service
@@ -231,7 +231,7 @@ spec:
         to IBMLicensingMetadata, you can track the license usage of Virtual Processor
         Core (VPC) metric by Pods that are managed by automation, for which licensing
         annotations are not defined at the time of deployment, such as the open source
-        OpenLiberty. / For more information, see documentation: https://ibm.biz/icpfs39install.
+        OpenLiberty. / For more information, see documentation: https://ibm.biz/cpfs_4-3_install.
         By installing the operator for IBM License Service, you accept the license
         terms: https://ibm.biz/icpfs39license.'
       displayName: IBMLicensing Metadata
@@ -240,7 +240,7 @@ spec:
       version: v1alpha1
   description: |-
     **Important:**
-    - If you are using the IBM Licensing Operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For the link to your IBM Cloud Pak documentation, see [IBM Cloud Paks that use Common Services](https://ibm.biz/BdyGwb).
+    - If you are using the IBM Licensing Operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For the link to your IBM Cloud Pak documentation, see [IBM Cloud Paks that use Common Services](https://ibm.biz/cpfs_welcome).
     - If you are using a stand-alone IBM Container Software, you can use the IBM Licensing Operator directly. For more information, see [ibm-licensing-operator for stand-alone IBM Containerized Software](https://ibm.biz/BdyGwh).
 
     **IBM Licensing Operator overview**
