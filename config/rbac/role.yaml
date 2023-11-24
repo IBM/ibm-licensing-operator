@@ -58,7 +58,6 @@ rules:
   - configmaps
   - endpoints
   - events
-  - namespaces
   - persistentvolumeclaims
   - pods
   - secrets
@@ -91,7 +90,14 @@ rules:
   resources:
   - namespaces
   - nodes
-  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
   verbs:
   - create
   - delete
@@ -100,34 +106,6 @@ rules:
   - patch
   - update
   - watch
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - get
-- apiGroups:
-  - apps
-  resources:
-  - daemonsets
-  - deployments
-  - replicasets
-  - statefulsets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - apps
-  resources:
-  - deployments
-  - replicasets
-  verbs:
-  - get
 - apiGroups:
   - apps
   resources:
