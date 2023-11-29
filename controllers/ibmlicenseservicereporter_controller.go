@@ -91,6 +91,7 @@ type reconcileLRFunctionType = func(*operatorv1alpha1.IBMLicenseServiceReporter)
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-common-services,groups=apps,resources=daemonsets;replicasets;statefulsets,verbs=get;list;watch
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=pods;services;services/finalizers;endpoints;persistentvolumeclaims;events;configmaps;secrets;serviceaccounts,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-common-services,groups="",resources=namespaces,verbs=get;list;watch
 // +kubebuilder:rbac:namespace=ibm-common-services,groups=operator.ibm.com,resources=ibmlicenseservicereporters;ibmlicenseservicereporters/status;ibmlicenseservicereporters/finalizers;operandbindinfos,verbs=get;list;watch;create;update;patch;delete
