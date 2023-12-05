@@ -164,11 +164,28 @@ func AnnotateForService(isHTTPS bool, certName string) map[string]string {
 	return map[string]string{}
 }
 
+// Attach labels existing on the found resource to the expected resource
+func attachExistingLabels(foundResource ResourceObject, expectedResource ResourceObject) {
+	resourceLabels := foundResource.GetLabels()
+	expectedLabels := expectedResource.GetLabels()
+
+	for key, value := range resourceLabels {
+		_, ok := expectedLabels[key]
+		if !ok {
+			expectedLabels[key] = value
+		}
+	}
+}
+
 func UpdateResource(reqLogger *logr.Logger, client c.Client,
 	expectedResource ResourceObject, foundResource ResourceObject) (reconcile.Result, error) {
 	resTypeString := reflect.TypeOf(expectedResource).String()
 	(*reqLogger).Info("Updating " + resTypeString)
 	expectedResource.SetResourceVersion(foundResource.GetResourceVersion())
+
+	// Ensure persistence of existing labels
+	attachExistingLabels(foundResource, expectedResource)
+
 	err := client.Update(context.TODO(), expectedResource)
 	if err != nil {
 		// only need to delete resource as new will be recreated on next reconciliation
@@ -417,9 +434,19 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 	return nil
 }
 
+// MapHasAllPairsFromOther checks if all key, value pairs present in the second param are in the first param
+func MapHasAllPairsFromOther[K, V comparable](checked, allNeededPairs map[K]V) bool {
+	for key, value := range allNeededPairs {
+		if foundValue, ok := checked[key]; !ok || foundValue != value {
+			return false
+		}
+	}
+	return true
+}
+
 // Returns true if configmaps are equal in terms of stored data
-func CompareConfigMapData(cm1, cm2 *corev1.ConfigMap) bool {
-	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels) && reflect.DeepEqual(cm1.BinaryData, cm2.BinaryData)
+func CompareConfigMapData(found, expected *corev1.ConfigMap) bool {
+	return reflect.DeepEqual(found.Data, expected.Data) && MapHasAllPairsFromOther(found.Labels, expected.Labels) && reflect.DeepEqual(found.BinaryData, expected.BinaryData)
 }
 
 // Returns true if secrets are equal in terms of stored data

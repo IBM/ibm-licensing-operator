@@ -571,7 +571,7 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
 		}
-		if !res.CompareConfigMapData(expectedCM, foundCM) {
+		if !res.CompareConfigMapData(foundCM, expectedCM) {
 			r.attachSpecLabelsPrecedingUpdate(instance, expectedCM)
 			if updateReconcileResult, err := res.UpdateResource(&reqLogger, r.Client, expectedCM, foundCM); err != nil || updateReconcileResult.Requeue {
 				return updateReconcileResult, err
@@ -875,7 +875,7 @@ func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBM
 		reqLogger := r.Log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
 		if foundIngress.ObjectMeta.Name != expectedIngress.ObjectMeta.Name {
 			reqLogger.Info("Names not equal", "old", foundIngress.ObjectMeta.Name, "new", expectedIngress.ObjectMeta.Name)
-		} else if !reflect.DeepEqual(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
+		} else if !res.MapHasAllPairsFromOther(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
 			reqLogger.Info("Labels not equal",
 				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Labels),
 				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Labels))

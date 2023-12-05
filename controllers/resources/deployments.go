@@ -180,27 +180,7 @@ func ShouldUpdateDeployment(
 	} else if !equalContainerLists(reqLogger, foundSpec.Spec.InitContainers, expectedSpec.Spec.InitContainers) {
 		(*reqLogger).Info("Deployment wrong init containers")
 	} else {
-		// check if if all expected labels exists in found labels
-		expectedLabels := expectedSpec.GetLabels()
-		if len(expectedLabels) != 0 {
-			foundLabels := foundSpec.GetLabels()
-			if len(foundLabels) == 0 {
-				return true
-			}
-			for k, v := range expectedLabels {
-				found := false
-				for k1, v1 := range foundLabels {
-					if k == k1 && v == v1 {
-						found = true
-						break
-					}
-				}
-				if !found {
-					return true
-				}
-			}
-		}
-		return false
+		return !MapHasAllPairsFromOther(foundSpec.GetLabels(), expectedSpec.GetLabels())
 	}
 	return true
 }
