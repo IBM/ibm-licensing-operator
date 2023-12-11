@@ -30,8 +30,6 @@ rules:
   - operator.ibm.com
   resources:
   - operandrequests
-  - operandrequests/finalizers
-  - operandrequests/status
   verbs:
   - get
   - list
@@ -56,12 +54,8 @@ rules:
   - ""
   resources:
   - configmaps
-  - endpoints
   - events
-  - persistentvolumeclaims
-  - pods
   - secrets
-  - serviceaccounts
   - services
   - services/finalizers
   verbs:
@@ -89,7 +83,8 @@ rules:
   - ""
   resources:
   - namespaces
-  - nodes
+  - pods
+  - serviceaccounts
   verbs:
   - get
   - list
@@ -174,24 +169,7 @@ rules:
   - operators.coreos.com
   resources:
   - operatorgroups
-  - operatorgroups/finalizers
-  - operatorgroups/status
   verbs:
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - clusterrolebindings
-  - clusterroles
-  - rolebindings
-  - roles
-  verbs:
-  - create
-  - delete
   - get
   - list
   - patch
