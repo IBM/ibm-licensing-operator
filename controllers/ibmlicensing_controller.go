@@ -123,7 +123,6 @@ type IBMLicensingReconciler struct {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:namespace=ibm-licensing,groups="apps",resources=deployments/finalizers,verbs=update
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;watch;list;delete;update
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=route.openshift.io,resources=routes;routes/custom-host,verbs=get;list;watch;create;update;patch;delete

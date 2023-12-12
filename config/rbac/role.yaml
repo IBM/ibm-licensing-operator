@@ -111,12 +111,6 @@ rules:
   - update
   - watch
 - apiGroups:
-  - apps
-  resources:
-  - deployments/finalizers
-  verbs:
-  - update
-- apiGroups:
   - extensions
   - networking.k8s.io
   resources:
