@@ -13,6 +13,7 @@ require (
 	github.com/openshift/api v0.0.0-20230306181726-ab59d80e2b79
 	github.com/operator-framework/api v0.17.7
 	github.com/redhat-marketplace/redhat-marketplace-operator/v2 v2.0.0-20230228135942-40c6ba166b59
+	github.com/stretchr/testify v1.8.3
 	go.uber.org/zap v1.21.0
 	k8s.io/api v0.27.2
 	k8s.io/apimachinery v0.27.2
