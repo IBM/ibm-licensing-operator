@@ -30,6 +30,7 @@ rules:
   - operator.ibm.com
   resources:
   - operandrequests
+  - operandrequests/finalizers
   verbs:
   - get
   - list
