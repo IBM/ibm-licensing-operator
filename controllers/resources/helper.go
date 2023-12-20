@@ -46,8 +46,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
-
-	v1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )
 
 // cannot set to const due to k8s struct needing pointers to primitive types
@@ -159,7 +157,7 @@ func GetSecretToken(name string, namespace string, secretKey string, metaLabels 
 	return expectedSecret, nil
 }
 
-func AnnotateForService(httpCertSource v1alpha1.HTTPSCertsSource, isHTTPS bool, certName string) map[string]string {
+func AnnotateForService(isHTTPS bool, certName string) map[string]string {
 	if IsServiceCAAPI && isHTTPS {
 		return map[string]string{ocpCertSecretNameTag: certName}
 	}

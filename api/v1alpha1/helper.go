@@ -31,8 +31,8 @@ import (
 )
 
 const localReporterURL = "https://ibm-license-service-reporter:8080"
-const defaultLicensingTokenSecretName = "ibm-licensing-token"         //#nosec
-const defaultReporterTokenSecretName = "ibm-licensing-reporter-token" //#nosec
+const defaultLicensingTokenSecretName = "ibm-licensing-token"               //#nosec
+const defaultReporterTokenSecretName = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
 const OperandLicensingImageEnvVar = "IBM_LICENSING_IMAGE"
 const OperandUsageImageEnvVar = "IBM_LICENSING_USAGE_IMAGE"
 
@@ -44,7 +44,9 @@ var memory128Mi = resource.NewQuantity(128*1024*1024, resource.BinarySI)
 var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
 var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
-var memory512Mi = resource.NewQuantity(512*1024*1024, resource.BinarySI)
+var memory1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
+
+var ephemeralStorage256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 
 type Container struct {
 	// IBM Licensing Service docker Image Registry, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
@@ -158,10 +160,11 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 	}
 
 	spec.Container.initResourcesIfNil()
-	spec.Container.setResourceLimitMemoryIfNotSet(*memory512Mi)
+	spec.Container.setResourceLimitMemoryIfNotSet(*memory1Gi)
 	spec.Container.setResourceRequestMemoryIfNotSet(*memory256Mi)
 	spec.Container.setResourceLimitCPUIfNotSet(*cpu500m)
 	spec.Container.setResourceRequestCPUIfNotSet(*cpu200m)
+	spec.Container.setResourceRequestEphemeralStorageIfNotSet(*ephemeralStorage256Mi)
 
 	if err := spec.setContainer(OperandLicensingImageEnvVar); err != nil {
 		return err
@@ -174,6 +177,7 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 		spec.UsageContainer.setResourceRequestMemoryIfNotSet(*memory64Mi)
 		spec.UsageContainer.setResourceLimitCPUIfNotSet(*cpu100m)
 		spec.UsageContainer.setResourceRequestCPUIfNotSet(*cpu50m)
+		spec.Container.setResourceRequestEphemeralStorageIfNotSet(*ephemeralStorage256Mi)
 		if err := spec.UsageContainer.setContainer(OperandUsageImageEnvVar); err != nil {
 			return err
 		}
@@ -235,6 +239,12 @@ func (container *Container) setResourceLimitMemoryIfNotSet(value resource.Quanti
 func (container *Container) setResourceRequestMemoryIfNotSet(value resource.Quantity) {
 	if container.Resources.Requests.Memory().IsZero() {
 		container.Resources.Requests[corev1.ResourceMemory] = value
+	}
+}
+
+func (container *Container) setResourceRequestEphemeralStorageIfNotSet(value resource.Quantity) {
+	if container.Resources.Requests.StorageEphemeral().IsZero() {
+		container.Resources.Requests[corev1.ResourceEphemeralStorage] = value
 	}
 }
 

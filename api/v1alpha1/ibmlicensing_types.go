@@ -114,6 +114,11 @@ type IBMLicensingSpec struct {
 	// +optional
 	UsageContainer Container `json:"usageContainer,omitempty"`
 
+	// IBM License Service license acceptance.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="License Acceptance",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	License *License `json:"license"`
+
 	// Consider updating to enable chargeback feature
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
@@ -143,6 +148,11 @@ type IBMLicensingSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Features"
 	// +optional
 	Features *Features `json:"features,omitempty"`
+
+	// Labels to be copied into all relevant resources
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Labels"
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 type IBMLicensingSenderSpec struct {
@@ -187,9 +197,11 @@ type IBMLicensingFeaturesStatus struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// IBM License Service is the Schema for the ibmlicensings API.
-// Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
-// License By installing this product you accept the license terms https://ibm.biz/icpfs39license.
+// IBMLicensing custom resource is used to create an instance of the License Service, used to collect information about license usage of IBM containerized products and IBM Cloud Paks per cluster.
+// You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
+// Documentation: For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
+// License: Please refer to the IBM Terms website (ibm.biz/lsvc-lic)
+// to find the license terms for the particular IBM product for which you are deploying this component.
 // +kubebuilder:printcolumn:name="Pod Phase",type=string,JSONPath=`.status..phase`
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ibmlicensings,scope=Cluster

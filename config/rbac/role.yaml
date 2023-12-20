@@ -6,6 +6,13 @@ metadata:
   name: ibm-licensing-operator
 rules:
 - apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
   - operator.ibm.com
   resources:
   - ibmlicensings
@@ -175,6 +182,15 @@ rules:
   - list
   - patch
   - update
+  - watch
+- apiGroups:
+  - operator.ibm.com
+  resources:
+  - operandbindinfos
+  verbs:
+  - delete
+  - get
+  - list
   - watch
 - apiGroups:
   - operators.coreos.com

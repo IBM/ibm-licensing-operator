@@ -21,7 +21,11 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	apieq "k8s.io/apimachinery/pkg/api/equality"
 )
+
+// To make linter happy
+const containerErrorMessageStart = "Container "
 
 func equalProbes(probe1 *corev1.Probe, probe2 *corev1.Probe) bool {
 	if probe1 == nil {
@@ -47,16 +51,39 @@ func equalEnvVars(envVarArr1, envVarArr2 []corev1.EnvVar) bool {
 	if len(envVarArr1) != len(envVarArr2) {
 		return false
 	}
+
 	for _, env1 := range envVarArr1 {
 		contains := false
 		for _, env2 := range envVarArr2 {
-			if env1.Name == env2.Name && env1.Value == env2.Value {
+			if env1.Name == env2.Name && env1.Value == env2.Value && reflect.DeepEqual(env1.ValueFrom, env2.ValueFrom) {
 				contains = true
 				break
 			}
 		}
 		if !contains {
 			return contains
+		}
+	}
+	return true
+}
+
+func equalVolumes(foundVolumes, expectedVolumes []corev1.Volume) bool {
+	if len(expectedVolumes) != len(foundVolumes) {
+		return false
+	}
+	for _, expectedVolume := range expectedVolumes {
+		contains := false
+		for _, foundVolume := range foundVolumes {
+			if foundVolume.Name == expectedVolume.Name {
+				if !reflect.DeepEqual(foundVolume, expectedVolume) {
+					return false
+				}
+				contains = true
+				break
+			}
+		}
+		if !contains {
+			return false
 		}
 	}
 	return true
@@ -95,31 +122,32 @@ func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container,
 		}
 		potentialDifference = true
 		if foundContainer.Image != expectedContainer.Image {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container image")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container image")
 		} else if foundContainer.ImagePullPolicy != expectedContainer.ImagePullPolicy {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong image pull policy")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong image pull policy")
 		} else if !reflect.DeepEqual(foundContainer.Command, expectedContainer.Command) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container command")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container command")
 		} else if !reflect.DeepEqual(foundContainer.Ports, expectedContainer.Ports) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong containers ports")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong containers ports")
 		} else if !reflect.DeepEqual(foundContainer.VolumeMounts, expectedContainer.VolumeMounts) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong VolumeMounts in container")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong VolumeMounts in container")
 		} else if !equalEnvVars(foundContainer.Env, expectedContainer.Env) { // DeepEqual requires same order of items, which results in false negatives, so we use custom comparison function
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong env variables in container")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong env variables in container")
 		} else if !reflect.DeepEqual(foundContainer.SecurityContext, expectedContainer.SecurityContext) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container security context")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container security context")
 		} else if (foundContainer.Resources.Limits == nil) || (foundContainer.Resources.Requests == nil) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Resources")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Resources")
 		} else if !(foundContainer.Resources.Limits.Cpu().Equal(*expectedContainer.Resources.Limits.Cpu()) &&
 			foundContainer.Resources.Limits.Memory().Equal(*expectedContainer.Resources.Limits.Memory())) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Resources Limits")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Resources Limits")
 		} else if !(foundContainer.Resources.Requests.Cpu().Equal(*expectedContainer.Resources.Requests.Cpu()) &&
-			foundContainer.Resources.Requests.Memory().Equal(*expectedContainer.Resources.Requests.Memory())) {
+			foundContainer.Resources.Requests.Memory().Equal(*expectedContainer.Resources.Requests.Memory()) &&
+			foundContainer.Resources.Requests.StorageEphemeral().Equal(*expectedContainer.Resources.Requests.StorageEphemeral())) {
 			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Resources Requests")
 		} else if !equalProbes(foundContainer.ReadinessProbe, expectedContainer.ReadinessProbe) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Readiness Probe")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Readiness Probe")
 		} else if !equalProbes(foundContainer.LivenessProbe, expectedContainer.LivenessProbe) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Liveness Probe")
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Liveness Probe")
 		} else {
 			potentialDifference = false
 		}
@@ -139,7 +167,7 @@ func ShouldUpdateDeployment(
 		delete(foundSpec.Annotations, "kubectl.kubernetes.io/restartedAt")
 	}
 
-	if !reflect.DeepEqual(foundSpec.Spec.Volumes, expectedSpec.Spec.Volumes) {
+	if !apieq.Semantic.DeepEqual(foundSpec.Spec.Volumes, expectedSpec.Spec.Volumes) {
 		(*reqLogger).Info("Deployment has wrong volumes")
 	} else if !reflect.DeepEqual(foundSpec.Spec.Affinity, expectedSpec.Spec.Affinity) {
 		(*reqLogger).Info("Deployment has wrong affinity")

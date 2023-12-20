@@ -17,11 +17,9 @@
 package controllers
 
 import (
-	"context"
 	"os"
-	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
@@ -31,10 +29,7 @@ import (
 	svcres "github.com/IBM/ibm-licensing-operator/controllers/resources/service"
 )
 
-func TestCheckOperandRequestReconciler(t *testing.T) {
-}
-
-var _ = Describe("OperandRequest controller", func() {
+var _ = Describe("OperandRequest controller", Ordered, func() {
 	const (
 		name               = "operandrequest-test"
 		operandRequestName = "ibm-licensing-opreq-1"
@@ -52,73 +47,56 @@ var _ = Describe("OperandRequest controller", func() {
 	Expect(opreqNamespace).ToNot(BeEmpty())
 
 	var (
-		ctx            context.Context
 		operandRequest = res.OperandRequestObj(operandRequestName, opreqNamespace, res.OperatorName)
 		lsLabels       = map[string]string{"app": "ibm-licensing"}
 		lsAnnotations  = map[string]string{"owned-by": "ibm-licensing"}
 	)
 
-	BeforeEach(func() {
-		ctx = context.Background()
-	})
+	BeforeAll(func(ctx SpecContext) {
+		secret := corev1.Secret{}
+		if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingToken}, &secret); err != nil {
+			Eventually(func() bool {
+				lsTokenSecret := res.SecretObj(svcres.LicensingToken, operatorNamespace, map[string]string{"token": "aaaa"}, lsLabels, lsAnnotations)
+				err := k8sCFromMgr.Create(ctx, &lsTokenSecret)
+				return err == nil || k8serr.IsAlreadyExists(err)
+			}).WithContext(ctx).Should(BeTrue())
+		}
 
-	Context("(Setup) Licensing ConfigMaps and Secrets", func() {
-		It("IbmLicensingToken Secret should be created in namespace "+operatorNamespace, func() {
-			secret := corev1.Secret{}
-			if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingToken}, &secret); err != nil {
-				Eventually(func() bool {
-					lsTokenSecret := res.SecretObj(svcres.LicensingToken, operatorNamespace, map[string]string{"token": "aaaa"}, lsLabels, lsAnnotations)
-					err := k8sCFromMgr.Create(ctx, &lsTokenSecret)
-					return err == nil || k8serr.IsAlreadyExists(err)
-				}, timeout, interval).Should(BeTrue())
-			}
-		})
+		secret = corev1.Secret{}
+		if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingUploadToken}, &secret); err != nil {
+			Eventually(func() bool {
+				lsUploadToken := res.SecretObj(svcres.LicensingUploadToken, operatorNamespace, map[string]string{"token": "bbbb"}, lsLabels, lsAnnotations)
+				err := k8sCFromMgr.Create(ctx, &lsUploadToken)
+				return err == nil || k8serr.IsAlreadyExists(err)
+			}).WithContext(ctx).Should(BeTrue())
+		}
 
-		It("IbmLicensingUploadToken Secret should be created in namespace "+operatorNamespace, func() {
-			secret := corev1.Secret{}
-			if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingUploadToken}, &secret); err != nil {
-				Eventually(func() bool {
-					lsUploadToken := res.SecretObj(svcres.LicensingUploadToken, operatorNamespace, map[string]string{"token": "bbbb"}, lsLabels, lsAnnotations)
-					err := k8sCFromMgr.Create(ctx, &lsUploadToken)
-					return err == nil || k8serr.IsAlreadyExists(err)
-				}, timeout, interval).Should(BeTrue())
-			}
+		cm := corev1.ConfigMap{}
+		if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingUploadConfig}, &cm); err != nil {
+			Eventually(func() bool {
+				lsUploadConfigCm := res.ConfigMapObj(svcres.LicensingUploadConfig, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
+				err := k8sCFromMgr.Create(ctx, &lsUploadConfigCm)
+				return err == nil || k8serr.IsAlreadyExists(err)
+			}).WithContext(ctx).Should(BeTrue())
+		}
 
-		})
+		cm = corev1.ConfigMap{}
+		if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingInfo}, &cm); err != nil {
+			Eventually(func() bool {
+				lsInfoCm := res.ConfigMapObj(svcres.LicensingInfo, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
+				err := k8sCFromMgr.Create(ctx, &lsInfoCm)
+				return err == nil || k8serr.IsAlreadyExists(err)
+			}).WithContext(ctx).Should(BeTrue())
+		}
 
-		It("IbmLicensingUploadConfig ConfigMap should be created in namespace "+operatorNamespace, func() {
-			cm := corev1.ConfigMap{}
-			if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingUploadConfig}, &cm); err != nil {
-				Eventually(func() bool {
-					lsUploadConfigCm := res.ConfigMapObj(svcres.LicensingUploadConfig, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
-					err := k8sCFromMgr.Create(ctx, &lsUploadConfigCm)
-					return err == nil || k8serr.IsAlreadyExists(err)
-				}, timeout, interval).Should(BeTrue())
-			}
-		})
+		operandRequest = res.OperandRequestObj(operandRequestName, opreqNamespace, res.OperatorName)
+		err := k8sCFromMgr.Create(ctx, &operandRequest)
+		Expect(err == nil || k8serr.IsAlreadyExists(err)).To(BeTrue())
 
-		It("IbmLicensingInfo ConfigMap should be created in namespace "+operatorNamespace, func() {
-			cm := corev1.ConfigMap{}
-			if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingInfo}, &cm); err != nil {
-				Eventually(func() bool {
-					lsInfoCm := res.ConfigMapObj(svcres.LicensingInfo, operatorNamespace, map[string]string{"url": "https://ibm-licensing-service-instance"}, lsLabels, lsAnnotations)
-					err := k8sCFromMgr.Create(ctx, &lsInfoCm)
-					return err == nil || k8serr.IsAlreadyExists(err)
-				}, timeout, interval).Should(BeTrue())
-			}
-		})
-	})
-
-	Context("(Setup) OperandRequest instance", func() {
-		It("Should be created in namespace "+opreqNamespace, func() {
-			operandRequest = res.OperandRequestObj(operandRequestName, opreqNamespace, res.OperatorName)
-			err := k8sCFromMgr.Create(ctx, &operandRequest)
-			Expect(err == nil || k8serr.IsAlreadyExists(err)).To(BeTrue())
-		})
-	})
+	}, NodeTimeout(timeout))
 
 	Context("OperandRequest controller reconciliation", func() {
-		It("Should expose connection details to the OperandRequest's namespace", func() {
+		It("should expose connection details to the OperandRequest's namespace", func(ctx SpecContext) {
 
 			By("Copying " + svcres.LicensingToken + " Secret to OperandRequest's namespace")
 			Eventually(func() bool {
@@ -133,7 +111,7 @@ var _ = Describe("OperandRequest controller", func() {
 				}
 
 				return res.CompareSecretsData(&secret1, &secret1Copy)
-			}, timeout, interval).Should(BeTrue())
+			}).WithContext(ctx).Should(BeTrue())
 
 			By("Copying " + svcres.LicensingUploadToken + " Secret to OperandRequest's namespace")
 			Eventually(func() bool {
@@ -148,7 +126,7 @@ var _ = Describe("OperandRequest controller", func() {
 				}
 
 				return res.CompareSecretsData(&secret2, &secret2Copy)
-			}, timeout, interval).Should(BeTrue())
+			}).WithContext(ctx).Should(BeTrue())
 
 			By("Copying " + svcres.LicensingInfo + " ConfigMap to OperandRequest's namespace")
 			Eventually(func() bool {
@@ -163,7 +141,7 @@ var _ = Describe("OperandRequest controller", func() {
 				}
 
 				return res.CompareConfigMapData(&cm1, &cm1Copy)
-			}, timeout, interval).Should(BeTrue())
+			}).WithContext(ctx).Should(BeTrue())
 
 			By("Copying " + svcres.LicensingUploadConfig + " ConfigMap to OperandRequest's namespace")
 			Eventually(func() bool {
@@ -178,7 +156,7 @@ var _ = Describe("OperandRequest controller", func() {
 				}
 
 				return res.CompareConfigMapData(&cm2, &cm2Copy)
-			}, timeout, interval).Should(BeTrue())
+			}).WithContext(ctx).Should(BeTrue())
 		})
 	})
 })

@@ -29,7 +29,7 @@ import (
 func GetRHMPServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.ServiceMonitor {
 	interval := "3h"
 	name := PrometheusRHMPServiceMonitor
-	tlsConfig := getTLSConfigForRHMP(instance)
+	tlsConfig := getTLSConfigForServiceMonitor(instance)
 	metricRelabelConfigs := getMetricRelabelConfigsForRHMP()
 	return GetServiceMonitor(instance, name, interval, tlsConfig, metricRelabelConfigs)
 }
@@ -37,7 +37,7 @@ func GetRHMPServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv
 func GetAlertingServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.ServiceMonitor {
 	interval := "5m"
 	name := PrometheusAlertingServiceMonitor
-	tlsConfig := getTLSConfigForAlerting(instance)
+	tlsConfig := getTLSConfigForServiceMonitor(instance)
 	metricRelabelConfigs := getMetricRelabelConfigsForAlerting()
 	return GetServiceMonitor(instance, name, interval, tlsConfig, metricRelabelConfigs)
 }
@@ -49,11 +49,11 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing, name string, int
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    LabelsForServiceMonitor(),
+			Labels:    LabelsForServiceMonitor(instance),
 		},
 		Spec: monitoringv1.ServiceMonitorSpec{
 			Selector: metav1.LabelSelector{
-				MatchLabels: getPrometheusLabels(),
+				MatchLabels: getPrometheusLabels(instance),
 			},
 			Endpoints: []monitoringv1.Endpoint{
 				{
@@ -142,23 +142,7 @@ func getRelabelConfigs(instance *operatorv1alpha1.IBMLicensing) []*monitoringv1.
 	return relabelConfigs
 }
 
-func getTLSConfigForRHMP(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConfig {
-	if instance.Spec.HTTPSEnable {
-		return &monitoringv1.TLSConfig{
-			CA: monitoringv1.SecretOrConfigMap{
-				ConfigMap: &corev1.ConfigMapKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: "ibm-cs-operator-webhook-ca",
-					},
-					Key: "service-ca.crt",
-				},
-			},
-		}
-	}
-	return nil
-}
-
-func getTLSConfigForAlerting(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConfig {
+func getTLSConfigForServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConfig {
 	if instance.Spec.HTTPSEnable {
 		return &monitoringv1.TLSConfig{
 			CA: monitoringv1.SecretOrConfigMap{

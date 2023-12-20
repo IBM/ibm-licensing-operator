@@ -21,7 +21,7 @@ import (
 // +kubebuilder:pruning:PreserveUnknownFields
 type IBMLicensingQuerySourceSpec struct {
 	// Policy on how should newly queried data be aggregated to previous data (defaults to MAX)
-	// +kubebuilder:validation:Enum=MAX;ADD
+	// +kubebuilder:validation:Enum=MAX;ADD;ADD_MONTHLY
 	AggregationPolicy string `json:"aggregationPolicy,omitempty"`
 
 	// What query should be send to prometheuses to get the licensing usage
@@ -39,7 +39,8 @@ type IBMLicensingQuerySourceStatus struct {
 
 // +kubebuilder:object:root=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// IBMLicensingQuerySource is the schema for IBM License Service.
+// IBMLicensingQuerySource is a custom resource for internal use only. It is used by some IBM products to assign their pods to the licensed products for the licensing specific calculation, performed by the IBM License Service.
+// It is prepared in close collaboration with those IBM products, and affects only them. It cannot be modified by a customer, to ensure compliance with the license usage metering and reporting.
 // +operator-sdk:csv:customresourcedefinitions:displayName="IBM Licensing Query Source"
 // +kubebuilder:resource:path=ibmlicensingquerysources,scope=Namespaced
 // +kubebuilder:subresource:status
