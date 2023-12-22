@@ -29,6 +29,8 @@ RUN cp /build/bin/opm /bin/opm \
     && cp /build/bin/configmap-server /bin/configmap-server \
     && cp /build/bin/registry-server /bin/registry-server
 
+USER 1001
+
 FROM alpine AS builder
 
 COPY manifests manifests
@@ -36,6 +38,7 @@ COPY --from=operator-registry /bin/initializer /bin/initializer
 
 RUN /bin/initializer -o ./bundles.db
 
+USER 1001
 
 FROM scratch
 
@@ -61,3 +64,5 @@ COPY --from=operator-registry /bin/registry-server /bin/grpc_health_probe /bin/
 EXPOSE 50051
 ENTRYPOINT ["/bin/registry-server"]
 CMD ["--database", "/bundles.db"]
+
+USER 1001
