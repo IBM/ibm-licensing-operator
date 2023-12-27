@@ -42,7 +42,7 @@ VCS_URL=https://github.com/IBM/ibm-common-service-catalog
 VCS_REF=random
 
 echo "Building and pushing catalog"
-docker build -t "$CATALOG_NAME":"$MANIFEST_VERSION" --build-arg \ VCS_REF=${VCS_REF} --build-arg VCS_URL=${VCS_URL} -f Dockerfile .
+docker build -t "$CATALOG_NAME":"$MANIFEST_VERSION" --build-arg \ VCS_REF=${VCS_REF} --build-arg VCS_URL=${VCS_URL} --security-opt=no-new-privileges -f Dockerfile .
 docker push "$CATALOG_NAME":"$MANIFEST_VERSION"
 docker tag "$CATALOG_NAME":"$MANIFEST_VERSION" "$CATALOG_NAME":latest
 docker push "$CATALOG_NAME":latest
