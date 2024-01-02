@@ -147,28 +147,10 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			}...)
 		}
 
-		var secretName string
-		if spec.Sender.ReporterSecretToken != "" {
-			secretName = spec.Sender.ReporterSecretToken
-		} else {
-			secretName = spec.GetDefaultReporterTokenName()
-		}
-
 		environmentVariables = append(environmentVariables, []corev1.EnvVar{
 			{
 				Name:  "HUB_URL",
 				Value: spec.Sender.ReporterURL,
-			},
-			{
-				Name: "HUB_TOKEN",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: secretName,
-						},
-						Key: ReporterSecretTokenKeyName,
-					},
-				},
 			},
 		}...)
 
