@@ -173,14 +173,6 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 					DefaultMode: &resources.DefaultSecretMode,
 				},
 			},
-			// ValueFrom: &corev1.EnvVarSource{
-			// 	SecretKeyRef: &corev1.SecretKeySelector{
-			// 		LocalObjectReference: corev1.LocalObjectReference{
-			// 			Name: secretName,
-			// 		},
-			// 		Key: ReporterSecretTokenKeyName,
-			// 	},
-			// },
 		}
 
 		volumes = append(volumes, reporterTokenVolume)
