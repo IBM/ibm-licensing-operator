@@ -89,7 +89,6 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 			{
 				Name:      ReporterTokenVolumeName,
 				MountPath: "/opt/ibm/licensing/reporter-token",
-				SubPath:   ReporterSecretTokenKeyName,
 				ReadOnly:  true,
 			},
 		}...)
