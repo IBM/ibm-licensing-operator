@@ -31,7 +31,6 @@ rules:
   resources:
   - operandrequests
   - operandrequests/finalizers
-  - operandrequests/status
   verbs:
   - get
   - list
@@ -56,13 +55,8 @@ rules:
   - ""
   resources:
   - configmaps
-  - endpoints
   - events
-  - namespaces
-  - persistentvolumeclaims
-  - pods
   - secrets
-  - serviceaccounts
   - services
   - services/finalizers
   verbs:
@@ -90,15 +84,10 @@ rules:
   - ""
   resources:
   - namespaces
-  - nodes
-  - pods
+  - serviceaccounts
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - ""
@@ -106,17 +95,6 @@ rules:
   - pods
   verbs:
   - get
-- apiGroups:
-  - apps
-  resources:
-  - daemonsets
-  - deployments
-  - replicasets
-  - statefulsets
-  verbs:
-  - create
-  - delete
-  - get
   - list
   - patch
   - update
@@ -125,15 +103,14 @@ rules:
   - apps
   resources:
   - deployments
-  - replicasets
   verbs:
+  - create
+  - delete
   - get
-- apiGroups:
-  - apps
-  resources:
-  - deployments/finalizers
-  verbs:
+  - list
+  - patch
   - update
+  - watch
 - apiGroups:
   - extensions
   - networking.k8s.io
@@ -196,24 +173,7 @@ rules:
   - operators.coreos.com
   resources:
   - operatorgroups
-  - operatorgroups/finalizers
-  - operatorgroups/status
   verbs:
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - clusterrolebindings
-  - clusterroles
-  - rolebindings
-  - roles
-  verbs:
-  - create
-  - delete
   - get
   - list
   - patch

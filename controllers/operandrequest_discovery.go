@@ -31,7 +31,7 @@ import (
 
 // Looks for OperandRequests (that have binding for ibm-licensing-operator) in other namespaces
 
-// +kubebuilder:rbac:namespace=ibm-licensing,groups=operators.coreos.com,resources=operatorgroups;operatorgroups/finalizers;operatorgroups/status,verbs=get;list;patch;update;watch
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=operators.coreos.com,resources=operatorgroups,verbs=get;list;patch;update;watch
 
 func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Reader, watchNamespace []string, namespaceScopeSemaphore chan bool) {
 	var nssEnabled, prevNssEnabledState bool
