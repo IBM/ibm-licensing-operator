@@ -30,7 +30,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-const localReporterURL = "https://ibm-license-service-reporter:8080"
 const defaultLicensingTokenSecretName = "ibm-licensing-token"               //#nosec
 const defaultReporterTokenSecretName = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
 const OperandLicensingImageEnvVar = "IBM_LICENSING_IMAGE"
