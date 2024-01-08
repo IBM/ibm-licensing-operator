@@ -165,7 +165,7 @@ func AnnotateForService(isHTTPS bool, certName string) map[string]string {
 }
 
 func UpdateResource(reqLogger *logr.Logger, client c.Client,
-	expectedResource ResourceObject, foundResource ResourceObject) (reconcile.Result, error) {
+	expectedResource, foundResource ResourceObject) (reconcile.Result, error) {
 	resTypeString := reflect.TypeOf(expectedResource).String()
 	(*reqLogger).Info("Updating " + resTypeString)
 	expectedResource.SetResourceVersion(foundResource.GetResourceVersion())
