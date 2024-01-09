@@ -28,7 +28,7 @@ const APIUploadTokenName = "ibm-licensing-upload-token"
 const APISecretTokenKeyName = "token"
 const APIUploadTokenKeyName = "token-upload"
 
-const ReporterSecretTokenKeyName = "token"
+const ReporterTokenSecretNameKeyName = "token"
 
 const URLConfigMapKey = "url"
 const CrtConfigMapKey = "crt.pem"

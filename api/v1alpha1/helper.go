@@ -102,7 +102,7 @@ func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
 }
 
-func (spec *IBMLicensingSpec) GetDefaultReporterTokenName() string {
+func (spec *IBMLicensingSpec) GetDefaultReporterTokenSecretName() string {
 	return defaultReporterTokenSecretName
 }
 
