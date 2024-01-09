@@ -19,8 +19,9 @@ package service
 import (
 	"testing"
 
-	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
+
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )
 
 func TestGetLicensingVolumeMountsReporterDisabled(t *testing.T) {
