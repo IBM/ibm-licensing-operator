@@ -30,7 +30,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-const localReporterURL = "https://ibm-license-service-reporter:8080"
 const defaultLicensingTokenSecretName = "ibm-licensing-token"               //#nosec
 const defaultReporterTokenSecretName = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
 const OperandLicensingImageEnvVar = "IBM_LICENSING_IMAGE"
@@ -103,7 +102,7 @@ func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
 }
 
-func (spec *IBMLicensingSpec) GetDefaultReporterTokenName() string {
+func (spec *IBMLicensingSpec) GetDefaultReporterTokenSecretName() string {
 	return defaultReporterTokenSecretName
 }
 
@@ -318,40 +317,4 @@ func (container *Container) setImagePullPolicyIfNotSet() {
 	if container.ImagePullPolicy == "" {
 		container.ImagePullPolicy = corev1.PullIfNotPresent
 	}
-}
-
-func (spec *IBMLicensingSpec) SetDefaultSenderParameters() bool {
-
-	//returns true if any changes were made
-	changed := false
-
-	if spec.Sender == nil {
-		spec.Sender = &IBMLicensingSenderSpec{}
-	}
-
-	if spec.Sender.ReporterURL == "" {
-		spec.Sender.ReporterURL = localReporterURL
-		changed = true
-	}
-
-	if spec.Sender.ReporterSecretToken == "" {
-		spec.Sender.ReporterSecretToken = defaultReporterTokenSecretName
-		changed = true
-	}
-
-	return changed
-}
-
-func (spec *IBMLicensingSpec) RemoveDefaultSenderParameters() bool {
-
-	//returns true if any changes were made
-
-	//checking only token because secret removes automatically and may cause k8s config error
-	//if checking also url and not removing on only url change
-	if spec.Sender != nil && spec.Sender.ReporterSecretToken == defaultReporterTokenSecretName {
-		spec.Sender = nil
-		return true
-	}
-
-	return false
 }

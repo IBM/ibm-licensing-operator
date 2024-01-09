@@ -30,6 +30,7 @@ const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
 const PrometheusHTTPSCertsVolumeName = "prometheus-https-certs"
 const EmptyDirVolumeName = "tmp"
+const ReporterTokenVolumeName = "reporter-token"
 
 var emptyDirSizeLimit600Mi, _ = resource.ParseQuantity("600Mi")
 
@@ -53,6 +54,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 			ReadOnly:  false,
 		},
 	}
+
 	if spec.HTTPSEnable {
 		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 			{
@@ -81,6 +83,17 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 			},
 		}...)
 	}
+
+	if spec.Sender != nil {
+		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
+			{
+				Name:      ReporterTokenVolumeName,
+				MountPath: "/opt/ibm/licensing/reporter-token",
+				ReadOnly:  true,
+			},
+		}...)
+	}
+
 	return volumeMounts
 }
 
@@ -143,6 +156,27 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 		},
 	}
 	volumes = append(volumes, emptyDirVolume)
+
+	if spec.Sender != nil {
+		var secretName string
+		if spec.Sender.ReporterTokenSecretName != "" {
+			secretName = spec.Sender.ReporterTokenSecretName
+		} else {
+			secretName = spec.GetDefaultReporterTokenSecretName()
+		}
+
+		reporterTokenVolume := corev1.Volume{
+			Name: ReporterTokenVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName:  secretName,
+					DefaultMode: &resources.DefaultSecretMode,
+				},
+			},
+		}
+
+		volumes = append(volumes, reporterTokenVolume)
+	}
 
 	return volumes
 }

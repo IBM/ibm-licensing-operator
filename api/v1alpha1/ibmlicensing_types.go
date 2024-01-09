@@ -165,7 +165,7 @@ type IBMLicensingSenderSpec struct {
 	// License Service Reporter authentication token, provided by secret that you need to create in instance namespace
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Reporter Secret Token",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
-	ReporterSecretToken string `json:"reporterSecretToken,omitempty"`
+	ReporterTokenSecretName string `json:"reporterTokenSecretName,omitempty"`
 
 	// What is the name of this reporting cluster in multi-cluster system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME at Operand level
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Cluster Name",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
