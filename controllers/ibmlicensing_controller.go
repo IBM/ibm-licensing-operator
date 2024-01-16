@@ -22,6 +22,7 @@ import (
 	"reflect"
 	goruntime "runtime"
 	"sort"
+	"strings"
 	"time"
 
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -157,6 +158,12 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 	// Ignore reconciliation if CR is 'inactive'
 	if instance.Status.State == service.InactiveCRState {
 		reqLogger.Info("Ignoring reconciliation because CR's status is " + instance.Status.State)
+		return reconcile.Result{}, nil
+	}
+
+	// Ignore reconciliation if CR version is v4/CP3
+	if strings.HasPrefix(instance.Spec.Version, "4") {
+		reqLogger.Info("Ignoring reconciliation as of v4/CP3 CR version=" + instance.Spec.Version)
 		return reconcile.Result{}, nil
 	}
 
