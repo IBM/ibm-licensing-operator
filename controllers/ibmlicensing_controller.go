@@ -705,6 +705,7 @@ func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.
 		return res.UpdateResource(&reqLogger, r.Client, expectedDeployment, foundDeployment)
 	}
 
+	// Note: At the moment, shouldUpdate should trigger for label changes anyway, so this code is just a check for later
 	return r.attachSpecLabels(instance, foundDeployment, &reqLogger)
 }
 
