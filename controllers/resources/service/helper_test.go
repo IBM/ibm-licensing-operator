@@ -17,7 +17,11 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"testing"
+
+	appsv1 "k8s.io/api/apps/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zapcore"
@@ -31,8 +35,25 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
+// Required for failing deployment update call and recreating it
+type failUpdateWrapper struct {
+	client.Client
+}
+
+// Fail update call if the object is a deployment with the "fail-update" flag present
+func (c *failUpdateWrapper) Update(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error {
+	if deployment, ok := obj.(*appsv1.Deployment); ok {
+		if _, exists := deployment.ObjectMeta.Labels["fail-update"]; exists {
+			return fmt.Errorf("failed to update the deployment because of the fail-update flag present")
+		}
+	}
+
+	return c.Client.Update(ctx, obj, opts...)
+}
+
 func TestUpdateResourceDoesNotRemoveExistingLabels(t *testing.T) {
-	name := "resource"
+	deploymentName := "deployment"
+	secretName := "secret"
 	namespace := "test"
 	opts := zap.Options{
 		Development: true,
@@ -41,40 +62,50 @@ func TestUpdateResourceDoesNotRemoveExistingLabels(t *testing.T) {
 	logger := zap.New(zap.UseFlagOptions(&opts))
 
 	// Create a found resource with some custom label not present in the expected resource
-	foundResource := &corev1.Secret{
+	foundSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      secretName,
 			Namespace: namespace,
 			Labels:    map[string]string{"existing-label": "existing-value"},
 		},
 	}
 
+	// Also create a deployment to test different types of resources with this functionality
+	foundDeployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      deploymentName,
+			Namespace: namespace,
+			Labels:    map[string]string{"existing-label": "existing-value", "fail-update": "true"},
+		},
+	}
+
 	// Build the client with the found resource
-	client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(foundResource).Build()
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(foundSecret, foundDeployment).Build()
+	wrappedClient := &failUpdateWrapper{fakeClient}
 
 	// Create an expected resource with some expected label (different to the existing label)
-	expectedResource := &corev1.Secret{
+	expectedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      secretName,
 			Namespace: namespace,
 			Labels:    map[string]string{"expected-label": "expected-value"},
 		},
 	}
 
 	// Update the resource with an expected one and fetch the updated state from the cluster
-	_, err := resources.UpdateResource(&logger, client, expectedResource, foundResource)
+	_, err := resources.UpdateResource(&logger, wrappedClient, expectedSecret, foundSecret)
 	assert.NoError(t, err)
-	err = client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, foundResource)
+	err = wrappedClient.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: secretName}, foundSecret)
 	assert.NoError(t, err)
 
 	// Check both labels present
-	assert.Equal(t, "existing-value", foundResource.GetLabels()["existing-label"])
-	assert.Equal(t, "expected-value", foundResource.GetLabels()["expected-label"])
+	assert.Equal(t, "existing-value", foundSecret.GetLabels()["existing-label"])
+	assert.Equal(t, "expected-value", foundSecret.GetLabels()["expected-label"])
 
 	// Create another expected resource with some updated labels
-	expectedResource = &corev1.Secret{
+	expectedSecret = &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      secretName,
 			Namespace: namespace,
 			Labels: map[string]string{
 				"new-expected-label": "expected-value",
@@ -84,13 +115,32 @@ func TestUpdateResourceDoesNotRemoveExistingLabels(t *testing.T) {
 	}
 
 	// Update the resource with the expected one and fetch the updated state from the cluster
-	_, err = resources.UpdateResource(&logger, client, expectedResource, foundResource)
+	_, err = resources.UpdateResource(&logger, wrappedClient, expectedSecret, foundSecret)
 	assert.NoError(t, err)
-	err = client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, foundResource)
+	err = wrappedClient.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: secretName}, foundSecret)
 	assert.NoError(t, err)
 
 	// Check all labels present and with the correct values
-	assert.Equal(t, "existing-value", foundResource.GetLabels()["existing-label"])
-	assert.Equal(t, "expected-value-updated", foundResource.GetLabels()["expected-label"])
-	assert.Equal(t, "expected-value", foundResource.GetLabels()["new-expected-label"])
+	assert.Equal(t, "existing-value", foundSecret.GetLabels()["existing-label"])
+	assert.Equal(t, "expected-value-updated", foundSecret.GetLabels()["expected-label"])
+	assert.Equal(t, "expected-value", foundSecret.GetLabels()["new-expected-label"])
+
+	// Create another expected resource but of different type
+	expectedDeployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      deploymentName,
+			Namespace: namespace,
+			Labels:    map[string]string{"expected-label": "expected-value"},
+		},
+	}
+
+	// Update the resource with an expected one and fetch the updated state from the cluster
+	_, err = resources.UpdateResource(&logger, wrappedClient, expectedDeployment, foundDeployment)
+	assert.NoError(t, err)
+	err = wrappedClient.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: deploymentName}, foundDeployment)
+	assert.NoError(t, err)
+
+	// Check both labels present
+	assert.Equal(t, "existing-value", foundDeployment.GetLabels()["existing-label"])
+	assert.Equal(t, "expected-value", foundDeployment.GetLabels()["expected-label"])
 }

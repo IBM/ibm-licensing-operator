@@ -202,6 +202,7 @@ func UpdateResource(reqLogger *logr.Logger, client c.Client,
 		expectedResource.SetResourceVersion("")
 
 		// Recreate the resource immediately (to avoid losing e.g. previously existing labels)
+		(*reqLogger).Info("Recreating "+resTypeString, "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
 		return reconcile.Result{}, client.Create(context.TODO(), expectedResource)
 	}
 	(*reqLogger).Info("Updated "+resTypeString+" successfully", "Namespace", expectedResource.GetNamespace(), "Name", expectedResource.GetName())
