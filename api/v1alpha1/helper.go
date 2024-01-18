@@ -30,8 +30,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-const defaultLicensingTokenSecretName = "ibm-licensing-token"               //#nosec
-const defaultReporterTokenSecretName = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
+const defaultLicensingTokenSecretName = "ibm-licensing-token"           //#nosec
+const defaultReporterTokenSecret = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
 const OperandLicensingImageEnvVar = "IBM_LICENSING_IMAGE"
 const OperandUsageImageEnvVar = "IBM_LICENSING_USAGE_IMAGE"
 
@@ -102,8 +102,8 @@ func (spec *IBMLicensingSpec) IsMetering() bool {
 	return spec.Datasource == "metering"
 }
 
-func (spec *IBMLicensingSpec) GetDefaultReporterTokenSecretName() string {
-	return defaultReporterTokenSecretName
+func (spec *IBMLicensingSpec) GetDefaultReporterTokenSecret() string {
+	return defaultReporterTokenSecret
 }
 
 func (spec *IBMLicenseServiceBaseSpec) IsDebug() bool {
