@@ -163,7 +163,7 @@ func (r *IBMLicensingReconciler) Reconcile(ctx context.Context, req reconcile.Re
 
 	// Ignore reconciliation if CR version is v4/CP3
 	if strings.HasPrefix(instance.Spec.Version, "4") {
-		reqLogger.Info("Ignoring reconciliation. Detected newer version running. IBMLicensing CR instance Spec.Version=" + instance.Spec.Version)
+		reqLogger.Info("Detected newer version of License Service running. Ignoring reconciliation. IBMLicensing CR instance spec.version=" + instance.Spec.Version)
 		return reconcile.Result{}, nil
 	}
 
