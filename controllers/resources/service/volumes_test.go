@@ -69,9 +69,9 @@ func TestGetLicensingVolumesEnabled(t *testing.T) {
 
 	reporterTokenVolume := volumes[3]
 	assert.Equal(t, ReporterTokenVolumeName, reporterTokenVolume.Name, "Sender reporter token volume should have correct name.")
-	assert.Equal(t, spec.GetDefaultReporterTokenSecretName(), reporterTokenVolume.Secret.SecretName, "Sender reporter token secret not specified, volume should have default name.")
+	assert.Equal(t, spec.GetDefaultReporterTokenName(), reporterTokenVolume.Secret.SecretName, "Sender reporter token secret not specified, volume should have default name.")
 
-	spec.Sender.ReporterTokenSecretName = "someSecretName"
+	spec.Sender.ReporterSecretToken = "someSecretName"
 	volumes = getLicensingVolumes(spec)
 	reporterTokenVolume = volumes[3]
 	assert.Equal(t, "someSecretName", reporterTokenVolume.Secret.SecretName, "Sender reporter token should have correct name that was set in CR.")
