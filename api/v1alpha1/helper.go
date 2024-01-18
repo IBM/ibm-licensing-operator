@@ -31,7 +31,7 @@ import (
 )
 
 const defaultLicensingTokenSecretName = "ibm-licensing-token"               //#nosec
-const defaultReporterSecretTokenName = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
+const defaultReporterTokenSecretName = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
 const OperandLicensingImageEnvVar = "IBM_LICENSING_IMAGE"
 const OperandUsageImageEnvVar = "IBM_LICENSING_USAGE_IMAGE"
 
@@ -103,7 +103,7 @@ func (spec *IBMLicensingSpec) IsMetering() bool {
 }
 
 func (spec *IBMLicensingSpec) GetDefaultReporterTokenName() string {
-	return defaultReporterSecretTokenName
+	return defaultReporterTokenSecretName
 }
 
 func (spec *IBMLicenseServiceBaseSpec) IsDebug() bool {
