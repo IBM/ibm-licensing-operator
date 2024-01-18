@@ -338,10 +338,6 @@ spec:
                 description: Sender configuration, set if you have multi-cluster environment
                   from which you collect data
                 properties:
-                  ReporterTokenSecret:
-                    description: License Service Reporter authentication token, provided
-                      by secret that you need to create in instance namespace
-                    type: string
                   clusterID:
                     description: Unique ID of reporting cluster
                     type: string
@@ -349,6 +345,10 @@ spec:
                     description: What is the name of this reporting cluster in multi-cluster
                       system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME
                       at Operand level
+                    type: string
+                  reporterTokenSecret:
+                    description: License Service Reporter authentication token, provided
+                      by secret that you need to create in instance namespace
                     type: string
                   reporterURL:
                     description: URL for License Service Reporter receiver that collects
