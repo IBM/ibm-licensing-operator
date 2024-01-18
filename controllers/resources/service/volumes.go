@@ -159,10 +159,10 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 
 	if spec.Sender != nil {
 		var secretName string
-		if spec.Sender.ReporterTokenSecret != "" {
-			secretName = spec.Sender.ReporterTokenSecret
+		if spec.Sender.ReporterSecretToken != "" {
+			secretName = spec.Sender.ReporterSecretToken
 		} else {
-			secretName = spec.GetDefaultReporterTokenSecret()
+			secretName = spec.GetDefaultReporterTokenName()
 		}
 
 		reporterTokenVolume := corev1.Volume{

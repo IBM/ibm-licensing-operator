@@ -346,7 +346,7 @@ spec:
                       system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME
                       at Operand level
                     type: string
-                  reporterTokenSecret:
+                  reporterSecretToken:
                     description: License Service Reporter authentication token, provided
                       by secret that you need to create in instance namespace
                     type: string
