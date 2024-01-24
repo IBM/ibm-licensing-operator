@@ -59,6 +59,8 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
+// Trigger new build
+
 func printVersion() {
 	setupLog.Info(fmt.Sprintf("Operator Version: %s", version.Version))
 	setupLog.Info(fmt.Sprintf("Operator BuildDate: %s", readFile("/IMAGE_BUILDDATE")))
