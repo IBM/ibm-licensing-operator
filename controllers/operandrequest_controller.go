@@ -315,7 +315,7 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 				return false, err
 			}
 			// Update existing ConfigMap only if it has same name and set of labels
-			if needUpdate := !res.CompareConfigMapData(&cmCopy, &existingCm); needUpdate {
+			if needUpdate := !res.CompareConfigMapData(&existingCm, &cmCopy); needUpdate {
 				if err := r.Update(ctx, &cmCopy); err != nil {
 					reqLogger.Error(err, "failed to update ConfigMap", "name", targetName, "namespace", targetNs)
 					return false, err

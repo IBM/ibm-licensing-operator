@@ -164,17 +164,46 @@ func AnnotateForService(isHTTPS bool, certName string) map[string]string {
 	return map[string]string{}
 }
 
+// Attach labels existing on the found resource to the expected resource
+func attachExistingLabels(foundResource ResourceObject, expectedResource ResourceObject) {
+	resourceLabels := foundResource.GetLabels()
+	expectedLabels := expectedResource.GetLabels()
+
+	for key, value := range resourceLabels {
+		_, ok := expectedLabels[key]
+		if !ok {
+			expectedLabels[key] = value
+		}
+	}
+}
+
 func UpdateResource(reqLogger *logr.Logger, client c.Client,
 	expectedResource ResourceObject, foundResource ResourceObject) (reconcile.Result, error) {
 	resTypeString := reflect.TypeOf(expectedResource).String()
 	(*reqLogger).Info("Updating " + resTypeString)
 	expectedResource.SetResourceVersion(foundResource.GetResourceVersion())
+
+	// Ensure persistence of existing labels
+	attachExistingLabels(foundResource, expectedResource)
+
 	err := client.Update(context.TODO(), expectedResource)
 	if err != nil {
 		// only need to delete resource as new will be recreated on next reconciliation
 		(*reqLogger).Info("Could not update "+resTypeString+", due to having not compatible changes between expected and updated resource, "+
 			"will try to delete it and create new one...", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
-		return DeleteResource(reqLogger, client, foundResource)
+
+		result, err := DeleteResource(reqLogger, client, foundResource)
+		if err != nil {
+			(*reqLogger).Error(err, "Failed deleting the resource")
+			return result, err
+		}
+
+		// Can't create a new resource with a resource version provided, so remove it
+		expectedResource.SetResourceVersion("")
+
+		// Recreate the resource immediately (to avoid losing e.g. previously existing labels)
+		(*reqLogger).Info("Recreating "+resTypeString, "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+		return reconcile.Result{}, client.Create(context.TODO(), expectedResource)
 	}
 	(*reqLogger).Info("Updated "+resTypeString+" successfully", "Namespace", expectedResource.GetNamespace(), "Name", expectedResource.GetName())
 	// Resource updated - return and do not requeue as it might not consider extra values
@@ -417,9 +446,19 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 	return nil
 }
 
+// MapHasAllPairsFromOther checks if all key, value pairs present in the second param are in the first param
+func MapHasAllPairsFromOther[K, V comparable](checked, allNeededPairs map[K]V) bool {
+	for key, value := range allNeededPairs {
+		if foundValue, ok := checked[key]; !ok || foundValue != value {
+			return false
+		}
+	}
+	return true
+}
+
 // Returns true if configmaps are equal in terms of stored data
-func CompareConfigMapData(cm1, cm2 *corev1.ConfigMap) bool {
-	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels) && reflect.DeepEqual(cm1.BinaryData, cm2.BinaryData)
+func CompareConfigMapData(found, expected *corev1.ConfigMap) bool {
+	return reflect.DeepEqual(found.Data, expected.Data) && MapHasAllPairsFromOther(found.Labels, expected.Labels) && reflect.DeepEqual(found.BinaryData, expected.BinaryData)
 }
 
 // Returns true if secrets are equal in terms of stored data
