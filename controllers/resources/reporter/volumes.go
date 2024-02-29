@@ -60,6 +60,16 @@ func getReceiverVolumeMounts() []corev1.VolumeMount {
 	return volumeMounts
 }
 
+func getReporterUIVolumeMounts() []corev1.VolumeMount {
+	return []corev1.VolumeMount{
+		{
+			Name:      LicenseReporterHTTPSCertsVolumeName,
+			MountPath: "/opt/licensing/certs/",
+			ReadOnly:  true,
+		},
+	}
+}
+
 func getDatabaseVolumeMounts() []corev1.VolumeMount {
 	return []corev1.VolumeMount{
 		{
