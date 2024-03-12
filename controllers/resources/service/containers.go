@@ -92,22 +92,30 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 		})
 	}
 	if spec.IsNamespaceScopeEnabled() {
-		var watchNamespaces string
-
-		if spec.IsCustomWatchNsConfigMap() {
-			watchNamespaces = spec.GetCustomWatchNsConfigMap()
-		} else {
-			watchNamespaces, _ = resources.GetWatchNamespace()
-		}
-
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "NAMESPACE_SCOPE_ENABLED",
 			Value: "true",
 		})
-		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "WATCH_NAMESPACE",
-			Value: watchNamespaces,
-		})
+		var watchNamespaces string
+		if spec.IsCustomWatchNsConfigMap() {
+			customNsConfigMapName := spec.GetCustomWatchNsConfigMap()
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name: "WATCH_NAMESPACE",
+				ValueFrom: &corev1.EnvVarSource{
+					ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+						Key:                  "namespaces",
+						LocalObjectReference: corev1.LocalObjectReference{Name: customNsConfigMapName},
+					},
+				},
+			})
+		} else {
+			watchNamespaces, _ = resources.GetWatchNamespace()
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name:  "WATCH_NAMESPACE",
+				Value: watchNamespaces,
+			})
+		}
+
 	}
 	if spec.ChargebackRetentionPeriod != nil {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
