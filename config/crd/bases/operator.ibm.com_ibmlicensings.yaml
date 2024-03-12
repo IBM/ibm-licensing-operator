@@ -103,6 +103,11 @@ spec:
                     required:
                     - threadsPerCore
                     type: object
+                  nsConfigMap:
+                    description: Name of the Config Map, containing list of namespaces
+                      to be watched by the IBM License Service. Special terms, must
+                      be granted by IBM Pricing.
+                    type: string
                   nssEnabled:
                     description: Special terms, must be granted by IBM Pricing.
                     type: boolean
