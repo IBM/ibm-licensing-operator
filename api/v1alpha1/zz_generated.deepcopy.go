@@ -88,8 +88,8 @@ func (in *Features) DeepCopyInto(out *Features) {
 		*out = new(bool)
 		**out = **in
 	}
-	if in.CustomWatchNsConfigMap != nil {
-		in, out := &in.CustomWatchNsConfigMap, &out.CustomWatchNsConfigMap
+	if in.CustomNamespaceScopeConfigMap != nil {
+		in, out := &in.CustomNamespaceScopeConfigMap, &out.CustomNamespaceScopeConfigMap
 		*out = new(string)
 		**out = **in
 	}

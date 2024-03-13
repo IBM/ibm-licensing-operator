@@ -97,8 +97,8 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "true",
 		})
 		var watchNamespaces string
-		if spec.IsCustomWatchNsConfigMap() {
-			customNsConfigMapName := spec.GetCustomWatchNsConfigMap()
+		if spec.IsCustomNamespaceScopeConfigMap() {
+			customNsConfigMapName := spec.GetCustomNamespaceScopeConfigMap()
 			environmentVariables = append(environmentVariables, corev1.EnvVar{
 				Name: "WATCH_NAMESPACE",
 				ValueFrom: &corev1.EnvVarSource{

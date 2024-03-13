@@ -46,10 +46,10 @@ type Features struct {
 	// +optional
 	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
 
-	// Name of the Config Map, containing list of namespaces to be watched by the IBM License Service. Special terms, must be granted by IBM Pricing.
+	// Special terms, must be granted by IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Custom namespaces Config Map",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
-	CustomWatchNsConfigMap *string `json:"nsConfigMap,omitempty"`
+	CustomNamespaceScopeConfigMap *string `json:"nssConfigMap,omitempty"`
 }
 
 func (spec *IBMLicensingSpec) HaveFeatures() bool {
@@ -60,15 +60,15 @@ func (spec *IBMLicensingSpec) IsNamespaceScopeEnabled() bool {
 	return spec.HaveFeatures() && spec.Features.NamespaceScopeEnabled != nil && *spec.Features.NamespaceScopeEnabled
 }
 
-func (spec *IBMLicensingSpec) IsCustomWatchNsConfigMap() bool {
-	return spec.HaveFeatures() && spec.Features != nil && spec.Features.CustomWatchNsConfigMap != nil
+func (spec *IBMLicensingSpec) IsCustomNamespaceScopeConfigMap() bool {
+	return spec.HaveFeatures() && spec.Features != nil && spec.Features.CustomNamespaceScopeConfigMap != nil
 }
 
-func (spec *IBMLicensingSpec) GetCustomWatchNsConfigMap() string {
-	if !spec.IsCustomWatchNsConfigMap() {
+func (spec *IBMLicensingSpec) GetCustomNamespaceScopeConfigMap() string {
+	if !spec.IsCustomNamespaceScopeConfigMap() {
 		return ""
 	}
-	return *spec.Features.CustomWatchNsConfigMap
+	return *spec.Features.CustomNamespaceScopeConfigMap
 }
 
 func (spec *IBMLicensingSpec) IsHyperThreadingEnabled() bool {
