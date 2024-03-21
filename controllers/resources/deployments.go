@@ -18,7 +18,6 @@ package resources
 
 import (
 	"reflect"
-	"strings"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -74,17 +73,12 @@ func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container,
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong env variables in container")
 		} else if !reflect.DeepEqual(foundContainer.SecurityContext, expectedContainer.SecurityContext) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container security context")
-		} else if (foundContainer.Resources.Limits == nil) || (foundContainer.Resources.Requests == nil) {
-			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Resources")
-		} else if !(foundContainer.Resources.Limits.Cpu().Equal(*expectedContainer.Resources.Limits.Cpu()) &&
-			foundContainer.Resources.Limits.Memory().Equal(*expectedContainer.Resources.Limits.Memory())) {
-			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Resources Limits")
-		} else if !(foundContainer.Resources.Requests.Cpu().Equal(*expectedContainer.Resources.Requests.Cpu()) &&
-			foundContainer.Resources.Requests.Memory().Equal(*expectedContainer.Resources.Requests.Memory()) &&
-			foundContainer.Resources.Requests.StorageEphemeral().Equal(*expectedContainer.Resources.Requests.StorageEphemeral())) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Resources Requests")
-		} else if !equalHugePagesLimits(expectedContainer.Resources.Limits, foundContainer.Resources.Limits) {
-			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong hugepages limits")
+		} else if (foundContainer.Resources.Limits == nil) || (foundContainer.Resources.Requests == nil) { // We must have default Requests and limits set -> no nils allowed
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " empty resources")
+		} else if !equalResources(expectedContainer.Resources.Limits, foundContainer.Resources.Limits) {
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong resource limits")
+		} else if !equalResources(expectedContainer.Resources.Requests, foundContainer.Resources.Requests) {
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong resource requests")
 		} else if !equalProbes(foundContainer.ReadinessProbe, expectedContainer.ReadinessProbe) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Readiness Probe")
 		} else if !equalProbes(foundContainer.LivenessProbe, expectedContainer.LivenessProbe) {
@@ -188,9 +182,13 @@ func equalVolumes(foundVolumes, expectedVolumes []corev1.Volume) bool {
 	return true
 }
 
-func equalHugePagesLimits(expected, actual corev1.ResourceList) bool {
+func equalResources(expected, actual corev1.ResourceList) bool {
+	if len(expected) != len(actual) {
+		return false
+	}
+
 	for k, v := range expected {
-		if strings.HasPrefix(k.String(), corev1.ResourceHugePagesPrefix) && !apieq.Semantic.DeepEqual(actual[k], v) {
+		if !apieq.Semantic.DeepEqual(actual[k], v) {
 			return false
 		}
 	}
