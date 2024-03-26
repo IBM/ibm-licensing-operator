@@ -160,28 +160,6 @@ func equalEnvVars(envVarArr1, envVarArr2 []corev1.EnvVar) bool {
 	return true
 }
 
-func equalVolumes(foundVolumes, expectedVolumes []corev1.Volume) bool {
-	if len(expectedVolumes) != len(foundVolumes) {
-		return false
-	}
-	for _, expectedVolume := range expectedVolumes {
-		contains := false
-		for _, foundVolume := range foundVolumes {
-			if foundVolume.Name == expectedVolume.Name {
-				if !reflect.DeepEqual(foundVolume, expectedVolume) {
-					return false
-				}
-				contains = true
-				break
-			}
-		}
-		if !contains {
-			return false
-		}
-	}
-	return true
-}
-
 func equalResources(expected, actual corev1.ResourceList) bool {
 	if len(expected) != len(actual) {
 		return false
