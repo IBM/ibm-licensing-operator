@@ -111,6 +111,7 @@ func getReporterUIProbeHandler() corev1.ProbeHandler {
 func GetReporterUIContainer(instance *operatorv1alpha1.IBMLicenseServiceReporter) corev1.Container {
 	container := resources.GetContainerBase(instance.Spec.ReporterUIContainer)
 	container.Env = getReporterUIEnvironmentVariables(instance)
+	container.VolumeMounts = getReporterUIVolumeMounts()
 	container.Name = UIContainerName
 	container.Ports = []corev1.ContainerPort{
 		{
