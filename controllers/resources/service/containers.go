@@ -96,7 +96,6 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Name:  "NAMESPACE_SCOPE_ENABLED",
 			Value: "true",
 		})
-		var watchNamespaces string
 		if spec.IsCustomNamespaceScopeConfigMap() {
 			customNsConfigMapName := spec.GetCustomNamespaceScopeConfigMap()
 			environmentVariables = append(environmentVariables, corev1.EnvVar{
@@ -109,7 +108,9 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 				},
 			})
 		} else {
-			watchNamespaces, _ = resources.GetWatchNamespace()
+			// It's not possible for error to occur here so we can ignore it.
+			// Should an error occur, it would already fail in main.go and would not reach this code.
+			watchNamespaces, _ := resources.GetWatchNamespace()
 			environmentVariables = append(environmentVariables, corev1.EnvVar{
 				Name:  "WATCH_NAMESPACE",
 				Value: watchNamespaces,
