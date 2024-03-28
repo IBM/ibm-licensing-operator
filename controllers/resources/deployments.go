@@ -75,9 +75,9 @@ func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container,
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container security context")
 		} else if (foundContainer.Resources.Limits == nil) || (foundContainer.Resources.Requests == nil) { // We must have default Requests and limits set -> no nils allowed
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " empty resources")
-		} else if !equalResources(expectedContainer.Resources.Limits, foundContainer.Resources.Limits) {
+		} else if !apieq.Semantic.DeepEqual(expectedContainer.Resources.Limits, foundContainer.Resources.Limits) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong resource limits")
-		} else if !equalResources(expectedContainer.Resources.Requests, foundContainer.Resources.Requests) {
+		} else if !apieq.Semantic.DeepEqual(expectedContainer.Resources.Requests, foundContainer.Resources.Requests) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong resource requests")
 		} else if !equalProbes(foundContainer.ReadinessProbe, expectedContainer.ReadinessProbe) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Readiness Probe")
@@ -157,19 +157,5 @@ func equalEnvVars(envVarArr1, envVarArr2 []corev1.EnvVar) bool {
 			return contains
 		}
 	}
-	return true
-}
-
-func equalResources(expected, actual corev1.ResourceList) bool {
-	if len(expected) != len(actual) {
-		return false
-	}
-
-	for k, v := range expected {
-		if !apieq.Semantic.DeepEqual(actual[k], v) {
-			return false
-		}
-	}
-
 	return true
 }

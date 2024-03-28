@@ -20,10 +20,8 @@ import (
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/IBM/ibm-licensing-operator/testutils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestEqualsEnvVars(t *testing.T) {
@@ -50,78 +48,6 @@ func TestEqualsEnvVars(t *testing.T) {
 			if got := equalEnvVars(tt.args.envVars1, tt.args.envVars2); got != tt.want {
 				t.Errorf("equalEnvVars() = %v, want %v", got, tt.want)
 			}
-		})
-	}
-}
-
-func TestEqualResources(t *testing.T) {
-
-	const hugePages2Mi = corev1.ResourceHugePagesPrefix + "2Mi"
-
-	tests := []struct {
-		name     string
-		expected corev1.ResourceList
-		actual   corev1.ResourceList
-		equal    bool
-	}{
-		{
-			name:  "both resource lists are empty",
-			equal: true,
-		},
-		{
-			name:     "equal cpu limits",
-			expected: corev1.ResourceList{corev1.ResourceLimitsCPU: resource.MustParse("100m")},
-			actual:   corev1.ResourceList{corev1.ResourceLimitsCPU: resource.MustParse("100m")},
-			equal:    true,
-		},
-		{
-			name:     "not equal cpu limits",
-			expected: corev1.ResourceList{corev1.ResourceLimitsCPU: resource.MustParse("100m")},
-			actual:   corev1.ResourceList{corev1.ResourceLimitsCPU: resource.MustParse("200m")},
-			equal:    false,
-		},
-		{
-			name:     "not equal cpu limits - missing actual",
-			expected: corev1.ResourceList{corev1.ResourceLimitsCPU: resource.MustParse("100m")},
-			actual:   nil,
-			equal:    false,
-		},
-		{
-			name:     "equal memory requests",
-			expected: corev1.ResourceList{corev1.ResourceRequestsMemory: resource.MustParse("100Mi")},
-			actual:   corev1.ResourceList{corev1.ResourceRequestsMemory: resource.MustParse("100Mi")},
-			equal:    true,
-		},
-		{
-			name:     "not equal memory requests",
-			expected: corev1.ResourceList{corev1.ResourceRequestsMemory: resource.MustParse("100Mi")},
-			actual:   corev1.ResourceList{corev1.ResourceRequestsMemory: resource.MustParse("200Mi")},
-			equal:    false,
-		},
-		{
-			name:     "not equal memory requests - missing expected",
-			expected: nil,
-			actual:   corev1.ResourceList{corev1.ResourceRequestsMemory: resource.MustParse("200Mi")},
-			equal:    false,
-		},
-		{
-			name:     "equal hugepages",
-			expected: corev1.ResourceList{hugePages2Mi: resource.MustParse("100Mi")},
-			actual:   corev1.ResourceList{hugePages2Mi: resource.MustParse("100Mi")},
-			equal:    true,
-		},
-		{
-			name:     "not equal hugepages - missing actual",
-			expected: corev1.ResourceList{hugePages2Mi: resource.MustParse("100Mi")},
-			actual:   nil,
-			equal:    false,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			equal := equalResources(test.expected, test.actual)
-			assert.Equal(t, test.equal, equal)
 		})
 	}
 }
