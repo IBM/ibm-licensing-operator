@@ -92,15 +92,31 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 		})
 	}
 	if spec.IsNamespaceScopeEnabled() {
-		watchNamespaces, _ := resources.GetWatchNamespace()
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "NAMESPACE_SCOPE_ENABLED",
 			Value: "true",
 		})
-		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "WATCH_NAMESPACE",
-			Value: watchNamespaces,
-		})
+		if spec.IsCustomNamespaceScopeConfigMap() {
+			customNsConfigMapName := spec.GetCustomNamespaceScopeConfigMap()
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name: "WATCH_NAMESPACE",
+				ValueFrom: &corev1.EnvVarSource{
+					ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+						Key:                  "namespaces",
+						LocalObjectReference: corev1.LocalObjectReference{Name: customNsConfigMapName},
+					},
+				},
+			})
+		} else {
+			// It's not possible for error to occur here so we can ignore it.
+			// Should an error occur, it would already fail in main.go and would not reach this code.
+			watchNamespaces, _ := resources.GetWatchNamespace()
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name:  "WATCH_NAMESPACE",
+				Value: watchNamespaces,
+			})
+		}
+
 	}
 	if spec.ChargebackRetentionPeriod != nil {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{

@@ -27,7 +27,7 @@ import (
 
 const ibmLicensingPrefix = "IBMLicensing"
 
-// Returns first found OperatorGroup with `ibm-licensing` in name, otherwise empty object
+// Returns first found OperatorGroup with `ibm-licensing` in name, otherwise nil
 func GetLicensingOperatorGroupInNamespace(reader c.Reader, namespace string) (*v1.OperatorGroup, error) {
 
 	operatorGroupList := v1.OperatorGroupList{}

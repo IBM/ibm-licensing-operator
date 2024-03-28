@@ -106,6 +106,9 @@ spec:
                     required:
                     - threadsPerCore
                     type: object
+                  nssConfigMap:
+                    description: Special terms, must be granted by IBM Pricing.
+                    type: string
                   nssEnabled:
                     description: Special terms, must be granted by IBM Pricing.
                     type: boolean

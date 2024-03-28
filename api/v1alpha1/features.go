@@ -45,6 +45,11 @@ type Features struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Namespace scope enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
 	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
+
+	// Special terms, must be granted by IBM Pricing.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Custom namespaces Config Map",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
+	// +optional
+	CustomNamespaceScopeConfigMap *string `json:"nssConfigMap,omitempty"`
 }
 
 func (spec *IBMLicensingSpec) HaveFeatures() bool {
@@ -53,6 +58,17 @@ func (spec *IBMLicensingSpec) HaveFeatures() bool {
 
 func (spec *IBMLicensingSpec) IsNamespaceScopeEnabled() bool {
 	return spec.HaveFeatures() && spec.Features.NamespaceScopeEnabled != nil && *spec.Features.NamespaceScopeEnabled
+}
+
+func (spec *IBMLicensingSpec) IsCustomNamespaceScopeConfigMap() bool {
+	return spec.HaveFeatures() && spec.Features != nil && spec.Features.CustomNamespaceScopeConfigMap != nil
+}
+
+func (spec *IBMLicensingSpec) GetCustomNamespaceScopeConfigMap() string {
+	if !spec.IsCustomNamespaceScopeConfigMap() {
+		return ""
+	}
+	return *spec.Features.CustomNamespaceScopeConfigMap
 }
 
 func (spec *IBMLicensingSpec) IsHyperThreadingEnabled() bool {
