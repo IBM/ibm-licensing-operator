@@ -27,68 +27,6 @@ import (
 // To make linter happy
 const containerErrorMessageStart = "Container "
 
-func equalProbes(probe1 *corev1.Probe, probe2 *corev1.Probe) bool {
-	if probe1 == nil {
-		return probe2 == nil
-	} else if probe2 == nil {
-		return false
-	}
-	// need to set thresholds for not set values
-	if probe1.SuccessThreshold == 0 {
-		probe1.SuccessThreshold = probe2.SuccessThreshold
-	} else if probe2.SuccessThreshold == 0 {
-		probe2.SuccessThreshold = probe1.SuccessThreshold
-	}
-	if probe1.FailureThreshold == 0 {
-		probe1.FailureThreshold = probe2.FailureThreshold
-	} else if probe2.FailureThreshold == 0 {
-		probe2.FailureThreshold = probe1.FailureThreshold
-	}
-	return reflect.DeepEqual(probe1, probe2)
-}
-
-func equalEnvVars(envVarArr1, envVarArr2 []corev1.EnvVar) bool {
-	if len(envVarArr1) != len(envVarArr2) {
-		return false
-	}
-
-	for _, env1 := range envVarArr1 {
-		contains := false
-		for _, env2 := range envVarArr2 {
-			if env1.Name == env2.Name && env1.Value == env2.Value && reflect.DeepEqual(env1.ValueFrom, env2.ValueFrom) {
-				contains = true
-				break
-			}
-		}
-		if !contains {
-			return contains
-		}
-	}
-	return true
-}
-
-func equalVolumes(foundVolumes, expectedVolumes []corev1.Volume) bool {
-	if len(expectedVolumes) != len(foundVolumes) {
-		return false
-	}
-	for _, expectedVolume := range expectedVolumes {
-		contains := false
-		for _, foundVolume := range foundVolumes {
-			if foundVolume.Name == expectedVolume.Name {
-				if !reflect.DeepEqual(foundVolume, expectedVolume) {
-					return false
-				}
-				contains = true
-				break
-			}
-		}
-		if !contains {
-			return false
-		}
-	}
-	return true
-}
-
 func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container, containers2 []corev1.Container) bool {
 	if len(containers1) != len(containers2) {
 		(*reqLogger).Info("Deployment has wrong amount of containers")
@@ -135,15 +73,12 @@ func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container,
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong env variables in container")
 		} else if !reflect.DeepEqual(foundContainer.SecurityContext, expectedContainer.SecurityContext) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container security context")
-		} else if (foundContainer.Resources.Limits == nil) || (foundContainer.Resources.Requests == nil) {
-			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Resources")
-		} else if !(foundContainer.Resources.Limits.Cpu().Equal(*expectedContainer.Resources.Limits.Cpu()) &&
-			foundContainer.Resources.Limits.Memory().Equal(*expectedContainer.Resources.Limits.Memory())) {
-			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Resources Limits")
-		} else if !(foundContainer.Resources.Requests.Cpu().Equal(*expectedContainer.Resources.Requests.Cpu()) &&
-			foundContainer.Resources.Requests.Memory().Equal(*expectedContainer.Resources.Requests.Memory()) &&
-			foundContainer.Resources.Requests.StorageEphemeral().Equal(*expectedContainer.Resources.Requests.StorageEphemeral())) {
-			(*reqLogger).Info("Container " + foundContainer.Name + " wrong container Resources Requests")
+		} else if (foundContainer.Resources.Limits == nil) || (foundContainer.Resources.Requests == nil) { // We must have default Requests and limits set -> no nils allowed
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " empty resources")
+		} else if !apieq.Semantic.DeepEqual(expectedContainer.Resources.Limits, foundContainer.Resources.Limits) {
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong resource limits")
+		} else if !apieq.Semantic.DeepEqual(expectedContainer.Resources.Requests, foundContainer.Resources.Requests) {
+			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong resource requests")
 		} else if !equalProbes(foundContainer.ReadinessProbe, expectedContainer.ReadinessProbe) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container Readiness Probe")
 		} else if !equalProbes(foundContainer.LivenessProbe, expectedContainer.LivenessProbe) {
@@ -181,6 +116,46 @@ func ShouldUpdateDeployment(
 		(*reqLogger).Info("Deployment wrong init containers")
 	} else {
 		return !MapHasAllPairsFromOther(foundSpec.GetLabels(), expectedSpec.GetLabels())
+	}
+	return true
+}
+
+func equalProbes(probe1 *corev1.Probe, probe2 *corev1.Probe) bool {
+	if probe1 == nil {
+		return probe2 == nil
+	} else if probe2 == nil {
+		return false
+	}
+	// need to set thresholds for not set values
+	if probe1.SuccessThreshold == 0 {
+		probe1.SuccessThreshold = probe2.SuccessThreshold
+	} else if probe2.SuccessThreshold == 0 {
+		probe2.SuccessThreshold = probe1.SuccessThreshold
+	}
+	if probe1.FailureThreshold == 0 {
+		probe1.FailureThreshold = probe2.FailureThreshold
+	} else if probe2.FailureThreshold == 0 {
+		probe2.FailureThreshold = probe1.FailureThreshold
+	}
+	return reflect.DeepEqual(probe1, probe2)
+}
+
+func equalEnvVars(envVarArr1, envVarArr2 []corev1.EnvVar) bool {
+	if len(envVarArr1) != len(envVarArr2) {
+		return false
+	}
+
+	for _, env1 := range envVarArr1 {
+		contains := false
+		for _, env2 := range envVarArr2 {
+			if env1.Name == env2.Name && env1.Value == env2.Value && reflect.DeepEqual(env1.ValueFrom, env2.ValueFrom) {
+				contains = true
+				break
+			}
+		}
+		if !contains {
+			return contains
+		}
 	}
 	return true
 }

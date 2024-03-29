@@ -30,22 +30,26 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-const defaultLicensingTokenSecretName = "ibm-licensing-token"               //#nosec
-const defaultReporterTokenSecretName = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
-const OperandLicensingImageEnvVar = "IBM_LICENSING_IMAGE"
-const OperandUsageImageEnvVar = "IBM_LICENSING_USAGE_IMAGE"
+const (
+	defaultLicensingTokenSecretName = "ibm-licensing-token"                //#nosec
+	defaultReporterTokenSecretName  = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
+	OperandLicensingImageEnvVar     = "IBM_LICENSING_IMAGE"
+	OperandUsageImageEnvVar         = "IBM_LICENSING_USAGE_IMAGE"
+)
 
-var cpu50m = resource.NewMilliQuantity(50, resource.DecimalSI)
-var cpu100m = resource.NewMilliQuantity(100, resource.DecimalSI)
-var memory64Mi = resource.NewQuantity(64*1024*1024, resource.BinarySI)
-var memory128Mi = resource.NewQuantity(128*1024*1024, resource.BinarySI)
+var (
+	cpu50m      = resource.NewMilliQuantity(50, resource.DecimalSI)
+	cpu100m     = resource.NewMilliQuantity(100, resource.DecimalSI)
+	memory64Mi  = resource.NewQuantity(64*1024*1024, resource.BinarySI)
+	memory128Mi = resource.NewQuantity(128*1024*1024, resource.BinarySI)
 
-var cpu200m = resource.NewMilliQuantity(200, resource.DecimalSI)
-var memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
-var cpu500m = resource.NewMilliQuantity(500, resource.DecimalSI)
-var memory1Gi = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
+	cpu200m     = resource.NewMilliQuantity(200, resource.DecimalSI)
+	memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
+	cpu500m     = resource.NewMilliQuantity(500, resource.DecimalSI)
+	memory1Gi   = resource.NewQuantity(1024*1024*1024, resource.BinarySI)
 
-var ephemeralStorage256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
+	ephemeralStorage256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
+)
 
 type Container struct {
 	// IBM Licensing Service docker Image Registry, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment

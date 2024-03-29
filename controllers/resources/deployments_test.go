@@ -51,31 +51,3 @@ func TestEqualsEnvVars(t *testing.T) {
 		})
 	}
 }
-
-func TestEqualVolumes(t *testing.T) {
-	type args struct {
-		volumes1 []corev1.Volume
-		volumes2 []corev1.Volume
-	}
-	tests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{"Equal volumes - empty", args{volumes1: []corev1.Volume{}, volumes2: []corev1.Volume{}}, true},
-		{"Equal volumes", args{volumes1: testutils.Volumes1, volumes2: testutils.Volumes1}, true},
-		{"Equal volumes - different order", args{volumes1: testutils.Volumes1, volumes2: testutils.Volumes1DiffOrder}, true},
-		{"Not equal volumes - different volume", args{volumes1: testutils.Volumes1, volumes2: testutils.Volumes3}, false},
-		{"Not equal volumes - missing volume", args{volumes1: testutils.Volumes1, volumes2: testutils.Volumes3}, false},
-		{"Not equal volumes - additional volume", args{volumes1: testutils.Volumes1, volumes2: testutils.Volumes1AdditionalVolume}, false},
-		{"Not equal volumes - different emptyDir size limit", args{volumes1: testutils.Volumes1, volumes2: testutils.Volumes1DiffEmptyDirSize}, false},
-		{"Not equal volumes - deep diff", args{volumes1: testutils.Volumes1, volumes2: testutils.Volumes4}, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := equalVolumes(tt.args.volumes1, tt.args.volumes2); got != tt.want {
-				t.Errorf("equalVolumes() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
