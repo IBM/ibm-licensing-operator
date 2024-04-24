@@ -35,9 +35,9 @@ spec:
             - ibm-licensing-operator
           env:
             - name: IBM_LICENSING_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-licensing:4.2.3
+              value: icr.io/cpopen/cpfs/ibm-licensing:4.2.4
             - name: IBM_LICENSING_USAGE_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-licensing-usage:4.2.3
+              value: icr.io/cpopen/cpfs/ibm-licensing-usage:4.2.4
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -58,7 +58,7 @@ spec:
                   fieldPath: spec.serviceAccountName
             - name: CRD_RECONCILE_INTERVAL
               value: "300" 
-          image: icr.io/cpopen/ibm-licensing-operator:4.2.3
+          image: icr.io/cpopen/ibm-licensing-operator:4.2.4
           imagePullPolicy: IfNotPresent
           name: ibm-licensing-operator
           resources:
