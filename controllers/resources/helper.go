@@ -130,6 +130,10 @@ func attachExistingLabels(foundResource ResourceObject, expectedResource Resourc
 	resourceLabels := foundResource.GetLabels()
 	expectedLabels := expectedResource.GetLabels()
 
+	if expectedLabels == nil {
+		expectedLabels = map[string]string{}
+	}
+
 	for key, value := range resourceLabels {
 		_, ok := expectedLabels[key]
 		if !ok {
@@ -142,6 +146,10 @@ func attachExistingLabels(foundResource ResourceObject, expectedResource Resourc
 func attachExistingAnnotations(foundResource ResourceObject, expectedResource ResourceObject) {
 	resourceAnnotations := foundResource.GetAnnotations()
 	expectedAnnotations := expectedResource.GetAnnotations()
+
+	if expectedAnnotations == nil {
+		expectedAnnotations = map[string]string{}
+	}
 
 	for key, value := range resourceAnnotations {
 		_, ok := expectedAnnotations[key]
