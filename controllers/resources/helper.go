@@ -138,14 +138,28 @@ func attachExistingLabels(foundResource ResourceObject, expectedResource Resourc
 	}
 }
 
+// Attach annotations existing on the found resource to the expected resource
+func attachExistingAnnotations(foundResource ResourceObject, expectedResource ResourceObject) {
+	resourceAnnotations := foundResource.GetAnnotations()
+	expectedAnnotations := expectedResource.GetAnnotations()
+
+	for key, value := range resourceAnnotations {
+		_, ok := expectedAnnotations[key]
+		if !ok {
+			expectedAnnotations[key] = value
+		}
+	}
+}
+
 func UpdateResource(reqLogger *logr.Logger, client c.Client,
 	expectedResource ResourceObject, foundResource ResourceObject) (reconcile.Result, error) {
 	resTypeString := reflect.TypeOf(expectedResource).String()
 	(*reqLogger).Info("Updating " + resTypeString)
 	expectedResource.SetResourceVersion(foundResource.GetResourceVersion())
 
-	// Ensure persistence of existing labels
+	// Ensure persistence of existing metadata
 	attachExistingLabels(foundResource, expectedResource)
+	attachExistingAnnotations(foundResource, expectedResource)
 
 	err := client.Update(context.TODO(), expectedResource)
 	if err != nil {
