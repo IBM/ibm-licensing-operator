@@ -81,7 +81,6 @@ roleRef:
   kind: ClusterRole
   name: ibm-license-service-restricted
   apiGroup: rbac.authorization.k8s.io
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -108,4 +107,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: ibm-license-service
-  namespace: ibm-licensing
+  namespace: ibm-common-services

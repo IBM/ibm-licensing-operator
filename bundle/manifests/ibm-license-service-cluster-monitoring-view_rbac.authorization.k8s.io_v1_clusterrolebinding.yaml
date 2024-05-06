@@ -14,4 +14,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: ibm-license-service
-  namespace: ibm-licensing
+  namespace: ibm-common-services
