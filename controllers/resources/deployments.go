@@ -18,6 +18,7 @@ package resources
 
 import (
 	"reflect"
+	"sort"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -90,6 +91,21 @@ func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container,
 	return !potentialDifference
 }
 
+func equalImagePullSecrets(imagePullSecrets1, imagePullSecrets2 []corev1.LocalObjectReference) bool {
+	if len(imagePullSecrets1) != len(imagePullSecrets2) {
+		return false
+	}
+
+	sort.Slice(imagePullSecrets1, func(i, j int) bool {
+		return imagePullSecrets1[i].Name < imagePullSecrets1[j].Name
+	})
+	sort.Slice(imagePullSecrets2, func(i, j int) bool {
+		return imagePullSecrets2[i].Name < imagePullSecrets2[j].Name
+	})
+
+	return reflect.DeepEqual(imagePullSecrets1, imagePullSecrets2)
+}
+
 func ShouldUpdateDeployment(
 	reqLogger *logr.Logger,
 	expectedSpec *corev1.PodTemplateSpec,
@@ -114,6 +130,8 @@ func ShouldUpdateDeployment(
 		(*reqLogger).Info("Deployment wrong containers")
 	} else if !equalContainerLists(reqLogger, foundSpec.Spec.InitContainers, expectedSpec.Spec.InitContainers) {
 		(*reqLogger).Info("Deployment wrong init containers")
+	} else if !equalImagePullSecrets(foundSpec.Spec.ImagePullSecrets, expectedSpec.Spec.ImagePullSecrets) {
+		(*reqLogger).Info("Deployment wrong image pull secrets")
 	} else {
 		return !MapHasAllPairsFromOther(foundSpec.GetLabels(), expectedSpec.GetLabels())
 	}
