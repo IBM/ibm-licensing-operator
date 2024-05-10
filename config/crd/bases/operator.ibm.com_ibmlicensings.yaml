@@ -48,6 +48,11 @@ spec:
           spec:
             description: IBMLicensingSpec defines the desired state of IBMLicensing
             properties:
+              annotations:
+                additionalProperties:
+                  type: string
+                description: Annotations to be copied into all relevant resources
+                type: object
               apiSecretToken:
                 description: Secret name used to store application token, either one
                   that exists, or one that will be created

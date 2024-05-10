@@ -51,7 +51,7 @@ func (c *failUpdateWrapper) Update(ctx context.Context, obj client.Object, opts 
 	return c.Client.Update(ctx, obj, opts...)
 }
 
-func TestUpdateResourceDoesNotRemoveExistingLabels(t *testing.T) {
+func TestUpdateResourceDoesNotRemoveExistingLabelsAndAnnotations(t *testing.T) {
 	deploymentName := "deployment"
 	secretName := "secret"
 	namespace := "test"
@@ -61,21 +61,23 @@ func TestUpdateResourceDoesNotRemoveExistingLabels(t *testing.T) {
 	}
 	logger := zap.New(zap.UseFlagOptions(&opts))
 
-	// Create a found resource with some custom label not present in the expected resource
+	// Create a found resource with some custom metadata not present in the expected resource
 	foundSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: namespace,
-			Labels:    map[string]string{"existing-label": "existing-value"},
+			Name:        secretName,
+			Namespace:   namespace,
+			Labels:      map[string]string{"existing-label": "existing-value"},
+			Annotations: map[string]string{"existing-annotation": "existing-value"},
 		},
 	}
 
 	// Also create a deployment to test different types of resources with this functionality
 	foundDeployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      deploymentName,
-			Namespace: namespace,
-			Labels:    map[string]string{"existing-label": "existing-value", "fail-update": "true"},
+			Name:        deploymentName,
+			Namespace:   namespace,
+			Labels:      map[string]string{"existing-label": "existing-value", "fail-update": "true"},
+			Annotations: map[string]string{"existing-annotation": "existing-value", "fail-update": "true"},
 		},
 	}
 
@@ -83,12 +85,13 @@ func TestUpdateResourceDoesNotRemoveExistingLabels(t *testing.T) {
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(foundSecret, foundDeployment).Build()
 	wrappedClient := &failUpdateWrapper{fakeClient}
 
-	// Create an expected resource with some expected label (different to the existing label)
+	// Create an expected resource with some expected metadata (different to the existing metadata)
 	expectedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: namespace,
-			Labels:    map[string]string{"expected-label": "expected-value"},
+			Name:        secretName,
+			Namespace:   namespace,
+			Labels:      map[string]string{"expected-label": "expected-value"},
+			Annotations: map[string]string{"expected-annotation": "expected-value"},
 		},
 	}
 
@@ -98,11 +101,13 @@ func TestUpdateResourceDoesNotRemoveExistingLabels(t *testing.T) {
 	err = wrappedClient.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: secretName}, foundSecret)
 	assert.NoError(t, err)
 
-	// Check both labels present
+	// Check both metadata values present
 	assert.Equal(t, "existing-value", foundSecret.GetLabels()["existing-label"])
 	assert.Equal(t, "expected-value", foundSecret.GetLabels()["expected-label"])
+	assert.Equal(t, "existing-value", foundSecret.GetAnnotations()["existing-annotation"])
+	assert.Equal(t, "expected-value", foundSecret.GetAnnotations()["expected-annotation"])
 
-	// Create another expected resource with some updated labels
+	// Create another expected resource with some updated metadata
 	expectedSecret = &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
@@ -110,6 +115,10 @@ func TestUpdateResourceDoesNotRemoveExistingLabels(t *testing.T) {
 			Labels: map[string]string{
 				"new-expected-label": "expected-value",
 				"expected-label":     "expected-value-updated",
+			},
+			Annotations: map[string]string{
+				"new-expected-annotation": "expected-value",
+				"expected-annotation":     "expected-value-updated",
 			},
 		},
 	}
@@ -120,17 +129,21 @@ func TestUpdateResourceDoesNotRemoveExistingLabels(t *testing.T) {
 	err = wrappedClient.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: secretName}, foundSecret)
 	assert.NoError(t, err)
 
-	// Check all labels present and with the correct values
+	// Check all metadata present and with the correct values
 	assert.Equal(t, "existing-value", foundSecret.GetLabels()["existing-label"])
 	assert.Equal(t, "expected-value-updated", foundSecret.GetLabels()["expected-label"])
 	assert.Equal(t, "expected-value", foundSecret.GetLabels()["new-expected-label"])
+	assert.Equal(t, "existing-value", foundSecret.GetAnnotations()["existing-annotation"])
+	assert.Equal(t, "expected-value-updated", foundSecret.GetAnnotations()["expected-annotation"])
+	assert.Equal(t, "expected-value", foundSecret.GetAnnotations()["new-expected-annotation"])
 
 	// Create another expected resource but of different type
 	expectedDeployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      deploymentName,
-			Namespace: namespace,
-			Labels:    map[string]string{"expected-label": "expected-value"},
+			Name:        deploymentName,
+			Namespace:   namespace,
+			Labels:      map[string]string{"expected-label": "expected-value"},
+			Annotations: map[string]string{"expected-annotation": "expected-value"},
 		},
 	}
 
@@ -140,7 +153,9 @@ func TestUpdateResourceDoesNotRemoveExistingLabels(t *testing.T) {
 	err = wrappedClient.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: deploymentName}, foundDeployment)
 	assert.NoError(t, err)
 
-	// Check both labels present
+	// Check both metadata values present
 	assert.Equal(t, "existing-value", foundDeployment.GetLabels()["existing-label"])
 	assert.Equal(t, "expected-value", foundDeployment.GetLabels()["expected-label"])
+	assert.Equal(t, "existing-value", foundDeployment.GetAnnotations()["existing-annotation"])
+	assert.Equal(t, "expected-value", foundDeployment.GetAnnotations()["expected-annotation"])
 }
