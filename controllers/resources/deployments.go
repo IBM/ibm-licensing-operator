@@ -133,15 +133,17 @@ func equalImagePullSecrets(imagePullSecrets1, imagePullSecrets2 []corev1.LocalOb
 	if len(imagePullSecrets1) != len(imagePullSecrets2) {
 		return false
 	}
+	imagePullSecrets1Copy := append([]corev1.LocalObjectReference{}, imagePullSecrets1...)
+	imagePullSecrets2Copy := append([]corev1.LocalObjectReference{}, imagePullSecrets2...)
 
-	sort.Slice(imagePullSecrets1, func(i, j int) bool {
-		return imagePullSecrets1[i].Name < imagePullSecrets1[j].Name
+	sort.Slice(imagePullSecrets1Copy, func(i, j int) bool {
+		return imagePullSecrets1Copy[i].Name < imagePullSecrets1Copy[j].Name
 	})
-	sort.Slice(imagePullSecrets2, func(i, j int) bool {
-		return imagePullSecrets2[i].Name < imagePullSecrets2[j].Name
+	sort.Slice(imagePullSecrets2Copy, func(i, j int) bool {
+		return imagePullSecrets2Copy[i].Name < imagePullSecrets2Copy[j].Name
 	})
 
-	return reflect.DeepEqual(imagePullSecrets1, imagePullSecrets2)
+	return reflect.DeepEqual(imagePullSecrets1Copy, imagePullSecrets2Copy)
 }
 
 func ShouldUpdateDeployment(
