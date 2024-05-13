@@ -22,7 +22,6 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/equality"
 	apieq "k8s.io/apimachinery/pkg/api/equality"
 )
 
@@ -106,7 +105,7 @@ func equalImagePullSecrets(imagePullSecrets1, imagePullSecrets2 []corev1.LocalOb
 		return imagePullSecrets2Copy[i].Name < imagePullSecrets2Copy[j].Name
 	})
 
-	return equality.Semantic.DeepEqual(imagePullSecrets1Copy, imagePullSecrets2Copy)
+	return apieq.Semantic.DeepEqual(imagePullSecrets1Copy, imagePullSecrets2Copy)
 }
 
 func ShouldUpdateDeployment(
