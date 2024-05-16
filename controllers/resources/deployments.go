@@ -18,6 +18,7 @@ package resources
 
 import (
 	"reflect"
+	"sort"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -90,6 +91,23 @@ func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container,
 	return !potentialDifference
 }
 
+func equalImagePullSecrets(imagePullSecrets1, imagePullSecrets2 []corev1.LocalObjectReference) bool {
+	if len(imagePullSecrets1) != len(imagePullSecrets2) {
+		return false
+	}
+	imagePullSecrets1Copy := append([]corev1.LocalObjectReference{}, imagePullSecrets1...)
+	imagePullSecrets2Copy := append([]corev1.LocalObjectReference{}, imagePullSecrets2...)
+
+	sort.Slice(imagePullSecrets1Copy, func(i, j int) bool {
+		return imagePullSecrets1Copy[i].Name < imagePullSecrets1Copy[j].Name
+	})
+	sort.Slice(imagePullSecrets2Copy, func(i, j int) bool {
+		return imagePullSecrets2Copy[i].Name < imagePullSecrets2Copy[j].Name
+	})
+
+	return apieq.Semantic.DeepEqual(imagePullSecrets1Copy, imagePullSecrets2Copy)
+}
+
 func ShouldUpdateDeployment(
 	reqLogger *logr.Logger,
 	expectedSpec *corev1.PodTemplateSpec,
@@ -114,6 +132,8 @@ func ShouldUpdateDeployment(
 		(*reqLogger).Info("Deployment wrong containers")
 	} else if !equalContainerLists(reqLogger, foundSpec.Spec.InitContainers, expectedSpec.Spec.InitContainers) {
 		(*reqLogger).Info("Deployment wrong init containers")
+	} else if !equalImagePullSecrets(foundSpec.Spec.ImagePullSecrets, expectedSpec.Spec.ImagePullSecrets) {
+		(*reqLogger).Info("Deployment wrong image pull secrets")
 	} else {
 		return !MapHasAllPairsFromOther(foundSpec.GetLabels(), expectedSpec.GetLabels())
 	}
