@@ -47,9 +47,10 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing, name string, int
 
 	return &monitoringv1.ServiceMonitor{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    LabelsForServiceMonitor(instance),
+			Name:        name,
+			Namespace:   instance.Spec.InstanceNamespace,
+			Labels:      LabelsForServiceMonitor(instance),
+			Annotations: instance.Spec.Annotations,
 		},
 		Spec: monitoringv1.ServiceMonitorSpec{
 			Selector: metav1.LabelSelector{

@@ -69,7 +69,7 @@ func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servic
 			Name:        GetLicensingServiceName(instance),
 			Namespace:   instance.Spec.InstanceNamespace,
 			Labels:      metaLabels,
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSEnable, LicenseServiceInternalCertName),
+			Annotations: resources.AnnotateForService(instance, LicenseServiceInternalCertName),
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
@@ -100,7 +100,7 @@ func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servi
 			Name:        GetPrometheusServiceName(),
 			Namespace:   instance.Spec.InstanceNamespace,
 			Labels:      getPrometheusLabels(instance),
-			Annotations: resources.AnnotateForService(instance.Spec.HTTPSEnable, PrometheusServiceOCPCertName),
+			Annotations: resources.AnnotateForService(instance, PrometheusServiceOCPCertName),
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
@@ -120,9 +120,10 @@ func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servi
 func GetUsageService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetUsageServiceName(),
-			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    getUsageServiceLabels(instance),
+			Name:        GetUsageServiceName(),
+			Namespace:   instance.Spec.InstanceNamespace,
+			Labels:      getUsageServiceLabels(instance),
+			Annotations: instance.Spec.Annotations,
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
