@@ -30,6 +30,8 @@ import (
 	"regexp"
 	"time"
 
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	servicecav1 "github.com/openshift/api/operator/v1"
@@ -60,9 +62,7 @@ var (
 	IsServiceCAAPI             = true
 	IsAlertingEnabledByDefault = true
 	RHMPEnabled                = false
-	IsUIEnabled                = false
 	IsODLM                     = true
-	UIPlatformSecretName       = "platform-oidc-credentials"
 
 	PathType = networkingv1.PathTypeImplementationSpecific
 )
@@ -73,7 +73,6 @@ const (
 	LicensingProductID     = "068a62892a1e4db39641342e592daa25"
 	LicensingProductMetric = "FREE"
 
-	randStringCharset    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	ocpCertSecretNameTag = "service.beta.openshift.io/serving-cert-secret-name" // #nosec
 
 	OcpCheckString           = "ocp-check-secret"
@@ -81,35 +80,11 @@ const (
 	OperatorName             = "ibm-licensing-operator"
 )
 
-var randStringCharsetLength = big.NewInt(int64(len(randStringCharset)))
-
 var annotationsForServicesToCheck = [...]string{ocpCertSecretNameTag}
 
 type ResourceObject interface {
 	metav1.Object
 	runtime.Object
-}
-
-func RandString(length int) (string, error) {
-	reader := rand.Reader
-	outputStringByte := make([]byte, length)
-	for i := 0; i < length; i++ {
-		charIndex, err := rand.Int(reader, randStringCharsetLength)
-		if err != nil {
-			return "", err
-		}
-		outputStringByte[i] = randStringCharset[charIndex.Int64()]
-	}
-	return string(outputStringByte), nil
-}
-
-func Contains(s []corev1.LocalObjectReference, e corev1.LocalObjectReference) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }
 
 // we could use reflection to have this method for all types but for now strings would be enough
@@ -135,33 +110,19 @@ func ListsEqualsLikeSets(list1 []string, list2 []string) bool {
 	return true
 }
 
-func AnnotationsForPod() map[string]string {
-	return map[string]string{"productName": LicensingProductName,
-		"productID": LicensingProductID, "productMetric": LicensingProductMetric}
+func AnnotationsForPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {
+	return mergeWithSpecAnnotations(instance, map[string]string{
+		"productName":   LicensingProductName,
+		"productID":     LicensingProductID,
+		"productMetric": LicensingProductMetric,
+	})
 }
 
-func GetSecretToken(name string, namespace string, secretKey string, metaLabels map[string]string) (*corev1.Secret, error) {
-	randString, err := RandString(24)
-	if err != nil {
-		return nil, err
+func AnnotateForService(instance *operatorv1alpha1.IBMLicensing, certName string) map[string]string {
+	if IsServiceCAAPI && instance.Spec.HTTPSEnable {
+		return mergeWithSpecAnnotations(instance, map[string]string{ocpCertSecretNameTag: certName})
 	}
-	expectedSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-			Labels:    metaLabels,
-		},
-		Type:       corev1.SecretTypeOpaque,
-		StringData: map[string]string{secretKey: randString},
-	}
-	return expectedSecret, nil
-}
-
-func AnnotateForService(isHTTPS bool, certName string) map[string]string {
-	if IsServiceCAAPI && isHTTPS {
-		return map[string]string{ocpCertSecretNameTag: certName}
-	}
-	return map[string]string{}
+	return mergeWithSpecAnnotations(instance, map[string]string{})
 }
 
 // Attach labels existing on the found resource to the expected resource
@@ -169,10 +130,31 @@ func attachExistingLabels(foundResource ResourceObject, expectedResource Resourc
 	resourceLabels := foundResource.GetLabels()
 	expectedLabels := expectedResource.GetLabels()
 
+	if expectedLabels == nil {
+		expectedLabels = map[string]string{}
+	}
+
 	for key, value := range resourceLabels {
 		_, ok := expectedLabels[key]
 		if !ok {
 			expectedLabels[key] = value
+		}
+	}
+}
+
+// Attach annotations existing on the found resource to the expected resource
+func attachExistingAnnotations(foundResource ResourceObject, expectedResource ResourceObject) {
+	resourceAnnotations := foundResource.GetAnnotations()
+	expectedAnnotations := expectedResource.GetAnnotations()
+
+	if expectedAnnotations == nil {
+		expectedAnnotations = map[string]string{}
+	}
+
+	for key, value := range resourceAnnotations {
+		_, ok := expectedAnnotations[key]
+		if !ok {
+			expectedAnnotations[key] = value
 		}
 	}
 }
@@ -183,8 +165,9 @@ func UpdateResource(reqLogger *logr.Logger, client c.Client,
 	(*reqLogger).Info("Updating " + resTypeString)
 	expectedResource.SetResourceVersion(foundResource.GetResourceVersion())
 
-	// Ensure persistence of existing labels
+	// Ensure persistence of existing metadata
 	attachExistingLabels(foundResource, expectedResource)
+	attachExistingAnnotations(foundResource, expectedResource)
 
 	err := client.Update(context.TODO(), expectedResource)
 	if err != nil {
@@ -617,4 +600,17 @@ func getTLSDataAsString(route *routev1.Route) string {
 	return fmt.Sprintf("{Termination: %v, InsecureEdgeTerminationPolicy: %v, Certificate: %s, CACertificate: %s, DestinationCACertificate: %s}",
 		route.Spec.TLS.Termination, route.Spec.TLS.InsecureEdgeTerminationPolicy,
 		route.Spec.TLS.Certificate, route.Spec.TLS.CACertificate, route.Spec.TLS.DestinationCACertificate)
+}
+
+/*
+MergeWithSpecAnnotations attaches spec annotations to the provided map of predefined annotations.
+*/
+func mergeWithSpecAnnotations(instance *operatorv1alpha1.IBMLicensing, annotations map[string]string) map[string]string {
+	if instance.Spec.Annotations != nil {
+		for key, value := range instance.Spec.Annotations {
+			annotations[key] = value
+		}
+	}
+
+	return annotations
 }
