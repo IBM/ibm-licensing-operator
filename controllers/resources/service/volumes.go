@@ -29,6 +29,7 @@ const APIUploadTokenVolumeName = "token-upload"
 const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
 const PrometheusHTTPSCertsVolumeName = "prometheus-https-certs"
+const ReporterHTTPSCertsVolumeName = "reporter-https-certs"
 const EmptyDirVolumeName = "tmp"
 const ReporterTokenVolumeName = "reporter-token"
 
@@ -92,6 +93,17 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 				ReadOnly:  true,
 			},
 		}...)
+
+		// volume mount for the license service reporter certificate used by sender
+		if spec.Sender.ReporterCertsSecretName != "" {
+			volumeMounts = append(volumeMounts, []corev1.VolumeMount{
+				{
+					Name:      ReporterHTTPSCertsVolumeName,
+					MountPath: "/opt/ibm/licensing/reporter-token",
+					ReadOnly:  true,
+				},
+			}...)
+		}
 	}
 
 	return volumeMounts
@@ -176,6 +188,24 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 		}
 
 		volumes = append(volumes, reporterTokenVolume)
+
+		reporterCertsSecretName := spec.Sender.ReporterCertsSecretName
+
+		// create volume containing internal certificate from reporter
+		if reporterCertsSecretName != "" {
+			reporterHTTPSCertSecretVolume := corev1.Volume{
+				Name: ReporterHTTPSCertsVolumeName,
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName:  reporterCertsSecretName,
+						DefaultMode: &resources.DefaultSecretMode,
+					},
+				},
+			}
+
+			// catch exception here when volume doesn't exist?
+			volumes = append(volumes, reporterHTTPSCertSecretVolume)
+		}
 	}
 
 	return volumes

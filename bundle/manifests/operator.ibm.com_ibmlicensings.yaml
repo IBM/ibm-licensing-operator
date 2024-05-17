@@ -349,6 +349,11 @@ spec:
                       system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME
                       at Operand level
                     type: string
+                  reporterCertsSecretName:
+                    description: Name of the License Service Reporter secret that
+                      contains internal certificates used to establish secure connection.
+                      You need to create it in instance namespace
+                    type: string
                   reporterSecretToken:
                     description: License Service Reporter authentication token, provided
                       by secret that you need to create in instance namespace
