@@ -32,8 +32,9 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 	selectorLabels := LabelsForSelector(instance)
 	podLabels := LabelsForLicensingPod(instance)
 
-	imagePullSecrets := []corev1.LocalObjectReference{}
+	var imagePullSecrets []corev1.LocalObjectReference
 	if instance.Spec.ImagePullSecrets != nil {
+		imagePullSecrets = []corev1.LocalObjectReference{}
 		for _, pullSecret := range instance.Spec.ImagePullSecrets {
 			imagePullSecrets = append(imagePullSecrets, corev1.LocalObjectReference{Name: pullSecret})
 		}
