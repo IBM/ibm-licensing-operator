@@ -99,7 +99,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 			volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 				{
 					Name:      ReporterHTTPSCertsVolumeName,
-					MountPath: "/opt/reporter/certs",
+					MountPath: "/opt/ibm/licensing/reporter-certs",
 					ReadOnly:  true,
 				},
 			}...)
