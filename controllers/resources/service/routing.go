@@ -84,7 +84,8 @@ func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.
 			Annotations: annotations,
 		},
 		Spec: networkingv1.IngressSpec{
-			TLS: tls,
+			TLS:              tls,
+			IngressClassName: instance.Spec.IngressOptions.IngressClassName,
 			Rules: []networkingv1.IngressRule{
 				{
 					Host: host,

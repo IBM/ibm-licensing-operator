@@ -46,6 +46,11 @@ type IBMLicensingIngressOptions struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Host",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	Host *string `json:"host,omitempty"`
+
+	// IngressClassName defines ingress class name option to be passed to the ingress spec field
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="IngressClassName",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	IngressClassName *string `json:"ingressClassName,omitempty"`
 }
 
 type IBMLicensingRouteOptions struct {
