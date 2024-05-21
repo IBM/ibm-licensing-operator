@@ -172,6 +172,11 @@ type IBMLicensingSenderSpec struct {
 	// +optional
 	ReporterCertsSecretName string `json:"reporterCertsSecretName,omitempty"`
 
+	// Use secure https connection when uploading data to the License Service Reporter
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Sender Https Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +optional
+	SenderHttpsEnabled bool `json:"senderHttpsEnabled,omitempty"`
+
 	// What is the name of this reporting cluster in multi-cluster system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME at Operand level
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Cluster Name",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional

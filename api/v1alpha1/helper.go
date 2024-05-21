@@ -212,6 +212,10 @@ func (spec *IBMLicensingSpec) IsChargebackEnabled() bool {
 	return spec.ChargebackEnabled != nil && *spec.ChargebackEnabled
 }
 
+func (spec *IBMLicensingSpec) IsSenderHttpsEnabled() bool {
+	return spec.Sender != nil && spec.Sender.SenderHttpsEnabled
+}
+
 func (container *Container) initResourcesIfNil() {
 	if container.Resources.Limits == nil {
 		container.Resources.Limits = corev1.ResourceList{}
