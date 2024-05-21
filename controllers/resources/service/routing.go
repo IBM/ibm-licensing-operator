@@ -61,9 +61,10 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS 
 
 func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.Ingress {
 	var (
-		tls         []networkingv1.IngressTLS
-		path, host  string
-		annotations map[string]string
+		tls              []networkingv1.IngressTLS
+		path, host       string
+		annotations      map[string]string
+		ingressClassName *string
 	)
 	path = "/" + GetResourceName(instance)
 	options := instance.Spec.IngressOptions
@@ -75,6 +76,7 @@ func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.
 		if options.Host != nil {
 			host = *options.Host
 		}
+		ingressClassName = options.IngressClassName
 		annotations = options.Annotations
 	}
 	return &networkingv1.Ingress{
@@ -85,7 +87,7 @@ func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.
 		},
 		Spec: networkingv1.IngressSpec{
 			TLS:              tls,
-			IngressClassName: instance.Spec.IngressOptions.IngressClassName,
+			IngressClassName: ingressClassName,
 			Rules: []networkingv1.IngressRule{
 				{
 					Host: host,
