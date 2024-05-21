@@ -170,10 +170,10 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			},
 		}...)
 
-		if spec.IsSenderHttpsEnabled() {
+		if spec.Sender.ValidateReporterCerts {
 			environmentVariables = append(environmentVariables, []corev1.EnvVar{
 				{
-					Name:  "HTTPS_SENDER_ENABLED",
+					Name:  "VALIDATE_REPORTER_CERTS",
 					Value: "true",
 				},
 			}...)
