@@ -167,7 +167,7 @@ type IBMLicensingSenderSpec struct {
 	// +optional
 	ReporterSecretToken string `json:"reporterSecretToken,omitempty"`
 
-	// Name of the License Service Reporter secret that contains internal certificates used to establish secure connection. You need to create it in instance namespace
+	// Name of the secret that contains the License Service Reporter certificate(s) used to establish a secure connection with it. You need to create it in instance namespace
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Reporter Certificates Secret Name",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	ReporterCertsSecretName string `json:"reporterCertsSecretName,omitempty"`

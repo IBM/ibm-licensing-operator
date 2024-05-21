@@ -350,9 +350,9 @@ spec:
                       at Operand level
                     type: string
                   reporterCertsSecretName:
-                    description: Name of the License Service Reporter secret that
-                      contains internal certificates used to establish secure connection.
-                      You need to create it in instance namespace
+                    description: Name of the secret that contains the License Service
+                      Reporter certificate(s) used to establish a secure connection
+                      with it. You need to create it in instance namespace
                     type: string
                   reporterSecretToken:
                     description: License Service Reporter authentication token, provided
