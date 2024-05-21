@@ -359,6 +359,10 @@ spec:
                     description: URL for License Service Reporter receiver that collects
                       and aggregate multi cluster licensing data.
                     type: string
+                  senderHttpsEnabled:
+                    description: Use secure https connection when uploading data to
+                      the License Service Reporter
+                    type: boolean
                 type: object
               usageContainer:
                 description: Usage Container Settings
