@@ -53,6 +53,7 @@ func TestGetLicensingVolumeMountsReporterWithCertsEnabled(t *testing.T) {
 		Datasource:        "datacollector",
 		Sender: &operatorv1alpha1.IBMLicensingSenderSpec{
 			ReporterCertsSecretName: "some-cert-name",
+			ValidateReporterCerts:   true,
 		},
 	}
 
@@ -99,6 +100,7 @@ func TestGetLicensingVolumesEnabledWithCerts(t *testing.T) {
 		Datasource:        "datacollector",
 		Sender: &operatorv1alpha1.IBMLicensingSenderSpec{
 			ReporterCertsSecretName: "some-cert-name",
+			ValidateReporterCerts:   true,
 		},
 	}
 
