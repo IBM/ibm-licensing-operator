@@ -47,7 +47,7 @@ func TestGetLicensingVolumeMountsReporterEnabled(t *testing.T) {
 	assert.Equal(t, ReporterTokenVolumeName, reporterTokenVolumeMount.Name, "Sender volume mount should have correct name.")
 }
 
-func TestGetLicensingVolumeMountsReporterWithCertsEnabled(t *testing.T) {
+func TestGetLicensingVolumeMountsCertsValidationEnabledWithCerts(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
@@ -64,7 +64,7 @@ func TestGetLicensingVolumeMountsReporterWithCertsEnabled(t *testing.T) {
 	assert.Equal(t, ReporterHTTPSCertsVolumeName, reporterCertsVolumeMount.Name, "License service reporter certificate volume mount should have correct name.")
 }
 
-func TestGetLicensingVolumeMountsReporterEnabledWithoutCerts(t *testing.T) {
+func TestGetLicensingVolumeMountsCertsValidationEnabledWithoutCerts(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
@@ -77,7 +77,7 @@ func TestGetLicensingVolumeMountsReporterEnabledWithoutCerts(t *testing.T) {
 	assert.Equal(t, 4, len(volumes), "Sender is enabled, 4 volume mounts should be created, ReporterCertsSecretName isn't set so additional volume mount is not created.")
 }
 
-func TestGetLicensingVolumeMountsReporterDisabledWithCerts(t *testing.T) {
+func TestGetLicensingVolumeMountsCertsValidationDisabledWithCerts(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
@@ -121,7 +121,7 @@ func TestGetLicensingVolumesEnabled(t *testing.T) {
 	assert.Equal(t, "someSecretName", reporterTokenVolume.Secret.SecretName, "Sender reporter token should have correct name that was set in CR.")
 }
 
-func TestGetLicensingVolumesEnabledWithCerts(t *testing.T) {
+func TestGetLicensingVolumesCertsValidationEnabledWithCerts(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
@@ -139,7 +139,7 @@ func TestGetLicensingVolumesEnabledWithCerts(t *testing.T) {
 	assert.Equal(t, spec.Sender.ReporterCertsSecretName, reporterCertsVolume.Secret.SecretName, "Sender reporter volume should have provided certificate secret mounted.")
 }
 
-func TestGetLicensingVolumesEnabledWithoutCerts(t *testing.T) {
+func TestGetLicensingVolumesCertsValidationEnabledWithoutCerts(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
@@ -152,7 +152,7 @@ func TestGetLicensingVolumesEnabledWithoutCerts(t *testing.T) {
 	assert.Equal(t, 4, len(volumes), "Sender is enabled, 4 volumes should be created, ReporterCertsSecretName isn't set so additional volume is not created.")
 }
 
-func TestGetLicensingVolumesDisabledWithCerts(t *testing.T) {
+func TestGetLicensingVolumesCertsValidationDisabledWithCerts(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
