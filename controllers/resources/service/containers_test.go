@@ -17,7 +17,6 @@
 package service
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -42,7 +41,7 @@ func TestGetLicensingEnvironmentVariablesCertsValidationDisabledWithCerts(t *tes
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.False(t, slices.Contains(envVars, validateReporterCertsEnv), "Sender ValidateReporterCerts is disabled, 'VALIDATE_REPORTER_CERTS' environemnt variable should not be added to Licensing pod.")
+	assert.False(t, Contains(envVars, validateReporterCertsEnv), "Sender ValidateReporterCerts is disabled, 'VALIDATE_REPORTER_CERTS' environemnt variable should not be added to Licensing pod.")
 }
 
 func TestGetLicensingEnvironmentVariablesCertsValidationEnabledWithCerts(t *testing.T) {
@@ -61,5 +60,14 @@ func TestGetLicensingEnvironmentVariablesCertsValidationEnabledWithCerts(t *test
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.True(t, slices.Contains(envVars, validateReporterCertsEnv), "Sender ValidateReporterCerts is enabled, appropriate 'VALIDATE_REPORTER_CERTS' environemnt variable should be added to Licensing pod.")
+	assert.True(t, Contains(envVars, validateReporterCertsEnv), "Sender ValidateReporterCerts is enabled, appropriate 'VALIDATE_REPORTER_CERTS' environemnt variable should be added to Licensing pod.")
+}
+
+func Contains[T comparable](s []T, e T) bool {
+	for _, v := range s {
+		if v == e {
+			return true
+		}
+	}
+	return false
 }
