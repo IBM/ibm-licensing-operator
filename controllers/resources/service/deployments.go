@@ -32,8 +32,9 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 	selectorLabels := LabelsForSelector(instance)
 	podLabels := LabelsForLicensingPod(instance)
 
-	imagePullSecrets := []corev1.LocalObjectReference{}
+	var imagePullSecrets []corev1.LocalObjectReference
 	if instance.Spec.ImagePullSecrets != nil {
+		imagePullSecrets = []corev1.LocalObjectReference{}
 		for _, pullSecret := range instance.Spec.ImagePullSecrets {
 			imagePullSecrets = append(imagePullSecrets, corev1.LocalObjectReference{Name: pullSecret})
 		}
@@ -42,9 +43,10 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 	serviceAccount := GetServiceAccountName(instance)
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetResourceName(instance),
-			Namespace: instance.Spec.InstanceNamespace,
-			Labels:    metaLabels,
+			Name:        GetResourceName(instance),
+			Namespace:   instance.Spec.InstanceNamespace,
+			Labels:      metaLabels,
+			Annotations: instance.Spec.Annotations,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
@@ -54,7 +56,7 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels:      podLabels,
-					Annotations: resources.AnnotationsForPod(),
+					Annotations: resources.AnnotationsForPod(instance),
 				},
 				Spec: corev1.PodSpec{
 					Volumes:                       getLicensingVolumes(instance.Spec),

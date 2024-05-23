@@ -153,6 +153,11 @@ type IBMLicensingSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Labels"
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
+
+	// Annotations to be copied into all relevant resources
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Annotations"
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 type IBMLicensingSenderSpec struct {

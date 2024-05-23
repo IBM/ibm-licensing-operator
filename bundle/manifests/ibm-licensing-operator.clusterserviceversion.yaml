@@ -32,7 +32,7 @@ metadata:
     nss.operator.ibm.com/managed-operators: ibm-licensing-operator-app
     olm.skipRange: '>=1.0.0 <4.2.5'
     operatorframework.io/suggested-namespace: ibm-licensing
-    operators.operatorframework.io/builder: operator-sdk-v1.29.0
+    operators.operatorframework.io/builder: operator-sdk-v1.32.0
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com", "ibmlicensingdefinitions.operator.ibm.com", "ibmlicensingquerysources.operator.ibm.com"]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
   labels:

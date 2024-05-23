@@ -2,7 +2,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.10.0
+    controller-gen.kubebuilder.io/version: v0.14.0
   creationTimestamp: null
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
@@ -25,30 +25,38 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: 'IBMLicensing custom resource is used to create an instance of
-          the License Service, used to collect information about license usage of
-          IBM containerized products and IBM Cloud Paks per cluster. You can retrieve
-          license usage data through a dedicated API call and generate an audit snapshot
-          on demand. Documentation: For additional details regarding install parameters
-          check: https://ibm.biz/icpfs39install. License: Please refer to the IBM
-          Terms website (ibm.biz/lsvc-lic) to find the license terms for the particular
-          IBM product for which you are deploying this component.'
+        description: |-
+          IBMLicensing custom resource is used to create an instance of the License Service, used to collect information about license usage of IBM containerized products and IBM Cloud Paks per cluster.
+          You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
+          Documentation: For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
+          License: Please refer to the IBM Terms website (ibm.biz/lsvc-lic)
+          to find the license terms for the particular IBM product for which you are deploying this component.
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
           spec:
             description: IBMLicensingSpec defines the desired state of IBMLicensing
             properties:
+              annotations:
+                additionalProperties:
+                  type: string
+                description: Annotations to be copied into all relevant resources
+                type: object
               apiSecretToken:
                 description: Secret name used to store application token, either one
                   that exists, or one that will be created
@@ -192,30 +200,30 @@ spec:
                         associated with an Ingress.
                       properties:
                         hosts:
-                          description: Hosts are a list of hosts included in the TLS
-                            certificate. The values in this list must match the name/s
-                            used in the tlsSecret. Defaults to the wildcard host setting
-                            for the loadbalancer controller fulfilling this Ingress,
-                            if left unspecified.
+                          description: |-
+                            Hosts are a list of hosts included in the TLS certificate. The values in
+                            this list must match the name/s used in the tlsSecret. Defaults to the
+                            wildcard host setting for the loadbalancer controller fulfilling this
+                            Ingress, if left unspecified.
                           items:
                             type: string
                           type: array
                           x-kubernetes-list-type: atomic
                         secretName:
-                          description: SecretName is the name of the secret used to
-                            terminate TLS traffic on port 443. Field is left optional
-                            to allow TLS routing based on SNI hostname alone. If the
-                            SNI host in a listener conflicts with the "Host" header
-                            field used by an IngressRule, the SNI host is used for
-                            termination and value of the Host header is used for routing.
+                          description: |-
+                            SecretName is the name of the secret used to terminate TLS traffic on
+                            port 443. Field is left optional to allow TLS routing based on SNI
+                            hostname alone. If the SNI host in a listener conflicts with the "Host"
+                            header field used by an IngressRule, the SNI host is used for termination
+                            and value of the Host header is used for routing.
                           type: string
                       type: object
                     type: array
                 type: object
               instanceNamespace:
-                description: Existing or to be created namespace where application
-                  will start. In case metering data collection is used, should be
-                  the same namespace as metering components
+                description: |-
+                  Existing or to be created namespace where application will start. In case metering data collection is used,
+                  should be the same namespace as metering components
                 type: string
               labels:
                 additionalProperties:
@@ -249,8 +257,9 @@ spec:
                       - type: string
                       pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                       x-kubernetes-int-or-string: true
-                    description: 'Limits describes the maximum amount of compute resources
-                      allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                    description: |-
+                      Limits describes the maximum amount of compute resources allowed.
+                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
                     type: object
                   requests:
                     additionalProperties:
@@ -259,10 +268,11 @@ spec:
                       - type: string
                       pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                       x-kubernetes-int-or-string: true
-                    description: 'Requests describes the minimum amount of compute
-                      resources required. If Requests is omitted for a container,
-                      it defaults to Limits if that is explicitly specified, otherwise
-                      to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                    description: |-
+                      Requests describes the minimum amount of compute resources required.
+                      If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
+                      otherwise to an implementation-defined value.
+                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
                     type: object
                 type: object
               rhmpEnabled:
@@ -284,40 +294,39 @@ spec:
                           contents
                         type: string
                       certificate:
-                        description: certificate provides certificate contents. This
-                          should be a single serving certificate, not a certificate
+                        description: |-
+                          certificate provides certificate contents. This should be a single serving certificate, not a certificate
                           chain. Do not include a CA certificate.
                         type: string
                       destinationCACertificate:
-                        description: destinationCACertificate provides the contents
-                          of the ca certificate of the final destination.  When using
-                          reencrypt termination this file should be provided in order
-                          to have routers use it for health checks on the secure connection.
-                          If this field is not specified, the router may provide its
-                          own destination CA and perform hostname validation using
-                          the short service name (service.namespace.svc), which allows
-                          infrastructure generated certificates to automatically verify.
+                        description: |-
+                          destinationCACertificate provides the contents of the ca certificate of the final destination.  When using reencrypt
+                          termination this file should be provided in order to have routers use it for health checks on the secure connection.
+                          If this field is not specified, the router may provide its own destination CA and perform hostname validation using
+                          the short service name (service.namespace.svc), which allows infrastructure generated certificates to automatically
+                          verify.
                         type: string
                       insecureEdgeTerminationPolicy:
-                        description: "insecureEdgeTerminationPolicy indicates the
-                          desired behavior for insecure connections to a route. While
-                          each router may make its own decisions on which ports to
-                          expose, this is normally port 80. \n * Allow - traffic is
-                          sent to the server on the insecure port (default) * Disable
-                          - no traffic is allowed on the insecure port. * Redirect
-                          - clients are redirected to the secure port."
+                        description: |-
+                          insecureEdgeTerminationPolicy indicates the desired behavior for insecure connections to a route. While
+                          each router may make its own decisions on which ports to expose, this is normally port 80.
+
+
+                          * Allow - traffic is sent to the server on the insecure port (default)
+                          * Disable - no traffic is allowed on the insecure port.
+                          * Redirect - clients are redirected to the secure port.
                         type: string
                       key:
                         description: key provides key file contents
                         type: string
                       termination:
-                        description: "termination indicates termination type. \n *
-                          edge - TLS termination is done by the router and http is
-                          used to communicate with the backend (default) * passthrough
-                          - Traffic is sent straight to the destination without the
-                          router providing TLS termination * reencrypt - TLS termination
-                          is done by the router and https is used to communicate with
-                          the backend"
+                        description: |-
+                          termination indicates termination type.
+
+
+                          * edge - TLS termination is done by the router and http is used to communicate with the backend (default)
+                          * passthrough - Traffic is sent straight to the destination without the router providing TLS termination
+                          * reencrypt - TLS termination is done by the router and https is used to communicate with the backend
                         enum:
                         - edge
                         - reencrypt
@@ -404,8 +413,9 @@ spec:
                           - type: string
                           pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                           x-kubernetes-int-or-string: true
-                        description: 'Limits describes the maximum amount of compute
-                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        description: |-
+                          Limits describes the maximum amount of compute resources allowed.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
                         type: object
                       requests:
                         additionalProperties:
@@ -414,10 +424,11 @@ spec:
                           - type: string
                           pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                           x-kubernetes-int-or-string: true
-                        description: 'Requests describes the minimum amount of compute
-                          resources required. If Requests is omitted for a container,
-                          it defaults to Limits if that is explicitly specified, otherwise
-                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        description: |-
+                          Requests describes the minimum amount of compute resources required.
+                          If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
+                          otherwise to an implementation-defined value.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
                         type: object
                     type: object
                 type: object
@@ -443,12 +454,15 @@ spec:
               licensingPods:
                 description: The status of IBM License Service Pods.
                 items:
-                  description: PodStatus represents information about the status of
-                    a pod. Status may trail the actual state of a system, especially
-                    if the node that hosts the pod cannot contact the control plane.
+                  description: |-
+                    PodStatus represents information about the status of a pod. Status may trail the actual
+                    state of a system, especially if the node that hosts the pod cannot contact the control
+                    plane.
                   properties:
                     conditions:
-                      description: 'Current service state of pod. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-conditions'
+                      description: |-
+                        Current service state of pod.
+                        More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-conditions
                       items:
                         description: PodCondition contains details for the current
                           condition of this pod.
@@ -471,12 +485,15 @@ spec:
                               condition's last transition.
                             type: string
                           status:
-                            description: 'Status is the status of the condition. Can
-                              be True, False, Unknown. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-conditions'
+                            description: |-
+                              Status is the status of the condition.
+                              Can be True, False, Unknown.
+                              More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-conditions
                             type: string
                           type:
-                            description: 'Type is the type of the condition. More
-                              info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-conditions'
+                            description: |-
+                              Type is the type of the condition.
+                              More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-conditions
                             type: string
                         required:
                         - status
@@ -484,8 +501,9 @@ spec:
                         type: object
                       type: array
                     containerStatuses:
-                      description: 'The list has one entry per container in the manifest.
-                        More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-and-container-status'
+                      description: |-
+                        The list has one entry per container in the manifest.
+                        More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-and-container-status
                       items:
                         description: ContainerStatus contains details for the current
                           status of this container.
@@ -494,8 +512,9 @@ spec:
                             description: Container's ID in the format '<type>://<container_id>'.
                             type: string
                           image:
-                            description: 'The image the container is running. More
-                              info: https://kubernetes.io/docs/concepts/containers/images.'
+                            description: |-
+                              The image the container is running.
+                              More info: https://kubernetes.io/docs/concepts/containers/images.
                             type: string
                           imageID:
                             description: ImageID of the container's image.
@@ -564,8 +583,9 @@ spec:
                                 type: object
                             type: object
                           name:
-                            description: This must be a DNS_LABEL. Each container
-                              in a pod must have a unique name. Cannot be updated.
+                            description: |-
+                              This must be a DNS_LABEL. Each container in a pod must have a unique name.
+                              Cannot be updated.
                             type: string
                           ready:
                             description: Specifies whether the container has passed
@@ -577,12 +597,11 @@ spec:
                             format: int32
                             type: integer
                           started:
-                            description: Specifies whether the container has passed
-                              its startup probe. Initialized as false, becomes true
-                              after startupProbe is considered successful. Resets
-                              to false when the container is restarted, or if kubelet
-                              loses state temporarily. Is always true when no startupProbe
-                              is defined.
+                            description: |-
+                              Specifies whether the container has passed its startup probe.
+                              Initialized as false, becomes true after startupProbe is considered successful.
+                              Resets to false when the container is restarted, or if kubelet loses state temporarily.
+                              Is always true when no startupProbe is defined.
                             type: boolean
                           state:
                             description: Details about the container's current condition.
@@ -665,8 +684,9 @@ spec:
                             description: Container's ID in the format '<type>://<container_id>'.
                             type: string
                           image:
-                            description: 'The image the container is running. More
-                              info: https://kubernetes.io/docs/concepts/containers/images.'
+                            description: |-
+                              The image the container is running.
+                              More info: https://kubernetes.io/docs/concepts/containers/images.
                             type: string
                           imageID:
                             description: ImageID of the container's image.
@@ -735,8 +755,9 @@ spec:
                                 type: object
                             type: object
                           name:
-                            description: This must be a DNS_LABEL. Each container
-                              in a pod must have a unique name. Cannot be updated.
+                            description: |-
+                              This must be a DNS_LABEL. Each container in a pod must have a unique name.
+                              Cannot be updated.
                             type: string
                           ready:
                             description: Specifies whether the container has passed
@@ -748,12 +769,11 @@ spec:
                             format: int32
                             type: integer
                           started:
-                            description: Specifies whether the container has passed
-                              its startup probe. Initialized as false, becomes true
-                              after startupProbe is considered successful. Resets
-                              to false when the container is restarted, or if kubelet
-                              loses state temporarily. Is always true when no startupProbe
-                              is defined.
+                            description: |-
+                              Specifies whether the container has passed its startup probe.
+                              Initialized as false, becomes true after startupProbe is considered successful.
+                              Resets to false when the container is restarted, or if kubelet loses state temporarily.
+                              Is always true when no startupProbe is defined.
                             type: boolean
                           state:
                             description: Details about the container's current condition.
@@ -830,10 +850,11 @@ spec:
                         Empty if not yet scheduled.
                       type: string
                     initContainerStatuses:
-                      description: 'The list has one entry per init container in the
-                        manifest. The most recent successful init container will have
-                        ready = true, the most recently started container will have
-                        startTime set. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-and-container-status'
+                      description: |-
+                        The list has one entry per init container in the manifest. The most recent successful
+                        init container will have ready = true, the most recently started container will have
+                        startTime set.
+                        More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-and-container-status
                       items:
                         description: ContainerStatus contains details for the current
                           status of this container.
@@ -842,8 +863,9 @@ spec:
                             description: Container's ID in the format '<type>://<container_id>'.
                             type: string
                           image:
-                            description: 'The image the container is running. More
-                              info: https://kubernetes.io/docs/concepts/containers/images.'
+                            description: |-
+                              The image the container is running.
+                              More info: https://kubernetes.io/docs/concepts/containers/images.
                             type: string
                           imageID:
                             description: ImageID of the container's image.
@@ -912,8 +934,9 @@ spec:
                                 type: object
                             type: object
                           name:
-                            description: This must be a DNS_LABEL. Each container
-                              in a pod must have a unique name. Cannot be updated.
+                            description: |-
+                              This must be a DNS_LABEL. Each container in a pod must have a unique name.
+                              Cannot be updated.
                             type: string
                           ready:
                             description: Specifies whether the container has passed
@@ -925,12 +948,11 @@ spec:
                             format: int32
                             type: integer
                           started:
-                            description: Specifies whether the container has passed
-                              its startup probe. Initialized as false, becomes true
-                              after startupProbe is considered successful. Resets
-                              to false when the container is restarted, or if kubelet
-                              loses state temporarily. Is always true when no startupProbe
-                              is defined.
+                            description: |-
+                              Specifies whether the container has passed its startup probe.
+                              Initialized as false, becomes true after startupProbe is considered successful.
+                              Resets to false when the container is restarted, or if kubelet loses state temporarily.
+                              Is always true when no startupProbe is defined.
                             type: boolean
                           state:
                             description: Details about the container's current condition.
@@ -1007,50 +1029,51 @@ spec:
                         why the pod is in this condition.
                       type: string
                     nominatedNodeName:
-                      description: nominatedNodeName is set only when this pod preempts
-                        other pods on the node, but it cannot be scheduled right away
-                        as preemption victims receive their graceful termination periods.
-                        This field does not guarantee that the pod will be scheduled
-                        on this node. Scheduler may decide to place the pod elsewhere
-                        if other nodes become available sooner. Scheduler may also
-                        decide to give the resources on this node to a higher priority
-                        pod that is created after preemption. As a result, this field
-                        may be different than PodSpec.nodeName when the pod is scheduled.
+                      description: |-
+                        nominatedNodeName is set only when this pod preempts other pods on the node, but it cannot be
+                        scheduled right away as preemption victims receive their graceful termination periods.
+                        This field does not guarantee that the pod will be scheduled on this node. Scheduler may decide
+                        to place the pod elsewhere if other nodes become available sooner. Scheduler may also decide to
+                        give the resources on this node to a higher priority pod that is created after preemption.
+                        As a result, this field may be different than PodSpec.nodeName when the pod is
+                        scheduled.
                       type: string
                     phase:
-                      description: "The phase of a Pod is a simple, high-level summary
-                        of where the Pod is in its lifecycle. The conditions array,
-                        the reason and message fields, and the individual container
-                        status arrays contain more detail about the pod's status.
-                        There are five possible phase values: \n Pending: The pod
-                        has been accepted by the Kubernetes system, but one or more
-                        of the container images has not been created. This includes
-                        time before being scheduled as well as time spent downloading
-                        images over the network, which could take a while. Running:
-                        The pod has been bound to a node, and all of the containers
-                        have been created. At least one container is still running,
-                        or is in the process of starting or restarting. Succeeded:
-                        All containers in the pod have terminated in success, and
-                        will not be restarted. Failed: All containers in the pod have
-                        terminated, and at least one container has terminated in failure.
-                        The container either exited with non-zero status or was terminated
-                        by the system. Unknown: For some reason the state of the pod
-                        could not be obtained, typically due to an error in communicating
-                        with the host of the pod. \n More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-phase"
+                      description: |-
+                        The phase of a Pod is a simple, high-level summary of where the Pod is in its lifecycle.
+                        The conditions array, the reason and message fields, and the individual container status
+                        arrays contain more detail about the pod's status.
+                        There are five possible phase values:
+
+
+                        Pending: The pod has been accepted by the Kubernetes system, but one or more of the
+                        container images has not been created. This includes time before being scheduled as
+                        well as time spent downloading images over the network, which could take a while.
+                        Running: The pod has been bound to a node, and all of the containers have been created.
+                        At least one container is still running, or is in the process of starting or restarting.
+                        Succeeded: All containers in the pod have terminated in success, and will not be restarted.
+                        Failed: All containers in the pod have terminated, and at least one container has
+                        terminated in failure. The container either exited with non-zero status or was terminated
+                        by the system.
+                        Unknown: For some reason the state of the pod could not be obtained, typically due to an
+                        error in communicating with the host of the pod.
+
+
+                        More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-phase
                       type: string
                     podIP:
-                      description: IP address allocated to the pod. Routable at least
-                        within the cluster. Empty if not yet allocated.
+                      description: |-
+                        IP address allocated to the pod. Routable at least within the cluster.
+                        Empty if not yet allocated.
                       type: string
                     podIPs:
-                      description: podIPs holds the IP addresses allocated to the
-                        pod. If this field is specified, the 0th entry must match
-                        the podIP field. Pods may be allocated at most 1 value for
-                        each of IPv4 and IPv6. This list is empty if no IPs have been
-                        allocated yet.
+                      description: |-
+                        podIPs holds the IP addresses allocated to the pod. If this field is specified, the 0th entry must
+                        match the podIP field. Pods may be allocated at most 1 value for each of IPv4 and IPv6. This list
+                        is empty if no IPs have been allocated yet.
                       items:
                         description: "IP address information for entries in the (plural)
-                          PodIPs field. Each entry includes: \n IP: An IP address
+                          PodIPs field.\nEach entry includes:\n\n\n\tIP: An IP address
                           allocated to the pod. Routable at least within the cluster."
                         properties:
                           ip:
@@ -1060,18 +1083,20 @@ spec:
                         type: object
                       type: array
                     qosClass:
-                      description: 'The Quality of Service (QOS) classification assigned
-                        to the pod based on resource requirements See PodQOSClass
-                        type for available QOS classes More info: https://git.k8s.io/community/contributors/design-proposals/node/resource-qos.md'
+                      description: |-
+                        The Quality of Service (QOS) classification assigned to the pod based on resource requirements
+                        See PodQOSClass type for available QOS classes
+                        More info: https://git.k8s.io/community/contributors/design-proposals/node/resource-qos.md
                       type: string
                     reason:
-                      description: A brief CamelCase message indicating details about
-                        why the pod is in this state. e.g. 'Evicted'
+                      description: |-
+                        A brief CamelCase message indicating details about why the pod is in this state.
+                        e.g. 'Evicted'
                       type: string
                     startTime:
-                      description: RFC 3339 date and time at which the object was
-                        acknowledged by the Kubelet. This is before the Kubelet pulled
-                        the container image(s) for the pod.
+                      description: |-
+                        RFC 3339 date and time at which the object was acknowledged by the Kubelet.
+                        This is before the Kubelet pulled the container image(s) for the pod.
                       format: date-time
                       type: string
                   type: object
