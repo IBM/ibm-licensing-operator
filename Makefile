@@ -21,10 +21,10 @@ OLD_CSV_VERSION ?= 4.2.4
 
 # Tools versions
 OPM_VERSION ?= v1.26.2
-OPERATOR_SDK_VERSION ?= v1.29.0
+OPERATOR_SDK_VERSION ?= v1.32.0
 YQ_VERSION ?= v4.30.5
 KUSTOMIZE_VERSION ?= v4.5.7
-CONTROLLER_GEN_VERSION ?= v0.10.0
+CONTROLLER_GEN_VERSION ?= v0.14.0
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
