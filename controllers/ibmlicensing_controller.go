@@ -1159,9 +1159,6 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 	} else {
 		r.Log.Info("Alerting is disabled")
 	}
-	if instance.Spec.UsageEnabled {
-		r.Log.Info("Usage container is enabled")
-	}
 	if instance.Spec.IsNamespaceScopeEnabled() {
 		r.Log.Info("Namespace scope restriction is enabled")
 	}

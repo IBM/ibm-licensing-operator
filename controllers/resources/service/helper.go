@@ -35,7 +35,6 @@ const (
 	LicenseServiceCustomExternalCertName = "ibm-licensing-certs"
 	LicensingServiceAccount              = "ibm-license-service"
 	LicensingServiceAccountRestricted    = "ibm-license-service-restricted"
-	UsageServiceName                     = "ibm-licensing-service-usage"
 	PrometheusServiceName                = "ibm-licensing-service-prometheus"
 	PrometheusRHMPServiceMonitor         = "ibm-licensing-service-service-monitor"
 	PrometheusAlertingServiceMonitor     = "ibm-licensing-service-service-monitor-alerting"
@@ -45,7 +44,6 @@ const (
 	//goland:noinspection GoNameStartsWithPackageName
 	ServiceMonitorSelectorLabel = "marketplace.redhat.com/metering"
 	ReleaseLabel                = "ibm-licensing-service-prometheus"
-	ReleaseUsageLabel           = "ibm-licensing-service-usage"
 
 	NamespaceScopeLabelKey   = "intent"
 	NamespaceScopeLabelValue = "projected"
