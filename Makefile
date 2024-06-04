@@ -44,7 +44,6 @@ IMAGE_BUNDLE_NAME ?= ibm-licensing-operator-bundle
 IMAGE_CATALOG_NAME ?= ibm-licensing-operator-catalog
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
-IBM_LICENSING_USAGE_IMAGE ?= ibm-licensing-usage
 
 CHANNELS=v3,v3.20,v3.21,v3.22,v4.0,beta,dev,stable-v1
 DEFAULT_CHANNEL=v4.0
@@ -337,7 +336,6 @@ unit-test: prepare-unit-test
 	export OCP=${OCP}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
-	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
 	go test -v ./controllers/... -coverprofile cover.out
 
 # Build manager binary
@@ -347,7 +345,6 @@ manager: generate
 # Run against the configured Kubernetes cluster in ~/.kube/config. Adjust namespace variable according to your environment, e.g. NAMESPACE=lsr-ns make run
 run: fmt vet
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
-	export IBM_LICENSING_USAGE_IMAGE=${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}; \
 	WATCH_NAMESPACE=${NAMESPACE} OPERATOR_NAMESPACE=${NAMESPACE} go run ./main.go
 
 # Install CRDs into a cluster
@@ -476,7 +473,6 @@ catalogsource: opm
 	chmod +x ./yq
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${REGISTRY}/${IMG}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value = "${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml	
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
@@ -494,7 +490,6 @@ catalogsource-development: opm
 	chmod +x ./yq
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[1].value = "${REGISTRY}/${IBM_LICENSING_USAGE_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml	
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
