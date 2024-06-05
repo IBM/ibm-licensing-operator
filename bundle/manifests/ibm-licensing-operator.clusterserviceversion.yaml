@@ -77,7 +77,7 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:1.20.13
-    createdAt: "2024-05-06T13:02:22Z"
+    createdAt: "2024-06-05T12:23:08Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     olm.skipRange: '>=1.0.0 <1.20.13'
     operators.operatorframework.io/builder: operator-sdk-v1.31.0
@@ -253,16 +253,6 @@ spec:
             path: sender.reporterURL
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:text
-          - description: Usage Container Settings
-            displayName: Usage Container Settings
-            path: usageContainer
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:hidden
-          - description: Should collect usage based metrics?
-            displayName: Usage Enabled
-            path: usageEnabled
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:hidden
         version: v1alpha1
       - description: 'IBMLicenseServiceReporter is the Schema for the ibmlicenseservicereporters API. Documentation For additional details regarding install parameters check: https://ibm.biz/icpfs39install. License By installing this product you accept the license terms https://ibm.biz/icpfs39license.'
         displayName: IBMLicense Service Reporter
@@ -461,8 +451,6 @@ spec:
                         value: icr.io/cpopen/cpfs/ibm-postgresql:1.20.13
                       - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
                         value: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.20.13
-                      - name: IBM_LICENSING_USAGE_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-licensing-usage:1.20.13
                       - name: WATCH_NAMESPACE
                         valueFrom:
                           fieldRef:
@@ -749,5 +737,3 @@ spec:
       name: IBM_POSTGRESQL_IMAGE
     - image: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.20.13
       name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-    - image: icr.io/cpopen/cpfs/ibm-licensing-usage:1.20.13
-      name: IBM_LICENSING_USAGE_IMAGE
