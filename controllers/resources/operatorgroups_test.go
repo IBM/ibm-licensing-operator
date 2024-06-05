@@ -17,15 +17,14 @@
 package resources
 
 import (
-	"reflect"
 	"testing"
 
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
-
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
+	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
+	apieq "k8s.io/apimachinery/pkg/api/equality"
 )
 
 func TestGetLicensingOperatorGroupInNamespace(t *testing.T) {
@@ -48,7 +47,7 @@ func TestGetLicensingOperatorGroupInNamespace(t *testing.T) {
 			if err != nil {
 				t.Fatalf("\t%s\tShould get licensing OperatorGroup without an error %s : %v", FAIL, operatorNamespace, err)
 			}
-			if foundOperatorGroup != nil && reflect.DeepEqual(foundOperatorGroup, &licensingOperatorGroup) {
+			if foundOperatorGroup != nil && apieq.Semantic.DeepEqual(foundOperatorGroup, &licensingOperatorGroup) {
 				t.Logf("\t%s\tShould get licensing OperatorGroup", SUCCESS)
 			} else {
 				t.Errorf("\t%s\tShould get licensing OperatorGroup", FAIL)
