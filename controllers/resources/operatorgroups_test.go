@@ -22,9 +22,10 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
 	apieq "k8s.io/apimachinery/pkg/api/equality"
+
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
 func TestGetLicensingOperatorGroupInNamespace(t *testing.T) {
