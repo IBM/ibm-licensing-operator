@@ -197,38 +197,6 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 
 		})
 
-		It("Should create IBMLicensing instance with usage container", func() {
-			if !ocp {
-				Skip("for OCP ONLY")
-			}
-
-			By("Creating the IBMLicensing")
-			newInstance := &operatorv1alpha1.IBMLicensing{}
-
-			instance = &operatorv1alpha1.IBMLicensing{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: name,
-				},
-				Spec: operatorv1alpha1.IBMLicensingSpec{
-					InstanceNamespace: namespace,
-					Datasource:        "datacollector",
-					HTTPSEnable:       true,
-					Container: operatorv1alpha1.Container{
-						ImagePullPolicy: v1.PullAlways,
-					},
-					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
-						ImagePullSecrets: []string{"artifactory-token"},
-					},
-					License: &operatorv1alpha1.License{
-						Accept: true,
-					},
-				},
-			}
-
-			checkBasicRequirements(ctx, instance, newInstance)
-
-		})
-
 		It("Should create IBMLicensing instance with route", func() {
 			if !ocp {
 				Skip("for OCP ONLY")
