@@ -27,6 +27,7 @@ const APISecretTokenVolumeName = "api-token"
 const APIUploadTokenVolumeName = "token-upload"
 const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
+const ReporterHTTPSCertsVolumeName = "reporter-https-certs"
 const PrometheusHTTPSCertsVolumeName = "prometheus-https-certs"
 const EmptyDirVolumeName = "tmp"
 
@@ -50,6 +51,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 			ReadOnly:  false,
 		},
 	}
+
 	if spec.HTTPSEnable {
 		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 			{
@@ -69,6 +71,19 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 		}
 	}
 
+	if spec.Sender != nil {
+		// volume mount for the license service reporter certificate used by sender
+		if spec.Sender.ReporterCertsSecretName != "" && spec.Sender.ValidateReporterCerts {
+			volumeMounts = append(volumeMounts, []corev1.VolumeMount{
+				{
+					Name:      ReporterHTTPSCertsVolumeName,
+					MountPath: "/opt/ibm/licensing/reporter-certs",
+					ReadOnly:  true,
+				},
+			}...)
+		}
+	}
+
 	if spec.IsMetering() {
 		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 			{
@@ -78,13 +93,14 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 			},
 		}...)
 	}
+
 	return volumeMounts
 }
 
 func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume {
 	var volumes []corev1.Volume
 
-	apiSecretTokenVolume := corev1.Volume{
+	volumes = append(volumes, corev1.Volume{
 		Name: APISecretTokenVolumeName,
 		VolumeSource: corev1.VolumeSource{
 			Secret: &corev1.SecretVolumeSource{
@@ -92,11 +108,9 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 				DefaultMode: &resources.DefaultSecretMode,
 			},
 		},
-	}
+	})
 
-	volumes = append(volumes, apiSecretTokenVolume)
-
-	apiUploadTokenVolume := corev1.Volume{
+	volumes = append(volumes, corev1.Volume{
 		Name: APIUploadTokenVolumeName,
 		VolumeSource: corev1.VolumeSource{
 			Secret: &corev1.SecretVolumeSource{
@@ -104,12 +118,10 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 				DefaultMode: &resources.DefaultSecretMode,
 			},
 		},
-	}
-
-	volumes = append(volumes, apiUploadTokenVolume)
+	})
 
 	if spec.IsMetering() {
-		meteringAPICertVolume := corev1.Volume{
+		volumes = append(volumes, corev1.Volume{
 			Name: MeteringAPICertsVolumeName,
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
@@ -118,9 +130,7 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 					Optional:    &resources.TrueVar,
 				},
 			},
-		}
-
-		volumes = append(volumes, meteringAPICertVolume)
+		})
 	}
 
 	if spec.HTTPSEnable {
@@ -138,6 +148,21 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 		},
 	}
 	volumes = append(volumes, emptyDirVolume)
+
+	if spec.Sender != nil {
+		// create volume containing internal certificate from reporter
+		if spec.Sender.ReporterCertsSecretName != "" && spec.Sender.ValidateReporterCerts {
+			volumes = append(volumes, corev1.Volume{
+				Name: ReporterHTTPSCertsVolumeName,
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName:  spec.Sender.ReporterCertsSecretName,
+						DefaultMode: &resources.DefaultSecretMode,
+					},
+				},
+			})
+		}
+	}
 
 	return volumes
 }

@@ -11,6 +11,7 @@ require (
 	github.com/onsi/gomega v1.27.7
 	github.com/openshift/api v0.0.0-20221013123533-341d389bd4a7
 	github.com/redhat-marketplace/redhat-marketplace-operator/v2 v2.0.0-20230228135942-40c6ba166b59
+	github.com/stretchr/testify v1.8.3
 	go.uber.org/zap v1.24.0
 	k8s.io/api v0.27.2
 	k8s.io/apimachinery v0.27.2
@@ -59,6 +60,7 @@ require (
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/operator-framework/api v0.17.7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.57.0 // indirect
 	github.com/prometheus/client_golang v1.15.1 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect

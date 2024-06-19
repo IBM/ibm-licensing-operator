@@ -167,6 +167,14 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			},
 		}...)
 
+		if spec.Sender.ValidateReporterCerts {
+			environmentVariables = append(environmentVariables, []corev1.EnvVar{
+				{
+					Name:  "VALIDATE_REPORTER_CERTS",
+					Value: "true",
+				},
+			}...)
+		}
 	}
 
 	if spec.EnvVariable != nil {

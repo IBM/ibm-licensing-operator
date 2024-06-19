@@ -324,6 +324,11 @@ spec:
                       system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME
                       at Operand level
                     type: string
+                  reporterCertsSecretName:
+                    description: Name of the secret that contains the License Service
+                      Reporter certificate(s) used to establish a secure connection
+                      with it. You need to create it in instance namespace
+                    type: string
                   reporterSecretToken:
                     description: License Service Reporter authentication token, provided
                       by secret that you need to create in instance namespace
@@ -332,6 +337,10 @@ spec:
                     description: URL for License Service Reporter receiver that collects
                       and aggregate multi cluster licensing data.
                     type: string
+                  validateReporterCerts:
+                    description: Enable certificates validation when uploading data
+                      to the License Service Reporter
+                    type: boolean
                 type: object
               usageContainer:
                 description: Usage Container Settings
