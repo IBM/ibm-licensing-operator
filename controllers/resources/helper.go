@@ -40,6 +40,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	apieq "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -280,7 +281,7 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 	}
 	if expectedEndpoint.TLSConfig != nil {
 		if foundEndpoint.TLSConfig == nil ||
-			!reflect.DeepEqual(expectedEndpoint.TLSConfig, foundEndpoint.TLSConfig) {
+			!apieq.Semantic.DeepEqual(expectedEndpoint.TLSConfig, foundEndpoint.TLSConfig) {
 			return updateResource()
 		}
 	} else {
@@ -288,7 +289,7 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 			return updateResource()
 		}
 	}
-	if !reflect.DeepEqual(expectedSpec.Selector, foundSpec.Selector) {
+	if !apieq.Semantic.DeepEqual(expectedSpec.Selector, foundSpec.Selector) {
 		return updateResource()
 	}
 	return reconcile.Result{}, nil
@@ -441,12 +442,12 @@ func MapHasAllPairsFromOther[K, V comparable](checked, allNeededPairs map[K]V) b
 
 // Returns true if configmaps are equal in terms of stored data
 func CompareConfigMapData(found, expected *corev1.ConfigMap) bool {
-	return reflect.DeepEqual(found.Data, expected.Data) && MapHasAllPairsFromOther(found.Labels, expected.Labels) && reflect.DeepEqual(found.BinaryData, expected.BinaryData)
+	return apieq.Semantic.DeepEqual(found.Data, expected.Data) && MapHasAllPairsFromOther(found.Labels, expected.Labels) && apieq.Semantic.DeepEqual(found.BinaryData, expected.BinaryData)
 }
 
 // Returns true if secrets are equal in terms of stored data
 func CompareSecretsData(s1, s2 *corev1.Secret) bool {
-	return reflect.DeepEqual(s1.Data, s2.Data) && reflect.DeepEqual(s1.Labels, s2.Labels) && reflect.DeepEqual(s1.Type, s2.Type) && reflect.DeepEqual(s1.StringData, s2.StringData)
+	return apieq.Semantic.DeepEqual(s1.Data, s2.Data) && apieq.Semantic.DeepEqual(s1.Labels, s2.Labels) && apieq.Semantic.DeepEqual(s1.Type, s2.Type) && apieq.Semantic.DeepEqual(s1.StringData, s2.StringData)
 }
 
 // Returns true if routes are equal

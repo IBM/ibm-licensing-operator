@@ -17,7 +17,6 @@
 package resources
 
 import (
-	"reflect"
 	"sort"
 
 	"github.com/go-logr/logr"
@@ -64,15 +63,15 @@ func equalContainerLists(reqLogger *logr.Logger, containers1 []corev1.Container,
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container image")
 		} else if foundContainer.ImagePullPolicy != expectedContainer.ImagePullPolicy {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong image pull policy")
-		} else if !reflect.DeepEqual(foundContainer.Command, expectedContainer.Command) {
+		} else if !apieq.Semantic.DeepEqual(foundContainer.Command, expectedContainer.Command) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container command")
-		} else if !reflect.DeepEqual(foundContainer.Ports, expectedContainer.Ports) {
+		} else if !apieq.Semantic.DeepEqual(foundContainer.Ports, expectedContainer.Ports) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong containers ports")
-		} else if !reflect.DeepEqual(foundContainer.VolumeMounts, expectedContainer.VolumeMounts) {
+		} else if !apieq.Semantic.DeepEqual(foundContainer.VolumeMounts, expectedContainer.VolumeMounts) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong VolumeMounts in container")
 		} else if !equalEnvVars(foundContainer.Env, expectedContainer.Env) { // DeepEqual requires same order of items, which results in false negatives, so we use custom comparison function
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong env variables in container")
-		} else if !reflect.DeepEqual(foundContainer.SecurityContext, expectedContainer.SecurityContext) {
+		} else if !apieq.Semantic.DeepEqual(foundContainer.SecurityContext, expectedContainer.SecurityContext) {
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " wrong container security context")
 		} else if (foundContainer.Resources.Limits == nil) || (foundContainer.Resources.Requests == nil) { // We must have default Requests and limits set -> no nils allowed
 			(*reqLogger).Info(containerErrorMessageStart + foundContainer.Name + " empty resources")
@@ -122,11 +121,11 @@ func ShouldUpdateDeployment(
 
 	if !apieq.Semantic.DeepEqual(foundSpec.Spec.Volumes, expectedSpec.Spec.Volumes) {
 		(*reqLogger).Info("Deployment has wrong volumes")
-	} else if !reflect.DeepEqual(foundSpec.Spec.Affinity, expectedSpec.Spec.Affinity) {
+	} else if !apieq.Semantic.DeepEqual(foundSpec.Spec.Affinity, expectedSpec.Spec.Affinity) {
 		(*reqLogger).Info("Deployment has wrong affinity")
 	} else if foundSpec.Spec.ServiceAccountName != expectedSpec.Spec.ServiceAccountName {
 		(*reqLogger).Info("Deployment wrong service account name")
-	} else if !reflect.DeepEqual(foundSpec.Annotations, expectedSpec.Annotations) {
+	} else if !apieq.Semantic.DeepEqual(foundSpec.Annotations, expectedSpec.Annotations) {
 		(*reqLogger).Info("Deployment has wrong spec template annotations")
 	} else if !equalContainerLists(reqLogger, foundSpec.Spec.Containers, expectedSpec.Spec.Containers) {
 		(*reqLogger).Info("Deployment wrong containers")
@@ -157,7 +156,7 @@ func equalProbes(probe1 *corev1.Probe, probe2 *corev1.Probe) bool {
 	} else if probe2.FailureThreshold == 0 {
 		probe2.FailureThreshold = probe1.FailureThreshold
 	}
-	return reflect.DeepEqual(probe1, probe2)
+	return apieq.Semantic.DeepEqual(probe1, probe2)
 }
 
 func equalEnvVars(envVarArr1, envVarArr2 []corev1.EnvVar) bool {
@@ -168,7 +167,7 @@ func equalEnvVars(envVarArr1, envVarArr2 []corev1.EnvVar) bool {
 	for _, env1 := range envVarArr1 {
 		contains := false
 		for _, env2 := range envVarArr2 {
-			if env1.Name == env2.Name && env1.Value == env2.Value && reflect.DeepEqual(env1.ValueFrom, env2.ValueFrom) {
+			if env1.Name == env2.Name && env1.Value == env2.Value && apieq.Semantic.DeepEqual(env1.ValueFrom, env2.ValueFrom) {
 				contains = true
 				break
 			}
