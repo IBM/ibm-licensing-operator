@@ -23,9 +23,9 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"reflect"
 	"regexp"
 
-	"reflect"
 	"time"
 
 	"crypto/rsa"
@@ -44,6 +44,7 @@ import (
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
+	apieq "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -267,7 +268,7 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 	}
 	if expectedEndpoint.TLSConfig != nil {
 		if foundEndpoint.TLSConfig == nil ||
-			!reflect.DeepEqual(expectedEndpoint.TLSConfig, foundEndpoint.TLSConfig) {
+			!apieq.Semantic.DeepEqual(expectedEndpoint.TLSConfig, foundEndpoint.TLSConfig) {
 			return updateResource()
 		}
 	} else {
@@ -275,7 +276,7 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 			return updateResource()
 		}
 	}
-	if !reflect.DeepEqual(expectedSpec.Selector, foundSpec.Selector) {
+	if !apieq.Semantic.DeepEqual(expectedSpec.Selector, foundSpec.Selector) {
 		return updateResource()
 	}
 	return reconcile.Result{}, nil
@@ -420,7 +421,7 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 
 // Returns true if configmaps are equal
 func CompareConfigMap(cm1, cm2 *corev1.ConfigMap) bool {
-	return reflect.DeepEqual(cm1.Data, cm2.Data) && reflect.DeepEqual(cm1.Labels, cm2.Labels) && reflect.DeepEqual(cm1.BinaryData, cm2.BinaryData)
+	return apieq.Semantic.DeepEqual(cm1.Data, cm2.Data) && apieq.Semantic.DeepEqual(cm1.Labels, cm2.Labels) && apieq.Semantic.DeepEqual(cm1.BinaryData, cm2.BinaryData)
 }
 
 // Returns true if routes are equal
