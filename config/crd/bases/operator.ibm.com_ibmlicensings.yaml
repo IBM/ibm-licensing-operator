@@ -185,6 +185,10 @@ spec:
                   host:
                     description: If you use non-default host include it here
                     type: string
+                  ingressClassName:
+                    description: IngressClassName defines ingress class name option
+                      to be passed to the ingress spec field
+                    type: string
                   path:
                     description: Path after host where API will be available f.e.
                       https://<hostname>:<port>/ibm-licensing-service-instance

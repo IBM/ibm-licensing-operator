@@ -36,7 +36,7 @@ Before you install this operator, you need to first install the operator depende
 
 To install the operator with the IBM Cloud Pak foundational services Operator follow the installation and configuration instructions within the IBM Documentation.
 
-- If you are using the operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak. For a list of IBM Cloud Paks, see [IBM Cloud Paks that use IBM Cloud Pak foundational services](http://ibm.biz/cpcs_cloudpaks).
+- If you are using the operator as part of IBM Cloud Pak, see the documentation for that IBM Cloud Pak. For a list of IBM Cloud Paks, see [IBM Cloud Paks that use IBM Cloud Pak foundational services](http://ibm.biz/cpcs_cloudpaks).
 - If you are using the operator with an IBM Containerized Software as a part of IBM Cloud Pak foundational services, see the [Installer documentation](http://ibm.biz/cpcs_opinstall) in IBM Documentation.
 
 ## SecurityContextConstraints Requirements
