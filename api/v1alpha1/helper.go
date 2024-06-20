@@ -33,7 +33,6 @@ import (
 	client_reader "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const localReporterURL = "https://ibm-license-service-reporter:8080"
 const defaultLicensingTokenSecretName = "ibm-licensing-token"         //#nosec
 const defaultReporterTokenSecretName = "ibm-licensing-reporter-token" //#nosec
 const OperandLicensingImageEnvVar = "IBM_LICENSING_IMAGE"
@@ -407,7 +406,9 @@ func (spec *IBMLicensingSpec) SetDefaultSenderParameters() bool {
 	}
 
 	if spec.Sender.ReporterURL == "" {
-		spec.Sender.ReporterURL = localReporterURL
+		// LS and LSR are always in the same namespace
+		// configure LSR service full host to enable SSL cert validation (SAN taken from service)
+		spec.Sender.ReporterURL = fmt.Sprintf("https://ibm-license-service-reporter.%s.svc.cluster.local:8080", spec.InstanceNamespace)
 		changed = true
 	}
 

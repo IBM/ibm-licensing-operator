@@ -21,6 +21,7 @@ import (
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources/reporter"
 )
 
 const APISecretTokenVolumeName = "api-token"
@@ -71,9 +72,11 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 		}
 	}
 
-	if spec.Sender != nil {
-		// volume mount for the license service reporter certificate used by sender
-		if spec.Sender.ReporterCertsSecretName != "" && spec.Sender.ValidateReporterCerts {
+	if spec.Sender != nil && spec.Sender.ValidateReporterCerts {
+		// volume mount for the license service reporter certificate used by sender, we mount it in tho cases:
+		// 1. CR cert field is set to use external cert
+		// 2. We use default service internal cert provided by OCP CertManager (IsServiceCAAPI)
+		if spec.Sender.ReporterCertsSecretName != "" || resources.IsServiceCAAPI {
 			volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 				{
 					Name:      ReporterHTTPSCertsVolumeName,
@@ -149,14 +152,25 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 	}
 	volumes = append(volumes, emptyDirVolume)
 
-	if spec.Sender != nil {
-		// create volume containing internal certificate from reporter
-		if spec.Sender.ReporterCertsSecretName != "" && spec.Sender.ValidateReporterCerts {
+	// volume for the license service reporter certificate used by sender, we mount it in tho cases:
+	if spec.Sender != nil && spec.Sender.ValidateReporterCerts {
+		internalReporterCertSecretName := ""
+		// 1. CR cert field is set to use external cert
+		if spec.Sender.ReporterCertsSecretName != "" {
+			internalReporterCertSecretName = spec.Sender.ReporterCertsSecretName
+		} else {
+			// 2. We use default service internal cert provided by OCP CertManager (IsServiceCAAPI)
+			if resources.IsServiceCAAPI {
+				internalReporterCertSecretName = reporter.LicenseReportOCPCertName
+			}
+		}
+
+		if internalReporterCertSecretName != "" {
 			volumes = append(volumes, corev1.Volume{
 				Name: ReporterHTTPSCertsVolumeName,
 				VolumeSource: corev1.VolumeSource{
 					Secret: &corev1.SecretVolumeSource{
-						SecretName:  spec.Sender.ReporterCertsSecretName,
+						SecretName:  internalReporterCertSecretName,
 						DefaultMode: &resources.DefaultSecretMode,
 					},
 				},

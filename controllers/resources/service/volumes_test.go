@@ -1,5 +1,5 @@
 //
-// Copyright 2024 IBM Corporation
+// Copyright 2023 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ func TestGetLicensingVolumeMountsMeteringEnabled(t *testing.T) {
 	assert.Equal(t, MeteringAPICertsVolumeName, meteringAPICertsVolumeMount.Name, "Metering volume mount should have correct name.")
 }
 
-func TestGetLicensingVolumeMountsCertsValidationEnabledWithoutCerts(t *testing.T) {
+func TestGetLicensingVolumeMountsCertsValidationEnabledDefaultCert(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
@@ -55,7 +55,7 @@ func TestGetLicensingVolumeMountsCertsValidationEnabledWithoutCerts(t *testing.T
 	}
 
 	volumes := getLicensingVolumeMounts(spec)
-	assert.Equal(t, 3, len(volumes), "Sender with certificate validation is enabled, 3 volume mounts should be created, ReporterCertsSecretName isn't set so additional volume mount is not created.")
+	assert.Equal(t, 4, len(volumes), "Sender with certificate validation is enabled, 4 volume mounts should be created, ReporterCertsSecretName so we will mount default OCP cert manager secret.")
 }
 
 func TestGetLicensingVolumeMountsCertsValidationEnabledWithCerts(t *testing.T) {
@@ -99,7 +99,7 @@ func TestGetLicensingVolumesDisabled(t *testing.T) {
 	assert.Equal(t, 3, len(volumes), "Sender is disabled, only 3 volumes should be created.")
 }
 
-func TestGetLicensingVolumesCertsValidationEnabledWithoutCerts(t *testing.T) {
+func TestGetLicensingVolumesCertsValidationEnabledDefaultCerts(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
@@ -109,7 +109,7 @@ func TestGetLicensingVolumesCertsValidationEnabledWithoutCerts(t *testing.T) {
 	}
 
 	volumes := getLicensingVolumes(spec)
-	assert.Equal(t, 3, len(volumes), "Sender certificate validation is enabled, 3 volumes should be created, ReporterCertsSecretName isn't set so additional volume is not created.")
+	assert.Equal(t, 4, len(volumes), "Sender with certificate validation is enabled, 4 volumes should be created, ReporterCertsSecretName so we will create default OCP cert manager secret's volume.")
 }
 
 func TestGetLicensingVolumesCertsValidationEnabledWithCerts(t *testing.T) {
