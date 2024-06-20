@@ -188,16 +188,6 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 	return environmentVariables
 }
 
-func getUsageEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
-	var environmentVariables = []corev1.EnvVar{
-		{
-			Name:  "POD_NAMESPACE",
-			Value: spec.InstanceNamespace,
-		},
-	}
-	return environmentVariables
-}
-
 func getProbeScheme(spec operatorv1alpha1.IBMLicensingSpec) corev1.URIScheme {
 	if spec.HTTPSEnable {
 		return "HTTPS"
@@ -215,19 +205,6 @@ func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.ProbeHandler
 				IntVal: licensingServicePort.IntVal,
 			},
 			Scheme: probeScheme,
-		},
-	}
-}
-
-func getUsageProbeHandler() corev1.ProbeHandler {
-	return corev1.ProbeHandler{
-		HTTPGet: &corev1.HTTPGetAction{
-			Path: "/metrics",
-			Port: intstr.IntOrString{
-				Type:   intstr.Int,
-				IntVal: usageServicePort.IntVal,
-			},
-			Scheme: corev1.URISchemeHTTP,
 		},
 	}
 }
@@ -299,16 +276,6 @@ func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Co
 	return container
 }
 
-func getUsageContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
-	container := resources.GetContainerBase(spec.UsageContainer)
-	if spec.SecurityContext != nil {
-		container.SecurityContext.RunAsUser = &spec.SecurityContext.RunAsUser
-	}
-	container.Env = getUsageEnvironmentVariables(spec)
-	container.Ports = getUsageContainerPorts()
-	return container
-}
-
 func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.ContainerPort {
 	ports := []corev1.ContainerPort{
 		{
@@ -327,16 +294,6 @@ func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 	return ports
 }
 
-func getUsageContainerPorts() []corev1.ContainerPort {
-	ports := []corev1.ContainerPort{
-		{
-			ContainerPort: usageServicePort.IntVal,
-			Protocol:      corev1.ProtocolTCP,
-		},
-	}
-	return ports
-}
-
 func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Container {
 	var containers []corev1.Container
 
@@ -346,16 +303,6 @@ func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Cont
 	licensingContainer.LivenessProbe = resources.GetLivenessProbe(probeHandler)
 	licensingContainer.ReadinessProbe = resources.GetReadinessProbe(probeHandler)
 	containers = append(containers, licensingContainer)
-
-	if spec.UsageEnabled {
-
-		usageContainer := getUsageContainerBase(spec)
-		usageContainer.Name = "license-service-usage"
-		probeHandler = getUsageProbeHandler()
-		usageContainer.LivenessProbe = resources.GetLivenessProbe(probeHandler)
-		usageContainer.ReadinessProbe = resources.GetReadinessProbe(probeHandler)
-		containers = append(containers, usageContainer)
-	}
 
 	return containers
 }

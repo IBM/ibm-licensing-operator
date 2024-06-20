@@ -47,8 +47,6 @@ spec:
           env:
             - name: IBM_LICENSING_IMAGE
               value: icr.io/cpopen/cpfs/ibm-licensing:1.5.0
-            - name: IBM_LICENSING_USAGE_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-licensing-usage:1.5.0
             - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
               value: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:1.5.0
             - name: IBM_POSTGRESQL_IMAGE

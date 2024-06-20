@@ -346,63 +346,6 @@ spec:
                       to the License Service Reporter
                     type: boolean
                 type: object
-              usageContainer:
-                description: Usage Container Settings
-                properties:
-                  imageName:
-                    description: IBM Licensing Service docker Image Name, will override
-                      default value and disable IBM_LICENSING_IMAGE env value in operator
-                      deployment
-                    type: string
-                  imagePullPolicy:
-                    description: PullPolicy describes a policy for if/when to pull
-                      a container image
-                    enum:
-                    - Always
-                    - IfNotPresent
-                    - Never
-                    type: string
-                  imageRegistry:
-                    description: IBM Licensing Service docker Image Registry, will
-                      override default value and disable IBM_LICENSING_IMAGE env value
-                      in operator deployment
-                    type: string
-                  imageTagPostfix:
-                    description: IBM Licensing Service docker Image Tag or Digest,
-                      will override default value and disable IBM_LICENSING_IMAGE
-                      env value in operator deployment
-                    type: string
-                  resources:
-                    description: ResourceRequirements describes the compute resource
-                      requirements.
-                    properties:
-                      limits:
-                        additionalProperties:
-                          anyOf:
-                          - type: integer
-                          - type: string
-                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                          x-kubernetes-int-or-string: true
-                        description: 'Limits describes the maximum amount of compute
-                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
-                        type: object
-                      requests:
-                        additionalProperties:
-                          anyOf:
-                          - type: integer
-                          - type: string
-                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                          x-kubernetes-int-or-string: true
-                        description: 'Requests describes the minimum amount of compute
-                          resources required. If Requests is omitted for a container,
-                          it defaults to Limits if that is explicitly specified, otherwise
-                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
-                        type: object
-                    type: object
-                type: object
-              usageEnabled:
-                description: Should collect usage based metrics?
-                type: boolean
               version:
                 description: Version
                 type: string
