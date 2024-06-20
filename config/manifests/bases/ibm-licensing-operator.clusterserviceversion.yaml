@@ -212,16 +212,6 @@ spec:
         path: sender.reporterURL
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-      - description: Usage Container Settings
-        displayName: Usage Container Settings
-        path: usageContainer
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:hidden
-      - description: Should collect usage based metrics?
-        displayName: Usage Enabled
-        path: usageEnabled
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:hidden
       version: v1alpha1
     - description: 'IBMLicensingMetadata is the schema for IBM License Service. Thanks
         to IBMLicensingMetadata, you can track the license usage of Virtual Processor
@@ -314,6 +304,4 @@ spec:
     name: IBM_POSTGRESQL_IMAGE
   - image: icr.io/cpopen/cpfs/ibm-license-service-reporter:1.20.13
     name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-  - image: icr.io/cpopen/cpfs/ibm-licensing-usage:1.20.13
-    name: IBM_LICENSING_USAGE_IMAGE
   version: 0.0.0

@@ -46,6 +46,11 @@ type IBMLicensingIngressOptions struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Host",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	Host *string `json:"host,omitempty"`
+
+	// IngressClassName defines ingress class name option to be passed to the ingress spec field
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="IngressClassName",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	IngressClassName *string `json:"ingressClassName,omitempty"`
 }
 
 type IBMLicensingRouteOptions struct {
@@ -103,16 +108,6 @@ type IBMLicensingSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="RHMP Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	RHMPEnabled *bool `json:"rhmpEnabled,omitempty"`
-
-	// Should collect usage based metrics?
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Usage Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
-	// +optional
-	UsageEnabled bool `json:"usageEnabled,omitempty"`
-
-	// Usage Container Settings
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Usage Container Settings",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
-	// +optional
-	UsageContainer Container `json:"usageContainer,omitempty"`
 
 	// Consider updating to enable chargeback feature
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"

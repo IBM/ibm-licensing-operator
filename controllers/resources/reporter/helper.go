@@ -19,10 +19,10 @@ package reporter
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	apieq "k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -218,7 +218,7 @@ func GetBindInfo(instance *operatorv1alpha1.IBMLicenseServiceReporter) *odlm.Ope
 func UpdateOperandBindInfoIfNeeded(reqLogger *logr.Logger, client client.Client, expectedBindInfo *odlm.OperandBindInfo,
 	foundBindInfo *odlm.OperandBindInfo) (reconcile.Result, error) {
 
-	if !reflect.DeepEqual(expectedBindInfo.Spec, foundBindInfo.Spec) {
+	if !apieq.Semantic.DeepEqual(expectedBindInfo.Spec, foundBindInfo.Spec) {
 		return res.UpdateResource(reqLogger, client, expectedBindInfo, foundBindInfo)
 	}
 	return reconcile.Result{}, nil

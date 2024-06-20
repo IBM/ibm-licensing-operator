@@ -32,6 +32,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	apieq "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -297,7 +298,7 @@ func (r *IBMLicensingReconciler) updateStatus(instance *operatorv1alpha1.IBMLice
 
 	featuresStatuses.RHMPEnabled = &rhmpEnabled
 
-	if !reflect.DeepEqual(podStatuses, instance.Status.LicensingPods) || !reflect.DeepEqual(featuresStatuses, instance.Status.Features) {
+	if !apieq.Semantic.DeepEqual(podStatuses, instance.Status.LicensingPods) || !apieq.Semantic.DeepEqual(featuresStatuses, instance.Status.Features) {
 		reqLogger.Info("Updating IBMLicensing status")
 		instance.Status.LicensingPods = podStatuses
 		instance.Status.Features = featuresStatuses
@@ -717,15 +718,15 @@ func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBM
 		reqLogger := r.Log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
 		if foundIngress.ObjectMeta.Name != expectedIngress.ObjectMeta.Name {
 			reqLogger.Info("Names not equal", "old", foundIngress.ObjectMeta.Name, "new", expectedIngress.ObjectMeta.Name)
-		} else if !reflect.DeepEqual(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
+		} else if !apieq.Semantic.DeepEqual(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
 			reqLogger.Info("Labels not equal",
 				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Labels),
 				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Labels))
-		} else if !reflect.DeepEqual(foundIngress.ObjectMeta.Annotations, expectedIngress.ObjectMeta.Annotations) {
+		} else if !apieq.Semantic.DeepEqual(foundIngress.ObjectMeta.Annotations, expectedIngress.ObjectMeta.Annotations) {
 			reqLogger.Info("Annotations not equal",
 				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Annotations),
 				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Annotations))
-		} else if !reflect.DeepEqual(foundIngress.Spec, expectedIngress.Spec) {
+		} else if !apieq.Semantic.DeepEqual(foundIngress.Spec, expectedIngress.Spec) {
 			reqLogger.Info("Specs not equal",
 				"old", fmt.Sprintf("%v", foundIngress.Spec),
 				"new", fmt.Sprintf("%v", expectedIngress.Spec))
@@ -948,9 +949,6 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 		r.Log.Info("Alerting is enabled")
 	} else {
 		r.Log.Info("Alerting is disabled")
-	}
-	if instance.Spec.UsageEnabled {
-		r.Log.Info("Usage container is enabled")
 	}
 	if instance.Spec.IsNamespaceScopeEnabled() {
 		r.Log.Info("Namespace scope restriction is enabled")
