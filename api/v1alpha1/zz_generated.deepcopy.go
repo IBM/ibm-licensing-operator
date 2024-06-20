@@ -468,7 +468,6 @@ func (in *IBMLicensingSpec) DeepCopyInto(out *IBMLicensingSpec) {
 		*out = new(bool)
 		**out = **in
 	}
-	in.UsageContainer.DeepCopyInto(&out.UsageContainer)
 	if in.License != nil {
 		in, out := &in.License, &out.License
 		*out = new(License)

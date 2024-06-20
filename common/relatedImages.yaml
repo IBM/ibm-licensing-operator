@@ -2,5 +2,3 @@
   name: IBM_LICENSING_OPERATOR_IMAGE
 - image: icr.io/cpopen/cpfs/ibm-licensing:4.2.6
   name: IBM_LICENSING_IMAGE
-- image: icr.io/cpopen/cpfs/ibm-licensing-usage:4.2.6
-  name: IBM_LICENSING_USAGE_IMAGE

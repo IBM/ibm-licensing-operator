@@ -36,8 +36,6 @@ spec:
           env:
             - name: IBM_LICENSING_IMAGE
               value: icr.io/cpopen/cpfs/ibm-licensing:4.2.6
-            - name: IBM_LICENSING_USAGE_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-licensing-usage:4.2.6
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:

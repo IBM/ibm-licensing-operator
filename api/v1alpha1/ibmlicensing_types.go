@@ -109,16 +109,6 @@ type IBMLicensingSpec struct {
 	// +optional
 	RHMPEnabled *bool `json:"rhmpEnabled,omitempty"`
 
-	// Should collect usage based metrics?
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Usage Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
-	// +optional
-	UsageEnabled bool `json:"usageEnabled,omitempty"`
-
-	// Usage Container Settings
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Usage Container Settings",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
-	// +optional
-	UsageContainer Container `json:"usageContainer,omitempty"`
-
 	// IBM License Service license acceptance.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="License Acceptance",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional

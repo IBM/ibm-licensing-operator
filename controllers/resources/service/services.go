@@ -33,10 +33,6 @@ var (
 	prometheusServicePort    = intstr.FromInt(8081)
 	prometheusTargetPort     = intstr.FromInt(8081)
 	prometheusTargetPortName = intstr.FromString("metrics")
-
-	usageServicePort    = intstr.FromInt(2112)
-	usageTargetPort     = intstr.FromInt(2112)
-	usageTargetPortName = intstr.FromString("usage-port")
 )
 
 func GetServices(instance *operatorv1alpha1.IBMLicensing) (expected []*corev1.Service, notExpected []*corev1.Service) {
@@ -49,12 +45,6 @@ func GetServices(instance *operatorv1alpha1.IBMLicensing) (expected []*corev1.Se
 		notExpected = append(notExpected, prometheusService)
 	}
 
-	usageService := GetUsageService(instance)
-	if instance.Spec.UsageEnabled {
-		expected = append(expected, usageService)
-		return
-	}
-	notExpected = append(notExpected, usageService)
 	return
 }
 
@@ -86,10 +76,6 @@ func GetLicensingService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servic
 	}
 }
 
-func GetUsageServiceName() string {
-	return UsageServiceName
-}
-
 func GetPrometheusServiceName() string {
 	return PrometheusServiceName
 }
@@ -117,33 +103,6 @@ func GetPrometheusService(instance *operatorv1alpha1.IBMLicensing) *corev1.Servi
 	}
 }
 
-func GetUsageService(instance *operatorv1alpha1.IBMLicensing) *corev1.Service {
-	return &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        GetUsageServiceName(),
-			Namespace:   instance.Spec.InstanceNamespace,
-			Labels:      getUsageServiceLabels(instance),
-			Annotations: instance.Spec.Annotations,
-		},
-		Spec: corev1.ServiceSpec{
-			Type: corev1.ServiceTypeClusterIP,
-			Ports: []corev1.ServicePort{
-				{
-					Name:       usageTargetPortName.String(),
-					Port:       usageServicePort.IntVal,
-					TargetPort: usageTargetPort,
-					Protocol:   corev1.ProtocolTCP,
-				},
-			},
-			Selector: LabelsForSelector(instance),
-		},
-	}
-}
-
 func getPrometheusLabels(instance *operatorv1alpha1.IBMLicensing) map[string]string {
 	return MergeWithSpecLabels(instance, map[string]string{"release": ReleaseLabel})
-}
-
-func getUsageServiceLabels(instance *operatorv1alpha1.IBMLicensing) map[string]string {
-	return MergeWithSpecLabels(instance, map[string]string{"release": ReleaseUsageLabel})
 }

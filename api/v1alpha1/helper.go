@@ -34,15 +34,9 @@ const (
 	defaultLicensingTokenSecretName = "ibm-licensing-token"                //#nosec
 	defaultReporterTokenSecretName  = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
 	OperandLicensingImageEnvVar     = "IBM_LICENSING_IMAGE"
-	OperandUsageImageEnvVar         = "IBM_LICENSING_USAGE_IMAGE"
 )
 
 var (
-	cpu50m      = resource.NewMilliQuantity(50, resource.DecimalSI)
-	cpu100m     = resource.NewMilliQuantity(100, resource.DecimalSI)
-	memory64Mi  = resource.NewQuantity(64*1024*1024, resource.BinarySI)
-	memory128Mi = resource.NewQuantity(128*1024*1024, resource.BinarySI)
-
 	cpu200m     = resource.NewMilliQuantity(200, resource.DecimalSI)
 	memory256Mi = resource.NewQuantity(256*1024*1024, resource.BinarySI)
 	cpu500m     = resource.NewMilliQuantity(500, resource.DecimalSI)
@@ -171,19 +165,6 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 
 	if err := spec.setContainer(OperandLicensingImageEnvVar); err != nil {
 		return err
-	}
-
-	if spec.UsageEnabled {
-		spec.UsageContainer.setImagePullPolicyIfNotSet()
-		spec.UsageContainer.initResourcesIfNil()
-		spec.UsageContainer.setResourceLimitMemoryIfNotSet(*memory128Mi)
-		spec.UsageContainer.setResourceRequestMemoryIfNotSet(*memory64Mi)
-		spec.UsageContainer.setResourceLimitCPUIfNotSet(*cpu100m)
-		spec.UsageContainer.setResourceRequestCPUIfNotSet(*cpu50m)
-		spec.Container.setResourceRequestEphemeralStorageIfNotSet(*ephemeralStorage256Mi)
-		if err := spec.UsageContainer.setContainer(OperandUsageImageEnvVar); err != nil {
-			return err
-		}
 	}
 
 	return nil
