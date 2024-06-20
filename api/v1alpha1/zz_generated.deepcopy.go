@@ -579,7 +579,6 @@ func (in *IBMLicensingSpec) DeepCopyInto(out *IBMLicensingSpec) {
 		*out = new(bool)
 		**out = **in
 	}
-	in.UsageContainer.DeepCopyInto(&out.UsageContainer)
 	if in.ChargebackEnabled != nil {
 		in, out := &in.ChargebackEnabled, &out.ChargebackEnabled
 		*out = new(bool)
