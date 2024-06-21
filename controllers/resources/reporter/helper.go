@@ -144,7 +144,7 @@ func UpdateVersion(client client.Client, instance *operatorv1alpha1.IBMLicenseSe
 	return nil
 }
 
-func AddSenderConfiguration(client client.Client, log logr.Logger, expectedReporterUrl string) error {
+func AddSenderConfiguration(client client.Client, log logr.Logger, expectedReporterURL string) error {
 	licensingList := &operatorv1alpha1.IBMLicensingList{}
 	reqLogger := log.WithName("reconcileSenderConfiguration")
 
@@ -161,8 +161,8 @@ func AddSenderConfiguration(client client.Client, log logr.Logger, expectedRepor
 	for _, lic := range licensingList.Items {
 		licensing := lic
 		// The licensing.Spec.InstanceNamespace is empty here so we need to pass
-		// expectedReporterUrl to configure default reporterURL with SSL
-		if licensing.Spec.SetDefaultSenderParameters(expectedReporterUrl) {
+		// expectedReporterURL to configure default reporterURL with SSL
+		if licensing.Spec.SetDefaultSenderParameters(expectedReporterURL) {
 			err := client.Update(context.TODO(), &licensing)
 			if err != nil {
 				reqLogger.Error(err, fmt.Sprintf("Failed to configure sender for: %s", licensing.Name))
