@@ -71,7 +71,7 @@ func GetResourceName(instance *operatorv1alpha1.IBMLicenseServiceReporter) strin
 
 func GetServiceURL(instance *operatorv1alpha1.IBMLicenseServiceReporter) string {
 	// only HTTPS is available for LSR
-	return "https://" + GetResourceName(instance) + "." + instance.ObjectMeta.Namespace + ".svc.cluster.local:" + receiverServicePort.String()
+	return fmt.Sprintf("https://%s.%s.svc.cluster.local:%s", GetResourceName(instance), instance.ObjectMeta.Namespace, receiverServicePort.String())
 }
 
 func LabelsForSelector(instance *operatorv1alpha1.IBMLicenseServiceReporter) map[string]string {
