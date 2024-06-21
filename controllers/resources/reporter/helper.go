@@ -139,7 +139,7 @@ func UpdateVersion(client client.Client, instance *operatorv1alpha1.IBMLicenseSe
 	return nil
 }
 
-func AddSenderConfiguration(client client.Client, log logr.Logger) error {
+func AddSenderConfiguration(client client.Client, log logr.Logger, reporterNamespace string) error {
 	licensingList := &operatorv1alpha1.IBMLicensingList{}
 	reqLogger := log.WithName("reconcileSenderConfiguration")
 
@@ -155,7 +155,9 @@ func AddSenderConfiguration(client client.Client, log logr.Logger) error {
 
 	for _, lic := range licensingList.Items {
 		licensing := lic
-		if licensing.Spec.SetDefaultSenderParameters() {
+		// The licensing.Spec.InstanceNamespace is empty here so we need to pass
+		// namespace to whole method from LSR instance to configure default reporterURL
+		if licensing.Spec.SetDefaultSenderParameters(reporterNamespace) {
 			err := client.Update(context.TODO(), &licensing)
 			if err != nil {
 				reqLogger.Error(err, fmt.Sprintf("Failed to configure sender for: %s", licensing.Name))

@@ -33,6 +33,7 @@ import (
 	client_reader "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const localOldReporterURL = "https://ibm-license-service-reporter:8080"
 const defaultLicensingTokenSecretName = "ibm-licensing-token"         //#nosec
 const defaultReporterTokenSecretName = "ibm-licensing-reporter-token" //#nosec
 const OperandLicensingImageEnvVar = "IBM_LICENSING_IMAGE"
@@ -396,8 +397,11 @@ func (container *Container) setImagePullPolicyIfNotSet() {
 	}
 }
 
-func (spec *IBMLicensingSpec) SetDefaultSenderParameters() bool {
+func (spec *IBMLicensingSpec) isSSLReporterURLUpdateNeeded() bool {
+	return spec.Sender.ValidateReporterCerts && spec.Sender.ReporterCertsSecretName == "" && spec.Sender.ReporterURL == localOldReporterURL
+}
 
+func (spec *IBMLicensingSpec) SetDefaultSenderParameters(reporterNamespace string) bool {
 	//returns true if any changes were made
 	changed := false
 
@@ -405,10 +409,13 @@ func (spec *IBMLicensingSpec) SetDefaultSenderParameters() bool {
 		spec.Sender = &IBMLicensingSenderSpec{}
 	}
 
-	if spec.Sender.ReporterURL == "" {
-		// LS and LSR are always in the same namespace
-		// configure LSR service full host to enable SSL cert validation (SAN taken from service)
-		spec.Sender.ReporterURL = fmt.Sprintf("https://ibm-license-service-reporter.%s.svc.cluster.local:8080", spec.InstanceNamespace)
+	// modify reportURL in 2 scenarios:
+	// 1. Url hasn't been set - fresh install scenario
+	// 2. Upgrade - replace hardcoded service url to full host url to enable SSL
+	// only if custom certificates hadn't been set for reporter upload
+	if spec.Sender.ReporterURL == "" || spec.isSSLReporterURLUpdateNeeded() {
+		// configure LSR service full host to enable SSL cert validation (SAN is taken from service)
+		spec.Sender.ReporterURL = fmt.Sprintf("https://ibm-license-service-reporter.%s.svc.cluster.local:8080", reporterNamespace)
 		changed = true
 	}
 
