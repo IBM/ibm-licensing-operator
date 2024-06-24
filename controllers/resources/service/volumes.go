@@ -73,7 +73,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 	}
 
 	if spec.Sender != nil && spec.Sender.ValidateReporterCerts {
-		// volume mount for the license service reporter certificate used by sender, we mount it in tho cases:
+		// volume mount for the license service reporter certificate used by sender, we mount it in two cases:
 		// 1. CR cert field is set to use external cert
 		// 2. We use default service internal cert provided by OCP CertManager (IsServiceCAAPI)
 		if spec.Sender.ReporterCertsSecretName != "" || resources.IsServiceCAAPI {
@@ -152,7 +152,7 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 	}
 	volumes = append(volumes, emptyDirVolume)
 
-	// volume for the license service reporter certificate used by sender, we mount it in tho cases:
+	// volume for the license service reporter certificate used by sender, we mount it in two cases:
 	if spec.Sender != nil && spec.Sender.ValidateReporterCerts {
 		internalReporterCertSecretName := ""
 		// 1. CR cert field is set to use external cert
