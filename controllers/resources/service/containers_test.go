@@ -21,6 +21,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/ptr"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )
@@ -61,6 +62,35 @@ func TestGetLicensingEnvironmentVariablesCertsValidationEnabledWithCerts(t *test
 
 	envVars := getLicensingEnvironmentVariables(spec)
 	assert.True(t, Contains(envVars, validateReporterCertsEnv), "Sender ValidateReporterCerts is enabled, appropriate 'VALIDATE_REPORTER_CERTS' environemnt variable should be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesNamespaceScopingFeatureEnabled(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features: &operatorv1alpha1.Features{
+			NamespaceScopeEnabled: ptr.To(true),
+			NamespaceDenialLimit:  10,
+		},
+	}
+
+	featureEnabledEnvVar := corev1.EnvVar{
+		Name:  "NAMESPACE_SCOPE_ENABLED",
+		Value: "true",
+	}
+	watchNamespacesEnvVar := corev1.EnvVar{
+		Name:  "WATCH_NAMESPACE",
+		Value: "ibm-licensing",
+	}
+	namespaceDenialLimitEnvVar := corev1.EnvVar{
+		Name:  "NAMESPACE_DENIAL_LIMIT",
+		Value: "10",
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.True(t, Contains(envVars, featureEnabledEnvVar), "Namespaces scoping feature is enabled, environemnt variable 'NAMESPACE_SCOPE_ENABLED' set to true should be added to Licensing pod.")
+	assert.True(t, Contains(envVars, watchNamespacesEnvVar), "Namespaces scoping feature is enabled, appropriate 'WATCH_NAMESPACE' environemnt variable should be added to Licensing pod.")
+	assert.True(t, Contains(envVars, namespaceDenialLimitEnvVar), "Namespaces scoping feature is enabled, appropriate 'NAMESPACE_DENIAL_LIMIT' environemnt variable should be added to Licensing pod.")
 }
 
 func Contains[T comparable](s []T, e T) bool {
