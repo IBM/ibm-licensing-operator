@@ -587,7 +587,9 @@ func (r *IBMLicenseServiceReporterReconciler) reconcileIngressProxy(instance *op
 //nolint:revive
 //goland:noinspection GoUnusedParameter
 func (r *IBMLicenseServiceReporterReconciler) reconcileSenderConfiguration(instance *operatorv1alpha1.IBMLicenseServiceReporter) (reconcile.Result, error) {
-	return reconcile.Result{}, reporter.AddSenderConfiguration(r.Client, r.Log)
+	r.Log.Info("Reconciling sender configuration")
+	expectedReporterURL := reporter.GetServiceURL(instance)
+	return reconcile.Result{}, reporter.AddSenderConfiguration(r.Client, r.Log, expectedReporterURL)
 }
 
 func (r *IBMLicenseServiceReporterReconciler) reconcileResourceExistence(

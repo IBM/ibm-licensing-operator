@@ -69,6 +69,11 @@ func GetResourceName(instance *operatorv1alpha1.IBMLicenseServiceReporter) strin
 	return LicenseReporterResourceBase + "-" + instance.GetName()
 }
 
+func GetServiceURL(instance *operatorv1alpha1.IBMLicenseServiceReporter) string {
+	// only HTTPS is available for LSR
+	return fmt.Sprintf("https://%s.%s.svc.cluster.local:%s", GetResourceName(instance), instance.ObjectMeta.Namespace, receiverServicePort.String())
+}
+
 func LabelsForSelector(instance *operatorv1alpha1.IBMLicenseServiceReporter) map[string]string {
 	return map[string]string{"app": GetResourceName(instance), "component": LicenseReporterComponentName, "licensing_cr": instance.GetName()}
 }
@@ -139,7 +144,7 @@ func UpdateVersion(client client.Client, instance *operatorv1alpha1.IBMLicenseSe
 	return nil
 }
 
-func AddSenderConfiguration(client client.Client, log logr.Logger) error {
+func AddSenderConfiguration(client client.Client, log logr.Logger, expectedReporterURL string) error {
 	licensingList := &operatorv1alpha1.IBMLicensingList{}
 	reqLogger := log.WithName("reconcileSenderConfiguration")
 
@@ -155,7 +160,9 @@ func AddSenderConfiguration(client client.Client, log logr.Logger) error {
 
 	for _, lic := range licensingList.Items {
 		licensing := lic
-		if licensing.Spec.SetDefaultSenderParameters() {
+		// The licensing.Spec.InstanceNamespace is empty here so we need to pass
+		// expectedReporterURL to configure default reporterURL with SSL
+		if licensing.Spec.SetDefaultSenderParameters(expectedReporterURL) {
 			err := client.Update(context.TODO(), &licensing)
 			if err != nil {
 				reqLogger.Error(err, fmt.Sprintf("Failed to configure sender for: %s", licensing.Name))

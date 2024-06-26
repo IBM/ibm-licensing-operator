@@ -21,12 +21,14 @@ import (
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
+	"github.com/IBM/ibm-licensing-operator/controllers/resources/reporter"
 )
 
 const APISecretTokenVolumeName = "api-token"
 const APIUploadTokenVolumeName = "token-upload"
 const MeteringAPICertsVolumeName = "metering-api-certs"
 const LicensingHTTPSCertsVolumeName = "licensing-https-certs"
+const ReporterHTTPSCertsVolumeName = "reporter-https-certs"
 const PrometheusHTTPSCertsVolumeName = "prometheus-https-certs"
 const EmptyDirVolumeName = "tmp"
 
@@ -50,6 +52,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 			ReadOnly:  false,
 		},
 	}
+
 	if spec.HTTPSEnable {
 		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 			{
@@ -69,6 +72,21 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 		}
 	}
 
+	if spec.Sender != nil && spec.Sender.ValidateReporterCerts {
+		// volume mount for the license service reporter certificate used by sender, we mount it in two cases:
+		// 1. CR cert field is set to use external cert
+		// 2. We use default service internal cert provided by OCP CertManager (IsServiceCAAPI)
+		if spec.Sender.ReporterCertsSecretName != "" || resources.IsServiceCAAPI {
+			volumeMounts = append(volumeMounts, []corev1.VolumeMount{
+				{
+					Name:      ReporterHTTPSCertsVolumeName,
+					MountPath: "/opt/ibm/licensing/reporter-certs",
+					ReadOnly:  true,
+				},
+			}...)
+		}
+	}
+
 	if spec.IsMetering() {
 		volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 			{
@@ -78,13 +96,14 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 			},
 		}...)
 	}
+
 	return volumeMounts
 }
 
 func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume {
 	var volumes []corev1.Volume
 
-	apiSecretTokenVolume := corev1.Volume{
+	volumes = append(volumes, corev1.Volume{
 		Name: APISecretTokenVolumeName,
 		VolumeSource: corev1.VolumeSource{
 			Secret: &corev1.SecretVolumeSource{
@@ -92,11 +111,9 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 				DefaultMode: &resources.DefaultSecretMode,
 			},
 		},
-	}
+	})
 
-	volumes = append(volumes, apiSecretTokenVolume)
-
-	apiUploadTokenVolume := corev1.Volume{
+	volumes = append(volumes, corev1.Volume{
 		Name: APIUploadTokenVolumeName,
 		VolumeSource: corev1.VolumeSource{
 			Secret: &corev1.SecretVolumeSource{
@@ -104,12 +121,10 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 				DefaultMode: &resources.DefaultSecretMode,
 			},
 		},
-	}
-
-	volumes = append(volumes, apiUploadTokenVolume)
+	})
 
 	if spec.IsMetering() {
-		meteringAPICertVolume := corev1.Volume{
+		volumes = append(volumes, corev1.Volume{
 			Name: MeteringAPICertsVolumeName,
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
@@ -118,9 +133,7 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 					Optional:    &resources.TrueVar,
 				},
 			},
-		}
-
-		volumes = append(volumes, meteringAPICertVolume)
+		})
 	}
 
 	if spec.HTTPSEnable {
@@ -138,6 +151,32 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 		},
 	}
 	volumes = append(volumes, emptyDirVolume)
+
+	// volume for the license service reporter certificate used by sender, we mount it in two cases:
+	if spec.Sender != nil && spec.Sender.ValidateReporterCerts {
+		internalReporterCertSecretName := ""
+		// 1. CR cert field is set to use external cert
+		if spec.Sender.ReporterCertsSecretName != "" {
+			internalReporterCertSecretName = spec.Sender.ReporterCertsSecretName
+		} else {
+			// 2. We use default service internal cert provided by OCP CertManager (IsServiceCAAPI)
+			if resources.IsServiceCAAPI {
+				internalReporterCertSecretName = reporter.LicenseReportOCPCertName
+			}
+		}
+
+		if internalReporterCertSecretName != "" {
+			volumes = append(volumes, corev1.Volume{
+				Name: ReporterHTTPSCertsVolumeName,
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName:  internalReporterCertSecretName,
+						DefaultMode: &resources.DefaultSecretMode,
+					},
+				},
+			})
+		}
+	}
 
 	return volumes
 }
