@@ -34,6 +34,7 @@ const (
 	defaultLicensingTokenSecretName = "ibm-licensing-token"                //#nosec
 	defaultReporterTokenSecretName  = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
 	OperandLicensingImageEnvVar     = "IBM_LICENSING_IMAGE"
+	defaultNamespaceDenialLimit     = 72
 )
 
 var (
@@ -154,6 +155,9 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 	}
 	if spec.APISecretToken == "" {
 		spec.APISecretToken = defaultLicensingTokenSecretName
+	}
+	if spec.Features.NamespaceDenialLimit == 0 {
+		spec.Features.NamespaceDenialLimit = defaultNamespaceDenialLimit
 	}
 
 	spec.Container.initResourcesIfNil()
