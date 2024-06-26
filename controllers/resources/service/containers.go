@@ -116,10 +116,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 				Value: watchNamespaces,
 			})
 		}
-		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "NAMESPACE_DENIAL_LIMIT",
-			Value: strconv.Itoa(spec.Features.NamespaceDenialLimit),
-		})
+		if spec.Features.NamespaceDenialLimit != 0 {
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name:  "NAMESPACE_DENIAL_LIMIT",
+				Value: strconv.Itoa(spec.Features.NamespaceDenialLimit),
+			})
+		}
 	}
 	if spec.ChargebackRetentionPeriod != nil {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
