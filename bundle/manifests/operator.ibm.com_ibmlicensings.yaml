@@ -114,6 +114,9 @@ spec:
                     required:
                     - threadsPerCore
                     type: object
+                  nsDenialLimit:
+                    description: Namespace denial limit for custom namespaces scoping
+                    type: integer
                   nssConfigMap:
                     description: Special terms, must be granted by IBM Pricing.
                     type: string
