@@ -117,6 +117,9 @@ spec:
                   nssConfigMap:
                     description: Special terms, must be granted by IBM Pricing.
                     type: string
+                  nssDenialLimit:
+                    description: Namespace denial limit for custom namespaces scoping
+                    type: integer
                   nssEnabled:
                     description: Special terms, must be granted by IBM Pricing.
                     type: boolean
