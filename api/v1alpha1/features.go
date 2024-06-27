@@ -54,7 +54,7 @@ type Features struct {
 	// Namespace denial limit for custom namespaces scoping
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
-	NamespaceDenialLimit int `json:"nsDenialLimit,omitempty"`
+	NamespaceScopeDenialLimit int `json:"nssDenialLimit,omitempty"`
 }
 
 func (spec *IBMLicensingSpec) HaveFeatures() bool {

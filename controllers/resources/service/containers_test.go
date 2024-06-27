@@ -69,8 +69,8 @@ func TestGetLicensingEnvironmentVariablesNamespaceScopingFeatureEnabled(t *testi
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
 		Features: &operatorv1alpha1.Features{
-			NamespaceScopeEnabled: ptr.To(true),
-			NamespaceDenialLimit:  10,
+			NamespaceScopeEnabled:     ptr.To(true),
+			NamespaceScopeDenialLimit: 10,
 		},
 	}
 
@@ -82,7 +82,7 @@ func TestGetLicensingEnvironmentVariablesNamespaceScopingFeatureEnabled(t *testi
 		Name:  "WATCH_NAMESPACE",
 		Value: "ibm-licensing",
 	}
-	namespaceDenialLimitEnvVar := corev1.EnvVar{
+	namespaceScopeDenialLimitEnvVar := corev1.EnvVar{
 		Name:  "NAMESPACE_DENIAL_LIMIT",
 		Value: "10",
 	}
@@ -90,7 +90,7 @@ func TestGetLicensingEnvironmentVariablesNamespaceScopingFeatureEnabled(t *testi
 	envVars := getLicensingEnvironmentVariables(spec)
 	assert.True(t, Contains(envVars, featureEnabledEnvVar), "Namespaces scoping feature is enabled, environemnt variable 'NAMESPACE_SCOPE_ENABLED' set to true should be added to Licensing pod.")
 	assert.True(t, Contains(envVars, watchNamespacesEnvVar), "Namespaces scoping feature is enabled, appropriate 'WATCH_NAMESPACE' environemnt variable should be added to Licensing pod.")
-	assert.True(t, Contains(envVars, namespaceDenialLimitEnvVar), "Namespaces scoping feature is enabled, appropriate 'NAMESPACE_DENIAL_LIMIT' environemnt variable should be added to Licensing pod.")
+	assert.True(t, Contains(envVars, namespaceScopeDenialLimitEnvVar), "Namespaces scoping feature is enabled, appropriate 'NAMESPACE_DENIAL_LIMIT' environemnt variable should be added to Licensing pod.")
 }
 
 func Contains[T comparable](s []T, e T) bool {
