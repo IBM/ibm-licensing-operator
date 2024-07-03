@@ -126,7 +126,8 @@ spec:
         path: features
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-      - description: Namespace denial limit for custom namespaces scoping
+      - description: Limit for failed namespace access attempts before reporting an
+          error in custom namespaces scoping
         path: features.nssDenialLimit
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden

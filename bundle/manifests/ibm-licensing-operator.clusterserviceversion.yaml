@@ -27,7 +27,7 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.6
-    createdAt: "2024-06-27T13:58:00Z"
+    createdAt: "2024-07-03T14:26:43Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     nss.operator.ibm.com/managed-operators: ibm-licensing-operator-app
     olm.skipRange: '>=1.0.0 <4.2.6'
@@ -134,7 +134,7 @@ spec:
             path: features
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:text
-          - description: Namespace denial limit for custom namespaces scoping
+          - description: Limit for failed namespace access attempts before reporting an error in custom namespaces scoping
             path: features.nssDenialLimit
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:hidden

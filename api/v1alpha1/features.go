@@ -51,7 +51,7 @@ type Features struct {
 	// +optional
 	CustomNamespaceScopeConfigMap *string `json:"nssConfigMap,omitempty"`
 
-	// Namespace denial limit for custom namespaces scoping
+	// Limit for failed namespace access attempts before reporting an error in custom namespaces scoping.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
 	NamespaceScopeDenialLimit int `json:"nssDenialLimit,omitempty"`

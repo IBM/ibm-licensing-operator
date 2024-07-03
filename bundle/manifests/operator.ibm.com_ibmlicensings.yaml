@@ -118,7 +118,8 @@ spec:
                     description: Special terms, must be granted by IBM Pricing.
                     type: string
                   nssDenialLimit:
-                    description: Namespace denial limit for custom namespaces scoping
+                    description: Limit for failed namespace access attempts before
+                      reporting an error in custom namespaces scoping.
                     type: integer
                   nssEnabled:
                     description: Special terms, must be granted by IBM Pricing.
