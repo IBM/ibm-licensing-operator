@@ -50,6 +50,11 @@ type Features struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Custom namespaces Config Map",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
 	CustomNamespaceScopeConfigMap *string `json:"nssConfigMap,omitempty"`
+
+	// Limit for failed namespace access attempts before reporting an error in custom namespaces scoping.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
+	// +optional
+	NamespaceScopeDenialLimit int `json:"nssDenialLimit,omitempty"`
 }
 
 func (spec *IBMLicensingSpec) HaveFeatures() bool {

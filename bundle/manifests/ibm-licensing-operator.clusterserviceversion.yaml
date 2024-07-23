@@ -134,6 +134,10 @@ spec:
             path: features
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Limit for failed namespace access attempts before reporting an error in custom namespaces scoping
+            path: features.nssDenialLimit
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:hidden
           - description: Enables https access at pod level, httpsCertsSource needed if true
             displayName: HTTPS Enable
             path: httpsEnable
