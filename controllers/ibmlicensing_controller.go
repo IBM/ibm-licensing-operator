@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	goruntime "runtime"
@@ -282,7 +283,8 @@ func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList 
 			cr.Status.State = service.ActiveCRState
 		} else {
 			// CR should be marked as 'inactive' and ignored during next reconciliation
-			r.Log.Info("Other IBMLicensing instance already exists and is active! Ignoring CR: " + cr.Name)
+			err := errors.New("active IBMLicensing instance already exists")
+			r.Log.Error(err, "The CR: "+cr.Name+" will be ignored and set as inactive.")
 			if cr.Status.State != service.InactiveCRState {
 				cr.Status.State = service.InactiveCRState
 			}
