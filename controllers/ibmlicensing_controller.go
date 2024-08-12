@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	goruntime "runtime"
@@ -282,7 +283,13 @@ func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList 
 			cr.Status.State = service.ActiveCRState
 		} else {
 			// CR should be marked as 'inactive' and ignored during next reconciliation
-			r.Log.Error(nil, "Active IBMLicensing instance already exists! The CR will be ignored and set as inactive.", "CR", cr.Name)
+			err := errors.New("multiple IBMLicensing CRs present")
+			r.Log.Error(err, "There's more than one IBMLicensing Custom Resource created. IBM License Service configuration is stored in the "+
+				cr.Name+
+				" Custom Resource, other Custom Resources are ignored. You can safely go to Custom Resource Definitions view, "+
+				"select IBMLicensings, backup the YAML definitions of ignored Custom Resources and delete them from the cluster to "+
+				"prevent this error to appear again. These ignored Custom Resources have no effect on the IBM License Service operation. "+
+				cr.Name+" will be ignored and set as inactive.")
 			if cr.Status.State != service.InactiveCRState {
 				cr.Status.State = service.InactiveCRState
 			}
