@@ -50,7 +50,7 @@ jobs:
       image: quay.io/cicdtest/check-tool:v20240711-d1227e929
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1  # Fetch only the latest commit
 
@@ -72,7 +72,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1  # Fetch only the latest commit
 
