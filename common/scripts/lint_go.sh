@@ -15,4 +15,4 @@
 # limitations under the License.
 #
 
-GOGC=25 golangci-lint run -fix --concurrency 1 -v -c ./common/config/.golangci.yml
+GOGC=25 golangci-lint run --fix --verbose --concurrency 1 -c ./common/config/.golangci.yml
