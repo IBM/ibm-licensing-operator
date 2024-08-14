@@ -26,6 +26,8 @@ on:
     
 env:
   GO_VERSION: "1.21"
+  # https://github.blog/changelog/2024-03-07-github-actions-all-actions-will-run-on-node20-instead-of-node16-by-default/
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
 
@@ -56,8 +58,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v3
-        env:
-          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
         with:
           fetch-depth: 1  # Fetch only the latest commit
 
