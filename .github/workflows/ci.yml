@@ -26,6 +26,7 @@ on:
     
 env:
   GO_VERSION: "1.21"
+  GOLANGCI_LINT_VERSION: 1.56.1
   # https://github.blog/changelog/2024-03-07-github-actions-all-actions-will-run-on-node20-instead-of-node16-by-default/
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
@@ -61,8 +62,8 @@ jobs:
         with:
           fetch-depth: 1  # Fetch only the latest commit
 
-      - name: Upgrade golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.56.1
+      - name: Install golangci lint ${{ env.GOLANGCI_LINT_VERSION }}
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin ${{ env.GOLANGCI_LINT_VERSION }}
 
       - name: Check
         run: make check
