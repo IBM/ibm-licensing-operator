@@ -49,11 +49,10 @@ jobs:
     container: 
       image: quay.io/cicdtest/check-tool:v20240711-d1227e929
     steps:
-      - name: Downgrade Node.js to avoid GLIBC conflict on ubuntu 18.04
-        run: |
-          # Install Node.js version 14 (or any other compatible version)
-          curl -sL https://deb.nodesource.com/setup_14.x | bash -
-          apt-get install -y nodejs
+      - name: Use node16 to avoid GLIBC issues
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16
 
       - name: Check Node.js and GLIBC versions
         run: |
