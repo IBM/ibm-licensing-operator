@@ -61,8 +61,6 @@ jobs:
         with:
           fetch-depth: 1  # Fetch only the latest commit
 
-          golangci:
-
       - name: Set up Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v3
         with:
