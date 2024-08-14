@@ -26,6 +26,9 @@ on:
     
 env:
   GO_VERSION: "1.21"
+  GOLANGCI_LINT_VERSION: 1.56.1
+  # https://github.blog/changelog/2024-03-07-github-actions-all-actions-will-run-on-node20-instead-of-node16-by-default/
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
 
@@ -46,14 +49,23 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-22.04
+    # this image runs on the ubuntu 18.04 - blocker for using newer versions of dependencies
     container: 
-      image: quay.io/cicdtest/check-tool:v20230310-111111111
+      image: quay.io/cicdtest/check-tool:v20240711-d1227e929
     steps:
+      - name: Check Node.js and GLIBC versions
+        run: |
+          node -v
+          ldd --version
+
+      # it must be v3 to avoid fetching dependencies using newer version of GLIBC
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 1  # Fetch only the latest commit
 
-      - name: Upgrade golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.51.2
+      - name: Install golangci-lint v${{ env.GOLANGCI_LINT_VERSION }}
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v${{ env.GOLANGCI_LINT_VERSION }}
 
       - name: Check
         run: make check
@@ -71,6 +83,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 1  # Fetch only the latest commit
 
       - name: Find the Go Build Cache
         id: go
@@ -82,7 +96,8 @@ jobs:
           path: ${{ steps.go.outputs.cache }}
           key: ${{ runner.os }}-build-check-diff-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-build-check-diff-
-
+          fetch-depth: 1  # Fetch only the latest commit
+            
       - name: Cache Go Dependencies
         uses: actions/cache@v3
         with:
