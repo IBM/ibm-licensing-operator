@@ -45,7 +45,7 @@ jobs:
 
   check:
     name: Check
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     container: 
       image: quay.io/cicdtest/check-tool:v20240711-d1227e929
     steps:
