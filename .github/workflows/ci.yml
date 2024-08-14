@@ -48,7 +48,7 @@ jobs:
 
   check:
     name: Check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     # this image runs on the ubuntu 18.04 - blocker for using newer versions of dependencies
     container: 
       image: quay.io/cicdtest/check-tool:v20240711-d1227e929
