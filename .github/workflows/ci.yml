@@ -46,13 +46,13 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-22.04
-    container: 
-      image: quay.io/cicdtest/check-tool:v20240711-d1227e929
+    # container: 
+    #   image: quay.io/cicdtest/check-tool:v20240711-d1227e929
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        env:
-          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+        # env:
+        #   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
         with:
           fetch-depth: 1  # Fetch only the latest commit
 
