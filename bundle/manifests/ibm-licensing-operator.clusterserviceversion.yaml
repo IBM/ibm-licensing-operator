@@ -16,7 +16,7 @@ metadata:
             "name": "instance"
           },
           "spec": {
-            "version": "4.2.7",
+            "version": "4.2.8",
             "apiSecretToken": "ibm-licensing-token",
             "datasource": "datacollector",
             "httpsEnable": true
@@ -26,11 +26,11 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
-    containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.7
+    containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.8
     createdAt: "2024-08-20T16:38:36Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     nss.operator.ibm.com/managed-operators: ibm-licensing-operator-app
-    olm.skipRange: '>=1.0.0 <4.2.7'
+    olm.skipRange: '>=1.0.0 <4.2.8'
     operatorframework.io/suggested-namespace: ibm-licensing
     operators.operatorframework.io/builder: operator-sdk-v1.32.0
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com", "ibmlicensingdefinitions.operator.ibm.com", "ibmlicensingquerysources.operator.ibm.com"]'
@@ -44,7 +44,7 @@ metadata:
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: ibm-licensing-operator.v4.2.7
+  name: ibm-licensing-operator.v4.2.8
   namespace: ibm-licensing
 spec:
   apiservicedefinitions: {}
@@ -417,7 +417,7 @@ spec:
                       - ibm-licensing-operator
                     env:
                       - name: IBM_LICENSING_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-licensing:4.2.7
+                        value: icr.io/cpopen/cpfs/ibm-licensing:4.2.8
                       - name: WATCH_NAMESPACE
                         valueFrom:
                           fieldRef:
@@ -438,7 +438,7 @@ spec:
                             fieldPath: spec.serviceAccountName
                       - name: CRD_RECONCILE_INTERVAL
                         value: "300"
-                    image: icr.io/cpopen/ibm-licensing-operator:4.2.7
+                    image: icr.io/cpopen/ibm-licensing-operator:4.2.8
                     imagePullPolicy: IfNotPresent
                     name: ibm-licensing-operator
                     resources:
@@ -669,9 +669,9 @@ spec:
   maturity: alpha
   provider:
     name: IBM
-  version: 4.2.7
+  version: 4.2.8
   relatedImages:
-    - image: icr.io/cpopen/ibm-licensing-operator:4.2.7
+    - image: icr.io/cpopen/ibm-licensing-operator:4.2.8
       name: IBM_LICENSING_OPERATOR_IMAGE
-    - image: icr.io/cpopen/cpfs/ibm-licensing:4.2.7
+    - image: icr.io/cpopen/cpfs/ibm-licensing:4.2.8
       name: IBM_LICENSING_IMAGE
