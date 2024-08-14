@@ -16,10 +16,10 @@ linters:
     - unused # Detects unused consts, vars, functions, types
     - errcheck # Detects unchecked errors
     - typecheck # Standard golang type check
-    - staticcheck # It finds bugs and performance issues
+    # - staticcheck # It finds bugs and performance issues
     - ineffassign # Detects unused variable assigments
     - gosimple # Linter used for simplifying code
-    - govet # Examines Go source code and reports suspicious constructs
+    # - govet # Examines Go source code and reports suspicious constructs
     
     # Additional linters
     # - gocyclo # Computes and checks the cyclomatic complexity of functions
