@@ -22,10 +22,10 @@ linters:
     # - govet # Examines Go source code and reports suspicious constructs
     
     # Additional linters
-    # - gocyclo # Computes and checks the cyclomatic complexity of functions
-    # - gofmt # Formats Go programs
-    # - goimports # Import formatting/ordering
-    # - revive # Drop-in replacement of golint
+    - gocyclo # Computes and checks the cyclomatic complexity of functions
+    - gofmt # Formats Go programs
+    - goimports # Import formatting/ordering
+    - revive # Drop-in replacement of golint
     - misspell # Fix spelling errors
     - goconst # Detects repeated strings that could by replaced by constant
     - unconvert # Analyse type converstions
