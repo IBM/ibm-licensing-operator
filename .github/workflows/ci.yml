@@ -47,10 +47,12 @@ jobs:
     name: Check
     runs-on: ubuntu-22.04
     container: 
-      image: quay.io/cicdtest/check-tool:v20230310-111111111
+      image: quay.io/cicdtest/check-tool:v20240711-d1227e929
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 1  # Fetch only the latest commit
 
       - name: Upgrade golangci-lint
         run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.51.2
@@ -71,6 +73,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 1  # Fetch only the latest commit
 
       - name: Find the Go Build Cache
         id: go
@@ -82,7 +86,8 @@ jobs:
           path: ${{ steps.go.outputs.cache }}
           key: ${{ runner.os }}-build-check-diff-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-build-check-diff-
-
+          fetch-depth: 1  # Fetch only the latest commit
+            
       - name: Cache Go Dependencies
         uses: actions/cache@v3
         with:
