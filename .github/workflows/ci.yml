@@ -46,21 +46,29 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-22.04
-    # container: 
-    #   image: quay.io/cicdtest/check-tool:v20240711-d1227e929
+    container: 
+      image: quay.io/cicdtest/check-tool:v20240711-d1227e929
     steps:
+      - name: Install Node.js
+        run: |
+          # Install Node.js version 18 (or any other compatible version)
+          curl -sL https://deb.nodesource.com/setup_18.x | bash -
+          apt-get install -y nodejs
+
+      - name: Check Node.js and GLIBC versions
+        run: |
+          node -v
+          ldd --version
+
       - name: Checkout
         uses: actions/checkout@v3
-        # env:
-        #   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+        env:
+          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
         with:
           fetch-depth: 1  # Fetch only the latest commit
 
       - name: Upgrade golangci-lint
         run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v1.51.2
-
-      - name: Install tools
-        run: make install-all-tools 
 
       - name: Check
         run: make check
