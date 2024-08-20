@@ -69,11 +69,13 @@ spec:
               memory: 50Mi
               ephemeral-storage: 250Mi
           securityContext:
+            seccompProfile:
+              type: RuntimeDefault
             allowPrivilegeEscalation: false
+            runAsNonRoot: true
             capabilities:
               drop:
                 - ALL
             privileged: false
             readOnlyRootFilesystem: true
-            runAsNonRoot: true
       serviceAccountName: ibm-licensing-operator

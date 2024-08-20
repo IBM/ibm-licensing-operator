@@ -34,6 +34,9 @@ func GetSecurityContext() *corev1.SecurityContext {
 				"ALL",
 			},
 		},
+		SeccompProfile: &corev1.SeccompProfile{
+			Type: "RuntimeDefault",
+		},
 		ProcMount: &procMount,
 	}
 	return securityContext
