@@ -93,6 +93,24 @@ func TestGetLicensingEnvironmentVariablesNamespaceScopingFeatureEnabled(t *testi
 	assert.True(t, Contains(envVars, namespaceScopeDenialLimitEnvVar), "Namespaces scoping feature is enabled, appropriate 'NAMESPACE_DENIAL_LIMIT' environemnt variable should be added to Licensing pod.")
 }
 
+func TestGetLicensingEnvironmentVariablesIntervalValidation(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Sender: &operatorv1alpha1.IBMLicensingSenderSpec{
+			Interval: "PT5M",
+		},
+	}
+
+	envVar := corev1.EnvVar{
+		Name:  "SENDER_INTERVAL",
+		Value: "PT5M",
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.True(t, Contains(envVars, envVar), "Sender interval provided in CR but env var not set")
+}
+
 func Contains[T comparable](s []T, e T) bool {
 	for _, v := range s {
 		if v == e {

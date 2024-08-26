@@ -362,6 +362,11 @@ spec:
                       system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME
                       at Operand level
                     type: string
+                  interval:
+                    description: How often should License Service aggregate and send
+                      data to Reporter
+                    pattern: ^P(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(\d+H)?(\d+M)?(\d+S)?)?$
+                    type: string
                   reporterCertsSecretName:
                     description: Name of the secret that contains the License Service
                       Reporter certificate(s) used to establish a secure connection

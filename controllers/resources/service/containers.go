@@ -168,12 +168,14 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			}...)
 		}
 
-		environmentVariables = append(environmentVariables, []corev1.EnvVar{
-			{
-				Name:  "HUB_URL",
-				Value: spec.Sender.ReporterURL,
-			},
-		}...)
+		if spec.Sender.ReporterURL != "" {
+			environmentVariables = append(environmentVariables, []corev1.EnvVar{
+				{
+					Name:  "HUB_URL",
+					Value: spec.Sender.ReporterURL,
+				},
+			}...)
+		}
 
 		if spec.Sender.ValidateReporterCerts {
 			environmentVariables = append(environmentVariables, []corev1.EnvVar{
@@ -184,6 +186,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			}...)
 		}
 
+		if spec.Sender.Interval != "" {
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name:  "SENDER_INTERVAL",
+				Value: spec.Sender.Interval,
+			})
+		}
 	}
 
 	if spec.EnvVariable != nil {

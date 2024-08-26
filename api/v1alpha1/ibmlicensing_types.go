@@ -186,6 +186,12 @@ type IBMLicensingSenderSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Cluster ID",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	ClusterID string `json:"clusterID,omitempty"`
+
+	// How often should License Service aggregate and send data to Reporter
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Interval",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +kubebuilder:validation:Pattern=`^P(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(\d+H)?(\d+M)?(\d+S)?)?$`
+	// +optional
+	Interval string `json:"interval,omitempty"`
 }
 
 type IBMLicensingSecurityContext struct {
