@@ -20,6 +20,13 @@ rules:
       - get
       - list
   - apiGroups:
+      - "batch"
+    resources:
+      - cronjobs
+    verbs:
+      - get
+      - list
+  - apiGroups:
       - "metrics.k8s.io"
     resources:
       - pods
