@@ -93,7 +93,7 @@ func namespaceExists(logger *logr.Logger, reader client.Reader, ns string) bool 
 	err := reader.Get(context.TODO(), client.ObjectKey{Name: ns}, namespace)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
-			logger.Error(err, "Failed to check namespace existance: "+ns)
+			logger.Error(err, "Failed to check namespace existence: "+ns)
 			return false
 		}
 		return false
