@@ -22,11 +22,12 @@ import (
 	"strings"
 	"time"
 
-	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
 	"github.com/go-logr/logr"
 	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
 func RunRemoveStaleNamespacesFromOperatorGroupTask(ctx context.Context, logger *logr.Logger, client client.Client, reader client.Reader) {
