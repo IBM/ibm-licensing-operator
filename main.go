@@ -226,6 +226,10 @@ func main() {
 		}()
 	}
 
+	logger := ctrl.Log.WithName("operatorgroup-namespaces-watcher")
+	removeStaleNamespacesTaskCtx, cancelRemoveStaleNamespacesTask := context.WithCancel(context.Background())
+	go controllers.RunRemoveStaleNamespacesFromOperatorGroupTask(removeStaleNamespacesTaskCtx, &logger, mgr.GetClient(), mgr.GetAPIReader())
+
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("Creating first instance.")
@@ -234,6 +238,7 @@ func main() {
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
+		cancelRemoveStaleNamespacesTask()
 		os.Exit(1)
 	}
 }
