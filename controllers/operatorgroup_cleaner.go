@@ -19,12 +19,11 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
-	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/strings/slices"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
@@ -35,7 +34,7 @@ func RunRemoveStaleNamespacesFromOperatorGroupTask(ctx context.Context, logger *
 	logger.Info("Running task of removing stale namespaces from OperatorGroup")
 	removeStaleNamespacesFromOperatorGroup(logger, client, reader)
 
-	ticker := time.NewTicker(time.Hour) // runs every hour
+	ticker := time.NewTicker(5 * time.Minute) // runs every hour TODO
 
 	for {
 		select {
@@ -68,74 +67,75 @@ func removeStaleNamespacesFromOperatorGroup(logger *logr.Logger, client client.C
 		logger.Error(err, "Unable to get WATCH_NAMESPACE")
 		return
 	}
-
 	operatorNamespace, err := res.GetOperatorNamespace()
 	if err != nil {
 		logger.Error(err, "Unable to get OPERATOR_NAMESPACE")
 		return
 	}
 
+	var namespacesToRemove []string
 	for _, ns := range watchNamespaces {
-		if !namespaceExists(logger, reader, ns) {
-			logger.Info("Namespace does not exist: " + ns + " Attempting to remove it from OperatorGroup.")
-			err := removeNamespaceFromOperatorGroup(logger, client, operatorNamespace, ns)
-			if err != nil {
-				logger.Error(err, "Failed to remove stale namespace from OperatorGroup: "+ns)
-			}
+		if namespaceExists, err := namespaceExists(reader, ns); err != nil {
+			logger.Error(err, "Failed to check namespace existence: "+ns)
+			return
+		} else if !namespaceExists {
+			namespacesToRemove = append(namespacesToRemove, ns)
+			logger.Info("Namespace does not exist: " + ns + " Namespace marked to remove.")
 		}
+	}
+
+	if err = removeNamespaceFromOperatorGroup(logger, client, reader, operatorNamespace, namespacesToRemove); err != nil {
+		logger.Error(err, "Failed to remove stale namespaces from OperatorGroup")
 	}
 }
 
 /*
 Checks if namespace with given name exits in the cluster.
 */
-func namespaceExists(logger *logr.Logger, reader client.Reader, ns string) bool {
+func namespaceExists(reader client.Reader, ns string) (bool, error) {
 	namespace := &corev1.Namespace{}
-	err := reader.Get(context.TODO(), client.ObjectKey{Name: ns}, namespace)
+	err := reader.Get(context.Background(), client.ObjectKey{Name: ns}, namespace)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
-			logger.Error(err, "Failed to check namespace existence: "+ns)
-			return false
+			return true, err
 		}
-		return false
+		return false, nil
 	}
-	return true
+	return true, nil
 }
 
 /*
-Looks for OperatorGroup from operator's namespace which name starts with "ibm-licensing-".
+Looks for OperatorGroup from operator's namespace.
 Removes given namespace from targetNamespaces list field if it contains the namespace.
 */
-func removeNamespaceFromOperatorGroup(logger *logr.Logger, cli client.Client, namespace, namespaceToRemove string) error {
-	operatorGroupList := &operatorframeworkv1.OperatorGroupList{}
-	if err := cli.List(context.Background(), operatorGroupList, &client.ListOptions{Namespace: namespace}); err != nil {
-		return fmt.Errorf("failed to list OperatorGroups: %v", err)
+func removeNamespaceFromOperatorGroup(logger *logr.Logger, cli client.Client, reader client.Reader, namespace string, namespacesToRemove []string) error {
+	licensingOperatorGroup, err := res.GetLicensingOperatorGroupInNamespace(reader, namespace)
+	if err != nil {
+		logger.Error(err, "An error occurred while retrieving IBMLicensing OperatorGroup")
+		return err
+	} else if licensingOperatorGroup == nil {
+		logger.Info("OperatorGroup not found in namespace " + namespace)
+		return nil
 	}
 
-	for i := range operatorGroupList.Items {
-		operatorGroup := operatorGroupList.Items[i]
-		if strings.HasPrefix(operatorGroup.Name, "ibm-licensing-") {
-			logger.Info("Found OperatorGroup: " + operatorGroup.Name + " in namespace " + namespace)
+	targetNamespaces := licensingOperatorGroup.Spec.TargetNamespaces
+	var updatedNamespaces []string
 
-			targetNamespaces := operatorGroup.Spec.TargetNamespaces
-			var updatedNamespaces []string
-
-			for _, ns := range targetNamespaces {
-				if ns != namespaceToRemove {
-					updatedNamespaces = append(updatedNamespaces, ns)
-				}
-			}
-
-			if len(updatedNamespaces) == len(targetNamespaces) {
-				continue
-			}
-
-			operatorGroup.Spec.TargetNamespaces = updatedNamespaces
-			if err := cli.Update(context.TODO(), &operatorGroup); err != nil {
-				return fmt.Errorf("failed to update OperatorGroup %s: %v", operatorGroup.Name, err)
-			}
-			logger.Info("Removed stale namespace " + namespaceToRemove + " from OperatorGroup" + operatorGroup.Name)
+	for _, ns := range targetNamespaces {
+		if !slices.Contains(namespacesToRemove, ns) {
+			updatedNamespaces = append(updatedNamespaces, ns)
 		}
 	}
+
+	if len(updatedNamespaces) == len(targetNamespaces) {
+		return nil
+	}
+
+	licensingOperatorGroup.Spec.TargetNamespaces = updatedNamespaces
+	if err := cli.Update(context.Background(), licensingOperatorGroup); err != nil {
+		return fmt.Errorf("failed to update OperatorGroup %s: %v", licensingOperatorGroup.Name, err)
+	}
+	logger.Info("Removed stale namespaces from OperatorGroup: " + licensingOperatorGroup.Name)
+
 	return nil
 }
