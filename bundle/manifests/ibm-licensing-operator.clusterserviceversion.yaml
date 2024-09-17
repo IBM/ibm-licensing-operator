@@ -467,6 +467,8 @@ spec:
                       privileged: false
                       readOnlyRootFilesystem: true
                       runAsNonRoot: true
+                      seccompProfile:
+                        type: RuntimeDefault
                 serviceAccountName: ibm-licensing-operator
       permissions:
         - rules:
