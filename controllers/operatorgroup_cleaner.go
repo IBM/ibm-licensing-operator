@@ -34,7 +34,7 @@ func RunRemoveStaleNamespacesFromOperatorGroupTask(ctx context.Context, logger *
 	logger.Info("Running task of removing stale namespaces from OperatorGroup")
 	removeStaleNamespacesFromOperatorGroup(logger, client, reader)
 
-	ticker := time.NewTicker(5 * time.Minute) // runs every hour TODO
+	ticker := time.NewTicker(time.Hour) // runs every hour
 
 	for {
 		select {
