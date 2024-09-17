@@ -16,6 +16,14 @@ rules:
       - "apps"
     resources:
       - deployments
+      - replicasets
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - "batch"
+    resources:
+      - jobs
     verbs:
       - get
       - list
@@ -60,6 +68,7 @@ rules:
       - "/health"
       - "/status"
       - "/services"
+      - "/workloads"
     verbs:
       - "get"
 ---
@@ -140,6 +149,14 @@ rules:
       - "apps"
     resources:
       - deployments
+      - replicasets
     verbs:
       - get
       - list
+  - apiGroups:
+    - "batch"
+    resources:
+    - jobs
+    verbs:
+     - list
+     - get
