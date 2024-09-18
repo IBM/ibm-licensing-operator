@@ -1,13 +1,15 @@
 reviewers:
 - pgodowski
-- SzymonKowalczyk
-- geforcelive
-- jakubsolecki
 - Jan-Olszowka
+- Pejdzor
+- alicenoknow
+- ljeda
+- kflorianski-ibm
 
 approvers:
 - pgodowski
-- SzymonKowalczyk
-- geforcelive
-- jakubsolecki
 - Jan-Olszowka
+- Pejdzor
+- alicenoknow
+- ljeda
+- kflorianski-ibm
