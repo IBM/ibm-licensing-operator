@@ -135,6 +135,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:groups=operator.openshift.io,resources=servicecas,verbs=list
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
+// +kubebuilder:rbac:groups="",resources=namespaces,verbs=get
 
 func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Request) (reconcile.Result, error) {
 

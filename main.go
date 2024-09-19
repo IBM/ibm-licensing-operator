@@ -103,6 +103,7 @@ func init() {
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
+	var routinesToCancel []func()
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
@@ -197,6 +198,11 @@ func main() {
 			setupLog.Info("Namespace Scope ConfigMap detected. operandrequest-discovery disabled")
 		} else {
 			go controllers.DiscoverOperandRequests(&crdLogger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
+
+			logger := ctrl.Log.WithName("operatorgroup-namespaces-watcher")
+			removeStaleNamespacesTaskCtx, cancelRemoveStaleNamespacesTask := context.WithCancel(context.Background())
+			go controllers.RunRemoveStaleNamespacesFromOperatorGroupTask(removeStaleNamespacesTaskCtx, &logger, mgr.GetClient(), mgr.GetAPIReader())
+			routinesToCancel = append(routinesToCancel, cancelRemoveStaleNamespacesTask)
 		}
 	} else {
 		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
@@ -234,6 +240,9 @@ func main() {
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
+		for _, cancelRoutine := range routinesToCancel {
+			cancelRoutine()
+		}
 		os.Exit(1)
 	}
 }
