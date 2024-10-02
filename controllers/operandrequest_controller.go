@@ -85,17 +85,39 @@ func ignoreDeletionPredicate() predicate.Predicate {
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 
 /*
-TODO
-oc patch operandrequest ibm-licensing-scanner-ls-operand-request --type=merge -p '{"status": {"phase": "Running"}}' --subresource=status
+UpdateOperandRequestWithPhase sets a specific phase of the operand request's member field.
 
-s.ActualResource.(*odlm.OperandRequest).Status.Phase = odlm.ClusterPhaseRunning
+This is different to the overall request phase, as we only care about settings phases of related bindings.
 
-request.status = Pending; UpdateResource(request)
-(all copy operations)
-request.status = Running; UpdateResrource(request)
-
-TODO: Add UdpateResource (probably)
+This function may return an error for example if the Update API call doesn't work. Licensing does not have permissions
+to recreate a resource (delete + create) and only patching/updating is supported.
 */
+func (r *OperandRequestReconciler) UpdateOperandRequestWithPhase(
+	reqLogger logr.Logger,
+	operandRequest *odlm.OperandRequest,
+	phase odlm.ServicePhase,
+) {
+	foundOperandRequest := operandRequest.DeepCopy()
+
+	for index, member := range operandRequest.Status.Members {
+		if member.Name == res.OperatorName {
+			operandRequest.Status.Members[index].Phase = odlm.MemberPhase{
+				OperatorPhase: member.Phase.OperatorPhase,
+				OperandPhase:  phase,
+			}
+		}
+	}
+
+	_, err := res.UpdateResource(&reqLogger, r.Client, operandRequest, foundOperandRequest)
+	if err != nil {
+		reqLogger.Error(
+			err,
+			"Couldn't update operand request status (this may cause some dependent components to fail)",
+			"Name", operandRequest.Name,
+			"Phase", phase,
+		)
+	}
+}
 
 func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
@@ -118,16 +140,13 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	reqLogger.Info("Reconciling OperandRequest")
 
-	// Set the status as Pending - the operand request will only be considered done once all data is copied
-	// Any status could be chosen here, but to avoid confusion with updates/creation, Pending is used
-	operandRequest.Status.Phase = odlm.ClusterPhaseNone
-
 	for _, request := range operandRequest.Spec.Requests {
 		var infoConfigMapName, tokenSecretName, tokenSecretName2, uploadConfigName, uploadTokenName string
 		var requeueTokenSec, requeueToken2Sec, requeueUploadSec, requeueInfoCm, requeueUploadCm bool
 		var err error
 		for _, operand := range request.Operands {
 			if operand.Name == res.OperatorName {
+				r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceCreating)
 
 				for key, binding := range operand.Bindings {
 					if key == "public-api-data" {
@@ -147,8 +166,8 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueTokenSec, err = r.copySecret(ctx, req, svcres.LicensingToken, tokenSecretName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					operandRequest.Status.Phase = odlm.ClusterPhaseFailed
 					reqLogger.Error(err, "Cannot copy Secret", "name", svcres.LicensingToken, "namespace", operandRequest.Namespace)
+					r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceFailed)
 				}
 				if requeueTokenSec {
 					return reconcile.Result{Requeue: true}, err
@@ -156,8 +175,8 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueToken2Sec, err = r.copySecret(ctx, req, svcres.LicensingToken, tokenSecretName2, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					operandRequest.Status.Phase = odlm.ClusterPhaseFailed
 					reqLogger.Error(err, "Cannot copy Secret", "name", svcres.LicensingToken, "namespace", operandRequest.Namespace)
+					r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceFailed)
 				}
 				if requeueToken2Sec {
 					return reconcile.Result{Requeue: true}, err
@@ -165,8 +184,8 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueUploadSec, err = r.copySecret(ctx, req, svcres.LicensingUploadToken, uploadTokenName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					operandRequest.Status.Phase = odlm.ClusterPhaseFailed
 					reqLogger.Error(err, "Cannot copy Secret", "name", svcres.LicensingUploadToken, "namespace", operandRequest.Namespace)
+					r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceFailed)
 				}
 				if requeueUploadSec {
 					return reconcile.Result{Requeue: true}, err
@@ -174,8 +193,8 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueInfoCm, err = r.copyConfigMap(ctx, req, svcres.LicensingInfo, infoConfigMapName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					operandRequest.Status.Phase = odlm.ClusterPhaseFailed
 					reqLogger.Error(err, "Cannot copy ConfigMap", svcres.LicensingInfo, "namespace", operandRequest.Namespace)
+					r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceFailed)
 				}
 				if requeueInfoCm {
 					return reconcile.Result{Requeue: true}, err
@@ -183,20 +202,20 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 				requeueUploadCm, err = r.copyConfigMap(ctx, req, svcres.LicensingUploadConfig, uploadConfigName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
-					operandRequest.Status.Phase = odlm.ClusterPhaseFailed
 					reqLogger.Error(err, "Cannot copy ConfigMap", "name", svcres.LicensingUploadConfig, "namespace", operandRequest.Namespace)
+					r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceFailed)
 				}
 				if requeueUploadCm {
 					return reconcile.Result{Requeue: true}, err
 				}
+
+				// Set the status as Running - the operand request has provided all requested objects
+				// Any status could be chosen here, but to avoid confusion with updates/creation, Running is used
+				// IBM License Service Scanner is also expecting this status here when reconciling connection to License Service
+				r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceRunning)
 			}
 		}
 	}
-
-	// Set the status as Running - the operand request has provided all requested objects
-	// Any status could be chosen here, but to avoid confusion with updates/creation, Running is used
-	// IBM License Service Scanner is also expecting this status here when reconciling connection to License Service
-	operandRequest.Status.Phase = odlm.ClusterPhaseRunning
 
 	reqLogger.Info("reconcile all done")
 	return ctrl.Result{}, nil
