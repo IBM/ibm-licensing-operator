@@ -46,6 +46,7 @@ func GetDefaultReaderToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Sec
 			Name:        DefaultReaderTokenName,
 			Namespace:   instance.Spec.InstanceNamespace,
 			Annotations: map[string]string{ServiceAccountSecretAnnotationKey: DefaultReaderServiceAccountName},
+			Labels:      map[string]string{"release": "ibm-licensing-service"},
 		},
 		Type: corev1.SecretTypeServiceAccountToken,
 	}

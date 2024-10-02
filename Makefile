@@ -344,8 +344,11 @@ manager: generate
 
 # Run against the configured Kubernetes cluster in ~/.kube/config. Adjust namespace variable according to your environment, e.g. NAMESPACE=lsr-ns make run
 run: fmt vet
-	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
-	WATCH_NAMESPACE=${NAMESPACE} OPERATOR_NAMESPACE=${NAMESPACE} go run ./main.go
+	IBM_LICENSING_IMAGE='${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}' WATCH_NAMESPACE=${NAMESPACE} OPERATOR_NAMESPACE=${NAMESPACE} go run ./main.go
+#	WATCH_NAMESPACE="cad501-operands,cad502-operands,ibm-licensing" OPERATOR_NAMESPACE="ibm-licensing" go run ./main.go
+#	WATCH_NAMESPACE="cpd-instance-1278,ibm-licensing" OPERATOR_NAMESPACE="ibm-licensing" go run ./main.go
+#	WATCH_NAMESPACE='ibm-licensing,ljtest' OPERATOR_NAMESPACE=${NAMESPACE} go run ./main.go
+	IBM_LICENSING_IMAGE='icr.io/cpopen/cpfs/ibm-licensing@sha256:3ade11b29744e79b4b1244e6460b51b2e4c8c986a3595e961c9805d847324349' WATCH_NAMESPACE='ibm-licensing' OPERATOR_NAMESPACE=${NAMESPACE} go run ./main.go
 
 # Install CRDs into a cluster
 install: manifests kustomize

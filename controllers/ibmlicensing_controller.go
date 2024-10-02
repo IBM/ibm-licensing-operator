@@ -1067,6 +1067,12 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 		if apierrors.IsNotFound(err) {
 			reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
 				"Namespace", expectedRes.GetNamespace())
+			labels := expectedRes.GetLabels()
+			if labels == nil {
+				labels = make(map[string]string)
+			}
+			labels["release"] = "ibm-licensing-service"
+			expectedRes.SetLabels(labels)
 			err = r.Client.Create(context.TODO(), expectedRes)
 			if err != nil {
 				if !apierrors.IsAlreadyExists(err) {

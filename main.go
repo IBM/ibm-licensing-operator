@@ -27,23 +27,24 @@ import (
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
-
 	"go.uber.org/zap/zapcore"
-
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+
 	networkingv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
 
-	cache "github.com/IBM/controller-filtered-cache/filteredcache"
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 
 	operatorv1 "github.com/IBM/ibm-licensing-operator/api/v1"
@@ -128,25 +129,49 @@ func main() {
 		watchNamespaces = []string{operatorNamespace}
 	}
 
-	gvkLabelMap := map[schema.GroupVersionKind]cache.Selector{
-		corev1.SchemeGroupVersion.WithKind("Secret"): {
-			LabelSelector: "release in (ibm-licensing-service)",
-		},
-		appsv1.SchemeGroupVersion.WithKind("Deployment"): {
-			LabelSelector: "release in (ibm-licensing-service)",
-		},
-		corev1.SchemeGroupVersion.WithKind("Pod"): {
-			LabelSelector: "release in (ibm-licensing-service)",
+	ls := labels.Set{"release": "ibm-licensing-service"}
+	lselector := labels.SelectorFromSet(ls)
+
+	cacheConfig := cache.Config{
+		// LabelSelector: labels.SelectorFromSet(labels.Set{"release": "ibm-licensing-service"}),
+		// LabelSelector: labels.SelectorFromSet(labels.Set{"app.kubernetes.io/component": "ibm-licensing-service-svc"}),
+		// LabelSelector: labels.Everything(),
+		LabelSelector: lselector,
+	}
+
+	namespaceCacheConfigs := make(map[string]cache.Config)
+	for _, watchNamespace := range watchNamespaces {
+		namespaceCacheConfigs[watchNamespace] = cacheConfig
+	}
+
+	cacheOptions := cache.Options{
+		DefaultNamespaces: namespaceCacheConfigs,
+		ByObject: map[client.Object]cache.ByObject{
+			&corev1.Secret{}: {
+				Namespaces: namespaceCacheConfigs,
+			},
+			&corev1.ConfigMap{}: {
+				Namespaces: namespaceCacheConfigs,
+			},
 		},
 	}
 
+	metricsOptions := metricsserver.Options{
+		BindAddress: metricsAddr,
+	}
+
+	webhookServer := webhook.NewServer(webhook.Options{
+		Port: 9443,
+	})
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             scheme,
-		MetricsBindAddress: metricsAddr,
-		Port:               9443,
-		LeaderElection:     enableLeaderElection,
-		LeaderElectionID:   "e1f51baf.ibm.com",
-		NewCache:           cache.MultiNamespacedFilteredCacheBuilder(gvkLabelMap, watchNamespaces),
+		Scheme: scheme,
+		// HealthProbeBindAddress: metricsAddr,
+		Metrics:          metricsOptions,
+		WebhookServer:    webhookServer,
+		LeaderElection:   enableLeaderElection,
+		LeaderElectionID: "e1f51baf.ibm.com",
+		Cache:            cacheOptions,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
