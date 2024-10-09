@@ -379,6 +379,10 @@ spec:
                     description: Enable certificates validation when uploading data
                       to the License Service Reporter
                     type: boolean
+                  workloadsReportingInterval:
+                    description: Frequency of workloads reporting as cron expression.
+                      If not provided, workloads reporting is disabled.
+                    type: string
                 type: object
               version:
                 description: Version

@@ -186,6 +186,11 @@ type IBMLicensingSenderSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Cluster ID",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	ClusterID string `json:"clusterID,omitempty"`
+
+	// Frequency of workloads reporting as cron expression. If not provided, workloads reporting is disabled.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Workloads Reporting Frequency",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	WorkloadsReportingInterval string `json:"workloadsReportingInterval,omitempty"`
 }
 
 type IBMLicensingSecurityContext struct {

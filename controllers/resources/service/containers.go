@@ -184,6 +184,15 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			}...)
 		}
 
+		if spec.Sender.WorkloadsReportingInterval != "" {
+			environmentVariables = append(environmentVariables, []corev1.EnvVar{
+				{
+					Name:  "SENDER_WORKLOADS_INTERVAL",
+					Value: spec.Sender.WorkloadsReportingInterval,
+				},
+			}...)
+		}
+
 	}
 
 	if spec.EnvVariable != nil {
