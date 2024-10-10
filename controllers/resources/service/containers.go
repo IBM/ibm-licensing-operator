@@ -190,6 +190,10 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 					Name:  "SENDER_WORKLOADS_INTERVAL",
 					Value: spec.Sender.WorkloadsReportingInterval,
 				},
+				{
+					Name:  "ENABLE_WORKLOADS_REPORTING",
+					Value: "true",
+				},
 			}...)
 		}
 
