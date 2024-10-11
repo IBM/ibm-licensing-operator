@@ -193,10 +193,6 @@ func (spec *IBMLicensingSpec) IsChargebackEnabled() bool {
 	return spec.ChargebackEnabled != nil && *spec.ChargebackEnabled
 }
 
-func (spec *IBMLicensingSpec) IsWorkloadsReportingEnabled() bool {
-	return spec.Sender.WorkloadsReportingInterval != ""
-}
-
 func (container *Container) initResourcesIfNil() {
 	if container.Resources.Limits == nil {
 		container.Resources.Limits = corev1.ResourceList{}

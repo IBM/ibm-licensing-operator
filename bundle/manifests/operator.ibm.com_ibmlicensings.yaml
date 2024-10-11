@@ -366,6 +366,12 @@ spec:
                       system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME
                       at Operand level
                     type: string
+                  frequency:
+                    description: Frequency of workloads scans as cron expression.
+                      If not provided, workloads reporting is disabled.
+                    pattern: (@(annually|yearly|monthly|weekly|daily|midnight|hourly))|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*)
+                      ?){5,7})
+                    type: string
                   reporterCertsSecretName:
                     description: Name of the secret that contains the License Service
                       Reporter certificate(s) used to establish a secure connection
@@ -383,10 +389,6 @@ spec:
                     description: Enable certificates validation when uploading data
                       to the License Service Reporter
                     type: boolean
-                  workloadsReportingInterval:
-                    description: Frequency of workloads reporting as cron expression.
-                      If not provided, workloads reporting is disabled.
-                    type: string
                 type: object
               version:
                 description: Version
