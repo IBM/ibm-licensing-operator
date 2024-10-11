@@ -55,15 +55,13 @@ func RestartOnCRDCreation(logger *logr.Logger, reader c.Reader, foundRes c.Objec
 	resType := reflect.TypeOf(foundRes)
 	reqLogger := logger.WithValues("action", "Checking for "+resType.String()+" CRD existence")
 	maxRetries := 10000
-	retryCount := 0
 
-	for retryCount < maxRetries {
+	for retryCount := 0; retryCount < maxRetries; retryCount++ {
 		if isCrdExists, _ := DoesCRDExist(reader, foundRes); isCrdExists {
 			reqLogger.Info(resType.String() + " CRD found on cluster. Operator will be restarted to enable handling it")
 			os.Exit(0)
 		}
 		time.Sleep(reconcileInterval)
-		retryCount++
 	}
 
 	// If we reach the maximum retries, log an error message and exit with error
