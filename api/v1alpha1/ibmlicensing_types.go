@@ -188,7 +188,7 @@ type IBMLicensingSenderSpec struct {
 	ClusterID string `json:"clusterID,omitempty"`
 
 	// Frequency of workloads scans as cron expression. If not provided, workloads reporting is disabled.
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Workloads Reporting Frequency",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Workloads Reporting Frequency",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:text","urn:alm:descriptor:io.kubernetes:custom"}
 	// +kubebuilder:validation:Pattern:=`(@(annually|yearly|monthly|weekly|daily|midnight|hourly))|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})`
 	// +optional
 	Frequency string `json:"frequency,omitempty"`
