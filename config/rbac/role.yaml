@@ -36,6 +36,7 @@ rules:
   resources:
   - operandrequests
   - operandrequests/finalizers
+  - operandrequests/status
   verbs:
   - get
   - list

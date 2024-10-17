@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 
 	"github.com/go-logr/logr"
@@ -81,11 +82,58 @@ func ignoreDeletionPredicate() predicate.Predicate {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 
-// +kubebuilder:rbac:groups=operator.ibm.com,resources=operandrequests;operandrequests/finalizers,verbs=get;list;patch;update;watch
+// +kubebuilder:rbac:groups=operator.ibm.com,resources=operandrequests;operandrequests/finalizers;operandrequests/status,verbs=get;list;patch;update;watch
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 
-func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+/*
+UpdateOperandRequestWithPhase sets a specific phase of the operand request's member field.
 
+This is different to the overall request phase, as we only care about settings phases of related bindings.
+
+This function may return an error for example if the Update API call doesn't work. Licensing does not have permissions
+to recreate a resource (delete + create) and only patching/updating is supported.
+*/
+func (r *OperandRequestReconciler) UpdateOperandRequestWithPhase(
+	reqLogger logr.Logger,
+	operandRequest *odlm.OperandRequest,
+	phase odlm.ServicePhase,
+) {
+	reqLogger.Info(fmt.Sprintf("Updating %s operand request with phase %s", operandRequest.Name, phase))
+
+	shouldAddMember := true
+	for index, member := range operandRequest.Status.Members {
+		if member.Name == res.OperatorName {
+			operandRequest.Status.Members[index].Phase = odlm.MemberPhase{
+				OperatorPhase: member.Phase.OperatorPhase,
+				OperandPhase:  phase,
+			}
+			shouldAddMember = false
+			break
+		}
+	}
+
+	// No member status for licensing was found, so add it
+	if shouldAddMember {
+		operandRequest.Status.Members = append(operandRequest.Status.Members, odlm.MemberStatus{
+			Name: res.OperatorName,
+			Phase: odlm.MemberPhase{
+				OperandPhase: phase,
+			},
+		})
+	}
+
+	// Updating status requires the Status() call, otherwise the resource's status will not be updated
+	if err := r.Client.Status().Update(context.Background(), operandRequest); err != nil {
+		reqLogger.Error(
+			err,
+			"Couldn't update operand request status (this may cause some dependent components to fail)",
+			"Name", operandRequest.Name,
+			"Phase", phase,
+		)
+	}
+}
+
+func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	reqLogger := r.Log.WithValues("operandrequest", req.NamespacedName)
 
 	if err := res.UpdateCacheClusterExtensions(r.Reader); err != nil {
@@ -111,6 +159,10 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		var err error
 		for _, operand := range request.Operands {
 			if operand.Name == res.OperatorName {
+				r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceCreating)
+
+				// In case something failed but requeue was not requested
+				operandRequestFailedCopy := false
 
 				for key, binding := range operand.Bindings {
 					if key == "public-api-data" {
@@ -131,6 +183,8 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				requeueTokenSec, err = r.copySecret(ctx, req, svcres.LicensingToken, tokenSecretName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
 					reqLogger.Error(err, "Cannot copy Secret", "name", svcres.LicensingToken, "namespace", operandRequest.Namespace)
+					operandRequestFailedCopy = true
+					r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceFailed)
 				}
 				if requeueTokenSec {
 					return reconcile.Result{Requeue: true}, err
@@ -139,6 +193,8 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				requeueToken2Sec, err = r.copySecret(ctx, req, svcres.LicensingToken, tokenSecretName2, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
 					reqLogger.Error(err, "Cannot copy Secret", "name", svcres.LicensingToken, "namespace", operandRequest.Namespace)
+					operandRequestFailedCopy = true
+					r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceFailed)
 				}
 				if requeueToken2Sec {
 					return reconcile.Result{Requeue: true}, err
@@ -147,6 +203,8 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				requeueUploadSec, err = r.copySecret(ctx, req, svcres.LicensingUploadToken, uploadTokenName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
 					reqLogger.Error(err, "Cannot copy Secret", "name", svcres.LicensingUploadToken, "namespace", operandRequest.Namespace)
+					operandRequestFailedCopy = true
+					r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceFailed)
 				}
 				if requeueUploadSec {
 					return reconcile.Result{Requeue: true}, err
@@ -155,6 +213,8 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				requeueInfoCm, err = r.copyConfigMap(ctx, req, svcres.LicensingInfo, infoConfigMapName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
 					reqLogger.Error(err, "Cannot copy ConfigMap", svcres.LicensingInfo, "namespace", operandRequest.Namespace)
+					operandRequestFailedCopy = true
+					r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceFailed)
 				}
 				if requeueInfoCm {
 					return reconcile.Result{Requeue: true}, err
@@ -163,9 +223,18 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				requeueUploadCm, err = r.copyConfigMap(ctx, req, svcres.LicensingUploadConfig, uploadConfigName, r.OperatorNamespace, operandRequest.Namespace, &operandRequest)
 				if err != nil {
 					reqLogger.Error(err, "Cannot copy ConfigMap", "name", svcres.LicensingUploadConfig, "namespace", operandRequest.Namespace)
+					operandRequestFailedCopy = true
+					r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceFailed)
 				}
 				if requeueUploadCm {
 					return reconcile.Result{Requeue: true}, err
+				}
+
+				// Set the status as Running - the operand request has provided all requested objects
+				// Any status could be chosen here, but to avoid confusion with updates/creation, Running is used
+				// IBM License Service Scanner is also expecting this status here when reconciling connection to License Service
+				if !operandRequestFailedCopy {
+					r.UpdateOperandRequestWithPhase(reqLogger, &operandRequest, odlm.ServiceRunning)
 				}
 			}
 		}
