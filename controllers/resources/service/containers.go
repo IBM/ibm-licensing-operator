@@ -184,6 +184,16 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			}...)
 		}
 
+		// If workloads reporting feature is enabled, pass the env vars marking this to the operand
+		if spec.Sender.Frequency != "" {
+			environmentVariables = append(environmentVariables, []corev1.EnvVar{
+				{
+					Name:  "SENDER_WORKLOADS_INTERVAL",
+					Value: spec.Sender.Frequency,
+				},
+			}...)
+		}
+
 	}
 
 	if spec.EnvVariable != nil {
