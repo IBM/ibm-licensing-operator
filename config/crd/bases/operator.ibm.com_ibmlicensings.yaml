@@ -70,6 +70,9 @@ spec:
                 - metering
                 - datacollector
                 type: string
+              enableInstanaMetricCollection:
+                description: Enabling collection of Instana metrics
+                type: boolean
               envVariable:
                 additionalProperties:
                   type: string

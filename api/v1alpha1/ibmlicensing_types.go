@@ -153,6 +153,10 @@ type IBMLicensingSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Annotations"
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// Enabling collection of Instana metrics
+	// +optional
+	EnableInstanaMetricCollection bool `json:"enableInstanaMetricCollection,omitempty"`
 }
 
 type IBMLicensingSenderSpec struct {
