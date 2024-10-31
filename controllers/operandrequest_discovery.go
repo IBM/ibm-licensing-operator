@@ -106,7 +106,7 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 }
 
 // This check is added because of the edge case scenario which is described in: https://jsw.ibm.com/browse/ILS-233
-// It can happen that there is an OperandRequest in a non-existent namespace, which causes LS operator to restart constantly
+// It can happen that there is an OperandRequest in a non-existent namespace, which causes LS operator to restart constantly. Such scenario was found when namespace was force deleted, while OperandRequest had pending finalization due to removed Pod providing finalization logic
 // To prevent such case, we are additionally checking if the namespace actually exists when processing OperandRequests
 func checkIfOperandRequestNamespaceIsValid(logger *logr.Logger, reader c.Reader, operandRequest odlm.OperandRequest) bool {
 	if namespaceExists, err := namespaceExists(reader, operandRequest.Namespace); err != nil {
