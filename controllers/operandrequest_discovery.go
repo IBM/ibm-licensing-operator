@@ -74,6 +74,9 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 
 		namespaceListToExtend = []string{}
 		for _, operandRequest := range operandRequestList.Items {
+			if checkIfOperandRequestNamespaceIsValid(logger, reader, operandRequest) {
+				continue
+			}
 			if hasBinding := res.HasOperandRequestBindingForLicensing(operandRequest); hasBinding {
 				if !slices.Contains(watchNamespace, operandRequest.Namespace) && !slices.Contains(namespaceListToExtend, operandRequest.Namespace) {
 					logger.Info("OperandRequest for "+res.OperatorName+" detected. IBMLicensing OperatorGroup will be extended", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
@@ -100,4 +103,18 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 
 		time.Sleep(30 * time.Second)
 	}
+}
+
+// This check is added because of the edge case scenario which is described in: https://jsw.ibm.com/browse/ILS-233
+// It can happen that there is an OperandRequest in a non-existent namespace, which causes LS operator to restart constantly
+// To prevent such case, we are additionally checking if the namespace actually exists when processing OperandRequests
+func checkIfOperandRequestNamespaceIsValid(logger *logr.Logger, reader c.Reader, operandRequest odlm.OperandRequest) bool {
+	if namespaceExists, err := namespaceExists(reader, operandRequest.Namespace); err != nil {
+		logger.Error(err, "Failed to check namespace existence: "+operandRequest.Namespace)
+		return false
+	} else if !namespaceExists {
+		logger.Info("OperandRequest's namespace was not found in the cluster. It will not be added to OperatorGroup", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
+		return false
+	}
+	return true
 }
