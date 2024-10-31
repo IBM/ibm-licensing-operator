@@ -74,7 +74,7 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 
 		namespaceListToExtend = []string{}
 		for _, operandRequest := range operandRequestList.Items {
-			if checkIfOperandRequestNamespaceIsValid(logger, reader, operandRequest) {
+			if !checkIfOperandRequestNamespaceIsValid(logger, reader, operandRequest) {
 				continue
 			}
 			if hasBinding := res.HasOperandRequestBindingForLicensing(operandRequest); hasBinding {
