@@ -18,10 +18,13 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/strings/slices"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
@@ -111,13 +114,31 @@ Such scenario was found when namespace was force deleted, while OperandRequest h
 To prevent such case, we are additionally checking if the namespace actually exists when processing OperandRequests
 */
 func isOperandRequestNamespaceValid(logger *logr.Logger, reader c.Reader, operandRequest odlm.OperandRequest) bool {
-	exists, err := namespaceExists(reader, operandRequest.Namespace)
-	if err != nil {
+	if exists, err := namespaceExists(reader, operandRequest.Namespace); err != nil {
 		logger.Error(err, "Failed to check namespace existence: "+operandRequest.Namespace)
 		return false
 	} else if !exists {
 		logger.Info("OperandRequest's namespace was not found in the cluster. It will not be added to OperatorGroup", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
 		return false
 	}
+	if active, err := namespaceActive(reader, operandRequest.Namespace); err != nil {
+		logger.Error(err, "Failed to check if namespace is active: "+operandRequest.Namespace)
+		return false
+	} else if !active {
+		logger.Info("OperandRequest's namespace is not active. It will not be added to OperatorGroup", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
+		return false
+	}
 	return true
+}
+
+/*
+Checks if namespace is in active phase.
+*/
+func namespaceActive(reader client.Reader, ns string) (bool, error) {
+	namespace := &corev1.Namespace{}
+	err := reader.Get(context.Background(), client.ObjectKey{Name: ns}, namespace)
+	if err != nil {
+		return false, fmt.Errorf("failed to get namespace: %w", err)
+	}
+	return namespace.Status.Phase == corev1.NamespaceActive, nil
 }
