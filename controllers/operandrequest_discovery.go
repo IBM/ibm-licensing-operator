@@ -74,6 +74,9 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 
 		namespaceListToExtend = []string{}
 		for _, operandRequest := range operandRequestList.Items {
+			if !isOperandRequestNamespaceValid(logger, reader, operandRequest) {
+				continue
+			}
 			if hasBinding := res.HasOperandRequestBindingForLicensing(operandRequest); hasBinding {
 				if !slices.Contains(watchNamespace, operandRequest.Namespace) && !slices.Contains(namespaceListToExtend, operandRequest.Namespace) {
 					logger.Info("OperandRequest for "+res.OperatorName+" detected. IBMLicensing OperatorGroup will be extended", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
@@ -100,4 +103,21 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 
 		time.Sleep(30 * time.Second)
 	}
+}
+
+/*
+It can happen that there is an OperandRequest in a non-existent namespace, which causes LS operator to restart constantly.
+Such scenario was found when namespace was force deleted, while OperandRequest had pending finalization due to removed Pod providing finalization logic.
+To prevent such case, we are additionally checking if the namespace actually exists when processing OperandRequests
+*/
+func isOperandRequestNamespaceValid(logger *logr.Logger, reader c.Reader, operandRequest odlm.OperandRequest) bool {
+	exists, err := namespaceExists(reader, operandRequest.Namespace)
+	if err != nil {
+		logger.Error(err, "Failed to check namespace existence: "+operandRequest.Namespace)
+		return false
+	} else if !exists {
+		logger.Info("OperandRequest's namespace was not found in the cluster. It will not be added to OperatorGroup", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
+		return false
+	}
+	return true
 }
