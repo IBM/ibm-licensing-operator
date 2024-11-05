@@ -221,6 +221,13 @@ spec:
         path: sender.reporterURL
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Frequency of workloads scans as cron expression. If not provided,
+          workloads reporting is disabled.
+        displayName: Frequency
+        path: sender.frequency
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:hidden
       version: v1alpha1
     - description: 'IBMLicensingMetadata is the schema for IBM License Service. Thanks
         to IBMLicensingMetadata, you can track the license usage of Virtual Processor

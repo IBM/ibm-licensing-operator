@@ -41,6 +41,10 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Name:  "HTTPS_ENABLE",
 			Value: httpsEnableString,
 		},
+		{
+			Name:  "ENABLE_INSTANA_METRIC_COLLECTION",
+			Value: strconv.FormatBool(spec.EnableInstanaMetricCollection),
+		},
 	}
 	if spec.IsDebug() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
