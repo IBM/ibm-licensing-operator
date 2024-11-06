@@ -111,18 +111,11 @@ Such scenario was found when namespace was force deleted, while OperandRequest h
 To prevent such case, we are additionally checking if the namespace actually exists when processing OperandRequests
 */
 func isOperandRequestNamespaceValid(logger *logr.Logger, reader c.Reader, operandRequest odlm.OperandRequest) bool {
-	if exists, err := namespaceExists(reader, operandRequest.Namespace); err != nil {
+	if namespaceActive, err := namespaceActive(reader, operandRequest.Namespace); err != nil {
 		logger.Error(err, "Failed to check namespace existence: "+operandRequest.Namespace)
 		return false
-	} else if !exists {
-		logger.Info("OperandRequest's namespace was not found in the cluster. It will not be added to OperatorGroup", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
-		return false
-	}
-	if active, err := namespaceActive(reader, operandRequest.Namespace); err != nil {
-		logger.Error(err, "Failed to check if namespace is active: "+operandRequest.Namespace)
-		return false
-	} else if !active {
-		logger.Info("OperandRequest's namespace is not active. It will not be added to OperatorGroup", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
+	} else if !namespaceActive {
+		logger.Info("OperandRequest's namespace was not found in the cluster or is terminating. It will not be added to OperatorGroup", "OperandRequest", operandRequest.Name, "Namespace", operandRequest.Namespace)
 		return false
 	}
 	return true

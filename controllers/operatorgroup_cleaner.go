@@ -75,51 +75,35 @@ func removeStaleNamespacesFromOperatorGroup(logger *logr.Logger, client client.C
 
 	var namespacesToRemove []string
 	for _, ns := range watchNamespaces {
-		if namespaceExists, err := namespaceExists(reader, ns); err != nil {
+		if namespaceActive, err := namespaceActive(reader, ns); err != nil {
 			logger.Error(err, "Failed to check namespace existence: "+ns)
 			return
-		} else if !namespaceExists {
+		} else if !namespaceActive {
 			namespacesToRemove = append(namespacesToRemove, ns)
-			logger.Info("Namespace does not exist: " + ns + " Namespace marked to remove.")
-		} else if active, err := namespaceActive(reader, ns); err != nil {
-			logger.Error(err, "Failed to check if namespace is active: "+ns)
-			return
-		} else if !active {
-			namespacesToRemove = append(namespacesToRemove, ns)
-			logger.Info("Namespace is not active: " + ns + " Namespace marked to remove.")
+			logger.Info("Namespace does not exist or is terminating: " + ns + " Namespace marked to remove.")
 		}
 	}
-
 	if err = removeNamespaceFromOperatorGroup(logger, client, reader, operatorNamespace, namespacesToRemove); err != nil {
 		logger.Error(err, "Failed to remove stale namespaces from OperatorGroup")
 	}
 }
 
 /*
-Checks if namespace with given name exits in the cluster.
-*/
-func namespaceExists(reader client.Reader, ns string) (bool, error) {
-	namespace := &corev1.Namespace{}
-	err := reader.Get(context.Background(), client.ObjectKey{Name: ns}, namespace)
-	if err != nil {
-		if client.IgnoreNotFound(err) != nil {
-			return true, err
-		}
-		return false, nil
-	}
-	return true, nil
-}
-
-/*
-Checks if namespace is in active phase.
+Checks if namespace with given name exits and is active in the cluster.
 */
 func namespaceActive(reader client.Reader, ns string) (bool, error) {
 	namespace := &corev1.Namespace{}
 	err := reader.Get(context.Background(), client.ObjectKey{Name: ns}, namespace)
+
 	if err != nil {
-		return false, fmt.Errorf("failed to get namespace: %w", err)
+		if client.IgnoreNotFound(err) != nil {
+			return false, err
+		}
+		return false, nil
 	}
-	return namespace.Status.Phase == corev1.NamespaceActive, nil
+
+	isActive := namespace.Status.Phase == corev1.NamespaceActive
+	return isActive, nil
 }
 
 /*
