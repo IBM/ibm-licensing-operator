@@ -81,6 +81,12 @@ func removeStaleNamespacesFromOperatorGroup(logger *logr.Logger, client client.C
 		} else if !namespaceExists {
 			namespacesToRemove = append(namespacesToRemove, ns)
 			logger.Info("Namespace does not exist: " + ns + " Namespace marked to remove.")
+		} else if active, err := namespaceActive(reader, ns); err != nil {
+			logger.Error(err, "Failed to check if namespace is active: "+ns)
+			return
+		} else if !active {
+			namespacesToRemove = append(namespacesToRemove, ns)
+			logger.Info("Namespace is not active: " + ns + " Namespace marked to remove.")
 		}
 	}
 
@@ -102,6 +108,18 @@ func namespaceExists(reader client.Reader, ns string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+/*
+Checks if namespace is in active phase.
+*/
+func namespaceActive(reader client.Reader, ns string) (bool, error) {
+	namespace := &corev1.Namespace{}
+	err := reader.Get(context.Background(), client.ObjectKey{Name: ns}, namespace)
+	if err != nil {
+		return false, fmt.Errorf("failed to get namespace: %w", err)
+	}
+	return namespace.Status.Phase == corev1.NamespaceActive, nil
 }
 
 /*

@@ -18,13 +18,10 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/strings/slices"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
@@ -129,16 +126,4 @@ func isOperandRequestNamespaceValid(logger *logr.Logger, reader c.Reader, operan
 		return false
 	}
 	return true
-}
-
-/*
-Checks if namespace is in active phase.
-*/
-func namespaceActive(reader client.Reader, ns string) (bool, error) {
-	namespace := &corev1.Namespace{}
-	err := reader.Get(context.Background(), client.ObjectKey{Name: ns}, namespace)
-	if err != nil {
-		return false, fmt.Errorf("failed to get namespace: %w", err)
-	}
-	return namespace.Status.Phase == corev1.NamespaceActive, nil
 }
