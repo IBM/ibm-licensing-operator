@@ -80,7 +80,7 @@ func removeStaleNamespacesFromOperatorGroup(logger *logr.Logger, client client.C
 			return
 		} else if !namespaceActive {
 			namespacesToRemove = append(namespacesToRemove, ns)
-			logger.Info("Namespace does not exist or is terminating: " + ns + " Namespace marked to remove.")
+			logger.Info("Namespace does not exist or is terminating: " + ns + " Namespace marked for removal.")
 		}
 	}
 	if err = removeNamespaceFromOperatorGroup(logger, client, reader, operatorNamespace, namespacesToRemove); err != nil {
@@ -93,17 +93,10 @@ Checks if namespace with given name exits and is active in the cluster.
 */
 func namespaceActive(reader client.Reader, ns string) (bool, error) {
 	namespace := &corev1.Namespace{}
-	err := reader.Get(context.Background(), client.ObjectKey{Name: ns}, namespace)
-
-	if err != nil {
-		if client.IgnoreNotFound(err) != nil {
-			return false, err
-		}
-		return false, nil
+	if err := reader.Get(context.Background(), client.ObjectKey{Name: ns}, namespace); err != nil {
+		return false, err
 	}
-
-	isActive := namespace.Status.Phase == corev1.NamespaceActive
-	return isActive, nil
+	return namespace.Status.Phase == corev1.NamespaceActive, nil
 }
 
 /*
