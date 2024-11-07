@@ -23,6 +23,7 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/utils/strings/slices"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -94,7 +95,7 @@ Checks if namespace with given name exits and is active in the cluster.
 func namespaceActive(reader client.Reader, ns string) (bool, error) {
 	namespace := &corev1.Namespace{}
 	if err := reader.Get(context.Background(), client.ObjectKey{Name: ns}, namespace); err != nil {
-		if client.IgnoreNotFound(err) != nil {
+		if apierrors.IsNotFound(err) {
 			return false, nil
 		}
 		return false, err
