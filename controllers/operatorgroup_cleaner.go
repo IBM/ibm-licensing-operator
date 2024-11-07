@@ -94,6 +94,9 @@ Checks if namespace with given name exits and is active in the cluster.
 func namespaceActive(reader client.Reader, ns string) (bool, error) {
 	namespace := &corev1.Namespace{}
 	if err := reader.Get(context.Background(), client.ObjectKey{Name: ns}, namespace); err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			return false, nil
+		}
 		return false, err
 	}
 	return namespace.Status.Phase == corev1.NamespaceActive, nil
