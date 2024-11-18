@@ -45,7 +45,7 @@ type IBMLicensingDefinitionSpec struct {
 	// List of annotations that matched pod would be extended
 	Set map[string]string `json:"set"`
 
-	// List of annotations that will be removed from matched pod
+	// List of annotation keys that will be removed from matched pod
 	Remove []string `json:"remove"`
 }
 
