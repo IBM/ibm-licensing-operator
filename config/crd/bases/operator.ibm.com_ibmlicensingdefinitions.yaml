@@ -64,6 +64,12 @@ spec:
                         type: object
                     type: object
                 type: object
+              remove:
+                description: List of annotation keys that will be removed from matched
+                  pod
+                items:
+                  type: string
+                type: array
               scope:
                 description: Scope of Custom Resource
                 enum:
@@ -77,6 +83,7 @@ spec:
             required:
             - action
             - condition
+            - remove
             - scope
             - set
             type: object
