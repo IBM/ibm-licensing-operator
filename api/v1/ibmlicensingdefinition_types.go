@@ -43,10 +43,10 @@ type IBMLicensingDefinitionSpec struct {
 	Scope string `json:"scope"`
 
 	// List of annotations that matched pod would be extended
-	Set map[string]string `json:"set"`
+	Set map[string]string `json:"set,omitempty"`
 
 	// List of annotation keys that will be removed from matched pod
-	Remove []string `json:"remove"`
+	Remove []string `json:"remove,omitempty"`
 }
 
 // IBMLicensingDefinitionStatus defines the observed state of IBMLicensingDefinition
