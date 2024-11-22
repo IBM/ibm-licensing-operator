@@ -1,0 +1,8 @@
+apiVersion: v2
+name: applications
+description: IBM Licensing components as ArgoCD Applications
+type: application
+
+# Match licensing versioning
+version: 4.2.10
+appVersion: 4.2.10

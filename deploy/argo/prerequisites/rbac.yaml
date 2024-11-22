@@ -1,0 +1,44 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ibm-licensing-scanner-prereq-role
+  namespace: ibm-licensing-scanner
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - serviceaccounts
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ibm-licensing-scanner-prereq-rolebinding
+  namespace: ibm-licensing-scanner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ibm-licensing-scanner-prereq-role
+subjects:
+  - kind: ServiceAccount
+    name: openshift-gitops-argocd-application-controller
+    namespace: openshift-gitops

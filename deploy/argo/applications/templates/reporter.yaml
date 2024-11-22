@@ -1,0 +1,24 @@
+{{- if not .Values.renderParentApplicationOnly -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ibm-license-service-reporter
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.spec.project }}
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: ibm-licensing-reporter
+  source:
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+    path: components/reporter
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
+{{- end -}}
