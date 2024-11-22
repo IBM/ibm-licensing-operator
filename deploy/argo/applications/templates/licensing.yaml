@@ -14,7 +14,7 @@ spec:
   source:
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}
-    path: components/licensing
+    path: deploy/argo/components/licensing
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
