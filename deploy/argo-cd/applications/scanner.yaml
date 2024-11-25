@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: "https://github.com/IBM/ibm-licensing-operator"
     targetRevision: "ILS-59_add-argo"
-    path: deploy/argo/components/scanner
+    path: deploy/argo-cd/components/scanner
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
