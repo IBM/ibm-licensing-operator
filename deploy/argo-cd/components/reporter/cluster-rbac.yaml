@@ -50,3 +50,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-reporter-operator
+    namespace: ibm-licensing-reporter
