@@ -6,3 +6,6 @@ update-version:
 
 	# All matched versions in the components directory
 	find ./components -type f -exec sed -i "" "s/$(CURRENT_VERSION)/$(NEW_VERSION)/g" {} +
+
+	# All matched versions in the preprequisites directory
+	find ./preprequisites -type f -exec sed -i "" "s/$(CURRENT_VERSION)/$(NEW_VERSION)/g" {} +

@@ -19,17 +19,17 @@ Below are instructions on how to provision and configure a cluster for IBM Licen
 [RedHat documentation](https://docs.openshift.com/gitops/1.14/installing_gitops/installing-openshift-gitops.html)
 for more information):
 
-![install-red-hat-openshift-gitops-step-1](docs/assets/install-red-hat-openshift-gitops-step-1.png)
-![install-red-hat-openshift-gitops-step-2](docs/assets/install-red-hat-openshift-gitops-step-2.png)
+![install-red-hat-openshift-gitops-step-1](docs/images/install-red-hat-openshift-gitops-step-1.png)
+![install-red-hat-openshift-gitops-step-2](docs/images/install-red-hat-openshift-gitops-step-2.png)
 
 2. Access *ArgoCD* UI:
 
-![argo-cd-ui-step-1.png](docs/assets/argo-cd-ui-step-1.png)
-![argo-cd-ui-step-2.png](docs/assets/argo-cd-ui-step-2.png)
+![argo-cd-ui-step-1.png](docs/images/argo-cd-ui-step-1.png)
+![argo-cd-ui-step-2.png](docs/images/argo-cd-ui-step-2.png)
 
 3. Log in via *OpenShift* and check the Applications screen is accessible:
 
-![applications-screen.png](docs/assets/applications-screen.png)
+![applications-screen.png](docs/images/applications-screen.png)
 
 ### Apply prerequisites
 
@@ -60,8 +60,8 @@ oc project openshift-gitops & helm template ./applications -f ./applications/val
 ```
 
 ArgoCD will deploy IBM Licensing components following the app-of-apps pattern:
-![app-of-apps-screen-1.png](docs/assets/app-of-apps-screen-1.png)
-![app-of-apps-screen-2.png](docs/assets/app-of-apps-screen-2.png)
+![app-of-apps-screen-1.png](docs/images/app-of-apps-screen-1.png)
+![app-of-apps-screen-2.png](docs/images/app-of-apps-screen-2.png)
 
 If you want to deploy applications separately, please apply selected `yaml` files from the collection generated through
 the following command:
@@ -70,7 +70,7 @@ oc project openshift-gitops & helm template ./applications | oc apply -f -
 ```
 
 The result is similar, but without the parent app:
-![no-parent-app.png](docs/assets/no-parent-app.png)
+![no-parent-app.png](docs/images/no-parent-app.png)
 
 The ArgoCD installation should be complete for a basic scenario. Please refer to the documentation of each component for
 further configuration options. Please note that *IBM License Service Scanner* is not yet officially documented. Please
