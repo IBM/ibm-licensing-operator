@@ -10,6 +10,7 @@ metadata:
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
     control-plane: ibm-license-service-reporter-operator
   name: ibm-license-service-reporter-operator
+  namespace: ibm-licensing-reporter
 spec:
   replicas: 1
   selector:
