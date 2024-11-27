@@ -2,7 +2,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: ibm-license-service-reporter
-  namespace: ibm-licensing-reporter
 rules:
   - apiGroups:
       - ""
@@ -25,7 +24,6 @@ metadata:
     app.kubernetes.io/name: role
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
   name: leader-election-role
-  namespace: ibm-licensing-reporter
 rules:
   - apiGroups:
       - ""
@@ -63,7 +61,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: manager-role
-  namespace: ibm-licensing-reporter
 rules:
   - apiGroups:
       - ""
@@ -151,7 +148,6 @@ metadata:
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
   name: ibm-license-service-reporter
-  namespace: ibm-licensing-reporter
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -159,7 +155,6 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-reporter
-    namespace: ibm-licensing-reporter
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -172,7 +167,6 @@ metadata:
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
   name: leader-election-rolebinding
-  namespace: ibm-licensing-reporter
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -180,7 +174,6 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-reporter-operator
-    namespace: ibm-licensing-reporter
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -193,7 +186,6 @@ metadata:
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
   name: manager-rolebinding
-  namespace: ibm-licensing-reporter
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -201,4 +193,3 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-reporter-operator
-    namespace: ibm-licensing-reporter

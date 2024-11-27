@@ -9,7 +9,6 @@ metadata:
     app.kubernetes.io/name: role
     app.kubernetes.io/part-of: ibm-licensing-scanner-operator
   name: ibm-licensing-scanner-leader-election-role
-  namespace: ibm-licensing-scanner
 rules:
   - apiGroups:
       - ""
@@ -47,7 +46,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: ibm-licensing-scanner-operand-role
-  namespace: ibm-licensing-scanner
 rules:
   - apiGroups:
       - ""
@@ -70,7 +68,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: ibm-licensing-scanner-operator-role
-  namespace: ibm-licensing-scanner
 rules:
   - apiGroups:
       - ""
@@ -147,7 +144,6 @@ metadata:
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: ibm-licensing-scanner-operator
   name: ibm-licensing-scanner-leader-election-role-binding
-  namespace: ibm-licensing-scanner
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -155,7 +151,6 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-scanner-operator-service-account
-    namespace: ibm-licensing-scanner
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -168,7 +163,6 @@ metadata:
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: ibm-licensing-scanner-operator
   name: ibm-licensing-scanner-operand-role-binding
-  namespace: ibm-licensing-scanner
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -176,7 +170,6 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-scanner-operand-service-account
-    namespace: ibm-licensing-scanner
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -189,7 +182,6 @@ metadata:
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: ibm-licensing-scanner-operator
   name: ibm-licensing-scanner-operator-role-binding
-  namespace: ibm-licensing-scanner
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -197,4 +189,3 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-scanner-operator-service-account
-    namespace: ibm-licensing-scanner
