@@ -9,14 +9,11 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: ibm-licensing-reporter
   source:
     repoURL: "https://github.com/IBM/ibm-licensing-operator"
     targetRevision: "ILS-59_add-argo"
     path: deploy/argo-cd/components/reporter
   syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
     automated:
       prune: true
       selfHeal: true

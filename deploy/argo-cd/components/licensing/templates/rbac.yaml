@@ -3,6 +3,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: ibm-licensing-operator
+  namespace: {{ .Values.namespace }}
 rules:
 - apiGroups:
   - ""
@@ -150,6 +151,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: ibm-license-service
+  namespace: {{ .Values.namespace }}
 rules:
   - apiGroups:
       - ""
@@ -165,6 +167,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: ibm-license-service-restricted
+  namespace: {{ .Values.namespace }}
 rules:
   - apiGroups:
       - ""
@@ -202,9 +205,11 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: ibm-licensing-operator
+  namespace: {{ .Values.namespace }}
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-operator
+    namespace: {{ .Values.namespace }}
 roleRef:
   kind: Role
   name: ibm-licensing-operator
@@ -214,9 +219,11 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: ibm-license-service
+  namespace: {{ .Values.namespace }}
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service
+    namespace: {{ .Values.namespace }}
 roleRef:
   kind: Role
   name: ibm-license-service
@@ -229,7 +236,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service
-    namespace: ibm-licensing
+    namespace: {{ .Values.namespace }}
 roleRef:
   kind: ClusterRole
   name: ibm-license-service
@@ -239,9 +246,11 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: ibm-license-service-restricted
+  namespace: {{ .Values.namespace }}
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-restricted
+    namespace: {{ .Values.namespace }}
 roleRef:
   kind: Role
   name: ibm-license-service-restricted
