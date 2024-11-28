@@ -1,0 +1,8 @@
+apiVersion: v2
+name: scanner
+description: A Helm chart for IBM License Service Scanner ArgoCD installation
+type: application
+
+# Match IBM License Service Scanner version
+version: 4.2.10
+appVersion: 4.2.10

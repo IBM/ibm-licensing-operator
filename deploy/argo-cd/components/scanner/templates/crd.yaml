@@ -4,6 +4,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
   name: ibmlicenseservicescanners.operator.ibm.com
+  namespace: {{ .Values.namespace }}
 spec:
   group: operator.ibm.com
   names:
