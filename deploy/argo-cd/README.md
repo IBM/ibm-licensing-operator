@@ -36,14 +36,16 @@ for more information):
 There are multiple ways to apply prerequisites in your cluster. We recommend that the cluster admins review and apply
 required modifications manually, however, this can also be automated.
 
-#### Apply prerequisites' yaml files
+#### Apply the yaml files
 
 You can apply (assuming you are logged in to the cluster) all prerequisites required for IBM Licensing components
 with a simple command executed on the `prerequisites` directory:
 
 ```commandline
-oc apply -f prerequisites
+oc apply -f prerequisites --recursive
 ```
+
+Note that some values (such as namespaces or annotations) may need adjustment depending on your desired results.
 
 #### Include prerequisites as part of your ArgoCD deployment
 
@@ -54,48 +56,61 @@ resources with the `PreSync` phase.
 
 ## Installation
 
-Execute the following command (assuming you are logged in to your cluster):
+Execute the following command (assuming you are logged in to your cluster) to install all components as separate
+applications:
 ```commandline
-oc project openshift-gitops & helm template ./applications -f ./applications/values.yaml --set renderParentApplicationOnly=true | oc apply -f -
+oc project openshift-gitops & oc apply -f applications
 ```
 
-ArgoCD will deploy IBM Licensing components following the app-of-apps pattern:
-![app-of-apps-screen-1.png](docs/images/app-of-apps-screen-1.png)
-![app-of-apps-screen-2.png](docs/images/app-of-apps-screen-2.png)
+![components.png](docs/images/components.png)
 
-If you want to deploy applications separately, please apply selected `yaml` files from the collection generated through
-the following command:
+This ArgoCD installation should be complete for a basic scenario. Please refer to each component's documentation and
+below configuration section to customize your setup. Please note that *IBM License Service Scanner* is not yet
+officially documented - contact us to learn more about it.
+
+Please also note that you can also install selected components separately, for example to install *IBM License Service*
+only:
 ```commandline
-oc project openshift-gitops & helm template ./applications | oc apply -f -
+oc project openshift-gitops & oc apply -f applications/licensing.yaml
 ```
 
-The result is similar, but without the parent app:
-![no-parent-app.png](docs/images/no-parent-app.png)
+## Configuration
 
-The ArgoCD installation should be complete for a basic scenario. Please refer to the documentation of each component for
-further configuration options. Please note that *IBM License Service Scanner* is not yet officially documented. Please
-contact us to learn more about it.
+We recommend that you adjust the `Application` yaml files to configure the components' `helm` charts. Please check
+the [ArgoCD user guide](https://argo-cd.readthedocs.io/en/latest/user-guide/helm/) on `helm` for more details.
 
-## Common scenarios
+Alternatively, you may want to adjust the yaml files within the `components` directory itself, before deploying
+an `Application` targeting them. For example, you could fork this repository and adjust some custom resource
+configuration directly in the relevant file.
 
-Below are documented some sample, common issues, bundled with a description on how to solve them with ArgoCD.
+For your convenience, below are some common scenarios with examples on how to resolve provided, sample issues.
 
 ### Change target namespace
 
 By default, IBM Licensing components are installed in three different namespaces, to separate the resources and group
-them up by the component. Since the YAML files provided as part of the `components` directory do not include the
-namespace, to deploy the components to a different namespace, simply modify the ArgoCD `Application` YAML files
-(the `destination.namespace` field).
+them up by the component. Since the YAML files provided as part of the `components` directory are templated with `helm`,
+you can add the following section to the `Application` files:
 
-Depending on your cluster configuration, you may also need to adjust referenced namespaces within the `prerequisites`
-directory.
+```yaml
+source:
+  helm:
+    valuesObject:
+      namespace: my-custom-namespace
+```
+
+Alternatively, you can modify `values.yaml` file directly. Furthermore, depending on your cluster configuration,
+you may also need to adjust referenced namespaces within the `prerequisites` directory.
 
 ### Apply custom metadata
 
+TODO: Fix this description, e.g. add templating support
+
 To apply custom labels or annotations, for example to the operators' deployments, the easiest is to directly modify
-the `yaml` files in the `components` directory, before deploying the `Application`s.
+the `yaml` files in the `components` directory, before deploying the `Application`-s.
 
 ## Maintenance
+
+TODO: Fix this solution, also use {{ .Chart.version }} in the templates
 
 All `yaml` files in this repository must be kept up-to-date. Furthermore, to just update each component's versions,
 please run `make update-version CURRENT_VERSION=x NEW_VERSION=y`, replacing both env vars with their respective values.
