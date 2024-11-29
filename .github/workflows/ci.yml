@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-22.04
     # this image runs on the ubuntu 18.04 - blocker for using newer versions of dependencies
     container: 
-      image: quay.io/cicdtest/check-tool:v20241107-02723a17d
+      image: quay.io/cicdtest/check-tool:v20230711-7ad265b05
     steps:
       - name: Check Node.js and GLIBC versions
         run: |
@@ -59,7 +59,7 @@ jobs:
           ldd --version
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1  # Fetch only the latest commit
 
