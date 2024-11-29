@@ -57,7 +57,7 @@ jobs:
         run: |
           node -v
           ldd --version
-          where node
+          whereis node
           
       - name: workaround new GitHub Actions forcing usage of node20 version which requires too high GLIBC version
         run: |
