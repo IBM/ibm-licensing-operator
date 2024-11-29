@@ -51,7 +51,32 @@ jobs:
     runs-on: ubuntu-22.04
     # this image runs on the ubuntu 18.04 - blocker for using newer versions of dependencies
     container: 
-      image: quay.io/cicdtest/check-tool:v20230310-111111111
+      image: quay.io/cicdtest/check-tool:v20240711-d1227e929
+    
+    steps:
+    - name: Install Required Tools for GLIBC
+      run: |
+        apt-get update && apt-get install -y build-essential manpages-dev wget
+
+    - name: Install GLIBC 2.28
+      run: |
+        GLIBC_VERSION=2.28
+        WORKDIR=/tmp/glibc-$GLIBC_VERSION
+        mkdir -p $WORKDIR && cd $WORKDIR
+        wget http://ftp.gnu.org/gnu/libc/glibc-$GLIBC_VERSION.tar.gz
+        tar -xvzf glibc-$GLIBC_VERSION.tar.gz
+        cd glibc-$GLIBC_VERSION
+        mkdir build && cd build
+        ../configure --prefix=/usr
+        make -j$(nproc)
+        make install
+
+    - name: Set Up GLIBC
+      run: |
+        export LD_LIBRARY_PATH="/usr/lib:$LD_LIBRARY_PATH"
+        echo "/usr/lib" > /etc/ld.so.conf.d/glibc.conf
+        ldconfig  
+
     steps:
       - name: Check Node.js and GLIBC versions
         run: |
