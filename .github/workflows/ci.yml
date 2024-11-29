@@ -58,9 +58,8 @@ jobs:
           node -v
           ldd --version
 
-      # it must be v3 to avoid fetching dependencies using newer version of GLIBC
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1  # Fetch only the latest commit
 
