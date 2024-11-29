@@ -105,8 +105,3 @@ you may also need to adjust referenced namespaces within the `prerequisites` dir
 
 To apply custom labels or annotations, for example to the operators' deployments, the easiest is to directly modify
 the `yaml` files in the `components` directory, before deploying the `Application`-s.
-
-## Maintenance
-
-All `yaml` files in this repository must be kept up-to-date. Furthermore, to just update each component's versions,
-please run `make update-version CURRENT_VERSION=x NEW_VERSION=y`, replacing both env vars with their respective values.
