@@ -57,13 +57,6 @@ jobs:
         run: |
           node -v
           ldd --version
-          whereis node
-          
-      - name: workaround new GitHub Actions forcing usage of node20 version which requires too high GLIBC version
-        run: |
-          cd /__e/
-          mv node20 node20.bak
-          ln -s node16 node20
 
       - name: Checkout
         uses: actions/checkout@v3
