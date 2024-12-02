@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/managed-by: operator
     app.kubernetes.io/name: ibmlicenseservicereporter
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
-  name: ibm-license-service-reporter-instance
+  name: instance
   namespace: {{ .Values.namespace }}
 spec:
   authentication:
