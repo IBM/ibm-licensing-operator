@@ -37,6 +37,25 @@ rules:
       - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: argo-cd-manage-scanners
+  namespace: ibm-licensing-scanner
+rules:
+  - apiGroups:
+      - "operator.ibm.com"
+    resources:
+      - ibmlicenseservicescanners
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: argo-cd-manage-deployments-binding
@@ -59,6 +78,20 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: argo-cd-manage-serviceaccounts
+subjects:
+  - kind: ServiceAccount
+    name: openshift-gitops-argocd-application-controller
+    namespace: openshift-gitops
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argo-cd-manage-scanners-binding
+  namespace: ibm-licensing-scanner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: argo-cd-manage-scanners
 subjects:
   - kind: ServiceAccount
     name: openshift-gitops-argocd-application-controller
