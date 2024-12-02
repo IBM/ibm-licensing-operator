@@ -1,0 +1,20 @@
+kind: IBMLicenseServiceScanner
+apiVersion: operator.ibm.com/v1
+metadata:
+  labels:
+    app.kubernetes.io/created-by: ibm-licensing-scanner-operator
+    app.kubernetes.io/instance: ibm-licensing-scanner-instance
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ibm-licensing-scanner-instance
+    app.kubernetes.io/part-of: ibm-licensing-scanner-operator
+  name: ibm-licensing-scanner-instance
+  namespace: {{ .Values.namespace }}
+spec:
+  license:
+    accept: true
+  license-service-upload-secret: ibm-licensing-scanner-upload-secret
+  log-level: INFO
+  registry-pull-secret: ibm-licensing-scanner-registry-pull-secret
+  scan:
+    namespaces:
+      - {{ .Values.namespace }}
