@@ -43,7 +43,7 @@ metadata:
   namespace: ibm-licensing-scanner
 rules:
   - apiGroups:
-      - "operator.ibm.com"
+      - operator.ibm.com
     resources:
       - ibmlicenseservicescanners
     verbs:
