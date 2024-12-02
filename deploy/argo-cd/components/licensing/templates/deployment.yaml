@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -56,22 +57,20 @@ spec:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
             - name: CRD_RECONCILE_INTERVAL
-              value: "300" 
+              value: "300"
           image: icr.io/cpopen/ibm-licensing-operator:4.2.11
           imagePullPolicy: IfNotPresent
           name: ibm-licensing-operator
           resources:
             limits:
               cpu: 20m
-              memory: 150Mi
               ephemeral-storage: 500Mi
+              memory: 150Mi
             requests:
               cpu: 10m
-              memory: 50Mi
               ephemeral-storage: 250Mi
+              memory: 50Mi
           securityContext:
-            seccompProfile:
-              type: RuntimeDefault
             allowPrivilegeEscalation: false
             capabilities:
               drop:
@@ -79,4 +78,6 @@ spec:
             privileged: false
             readOnlyRootFilesystem: true
             runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
       serviceAccountName: ibm-licensing-operator
