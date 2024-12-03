@@ -64,9 +64,10 @@ oc project openshift-gitops & oc apply -f applications
 
 ![components.png](docs/images/components.png)
 
-This ArgoCD installation should be complete for a basic scenario. Please refer to each component's documentation and
-below configuration section to customize your setup. Please note that *IBM License Service Scanner* is not yet
-officially documented - contact us to learn more about it.
+This ArgoCD installation still requires components to be connected to each other, for example so that the Reporter's UI
+can display results from License Service. Please refer to each component's documentation and below configuration section
+to customize your setup. Please note that *IBM License Service Scanner* is not yet officially documented - contact us to
+learn more about it.
 
 Please also note that you can also install selected components separately, for example to install *IBM License Service*
 only:
