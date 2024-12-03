@@ -7,7 +7,6 @@ metadata:
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
   name: instance
-  namespace: {{ .Values.namespace }}
 spec:
   version: 4.2.11
   apiSecretToken: ibm-licensing-token
