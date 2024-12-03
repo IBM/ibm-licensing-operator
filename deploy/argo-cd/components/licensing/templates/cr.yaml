@@ -1,21 +1,4 @@
-{{/*---*/}}
-{{/*kind: IBMLicensing*/}}
-{{/*apiVersion: operator.ibm.com/v1alpha1*/}}
-{{/*metadata:*/}}
-{{/*  labels:*/}}
-{{/*    app.kubernetes.io/instance: ibm-licensing-operator*/}}
-{{/*    app.kubernetes.io/managed-by: ibm-licensing-operator*/}}
-{{/*    app.kubernetes.io/name: ibm-licensing*/}}
-{{/*  name: instance*/}}
-{{/*  annotations:*/}}
-{{/*    argocd.argoproj.io/sync-options: ServerSideApply=true  # TODO: Consider removing creation of IBMLicensing by argoCD - then no prerequs needed. But the operator doesnt create the CR itself :////*/}}
-{{/*spec:*/}}
-{{/*  version: 4.2.11*/}}
-{{/*  apiSecretToken: ibm-licensing-token*/}}
-{{/*  datasource: datacollector*/}}
-{{/*  httpsEnable: true*/}}
-{{/*  license:*/}}
-{{/*    accept: true*/}}
+
 ---
 kind: IBMLicensing
 apiVersion: operator.ibm.com/v1alpha1
