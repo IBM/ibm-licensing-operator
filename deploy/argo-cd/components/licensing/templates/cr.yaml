@@ -16,3 +16,12 @@
 {{/*  httpsEnable: true*/}}
 {{/*  license:*/}}
 {{/*    accept: true*/}}
+---
+kind: IBMLicensing
+apiVersion: operator.ibm.com/v1alpha1
+name: instance
+annotations:
+  argocd.argoproj.io/sync-options: ServerSideApply=true
+spec:
+  license:
+    accept: true
