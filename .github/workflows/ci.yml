@@ -25,10 +25,8 @@ on:
   workflow_dispatch:
     
 env:
-  GO_VERSION: "1.21"
-  GOLANGCI_LINT_VERSION: 1.56.1
-  # https://github.blog/changelog/2024-03-07-github-actions-all-actions-will-run-on-node20-instead-of-node16-by-default/
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+  GO_VERSION: "1.22"
+  GOLANGCI_LINT_VERSION: 1.62.2
 
 jobs:
 
@@ -49,9 +47,9 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-22.04
-    # this image runs on the ubuntu 18.04 - blocker for using newer versions of dependencies
+    # This image moves up to ubuntu focal and node 20.18.0.
     container: 
-      image: quay.io/cicdtest/check-tool:v20240711-d1227e929
+      image: quay.io/cicdtest/check-tool:v20241203-df2ce26d0
     steps:
       - name: Check Node.js and GLIBC versions
         run: |
@@ -60,15 +58,18 @@ jobs:
 
       # it must be v3 to avoid fetching dependencies using newer version of GLIBC
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1  # Fetch only the latest commit
 
       - name: Install golangci-lint v${{ env.GOLANGCI_LINT_VERSION }}
         run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v${{ env.GOLANGCI_LINT_VERSION }}
 
+      # add flag to get rid of the version control warning
       - name: Check
-        run: make check
+        run: |
+          go env -w GOFLAGS=-buildvcs=false
+          make check
           
   build:
     needs: detect-docs-only-changes

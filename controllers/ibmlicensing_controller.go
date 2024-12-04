@@ -262,7 +262,7 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 }
 
 func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList *operatorv1alpha1.IBMLicensingList) error {
-	if ibmlicensingList.Items == nil || len(ibmlicensingList.Items) == 0 {
+	if len(ibmlicensingList.Items) == 0 {
 		return nil
 	}
 

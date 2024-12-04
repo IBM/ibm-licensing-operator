@@ -64,6 +64,12 @@ spec:
                         type: object
                     type: object
                 type: object
+              remove:
+                description: List of annotation keys that will be removed from matched
+                  pod
+                items:
+                  type: string
+                type: array
               scope:
                 description: Scope of Custom Resource
                 enum:
@@ -78,7 +84,6 @@ spec:
             - action
             - condition
             - scope
-            - set
             type: object
             x-kubernetes-preserve-unknown-fields: true
           status:
