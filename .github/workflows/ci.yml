@@ -63,7 +63,10 @@ jobs:
           fetch-depth: 1  # Fetch only the latest commit
 
       - name: Install golangci-lint v${{ env.GOLANGCI_LINT_VERSION }}
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v${{ env.GOLANGCI_LINT_VERSION }}
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v${{ env.GOLANGCI_LINT_VERSION }}
+          working-directory: ./ibm-licensing-operator
 
       - name: Check
         run: make check
