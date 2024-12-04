@@ -66,7 +66,6 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: v${{ env.GOLANGCI_LINT_VERSION }}
-          working-directory: ./ibm-licensing-operator
 
       - name: Check
         run: make check
