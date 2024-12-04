@@ -47,7 +47,7 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-22.04
-    # this image runs on the ubuntu 18.04 - blocker for using newer versions of dependencies
+    # This image moves up to ubuntu focal and node 20.18.0.
     container: 
       image: quay.io/cicdtest/check-tool:v20241203-df2ce26d0
     steps:
@@ -58,9 +58,14 @@ jobs:
 
       # it must be v3 to avoid fetching dependencies using newer version of GLIBC
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1  # Fetch only the latest commit
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
 
       - name: Install golangci-lint v${{ env.GOLANGCI_LINT_VERSION }}
         run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v${{ env.GOLANGCI_LINT_VERSION }}
