@@ -59,7 +59,7 @@ resources with the `PreSync` phase.
 Execute the following command (assuming you are logged in to your cluster) to install all components as separate
 applications:
 ```commandline
-oc project openshift-gitops & oc apply -f applications
+oc project openshift-gitops && oc apply -f applications
 ```
 
 ![components.png](docs/images/components.png)
@@ -72,7 +72,7 @@ learn more about it.
 Please also note that you can also install selected components separately, for example to install *IBM License Service*
 only:
 ```commandline
-oc project openshift-gitops & oc apply -f applications/licensing.yaml
+oc project openshift-gitops && oc apply -f applications/licensing.yaml
 ```
 
 ## Configuration
