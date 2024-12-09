@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ibm-license-service-scanner
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: "https://github.com/IBM/ibm-licensing-operator"
+    targetRevision: "ILS-59_add-argo"
+    path: deploy/argo-cd/components/scanner
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
