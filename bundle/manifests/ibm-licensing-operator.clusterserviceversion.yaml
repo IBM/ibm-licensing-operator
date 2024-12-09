@@ -26,8 +26,8 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
+    createdAt: "2024-11-18T15:56:52Z"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.12
-    createdAt: "2024-10-21T15:30:20Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     nss.operator.ibm.com/managed-operators: ibm-licensing-operator-app
     olm.skipRange: '>=1.0.0 <4.2.12'
