@@ -9,3 +9,8 @@ metadata:
 spec:
   license:
     accept: true
+  sender:
+    reporterSecretToken: {{ .Values.spec.sender.reporterSecretToken }}
+    reporterURL: {{ .Values.spec.sender.reporterURL }}
+    clusterID: {{ .Values.spec.sender.clusterID }}
+    clusterName: {{ .Values.spec.sender.clusterName }}

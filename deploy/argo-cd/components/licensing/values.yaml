@@ -1,1 +1,7 @@
 namespace: ibm-licensing
+spec:
+  sender:
+    reporterSecretToken: ibm-license-service-reporter-token
+    reporterURL: <reporter_url>
+    clusterID: <cluster_id>
+    clusterName: <your_cluster_name>
