@@ -23,6 +23,7 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/utils/strings/slices"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -75,33 +76,31 @@ func removeStaleNamespacesFromOperatorGroup(logger *logr.Logger, client client.C
 
 	var namespacesToRemove []string
 	for _, ns := range watchNamespaces {
-		if namespaceExists, err := namespaceExists(reader, ns); err != nil {
+		if namespaceActive, err := namespaceActive(reader, ns); err != nil {
 			logger.Error(err, "Failed to check namespace existence: "+ns)
 			return
-		} else if !namespaceExists {
+		} else if !namespaceActive {
 			namespacesToRemove = append(namespacesToRemove, ns)
-			logger.Info("Namespace does not exist: " + ns + " Namespace marked to remove.")
+			logger.Info("Namespace does not exist or is terminating: " + ns + " Namespace marked for removal.")
 		}
 	}
-
 	if err = removeNamespaceFromOperatorGroup(logger, client, reader, operatorNamespace, namespacesToRemove); err != nil {
 		logger.Error(err, "Failed to remove stale namespaces from OperatorGroup")
 	}
 }
 
 /*
-Checks if namespace with given name exits in the cluster.
+Checks if namespace with given name exits and is active in the cluster.
 */
-func namespaceExists(reader client.Reader, ns string) (bool, error) {
+func namespaceActive(reader client.Reader, ns string) (bool, error) {
 	namespace := &corev1.Namespace{}
-	err := reader.Get(context.Background(), client.ObjectKey{Name: ns}, namespace)
-	if err != nil {
-		if client.IgnoreNotFound(err) != nil {
-			return true, err
+	if err := reader.Get(context.Background(), client.ObjectKey{Name: ns}, namespace); err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
 		}
-		return false, nil
+		return false, err
 	}
-	return true, nil
+	return namespace.Status.Phase == corev1.NamespaceActive, nil
 }
 
 /*
