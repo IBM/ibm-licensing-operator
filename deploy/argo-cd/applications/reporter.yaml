@@ -13,7 +13,3 @@ spec:
     repoURL: "https://github.com/IBM/ibm-licensing-operator"
     targetRevision: "ILS-59_add-argo"
     path: deploy/argo-cd/components/reporter
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
