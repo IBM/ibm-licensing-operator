@@ -1,7 +1,5 @@
 apiVersion: v2
-name: licensing
+name: license-service
 description: A Helm chart for IBM License Service ArgoCD installation
 type: application
-
-# Match IBM License Service version
 version: 4.2.10
