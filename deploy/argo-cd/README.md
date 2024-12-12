@@ -56,21 +56,32 @@ resources with the `PreSync` phase.
 
 ## Installation
 
-Please modify the `values.yaml` files within the `components` directory if you wish to connect/configure the components.
-For example, modify `license-service/values.yaml` to tell *IBM License Service* where is the
-*IBM License Service Reporter* it should connect to.
-
 To install all components, execute the following command (assuming you are logged in to your cluster):
 ```commandline
 oc project openshift-gitops && oc apply -f applications
 ```
+
+If you wish to configure the components (e.g. connect *IBM License Service* with *IBM License Service Reporter*), please
+refer to the official documentation for each component and modify the `spec` section in the `values.yaml` files within
+the `components` directory.
+
+Please note that *IBM License Service Scanner* is not yet officially documented - contact us to learn more about it.
+
+![components.png](docs/images/components.png)
 
 To install selected components separately, for example to install *IBM License Service* only, execute this command:
 ```commandline
 oc project openshift-gitops && oc apply -f applications/license-service.yaml
 ```
 
-![components.png](docs/images/components.png)
+Installing components separately is recommended for example when you want to install *IBM License Service Reporter*
+on a different cluster.
+
+The steps in such scenario would be as follows:
+- Apply `applications/reporter.yaml` to your cluster
+- Follow official *IBM License Service* docs to prepare connection secret and CR configuration
+- Modify `components/license-service/values.yaml` to perform the connection
+- Apply `applications/license-service.yaml` to your cluster and check both components are working and connected
 
 ## Configuration
 

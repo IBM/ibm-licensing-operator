@@ -10,9 +10,4 @@ metadata:
   name: instance
   namespace: {{ .Values.namespace }}
 spec:
-  authentication:
-    useradmin:
-      enabled: true
-  license:
-    accept: true
-  version: 4.2.11
+  {{- toYaml .Values.spec | nindent 2 }}

@@ -10,11 +10,4 @@ metadata:
   name: ibm-licensing-scanner-instance
   namespace: {{ .Values.namespace }}
 spec:
-  license:
-    accept: true
-  license-service-upload-secret: ibm-licensing-scanner-upload-secret
-  log-level: INFO
-  registry-pull-secret: ibm-licensing-scanner-registry-pull-secret
-  scan:
-    namespaces:
-      - {{ .Values.namespace }}
+  {{- toYaml .Values.spec | nindent 2 }}
