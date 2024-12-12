@@ -56,24 +56,21 @@ resources with the `PreSync` phase.
 
 ## Installation
 
-Execute the following command (assuming you are logged in to your cluster) to install all components as separate
-applications:
+Please modify the `values.yaml` files within the `components` directory if you wish to connect/configure the components.
+For example, modify `license-service/values.yaml` to tell *IBM License Service* where is the
+*IBM License Service Reporter* it should connect to.
+
+To install all components, execute the following command (assuming you are logged in to your cluster):
 ```commandline
 oc project openshift-gitops && oc apply -f applications
 ```
 
-![components.png](docs/images/components.png)
-
-This ArgoCD installation still requires components to be connected to each other, for example so that the Reporter's UI
-can display results from License Service. Please refer to each component's documentation and below configuration section
-to customize your setup. Please note that *IBM License Service Scanner* is not yet officially documented - contact us to
-learn more about it.
-
-Please also note that you can also install selected components separately, for example to install *IBM License Service*
-only:
+To install selected components separately, for example to install *IBM License Service* only, execute this command:
 ```commandline
-oc project openshift-gitops && oc apply -f applications/licensing.yaml
+oc project openshift-gitops && oc apply -f applications/license-service.yaml
 ```
+
+![components.png](docs/images/components.png)
 
 ## Configuration
 
