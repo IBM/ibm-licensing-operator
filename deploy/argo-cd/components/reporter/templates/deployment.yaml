@@ -9,6 +9,13 @@ metadata:
     app.kubernetes.io/name: deployment
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
     control-plane: ibm-license-service-reporter-operator
+    {{- if ((.Values.operator).labels) }}
+      {{- toYaml .Values.operator.labels | nindent 4 -}}
+    {{ end }}
+  {{- if ((.Values.operator).annotations) }}
+  annotations:
+    {{- toYaml .Values.operator.annotations | nindent 4 -}}
+  {{ end }}
   name: ibm-license-service-reporter-operator
   namespace: {{ .Values.namespace }}
 spec:

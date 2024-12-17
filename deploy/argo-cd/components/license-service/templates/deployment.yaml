@@ -4,6 +4,14 @@ kind: Deployment
 metadata:
   name: ibm-licensing-operator
   namespace: {{ .Values.namespace }}
+  {{- if ((.Values.operator).labels) }}
+  labels:
+    {{- toYaml .Values.operator.labels | nindent 4 -}}
+  {{ end }}
+  {{- if ((.Values.operator).annotations) }}
+  annotations:
+    {{- toYaml .Values.operator.annotations | nindent 4 -}}
+  {{ end }}
 spec:
   replicas: 1
   selector:

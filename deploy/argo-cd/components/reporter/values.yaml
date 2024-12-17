@@ -1,4 +1,6 @@
 namespace: ibm-ls-reporter
+
+# IBM License Service Reporter's (custom resource) spec
 spec:
   authentication:
     useradmin:

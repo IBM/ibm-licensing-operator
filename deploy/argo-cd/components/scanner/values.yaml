@@ -1,4 +1,6 @@
 namespace: &namespace ibm-licensing-scanner
+
+# IBM License Service Scanner's (custom resource) spec
 spec:
   license:
     accept: true
