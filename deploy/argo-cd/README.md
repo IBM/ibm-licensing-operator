@@ -94,11 +94,40 @@ configuration directly in the relevant file.
 
 For your convenience, below are some common scenarios with examples on how to resolve provided, sample issues.
 
-### Change target namespace
+### With helm
 
-By default, IBM Licensing components are installed in three different namespaces, to separate the resources and group
-them up by the component. Since the YAML files provided as part of the `components` directory are templated with `helm`,
-you can add the following section to the `Application` files:
+Since the YAML files provided as part of the `components` directory are templated with `helm`, you can add the following
+section to the `Application` files, to modify some templated field:
+
+```yaml
+source:
+  helm:
+    valuesObject:
+      key: new-value
+```
+
+Naturally, you can also fork/copy this repository and apply the changes yourself to `values.yaml` files.
+
+#### Configure the CR
+
+To configure licensing components through custom resources, please modify the `spec` section. For example, to accept
+the license terms:
+
+```yaml
+source:
+  helm:
+    valuesObject:
+      spec:
+        license:
+          accept: true
+```
+
+Please refer to the components' official documentation to learn more about the supported configuration options.
+
+#### Change target namespace
+
+By default, IBM Licensing components are installed in three different namespaces, to separate the resources, and to
+group them up by the component. If you want to install a specific component in a different namespace:
 
 ```yaml
 source:
@@ -107,10 +136,33 @@ source:
       namespace: my-custom-namespace
 ```
 
-Alternatively, you can modify `values.yaml` file directly. Furthermore, depending on your cluster configuration,
-you may also need to adjust referenced namespaces within the `prerequisites` directory.
+#### Apply custom metadata
 
-### Apply custom metadata
+To apply custom labels and annotations please refer to the official documentation for each component and apply the
+changes to the `spec` section:
 
-To apply custom labels or annotations, for example to the operators' deployments, the easiest is to directly modify
-the `yaml` files in the `components` directory, before deploying the `Application`-s.
+```yaml
+source:
+  helm:
+    valuesObject:
+      spec:
+        labels:
+          appName: LicenseService
+        annotations:
+          companyName: IBM
+```
+
+To apply custom labels and annotations to the operator deployment:
+
+```yaml
+source:
+  helm:
+    valuesObject:
+      operator:
+        labels:
+          appName: LicenseService
+        annotations:
+          companyName: IBM
+```
+
+Note that these labels and annotations are added in addition of the default ones, and will not override them.
