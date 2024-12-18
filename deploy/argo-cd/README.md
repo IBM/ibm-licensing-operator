@@ -110,16 +110,17 @@ Naturally, you can also fork/copy this repository and apply the changes yourself
 
 #### Configure the CR
 
-To configure licensing components through custom resources, please modify the `spec` section. For example, to accept
-the license terms:
+To configure licensing components through custom resources, please modify the `spec` section. For example, to enable
+hyper-threading in license service:
 
 ```yaml
 source:
   helm:
     valuesObject:
       spec:
-        license:
-          accept: true
+        features:
+          hyperThreading:
+            threadsPerCore: <number of threads>
 ```
 
 Please refer to the components' official documentation to learn more about the supported configuration options.
