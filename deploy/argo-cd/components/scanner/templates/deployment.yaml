@@ -10,10 +10,13 @@ metadata:
     {{- if ((.Values.operator).labels) }}
       {{- toYaml .Values.operator.labels | nindent 4 -}}
     {{ end }}
-  {{- if ((.Values.operator).annotations) }}
   annotations:
-    {{- toYaml .Values.operator.annotations | nindent 4 -}}
-  {{ end }}
+    productID: 105fa377cada4660a213f99e02c53782
+    productMetric: FREE
+    productName: IBM License Service Scanner
+    {{- if ((.Values.operator).annotations) }}
+      {{- toYaml .Values.operator.annotations | nindent 4 -}}
+    {{ end }}
   name: ibm-licensing-scanner-operator
   namespace: {{ .Values.namespace }}
 spec:
@@ -28,12 +31,18 @@ spec:
         productID: 105fa377cada4660a213f99e02c53782
         productMetric: FREE
         productName: IBM License Service Scanner
+        {{- if ((.Values.operator).annotations) }}
+          {{- toYaml .Values.operator.annotations | nindent 4 -}}
+        {{ end }}
       labels:
         app.kubernetes.io/component: ibm-licensing-scanner-operator-pod
         app.kubernetes.io/managed-by: kustomize
         app.kubernetes.io/name: ibm-licensing-scanner
         app.kubernetes.io/version: 4.2.10
         control-plane: controller-manager
+        {{- if ((.Values.operator).labels) }}
+          {{- toYaml .Values.operator.labels | nindent 4 -}}
+        {{ end }}
     spec:
       containers:
         - args:

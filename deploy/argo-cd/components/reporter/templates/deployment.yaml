@@ -12,10 +12,13 @@ metadata:
     {{- if ((.Values.operator).labels) }}
       {{- toYaml .Values.operator.labels | nindent 4 -}}
     {{ end }}
-  {{- if ((.Values.operator).annotations) }}
   annotations:
-    {{- toYaml .Values.operator.annotations | nindent 4 -}}
-  {{ end }}
+    productID: 068a62892a1e4db39641342e592daa25
+    productMetric: FREE
+    productName: IBM Cloud Platform Common Services
+    {{- if ((.Values.operator).annotations) }}
+      {{- toYaml .Values.operator.annotations | nindent 4 -}}
+    {{ end }}
   name: ibm-license-service-reporter-operator
   namespace: {{ .Values.namespace }}
 spec:
@@ -30,12 +33,18 @@ spec:
         productID: 068a62892a1e4db39641342e592daa25
         productMetric: FREE
         productName: IBM Cloud Platform Common Services
+        {{- if ((.Values.operator).annotations) }}
+          {{- toYaml .Values.operator.annotations | nindent 4 -}}
+        {{ end }}
       labels:
         app.kubernetes.io/instance: ibm-license-service-reporter-operator
         app.kubernetes.io/managed-by: ibm-license-service-reporter-operator
         app.kubernetes.io/name: ibm-license-service-reporter
         control-plane: ibm-license-service-reporter-operator
         name: ibm-license-service-reporter-operator
+        {{- if ((.Values.operator).labels) }}
+          {{- toYaml .Values.operator.labels | nindent 4 -}}
+        {{ end }}
     spec:
       affinity:
         nodeAffinity:
