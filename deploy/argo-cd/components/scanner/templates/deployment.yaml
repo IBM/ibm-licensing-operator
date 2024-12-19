@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,7 +6,7 @@ metadata:
     app.kubernetes.io/component: ibm-licensing-scanner-operator-deployment
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: ibm-licensing-scanner
-    app.kubernetes.io/version: 4.2.10
+    app.kubernetes.io/version: 4.2.12
     control-plane: controller-manager
     {{- if ((.Values.operator).labels) }}
       {{- toYaml .Values.operator.labels | nindent 4 -}}
@@ -38,7 +39,7 @@ spec:
         app.kubernetes.io/component: ibm-licensing-scanner-operator-pod
         app.kubernetes.io/managed-by: kustomize
         app.kubernetes.io/name: ibm-licensing-scanner
-        app.kubernetes.io/version: 4.2.10
+        app.kubernetes.io/version: 4.2.12
         control-plane: controller-manager
         {{- if ((.Values.operator).labels) }}
           {{- toYaml .Values.operator.labels | nindent 4 -}}
@@ -55,8 +56,8 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: IBM_LICENSE_SERVICE_SCANNER_OPERAND_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-licensing-scanner:4.2.10
-          image: icr.io/cpopen/ibm-license-service-scanner-operator:4.2.10
+              value: icr.io/cpopen/cpfs/ibm-licensing-scanner:4.2.12
+          image: icr.io/cpopen/ibm-license-service-scanner-operator:4.2.12
           livenessProbe:
             httpGet:
               path: /healthz
