@@ -15,20 +15,17 @@ Below are instructions on how to provision and configure a cluster for IBM Licen
 
 ### Install ArgoCD on an Openshift cluster
 
-1. Install *Red Hat OpenShift GitOps* from the *OperatorHub* (see
+- Install *Red Hat OpenShift GitOps* from the *OperatorHub* (see
 [RedHat documentation](https://docs.openshift.com/gitops/1.14/installing_gitops/installing-openshift-gitops.html)
 for more information):
-
     ![install-red-hat-openshift-gitops-step-1](docs/images/install-red-hat-openshift-gitops-step-1.png)
     ![install-red-hat-openshift-gitops-step-2](docs/images/install-red-hat-openshift-gitops-step-2.png)
 
-2. Access *ArgoCD* UI:
-
+- Access *ArgoCD* UI:
     ![argo-cd-ui-step-1.png](docs/images/argo-cd-ui-step-1.png)
     ![argo-cd-ui-step-2.png](docs/images/argo-cd-ui-step-2.png)
 
-3. Log in via *OpenShift* and check the Applications screen is accessible:
-
+- Log in via *OpenShift* and check the Applications screen is accessible:
     ![applications-screen.png](docs/images/applications-screen.png)
 
 ### Apply prerequisites
