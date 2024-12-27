@@ -13,16 +13,15 @@ spec:
     repoURL: "https://github.com/IBM/ibm-licensing-operator"
     targetRevision: "ILS-59_add-argo"
     path: deploy/argo-cd/components/scanner
-    source:
-      helm:
-        valuesObject:
-          namespace: &scanner-namespace ibm-licensing-scanner
-          spec:
-            license:
-              accept: true
-            license-service-upload-secret: ibm-licensing-scanner-upload-secret
-            log-level: INFO
-            registry-pull-secret: ibm-licensing-scanner-registry-pull-secret
-            scan:
-              namespaces:
-                - *scanner-namespace
+    helm:
+      valuesObject:
+        namespace: &scanner-namespace ibm-licensing-scanner
+        spec:
+          license:
+            accept: true
+          license-service-upload-secret: ibm-licensing-scanner-upload-secret
+          log-level: INFO
+          registry-pull-secret: ibm-licensing-scanner-registry-pull-secret
+          scan:
+            namespaces:
+              - *scanner-namespace
