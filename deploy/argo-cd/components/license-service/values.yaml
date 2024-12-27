@@ -1,6 +1,0 @@
-namespace: ibm-licensing
-
-# IBM License Service's (custom resource) spec
-spec:
-  license:
-    accept: true

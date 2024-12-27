@@ -13,3 +13,9 @@ spec:
     repoURL: "https://github.com/IBM/ibm-licensing-operator"
     targetRevision: "ILS-59_add-argo"
     path: deploy/argo-cd/components/license-service
+    helm:
+      valuesObject:
+        namespace: ibm-licensing
+        spec:
+          license:
+            accept: true

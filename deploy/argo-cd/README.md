@@ -38,7 +38,7 @@ required modifications manually, however, this can also be automated.
 You can apply (assuming you are logged in to the cluster) all prerequisites required for IBM Licensing components
 with a simple command executed on the `prerequisites` directory:
 
-```commandline
+```shell
 oc apply -f prerequisites --recursive
 ```
 
@@ -51,52 +51,11 @@ applications' paths. To make sure they are applied before the IBM Licensing comp
 [sync waves](https://argo-cd.readthedocs.io/en/latest/user-guide/sync-waves/). For example, through annotating required
 resources with the `PreSync` phase.
 
-## Installation
-
-To install all components, execute the following command (assuming you are logged in to your cluster):
-
-```commandline
-oc project openshift-gitops && oc apply -f applications
-```
-
-If you wish to configure the components (e.g. connect *IBM License Service* with *IBM License Service Reporter*), please
-refer to the official documentation for each component and modify the `spec` section in the `values.yaml` files within
-the `components` directory.
-
-Please note that *IBM License Service Scanner* is not yet officially documented - contact us to learn more about it.
-
-![components.png](docs/images/components.png)
-
-To install selected components separately, for example to install *IBM License Service* only, execute this command:
-
-```commandline
-oc project openshift-gitops && oc apply -f applications/license-service.yaml
-```
-
-Installing components separately is recommended for example when you want to install *IBM License Service Reporter*
-on a different cluster.
-
-The steps in such scenario would be as follows:
-- Apply `applications/reporter.yaml` to your cluster
-- Follow official *IBM License Service* docs to prepare connection secret and CR configuration
-- Modify `components/license-service/values.yaml` to perform the connection
-- Apply `applications/license-service.yaml` to your cluster and check both components are working and connected
-
 ## Configuration
 
 We recommend that you adjust the `Application` yaml files to configure the components' `helm` charts. Please check
 the [ArgoCD user guide](https://argo-cd.readthedocs.io/en/latest/user-guide/helm/) on `helm` for more details.
-
-Alternatively, you may want to adjust the yaml files within the `components` directory itself, before deploying
-an `Application` targeting them. For example, you could fork this repository and adjust some custom resource
-configuration directly in the relevant file.
-
-For your convenience, below are some common scenarios with examples on how to resolve provided, sample issues.
-
-### With helm
-
-Since the YAML files provided as part of the `components` directory are templated with `helm`, you can add the following
-section to the `Application` files, to modify some templated field:
+In general, the modifications will be introduced through this structure:
 
 ```yaml
 source:
@@ -105,9 +64,13 @@ source:
       key: new-value
 ```
 
-Naturally, you can also fork/copy this repository and apply the changes yourself to `values.yaml` files.
+Alternatively, you may want to adjust the yaml files within the `components` directory itself, before deploying
+an `Application` targeting them. For example, you could fork this repository and adjust some custom resource
+configuration directly in the relevant file.
 
-#### Configure the CR
+For your convenience, below are some common scenarios with examples on how to resolve provided, sample issues.
+
+### Configure the CR
 
 To configure licensing components through custom resources, please modify the `spec` section. For example, to enable
 hyper-threading in license service:
@@ -122,9 +85,13 @@ source:
             threadsPerCore: <number of threads>
 ```
 
-Please refer to the components' official documentation to learn more about the supported configuration options.
+Please refer to the components' official documentation to learn more about the supported configuration options. You may
+find relevant sections under the following links:
+- [*License Service*](https://www.ibm.com/docs/en/cloud-paks/foundational-services/4.6?topic=service-configuration)
+- [*License Service Reporter*](https://www.ibm.com/docs/en/cloud-paks/foundational-services/4.6?topic=reporter-installing-configuring-license-service)
+- *License Service Scanner* -> the official documentation is not yet available publicly, please contact us to learn more
 
-#### Change target namespace
+### Change target namespace
 
 By default, IBM Licensing components are installed in three different namespaces, to separate the resources, and to
 group them up by the component. If you want to install a specific component in a different namespace:
@@ -136,10 +103,9 @@ source:
       namespace: my-custom-namespace
 ```
 
-#### Apply custom metadata
+### Apply custom metadata
 
-To apply custom labels and annotations please refer to the official documentation for each component and apply the
-changes to the `spec` section:
+To apply custom labels and annotations to the operator-managed resources:
 
 ```yaml
 source:
@@ -165,4 +131,33 @@ source:
           companyName: IBM
 ```
 
-Note that these labels and annotations are added in addition of the default ones, and will not override them.
+Note that these labels and annotations are in addition to the default ones, and will not override them.
+
+## Installation
+
+To install all components, execute the following command (assuming you are logged in to your cluster):
+
+```shell
+oc project openshift-gitops && oc apply -f applications
+```
+
+![components.png](docs/images/components.png)
+
+To install selected components separately, for example to install *IBM License Service* only, execute this command:
+
+```shell
+oc project openshift-gitops && oc apply -f applications/license-service.yaml
+```
+
+Remember to `sync` after the applications are applied, or add the `auto-sync` option to your setup.
+
+### Separate installation scenario
+
+Installing components separately is recommended for example when you want to install *IBM License Service Reporter*
+on a different cluster.
+
+The steps in such scenario would be as follows:
+- Apply `applications/reporter.yaml` to your cluster
+- Follow official *IBM License Service* docs to prepare connection secret and CR configuration
+- Add the values to `applications/license-service.yaml` to configure the connection
+- Apply `applications/license-service.yaml` to your cluster and check both components are working and connected
