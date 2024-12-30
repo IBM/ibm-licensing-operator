@@ -59,9 +59,7 @@ spec:
             - name: IBM_LICENSING_IMAGE
               value: icr.io/cpopen/cpfs/ibm-licensing:4.2.12
             - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: {{ .Values.watchNamespace }}
             - name: OPERATOR_NAMESPACE
               valueFrom:
                 fieldRef:

@@ -16,6 +16,7 @@ spec:
     helm:
       valuesObject:
         namespace: ibm-licensing
+        watchNamespace: ibm-licensing,ibm-licensing-scanner
         spec:
           license:
             accept: true
