@@ -133,6 +133,28 @@ source:
 
 Note that these labels and annotations are in addition to the default ones, and will not override them.
 
+### Enable auto-connect
+
+To ensure that *IBM License Service Scanner* can connect with *IBM License Service* automatically, please add the
+scanner's namespace to the `watchNamespace` field of `license-service.yaml`, for example:
+
+```yaml
+source:
+  helm:
+    valuesObject:
+      watchNamespace: ibm-licensing,ibm-licensing-scanner
+```
+
+Furthermore, you must make sure that the `licenseServiceNamespace` field in `scanner.yaml` is matching your
+configuration. By default, the following namespace is expected:
+
+```yaml
+source:
+  helm:
+    valuesObject:
+      licenseServiceNamespace: ibm-licensing
+```
+
 ## Installation
 
 To install all components, execute the following command (assuming you are logged in to your cluster):
