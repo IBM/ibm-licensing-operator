@@ -145,6 +145,13 @@ source:
       watchNamespace: ibm-licensing,ibm-licensing-scanner
 ```
 
+Without this change, the following `INFO` log will appear on the License Service operator side, after the application
+of `Application` from `scanner.yaml`:
+```text
+INFO operandrequest-discovery OperandRequest for ibm-licensing-operator detected. IBMLicensing OperatorGroup will be extended {"OperandRequest": "ibm-licensing-scanner-ls-operand-request", "Namespace": "ibm-licensing-scanner"}
+INFO operandrequest-discovery OperatorGroup for IBMLicensing operator not found {"Namespace": "ibm-licensing"}
+```
+
 Furthermore, you must make sure that the `licenseServiceNamespace` field in `scanner.yaml` is matching your
 configuration. By default, the following namespace is expected:
 
@@ -154,6 +161,8 @@ source:
     valuesObject:
       licenseServiceNamespace: ibm-licensing
 ```
+
+Otherwise, License Service operator will log errors related to missing RBAC permissions.
 
 ## Installation
 
