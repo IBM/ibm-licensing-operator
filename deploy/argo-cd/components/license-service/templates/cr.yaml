@@ -4,6 +4,6 @@ metadata:
   name: instance
   annotations:
     argocd.argoproj.io/sync-options: ServerSideApply=true
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/hook: PostSync
 spec:
   {{- toYaml .Values.spec | nindent 2 }}
