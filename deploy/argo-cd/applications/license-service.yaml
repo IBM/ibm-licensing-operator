@@ -18,5 +18,9 @@ spec:
         namespace: &license-service-namespace ibm-licensing
         watchNamespace: *license-service-namespace
         spec:
+          version: 4.2.12
+          apiSecretToken: ibm-licensing-token
+          datasource: datacollector
+          httpsEnable: true
           license:
             accept: true
