@@ -133,10 +133,10 @@ source:
 
 Note that these labels and annotations are in addition to the default ones, and will not override them.
 
-### Enable auto-connect
+### Enable auto-connect between Scanner and License Service
 
 To ensure that *IBM License Service Scanner* can connect with *IBM License Service* automatically, please add the
-scanner's namespace to the `watchNamespace` field of `license-service.yaml`, for example:
+scanner's namespace to the `watchNamespace` field of `applications/license-service.yaml`, for example:
 
 ```yaml
 source:
@@ -146,13 +146,13 @@ source:
 ```
 
 Without this change, the following `INFO` log will appear on the License Service operator side, after the application
-of `Application` from `scanner.yaml`:
+of `Application` from `applications/scanner.yaml`:
 ```text
 INFO operandrequest-discovery OperandRequest for ibm-licensing-operator detected. IBMLicensing OperatorGroup will be extended {"OperandRequest": "ibm-licensing-scanner-ls-operand-request", "Namespace": "ibm-licensing-scanner"}
 INFO operandrequest-discovery OperatorGroup for IBMLicensing operator not found {"Namespace": "ibm-licensing"}
 ```
 
-Furthermore, you must make sure that the `licenseServiceNamespace` field in `scanner.yaml` is matching your
+Furthermore, you must make sure that the `licenseServiceNamespace` field in `applications/scanner.yaml` is matching your
 configuration. By default, the following namespace is expected:
 
 ```yaml
