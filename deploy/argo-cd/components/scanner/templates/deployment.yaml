@@ -12,6 +12,7 @@ metadata:
       {{- toYaml .Values.operator.labels | nindent 4 -}}
     {{ end }}
   annotations:
+    argocd.argoproj.io/sync-wave: "1"
     productID: 105fa377cada4660a213f99e02c53782
     productMetric: FREE
     productName: IBM License Service Scanner
