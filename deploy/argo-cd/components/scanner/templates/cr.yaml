@@ -1,5 +1,6 @@
-kind: IBMLicenseServiceScanner
+---
 apiVersion: operator.ibm.com/v1
+kind: IBMLicenseServiceScanner
 metadata:
   labels:
     app.kubernetes.io/created-by: ibm-licensing-scanner-operator

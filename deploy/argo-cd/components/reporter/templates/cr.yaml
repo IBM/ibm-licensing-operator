@@ -1,5 +1,6 @@
-kind: IBMLicenseServiceReporter
+---
 apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicenseServiceReporter
 metadata:
   labels:
     app.kubernetes.io/created-by: ibm-license-service-reporter-operator

@@ -1,5 +1,6 @@
-kind: IBMLicensing
+---
 apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
 metadata:
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator

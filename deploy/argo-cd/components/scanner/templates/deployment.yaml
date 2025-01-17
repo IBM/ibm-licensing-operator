@@ -2,6 +2,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    productID: 105fa377cada4660a213f99e02c53782
+    productMetric: FREE
+    productName: IBM License Service Scanner
+    {{- if ((.Values.operator).annotations) }}
+      {{- toYaml .Values.operator.annotations | nindent 4 -}}
+    {{ end }}
+    argocd.argoproj.io/sync-wave: "1"
   labels:
     app.kubernetes.io/component: ibm-licensing-scanner-operator-deployment
     app.kubernetes.io/managed-by: kustomize
@@ -10,14 +18,6 @@ metadata:
     control-plane: controller-manager
     {{- if ((.Values.operator).labels) }}
       {{- toYaml .Values.operator.labels | nindent 4 -}}
-    {{ end }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
-    productID: 105fa377cada4660a213f99e02c53782
-    productMetric: FREE
-    productName: IBM License Service Scanner
-    {{- if ((.Values.operator).annotations) }}
-      {{- toYaml .Values.operator.annotations | nindent 4 -}}
     {{ end }}
   name: ibm-licensing-scanner-operator
   namespace: {{ .Values.namespace }}

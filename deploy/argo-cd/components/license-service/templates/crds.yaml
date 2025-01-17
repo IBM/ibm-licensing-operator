@@ -1,3 +1,4 @@
+---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -69,8 +70,7 @@ spec:
                       type: object
                   type: object
                 remove:
-                  description: List of annotation keys that will be removed from matched
-                    pod
+                  description: List of annotation keys that will be removed from matched pod
                   items:
                     type: string
                   type: array
@@ -91,8 +91,7 @@ spec:
               type: object
               x-kubernetes-preserve-unknown-fields: true
             status:
-              description: IBMLicensingDefinitionStatus defines the observed state of
-                IBMLicensingDefinition
+              description: IBMLicensingDefinitionStatus defines the observed state of IBMLicensingDefinition
               type: object
           type: object
       served: true
@@ -173,8 +172,7 @@ spec:
               type: object
               x-kubernetes-preserve-unknown-fields: true
             status:
-              description: IBMLicensingMetadataStatus defines the observed state of
-                IBMLicensingMetadata
+              description: IBMLicensingMetadataStatus defines the observed state of IBMLicensingMetadata
               type: object
           type: object
       served: true
@@ -227,12 +225,10 @@ spec:
             metadata:
               type: object
             spec:
-              description: IBMLicensingQuerySourceSpec defines the desired state of
-                IBMLicensingQuerySource
+              description: IBMLicensingQuerySourceSpec defines the desired state of IBMLicensingQuerySource
               properties:
                 aggregationPolicy:
-                  description: Policy on how should newly queried data be aggregated
-                    to previous data (defaults to MAX)
+                  description: Policy on how should newly queried data be aggregated to previous data (defaults to MAX)
                   enum:
                     - MAX
                     - ADD
@@ -241,12 +237,10 @@ spec:
                 annotations:
                   additionalProperties:
                     type: string
-                  description: Product and cloudpak annotations mapping the query to
-                    licensing usage
+                  description: Product and cloudpak annotations mapping the query to licensing usage
                   type: object
                 query:
-                  description: What query should be send to prometheuses to get the
-                    licensing usage
+                  description: What query should be send to prometheuses to get the licensing usage
                   type: string
               required:
                 - annotations
@@ -254,8 +248,7 @@ spec:
               type: object
               x-kubernetes-preserve-unknown-fields: true
             status:
-              description: IBMLicensingQuerySourceStatus defines the observed state
-                of IBMLicensingQuerySource
+              description: IBMLicensingQuerySourceStatus defines the observed state of IBMLicensingQuerySource
               type: object
           type: object
       served: true
@@ -323,15 +316,13 @@ spec:
                   description: Annotations to be copied into all relevant resources
                   type: object
                 apiSecretToken:
-                  description: Secret name used to store application token, either one
-                    that exists, or one that will be created
+                  description: Secret name used to store application token, either one that exists, or one that will be created
                   type: string
                 chargebackEnabled:
                   description: Consider updating to enable chargeback feature
                   type: boolean
                 chargebackRetentionPeriod:
-                  description: Chargeback data retention period in days. Default value
-                    is 62 days.
+                  description: Chargeback data retention period in days. Default value is 62 days.
                   type: integer
                 datasource:
                   description: 'Where should data be collected, options: metering, datacollector'
@@ -367,12 +358,10 @@ spec:
                         - urlBasedEnabled
                       type: object
                     hyperThreading:
-                      description: Configure if you have HyperThreading (HT) or Symmetrical
-                        Multi-Threading (SMT) enabled
+                      description: Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading (SMT) enabled
                       properties:
                         threadsPerCore:
-                          description: Set the value based on the lowest HT/SMT value
-                            based on the lowest configuration of worker nodes
+                          description: Set the value based on the lowest HT/SMT value based on the lowest configuration of worker nodes
                           enum:
                             - 1
                             - 2
@@ -386,8 +375,7 @@ spec:
                       description: Special terms, must be granted by IBM Pricing.
                       type: string
                     nssDenialLimit:
-                      description: Limit for failed namespace access attempts before
-                        reporting an error in custom namespaces scoping.
+                      description: Limit for failed namespace access attempts before reporting an error in custom namespaces scoping.
                       type: integer
                     nssEnabled:
                       description: Special terms, must be granted by IBM Pricing.
@@ -396,12 +384,10 @@ spec:
                       description: Change prometheus query source settings.
                       properties:
                         enabled:
-                          description: Should this function be enabled (by default it
-                            is).
+                          description: Should this function be enabled (by default it is).
                           type: boolean
                         url:
-                          description: What url to use for prometheus API (by default
-                            use OCP Thanos Querier).
+                          description: What url to use for prometheus API (by default use OCP Thanos Querier).
                           type: string
                       type: object
                   type: object
@@ -413,41 +399,31 @@ spec:
                     - ocp
                   type: string
                 httpsEnable:
-                  description: Enables https access at pod level, httpsCertsSource needed
-                    if true
+                  description: Enables https access at pod level, httpsCertsSource needed if true
                   type: boolean
                 imageName:
-                  description: IBM Licensing Service docker Image Name, will override
-                    default value and disable IBM_LICENSING_IMAGE env value in operator
-                    deployment
+                  description: IBM Licensing Service docker Image Name, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
                   type: string
                 imagePullPolicy:
-                  description: PullPolicy describes a policy for if/when to pull a container
-                    image
+                  description: PullPolicy describes a policy for if/when to pull a container image
                   enum:
                     - Always
                     - IfNotPresent
                     - Never
                   type: string
                 imagePullSecrets:
-                  description: Array of pull secrets which should include existing at
-                    InstanceNamespace secret to allow pulling IBM Licensing image
+                  description: Array of pull secrets which should include existing at InstanceNamespace secret to allow pulling IBM Licensing image
                   items:
                     type: string
                   type: array
                 imageRegistry:
-                  description: IBM Licensing Service docker Image Registry, will override
-                    default value and disable IBM_LICENSING_IMAGE env value in operator
-                    deployment
+                  description: IBM Licensing Service docker Image Registry, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
                   type: string
                 imageTagPostfix:
-                  description: IBM Licensing Service docker Image Tag or Digest, will
-                    override default value and disable IBM_LICENSING_IMAGE env value
-                    in operator deployment
+                  description: IBM Licensing Service docker Image Tag or Digest, will override default value and disable IBM_LICENSING_IMAGE env value in operator deployment
                   type: string
                 ingressEnabled:
-                  description: Should Ingress be created to expose IBM Licensing Service
-                    API?
+                  description: Should Ingress be created to expose IBM Licensing Service API?
                   type: boolean
                 ingressOptions:
                   description: If ingress is enabled, you can set its parameters
@@ -455,25 +431,21 @@ spec:
                     annotations:
                       additionalProperties:
                         type: string
-                      description: Additional annotations that should include f.e. ingress
-                        class if using not default ingress controller
+                      description: Additional annotations that should include f.e. ingress class if using not default ingress controller
                       type: object
                     host:
                       description: If you use non-default host include it here
                       type: string
                     ingressClassName:
-                      description: IngressClassName defines ingress class name option
-                        to be passed to the ingress spec field
+                      description: IngressClassName defines ingress class name option to be passed to the ingress spec field
                       type: string
                     path:
-                      description: Path after host where API will be available f.e.
-                        https://<hostname>:<port>/ibm-licensing-service-instance
+                      description: Path after host where API will be available f.e. https://<hostname>:<port>/ibm-licensing-service-instance
                       type: string
                     tls:
                       description: TLS Options to enable secure connection
                       items:
-                        description: IngressTLS describes the transport layer security
-                          associated with an Ingress.
+                        description: IngressTLS describes the transport layer security associated with an Ingress.
                         properties:
                           hosts:
                             description: |-
@@ -510,14 +482,11 @@ spec:
                   description: IBM License Service license acceptance.
                   properties:
                     accept:
-                      description: 'By installing the IBM License Service, you accept
-                      the license terms for the particular IBM product for which you
-                      are deploying this component: ibm.biz/lsvc-lic.'
+                      description: 'By installing the IBM License Service, you accept the license terms for the particular IBM product for which you are deploying this component: ibm.biz/lsvc-lic.'
                       type: boolean
                   type: object
                 logLevel:
-                  description: 'Should application pod show additional information,
-                  options: DEBUG, INFO, VERBOSE'
+                  description: 'Should application pod show additional information, options: DEBUG, INFO, VERBOSE'
                   enum:
                     - DEBUG
                     - INFO
@@ -555,19 +524,16 @@ spec:
                   description: Is Red Hat Marketplace enabled
                   type: boolean
                 routeEnabled:
-                  description: Should Route be created to expose IBM Licensing Service
-                    API? (only on OpenShift cluster)
+                  description: Should Route be created to expose IBM Licensing Service API? (only on OpenShift cluster)
                   type: boolean
                 routeOptions:
                   description: Route parameters
                   properties:
                     tls:
-                      description: TLSConfig defines config used to secure a route and
-                        provide termination
+                      description: TLSConfig defines config used to secure a route and provide termination
                       properties:
                         caCertificate:
-                          description: caCertificate provides the cert authority certificate
-                            contents
+                          description: caCertificate provides the cert authority certificate contents
                           type: string
                         certificate:
                           description: |-
@@ -613,8 +579,7 @@ spec:
                       type: object
                   type: object
                 securityContext:
-                  description: If default SCC user ID fails, you can set runAsUser option
-                    to fix that
+                  description: If default SCC user ID fails, you can set runAsUser option to fix that
                   properties:
                     runAsUser:
                       format: int64
@@ -623,39 +588,29 @@ spec:
                     - runAsUser
                   type: object
                 sender:
-                  description: Sender configuration, set if you have multi-cluster environment
-                    from which you collect data
+                  description: Sender configuration, set if you have multi-cluster environment from which you collect data
                   properties:
                     clusterID:
                       description: Unique ID of reporting cluster
                       type: string
                     clusterName:
-                      description: What is the name of this reporting cluster in multi-cluster
-                        system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME
-                        at Operand level
+                      description: What is the name of this reporting cluster in multi-cluster system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME at Operand level
                       type: string
                     frequency:
-                      description: Frequency of workloads scans as cron expression.
-                        If not provided, workloads reporting is disabled.
-                      pattern: (@(annually|yearly|monthly|weekly|daily|midnight|hourly))|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*)
-                        ?){5,7})
+                      description: Frequency of workloads scans as cron expression. If not provided, workloads reporting is disabled.
+                      pattern: (@(annually|yearly|monthly|weekly|daily|midnight|hourly))|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})
                       type: string
                     reporterCertsSecretName:
-                      description: Name of the secret that contains the License Service
-                        Reporter certificate(s) used to establish a secure connection
-                        with it. You need to create it in instance namespace
+                      description: Name of the secret that contains the License Service Reporter certificate(s) used to establish a secure connection with it. You need to create it in instance namespace
                       type: string
                     reporterSecretToken:
-                      description: License Service Reporter authentication token, provided
-                        by secret that you need to create in instance namespace
+                      description: License Service Reporter authentication token, provided by secret that you need to create in instance namespace
                       type: string
                     reporterURL:
-                      description: URL for License Service Reporter receiver that collects
-                        and aggregate multi cluster licensing data.
+                      description: URL for License Service Reporter receiver that collects and aggregate multi cluster licensing data.
                       type: string
                     validateReporterCerts:
-                      description: Enable certificates validation when uploading data
-                        to the License Service Reporter
+                      description: Enable certificates validation when uploading data to the License Service Reporter
                       type: boolean
                   type: object
                 version:
@@ -687,25 +642,21 @@ spec:
                           Current service state of pod.
                           More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-conditions
                         items:
-                          description: PodCondition contains details for the current
-                            condition of this pod.
+                          description: PodCondition contains details for the current condition of this pod.
                           properties:
                             lastProbeTime:
                               description: Last time we probed the condition.
                               format: date-time
                               type: string
                             lastTransitionTime:
-                              description: Last time the condition transitioned from
-                                one status to another.
+                              description: Last time the condition transitioned from one status to another.
                               format: date-time
                               type: string
                             message:
-                              description: Human-readable message indicating details
-                                about last transition.
+                              description: Human-readable message indicating details about last transition.
                               type: string
                             reason:
-                              description: Unique, one-word, CamelCase reason for the
-                                condition's last transition.
+                              description: Unique, one-word, CamelCase reason for the condition's last transition.
                               type: string
                             status:
                               description: |-
@@ -728,8 +679,7 @@ spec:
                           The list has one entry per container in the manifest.
                           More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-and-container-status
                         items:
-                          description: ContainerStatus contains details for the current
-                            status of this container.
+                          description: ContainerStatus contains details for the current status of this container.
                           properties:
                             containerID:
                               description: Container's ID in the format '<type>://<container_id>'.
@@ -743,15 +693,13 @@ spec:
                               description: ImageID of the container's image.
                               type: string
                             lastState:
-                              description: Details about the container's last termination
-                                condition.
+                              description: Details about the container's last termination condition.
                               properties:
                                 running:
                                   description: Details about a running container
                                   properties:
                                     startedAt:
-                                      description: Time at which the container was last
-                                        (re-)started
+                                      description: Time at which the container was last (re-)started
                                       format: date-time
                                       type: string
                                   type: object
@@ -762,31 +710,25 @@ spec:
                                       description: Container's ID in the format '<type>://<container_id>'
                                       type: string
                                     exitCode:
-                                      description: Exit status from the last termination
-                                        of the container
+                                      description: Exit status from the last termination of the container
                                       format: int32
                                       type: integer
                                     finishedAt:
-                                      description: Time at which the container last
-                                        terminated
+                                      description: Time at which the container last terminated
                                       format: date-time
                                       type: string
                                     message:
-                                      description: Message regarding the last termination
-                                        of the container
+                                      description: Message regarding the last termination of the container
                                       type: string
                                     reason:
-                                      description: (brief) reason from the last termination
-                                        of the container
+                                      description: (brief) reason from the last termination of the container
                                       type: string
                                     signal:
-                                      description: Signal from the last termination
-                                        of the container
+                                      description: Signal from the last termination of the container
                                       format: int32
                                       type: integer
                                     startedAt:
-                                      description: Time at which previous execution
-                                        of the container started
+                                      description: Time at which previous execution of the container started
                                       format: date-time
                                       type: string
                                   required:
@@ -796,12 +738,10 @@ spec:
                                   description: Details about a waiting container
                                   properties:
                                     message:
-                                      description: Message regarding why the container
-                                        is not yet running.
+                                      description: Message regarding why the container is not yet running.
                                       type: string
                                     reason:
-                                      description: (brief) reason the container is not
-                                        yet running.
+                                      description: (brief) reason the container is not yet running.
                                       type: string
                                   type: object
                               type: object
@@ -811,12 +751,10 @@ spec:
                                 Cannot be updated.
                               type: string
                             ready:
-                              description: Specifies whether the container has passed
-                                its readiness probe.
+                              description: Specifies whether the container has passed its readiness probe.
                               type: boolean
                             restartCount:
-                              description: The number of times the container has been
-                                restarted.
+                              description: The number of times the container has been restarted.
                               format: int32
                               type: integer
                             started:
@@ -833,8 +771,7 @@ spec:
                                   description: Details about a running container
                                   properties:
                                     startedAt:
-                                      description: Time at which the container was last
-                                        (re-)started
+                                      description: Time at which the container was last (re-)started
                                       format: date-time
                                       type: string
                                   type: object
@@ -845,31 +782,25 @@ spec:
                                       description: Container's ID in the format '<type>://<container_id>'
                                       type: string
                                     exitCode:
-                                      description: Exit status from the last termination
-                                        of the container
+                                      description: Exit status from the last termination of the container
                                       format: int32
                                       type: integer
                                     finishedAt:
-                                      description: Time at which the container last
-                                        terminated
+                                      description: Time at which the container last terminated
                                       format: date-time
                                       type: string
                                     message:
-                                      description: Message regarding the last termination
-                                        of the container
+                                      description: Message regarding the last termination of the container
                                       type: string
                                     reason:
-                                      description: (brief) reason from the last termination
-                                        of the container
+                                      description: (brief) reason from the last termination of the container
                                       type: string
                                     signal:
-                                      description: Signal from the last termination
-                                        of the container
+                                      description: Signal from the last termination of the container
                                       format: int32
                                       type: integer
                                     startedAt:
-                                      description: Time at which previous execution
-                                        of the container started
+                                      description: Time at which previous execution of the container started
                                       format: date-time
                                       type: string
                                   required:
@@ -879,12 +810,10 @@ spec:
                                   description: Details about a waiting container
                                   properties:
                                     message:
-                                      description: Message regarding why the container
-                                        is not yet running.
+                                      description: Message regarding why the container is not yet running.
                                       type: string
                                     reason:
-                                      description: (brief) reason the container is not
-                                        yet running.
+                                      description: (brief) reason the container is not yet running.
                                       type: string
                                   type: object
                               type: object
@@ -897,11 +826,9 @@ spec:
                           type: object
                         type: array
                       ephemeralContainerStatuses:
-                        description: Status for any ephemeral containers that have run
-                          in this pod.
+                        description: Status for any ephemeral containers that have run in this pod.
                         items:
-                          description: ContainerStatus contains details for the current
-                            status of this container.
+                          description: ContainerStatus contains details for the current status of this container.
                           properties:
                             containerID:
                               description: Container's ID in the format '<type>://<container_id>'.
@@ -915,15 +842,13 @@ spec:
                               description: ImageID of the container's image.
                               type: string
                             lastState:
-                              description: Details about the container's last termination
-                                condition.
+                              description: Details about the container's last termination condition.
                               properties:
                                 running:
                                   description: Details about a running container
                                   properties:
                                     startedAt:
-                                      description: Time at which the container was last
-                                        (re-)started
+                                      description: Time at which the container was last (re-)started
                                       format: date-time
                                       type: string
                                   type: object
@@ -934,31 +859,25 @@ spec:
                                       description: Container's ID in the format '<type>://<container_id>'
                                       type: string
                                     exitCode:
-                                      description: Exit status from the last termination
-                                        of the container
+                                      description: Exit status from the last termination of the container
                                       format: int32
                                       type: integer
                                     finishedAt:
-                                      description: Time at which the container last
-                                        terminated
+                                      description: Time at which the container last terminated
                                       format: date-time
                                       type: string
                                     message:
-                                      description: Message regarding the last termination
-                                        of the container
+                                      description: Message regarding the last termination of the container
                                       type: string
                                     reason:
-                                      description: (brief) reason from the last termination
-                                        of the container
+                                      description: (brief) reason from the last termination of the container
                                       type: string
                                     signal:
-                                      description: Signal from the last termination
-                                        of the container
+                                      description: Signal from the last termination of the container
                                       format: int32
                                       type: integer
                                     startedAt:
-                                      description: Time at which previous execution
-                                        of the container started
+                                      description: Time at which previous execution of the container started
                                       format: date-time
                                       type: string
                                   required:
@@ -968,12 +887,10 @@ spec:
                                   description: Details about a waiting container
                                   properties:
                                     message:
-                                      description: Message regarding why the container
-                                        is not yet running.
+                                      description: Message regarding why the container is not yet running.
                                       type: string
                                     reason:
-                                      description: (brief) reason the container is not
-                                        yet running.
+                                      description: (brief) reason the container is not yet running.
                                       type: string
                                   type: object
                               type: object
@@ -983,12 +900,10 @@ spec:
                                 Cannot be updated.
                               type: string
                             ready:
-                              description: Specifies whether the container has passed
-                                its readiness probe.
+                              description: Specifies whether the container has passed its readiness probe.
                               type: boolean
                             restartCount:
-                              description: The number of times the container has been
-                                restarted.
+                              description: The number of times the container has been restarted.
                               format: int32
                               type: integer
                             started:
@@ -1005,8 +920,7 @@ spec:
                                   description: Details about a running container
                                   properties:
                                     startedAt:
-                                      description: Time at which the container was last
-                                        (re-)started
+                                      description: Time at which the container was last (re-)started
                                       format: date-time
                                       type: string
                                   type: object
@@ -1017,31 +931,25 @@ spec:
                                       description: Container's ID in the format '<type>://<container_id>'
                                       type: string
                                     exitCode:
-                                      description: Exit status from the last termination
-                                        of the container
+                                      description: Exit status from the last termination of the container
                                       format: int32
                                       type: integer
                                     finishedAt:
-                                      description: Time at which the container last
-                                        terminated
+                                      description: Time at which the container last terminated
                                       format: date-time
                                       type: string
                                     message:
-                                      description: Message regarding the last termination
-                                        of the container
+                                      description: Message regarding the last termination of the container
                                       type: string
                                     reason:
-                                      description: (brief) reason from the last termination
-                                        of the container
+                                      description: (brief) reason from the last termination of the container
                                       type: string
                                     signal:
-                                      description: Signal from the last termination
-                                        of the container
+                                      description: Signal from the last termination of the container
                                       format: int32
                                       type: integer
                                     startedAt:
-                                      description: Time at which previous execution
-                                        of the container started
+                                      description: Time at which previous execution of the container started
                                       format: date-time
                                       type: string
                                   required:
@@ -1051,12 +959,10 @@ spec:
                                   description: Details about a waiting container
                                   properties:
                                     message:
-                                      description: Message regarding why the container
-                                        is not yet running.
+                                      description: Message regarding why the container is not yet running.
                                       type: string
                                     reason:
-                                      description: (brief) reason the container is not
-                                        yet running.
+                                      description: (brief) reason the container is not yet running.
                                       type: string
                                   type: object
                               type: object
@@ -1069,8 +975,7 @@ spec:
                           type: object
                         type: array
                       hostIP:
-                        description: IP address of the host to which the pod is assigned.
-                          Empty if not yet scheduled.
+                        description: IP address of the host to which the pod is assigned. Empty if not yet scheduled.
                         type: string
                       initContainerStatuses:
                         description: |-
@@ -1079,8 +984,7 @@ spec:
                           startTime set.
                           More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-and-container-status
                         items:
-                          description: ContainerStatus contains details for the current
-                            status of this container.
+                          description: ContainerStatus contains details for the current status of this container.
                           properties:
                             containerID:
                               description: Container's ID in the format '<type>://<container_id>'.
@@ -1094,15 +998,13 @@ spec:
                               description: ImageID of the container's image.
                               type: string
                             lastState:
-                              description: Details about the container's last termination
-                                condition.
+                              description: Details about the container's last termination condition.
                               properties:
                                 running:
                                   description: Details about a running container
                                   properties:
                                     startedAt:
-                                      description: Time at which the container was last
-                                        (re-)started
+                                      description: Time at which the container was last (re-)started
                                       format: date-time
                                       type: string
                                   type: object
@@ -1113,31 +1015,25 @@ spec:
                                       description: Container's ID in the format '<type>://<container_id>'
                                       type: string
                                     exitCode:
-                                      description: Exit status from the last termination
-                                        of the container
+                                      description: Exit status from the last termination of the container
                                       format: int32
                                       type: integer
                                     finishedAt:
-                                      description: Time at which the container last
-                                        terminated
+                                      description: Time at which the container last terminated
                                       format: date-time
                                       type: string
                                     message:
-                                      description: Message regarding the last termination
-                                        of the container
+                                      description: Message regarding the last termination of the container
                                       type: string
                                     reason:
-                                      description: (brief) reason from the last termination
-                                        of the container
+                                      description: (brief) reason from the last termination of the container
                                       type: string
                                     signal:
-                                      description: Signal from the last termination
-                                        of the container
+                                      description: Signal from the last termination of the container
                                       format: int32
                                       type: integer
                                     startedAt:
-                                      description: Time at which previous execution
-                                        of the container started
+                                      description: Time at which previous execution of the container started
                                       format: date-time
                                       type: string
                                   required:
@@ -1147,12 +1043,10 @@ spec:
                                   description: Details about a waiting container
                                   properties:
                                     message:
-                                      description: Message regarding why the container
-                                        is not yet running.
+                                      description: Message regarding why the container is not yet running.
                                       type: string
                                     reason:
-                                      description: (brief) reason the container is not
-                                        yet running.
+                                      description: (brief) reason the container is not yet running.
                                       type: string
                                   type: object
                               type: object
@@ -1162,12 +1056,10 @@ spec:
                                 Cannot be updated.
                               type: string
                             ready:
-                              description: Specifies whether the container has passed
-                                its readiness probe.
+                              description: Specifies whether the container has passed its readiness probe.
                               type: boolean
                             restartCount:
-                              description: The number of times the container has been
-                                restarted.
+                              description: The number of times the container has been restarted.
                               format: int32
                               type: integer
                             started:
@@ -1184,8 +1076,7 @@ spec:
                                   description: Details about a running container
                                   properties:
                                     startedAt:
-                                      description: Time at which the container was last
-                                        (re-)started
+                                      description: Time at which the container was last (re-)started
                                       format: date-time
                                       type: string
                                   type: object
@@ -1196,31 +1087,25 @@ spec:
                                       description: Container's ID in the format '<type>://<container_id>'
                                       type: string
                                     exitCode:
-                                      description: Exit status from the last termination
-                                        of the container
+                                      description: Exit status from the last termination of the container
                                       format: int32
                                       type: integer
                                     finishedAt:
-                                      description: Time at which the container last
-                                        terminated
+                                      description: Time at which the container last terminated
                                       format: date-time
                                       type: string
                                     message:
-                                      description: Message regarding the last termination
-                                        of the container
+                                      description: Message regarding the last termination of the container
                                       type: string
                                     reason:
-                                      description: (brief) reason from the last termination
-                                        of the container
+                                      description: (brief) reason from the last termination of the container
                                       type: string
                                     signal:
-                                      description: Signal from the last termination
-                                        of the container
+                                      description: Signal from the last termination of the container
                                       format: int32
                                       type: integer
                                     startedAt:
-                                      description: Time at which previous execution
-                                        of the container started
+                                      description: Time at which previous execution of the container started
                                       format: date-time
                                       type: string
                                   required:
@@ -1230,12 +1115,10 @@ spec:
                                   description: Details about a waiting container
                                   properties:
                                     message:
-                                      description: Message regarding why the container
-                                        is not yet running.
+                                      description: Message regarding why the container is not yet running.
                                       type: string
                                     reason:
-                                      description: (brief) reason the container is not
-                                        yet running.
+                                      description: (brief) reason the container is not yet running.
                                       type: string
                                   type: object
                               type: object
@@ -1248,8 +1131,7 @@ spec:
                           type: object
                         type: array
                       message:
-                        description: A human readable message indicating details about
-                          why the pod is in this condition.
+                        description: A human readable message indicating details about why the pod is in this condition.
                         type: string
                       nominatedNodeName:
                         description: |-
@@ -1295,13 +1177,10 @@ spec:
                           match the podIP field. Pods may be allocated at most 1 value for each of IPv4 and IPv6. This list
                           is empty if no IPs have been allocated yet.
                         items:
-                          description: "IP address information for entries in the (plural)
-                          PodIPs field.\nEach entry includes:\n\n\n\tIP: An IP address
-                          allocated to the pod. Routable at least within the cluster."
+                          description: "IP address information for entries in the (plural) PodIPs field.\nEach entry includes:\n\n\n\tIP: An IP address allocated to the pod. Routable at least within the cluster."
                           properties:
                             ip:
-                              description: ip is an IP address (IPv4 or IPv6) assigned
-                                to the pod
+                              description: ip is an IP address (IPv4 or IPv6) assigned to the pod
                               type: string
                           type: object
                         type: array

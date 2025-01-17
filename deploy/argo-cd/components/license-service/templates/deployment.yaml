@@ -3,15 +3,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    # This sync wave is crucial because the deployment must be created after the CR, to avoid a situation when ArgoCD
-    # starts creating the CR at the same time as the operator does it (patch isn't applied and a name conflict happens)
-    argocd.argoproj.io/sync-wave: "1"
     productID: 068a62892a1e4db39641342e592daa25
     productMetric: FREE
     productName: IBM Cloud Platform Common Services
     {{- if ((.Values.operator).annotations) }}
       {{- toYaml .Values.operator.annotations | nindent 4 -}}
     {{ end }}
+    argocd.argoproj.io/sync-wave: "1"
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
