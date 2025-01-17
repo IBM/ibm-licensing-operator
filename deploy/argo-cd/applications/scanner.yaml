@@ -15,7 +15,7 @@ spec:
     path: deploy/argo-cd/components/scanner
     helm:
       valuesObject:
-        namespace: &scanner-namespace ibm-licensing-scanner
+        namespace: ibm-licensing-scanner
         licenseServiceNamespace: ibm-licensing
         spec:
           license:
@@ -25,4 +25,4 @@ spec:
           registry-pull-secret: ibm-licensing-scanner-registry-pull-secret
           scan:
             namespaces:
-              - *scanner-namespace
+              - ibm-licensing-scanner

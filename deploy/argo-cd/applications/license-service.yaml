@@ -15,8 +15,8 @@ spec:
     path: deploy/argo-cd/components/license-service
     helm:
       valuesObject:
-        namespace: &license-service-namespace ibm-licensing
-        watchNamespace: *license-service-namespace
+        namespace: ibm-licensing
+        watchNamespace: ibm-licensing
         spec:
           version: 4.2.12
           apiSecretToken: ibm-licensing-token
