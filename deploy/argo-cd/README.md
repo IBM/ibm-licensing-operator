@@ -106,6 +106,9 @@ source:
       namespace: my-custom-namespace
 ```
 
+Note that when you change the `namespace` value in `applications/license-service.yaml`, in general, you should also
+modify the value of the `watchNamespace` parameter.
+
 ### Apply custom metadata
 
 - To apply custom labels and annotations to the operator-managed resources:
