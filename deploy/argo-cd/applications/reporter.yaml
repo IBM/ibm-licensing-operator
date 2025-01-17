@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   source:
     repoURL: "https://github.com/IBM/ibm-licensing-operator"
-    targetRevision: "ILS-59_add-argo"
+    targetRevision: "master"
     path: deploy/argo-cd/components/reporter
     helm:
       valuesObject:
