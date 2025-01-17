@@ -6,12 +6,12 @@ The following procedure guides you through the following steps:
 - Installation of IBM License Service (ILS), IMB License Srvice Reporter and IBM License Service Scanner.
 
   **Note:** IBM License Service Scanner is a new Beta solution that is not yet publically available.
-  
+
 - Configuration of the components to ensure that the whole Licensing suite is functional.
 
 ## Prerequisites
 
-Befor you can deploy Argo CD applications:
+Before you can deploy Argo CD applications:
 - You must have a cluster with Argo CD installed.
 - ArgoCD application controller must have all required permissions. See the [prerequisites directory](prerequisites/).
 
@@ -34,8 +34,7 @@ for more information):
 
 ### Apply prerequisites
 
-There are multiple ways to apply prerequisites in your cluster. We recommend, that the cluster admins review and apply the  
-required modifications manually. However, this can also be automated.
+There are multiple ways to apply prerequisites in your cluster. We recommend, that the cluster admins review and apply the required modifications manually. However, this can also be automated.
 
 #### Apply the .yaml files
 
@@ -57,9 +56,7 @@ resources with the `PreSync` phase.
 
 ## Configuration
 
-We recommend that you adjust the `Application` .yaml files to configure `helm` charts of the components. For more information, see 
-the [Argo CD user guide](https://argo-cd.readthedocs.io/en/latest/user-guide/helm/) on `helm`.
-In general, the modifications are introduced with this structure:
+We recommend that you adjust the `Application` .yaml files to configure `helm` charts of the components. For more information, see the [Argo CD user guide](https://argo-cd.readthedocs.io/en/latest/user-guide/helm/) on `helm`. In general, the modifications are introduced with this structure:
 
 ```yaml
 source:
@@ -94,7 +91,7 @@ find relevant sections under the following links:
 - [*License Service*](https://www.ibm.com/docs/en/cloud-paks/foundational-services/4.6?topic=service-configuration)
 - [*License Service Reporter*](https://www.ibm.com/docs/en/cloud-paks/foundational-services/4.6?topic=reporter-installing-configuring-license-service)
 
-    **Note:** IBM License Service Scanner is a new Beta solution that is not yet publically available.
+**Note:** IBM License Service Scanner is a new Beta solution that is not yet publically available.
 
 ### Change target namespace
 
