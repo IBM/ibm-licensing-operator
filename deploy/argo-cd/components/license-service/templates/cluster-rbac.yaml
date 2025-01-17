@@ -1,0 +1,261 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+  name: ibm-license-service
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - namespaces
+      - nodes
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - replicasets
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - metrics.k8s.io
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - operator.ibm.com
+    resources:
+      - ibmlicensingmetadatas
+      - ibmlicensingdefinitions
+      - ibmlicensingquerysources
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - authentication.k8s.io
+    resources:
+      - tokenreviews
+    verbs:
+      - create
+  - apiGroups:
+      - authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+  name: ibm-license-service-restricted
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+      - nodes
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - operator.ibm.com
+    resources:
+      - ibmlicensingmetadatas
+      - ibmlicensingdefinitions
+      - ibmlicensingquerysources
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - authentication.k8s.io
+    resources:
+      - tokenreviews
+    verbs:
+      - create
+  - apiGroups:
+      - authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+  name: ibm-licensing-default-reader
+rules:
+  - nonResourceURLs:
+      - /products
+      - /snapshot
+      - /bundled_products
+      - /health
+      - /status
+      - /services
+      - /workloads
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+  name: ibm-licensing-operator
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - operator.ibm.com
+    resources:
+      - ibmlicensings
+      - ibmlicensings/finalizers
+      - ibmlicensings/status
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - operator.ibm.com
+    resources:
+      - operandrequests
+      - operandrequests/finalizers
+      - operandrequests/status
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - operator.openshift.io
+    resources:
+      - servicecas
+    verbs:
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+  name: ibm-license-service
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ibm-license-service
+subjects:
+  - kind: ServiceAccount
+    name: ibm-license-service
+    namespace: {{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+  name: ibm-license-service-restricted
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ibm-license-service-restricted
+subjects:
+  - kind: ServiceAccount
+    name: ibm-license-service-restricted
+    namespace: {{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+  name: ibm-licensing-default-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ibm-licensing-default-reader
+subjects:
+  - kind: ServiceAccount
+    name: ibm-licensing-default-reader
+    namespace: {{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+  name: ibm-licensing-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ibm-licensing-operator
+subjects:
+  - kind: ServiceAccount
+    name: ibm-licensing-operator
+    namespace: {{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+  name: ibm-license-service-cluster-monitoring-view
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-monitoring-view
+subjects:
+  - kind: ServiceAccount
+    name: ibm-license-service
+    namespace: {{ .Values.namespace }}

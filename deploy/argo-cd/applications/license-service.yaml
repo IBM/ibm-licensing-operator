@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ibm-license-service
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: "https://github.com/IBM/ibm-licensing-operator"
+    targetRevision: "master"
+    path: deploy/argo-cd/components/license-service
+    helm:
+      valuesObject:
+        namespace: ibm-licensing
+        watchNamespace: ibm-licensing
+        spec:
+          version: 4.2.12
+          apiSecretToken: ibm-licensing-token
+          datasource: datacollector
+          httpsEnable: true
+          license:
+            accept: true

@@ -1,0 +1,14 @@
+---
+apiVersion: operator.ibm.com/v1
+kind: IBMLicenseServiceScanner
+metadata:
+  labels:
+    app.kubernetes.io/created-by: ibm-licensing-scanner-operator
+    app.kubernetes.io/instance: ibm-licensing-scanner-instance
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ibm-licensing-scanner-instance
+    app.kubernetes.io/part-of: ibm-licensing-scanner-operator
+  name: ibm-licensing-scanner-instance
+  namespace: {{ .Values.namespace }}
+spec:
+  {{- toYaml .Values.spec | nindent 2 }}
