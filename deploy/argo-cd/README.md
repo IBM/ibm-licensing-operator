@@ -88,6 +88,7 @@ source:
 
 To learn more about the supported configuration options, see the official documentation for License Service and License Service Reporter. You may
 find relevant sections under the following links:
+
 - [*License Service*](https://www.ibm.com/docs/en/cloud-paks/foundational-services/4.6?topic=service-configuration)
 - [*License Service Reporter*](https://www.ibm.com/docs/en/cloud-paks/foundational-services/4.6?topic=reporter-installing-configuring-license-service)
 
