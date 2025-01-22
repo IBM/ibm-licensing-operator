@@ -1,4 +1,5 @@
 namespace: ibm-ls-reporter
+imagePullPrefix: icr.io
 spec:
   authentication:
     useradmin:
