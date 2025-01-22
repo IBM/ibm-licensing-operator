@@ -1,0 +1,12 @@
+namespace: ibm-licensing-scanner
+licenseServiceNamespace: ibm-licensing
+imagePullPrefix: icr.io
+spec:
+  license:
+    accept: true
+  license-service-upload-secret: ibm-licensing-scanner-upload-secret
+  log-level: INFO
+  registry-pull-secret: ibm-licensing-scanner-registry-pull-secret
+  scan:
+    namespaces:
+      - ibm-licensing-scanner

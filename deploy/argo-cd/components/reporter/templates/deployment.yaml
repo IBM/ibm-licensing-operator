@@ -93,7 +93,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
-          image: icr.io/cpopen/ibm-license-service-reporter-operator:4.2.12
+          image: {{ .Values.imagePullPrefix }}/cpopen/ibm-license-service-reporter-operator:4.2.12
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
@@ -128,3 +128,7 @@ spec:
             seccompProfile:
               type: RuntimeDefault
       serviceAccountName: ibm-license-service-reporter-operator
+      {{- if .Values.imagePullSecret -}}
+      imagePullSecrets:
+        - {{ .Values.imagePullSecret }}
+      {{- end -}}
