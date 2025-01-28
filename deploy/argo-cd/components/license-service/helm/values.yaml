@@ -8,3 +8,4 @@ spec:
   httpsEnable: true
   license:
     accept: true
+  imageName: cpopen/cpfs/ibm-licensing
