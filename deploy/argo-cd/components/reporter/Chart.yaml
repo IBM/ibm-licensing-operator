@@ -1,5 +1,0 @@
-apiVersion: v2
-name: reporter
-description: A Helm chart for IBM License Service Reporter ArgoCD installation
-type: application
-version: 4.2.12
