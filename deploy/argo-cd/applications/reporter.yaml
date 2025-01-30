@@ -10,9 +10,9 @@ spec:
     server: https://kubernetes.default.svc
   sources:
     - repoURL: "https://github.com/IBM/ibm-licensing-operator"
-      targetRevision: "ILS-402_helm-support"
+      targetRevision: "master"
       path: deploy/argo-cd/components/reporter/helm-cluster-scoped
     - repoURL: "https://github.com/IBM/ibm-licensing-operator"
-      targetRevision: "ILS-402_helm-support"
+      targetRevision: "master"
       path: deploy/argo-cd/components/reporter/helm
 
