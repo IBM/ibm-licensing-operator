@@ -128,7 +128,7 @@ spec:
             seccompProfile:
               type: RuntimeDefault
       serviceAccountName: ibm-license-service-reporter-operator
-      {{- if .Values.imagePullSecret -}}
+      {{ if .Values.imagePullSecret }}
       imagePullSecrets:
         - {{ .Values.imagePullSecret }}
       {{- end -}}
