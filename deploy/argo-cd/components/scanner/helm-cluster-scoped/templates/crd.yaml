@@ -55,6 +55,14 @@ spec:
                         - IfNotPresent
                         - Never
                       type: string
+                    image-pull-prefix:
+                      description: Set scanner's image registry prefix
+                      type: string
+                    image-pull-secrets:
+                      description: Set scanner's image pull secrets
+                      items:
+                        type: string
+                      type: array
                     resources:
                       description: Configure scanner's resource requirements
                       properties:
