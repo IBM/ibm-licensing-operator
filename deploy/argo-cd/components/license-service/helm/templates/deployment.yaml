@@ -100,7 +100,7 @@ spec:
             seccompProfile:
               type: RuntimeDefault
       serviceAccountName: ibm-licensing-operator
-      {{- if .Values.imagePullSecret -}}
+      {{ if .Values.imagePullSecret }}
       imagePullSecrets:
         - name: {{ .Values.imagePullSecret }}
       {{- end -}}
