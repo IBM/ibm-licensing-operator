@@ -130,5 +130,5 @@ spec:
       serviceAccountName: ibm-license-service-reporter-operator
       {{- if .Values.imagePullSecret -}}
       imagePullSecrets:
-        - {{ .Values.imagePullSecret }}
+        - name: {{ .Values.imagePullSecret }}
       {{- end -}}

@@ -102,5 +102,5 @@ spec:
       serviceAccountName: ibm-licensing-operator
       {{- if .Values.imagePullSecret -}}
       imagePullSecrets:
-        - {{ .Values.imagePullSecret }}
+        - name: {{ .Values.imagePullSecret }}
       {{- end -}}

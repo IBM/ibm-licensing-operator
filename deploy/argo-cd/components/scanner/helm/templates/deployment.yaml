@@ -93,5 +93,5 @@ spec:
       terminationGracePeriodSeconds: 10
       {{ if .Values.imagePullSecret }}
       imagePullSecrets:
-        - {{ .Values.imagePullSecret }}
+        - name: {{ .Values.imagePullSecret }}
       {{- end -}}
