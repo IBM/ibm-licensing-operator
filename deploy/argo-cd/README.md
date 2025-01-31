@@ -238,18 +238,21 @@ connected.
 Helm installation support is in its alpha stage. To install with helm, run the following commands:
 
 - IBM License Service:
+
 ```commandline
 helm install license-service-cluster-scoped ./components/license-service/helm-cluster-scoped
 helm install license-service ./components/license-service/helm
 ```
 
 - IBM License Service Reporter:
+
 ```commandline
 helm install reporter-cluster-scoped ./components/reporter/helm-cluster-scoped
 helm install reporter ./components/reporter/helm
 ```
 
 - IBM License Service Scanner:
+
 ```commandline
 helm install scanner-cluster-scoped ./components/scanner/helm-cluster-scoped
 helm install scanner ./components/scanner/helm
