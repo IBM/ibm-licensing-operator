@@ -1,0 +1,23 @@
+---
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+  name: instance
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+spec:
+  {{- $imagePullData := dict -}}
+
+  {{- /* Overwrite IBMLicensing CR's spec value, as imagePullRegistry is expected to always be provided */ -}}
+  {{- $_ := set $imagePullData "imageRegistry" .Values.imagePullPrefix -}}
+
+  {{- /* If imagePullSecret is declared, append it to the list of secrets specified in IBMLicensing CR's spec (or create a new list if empty) */ -}}
+  {{- if .Values.imagePullSecret -}}
+    {{- $_ := set $imagePullData "imagePullSecrets" (prepend (default list .Values.spec.imagePullSecrets) .Values.imagePullSecret) -}}
+  {{- end -}}
+
+  {{- toYaml (mergeOverwrite .Values.spec $imagePullData) | nindent 2 }}

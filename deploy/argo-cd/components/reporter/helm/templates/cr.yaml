@@ -1,0 +1,24 @@
+---
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicenseServiceReporter
+metadata:
+  labels:
+    app.kubernetes.io/created-by: ibm-license-service-reporter-operator
+    app.kubernetes.io/instance: ibmlicenseservicereporter-instance
+    app.kubernetes.io/managed-by: operator
+    app.kubernetes.io/name: ibmlicenseservicereporter
+    app.kubernetes.io/part-of: ibm-license-service-reporter-operator
+  name: instance
+  namespace: {{ .Values.namespace }}
+spec:
+  {{- $imagePullData := dict -}}
+
+  {{- /* Overwrite IBMLicenseServiceReporter CR's spec value, as imagePullPrefix is expected to always be provided */ -}}
+  {{- $_ := set $imagePullData "imageRegistry" .Values.imagePullPrefix -}}
+
+  {{- /* If imagePullSecret is declared, append it to the list of secrets specified in IBMLicenseServiceReporter CR's spec (or create a new list if empty) */ -}}
+  {{- if .Values.imagePullSecret -}}
+    {{- $_ := set $imagePullData "imagePullSecrets" (prepend (default list .Values.spec.imagePullSecrets) .Values.imagePullSecret) -}}
+  {{- end -}}
+
+  {{- toYaml (mergeOverwrite .Values.spec $imagePullData) | nindent 2 }}

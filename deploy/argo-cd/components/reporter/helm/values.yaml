@@ -1,0 +1,9 @@
+namespace: ibm-ls-reporter
+imagePullPrefix: icr.io
+spec:
+  authentication:
+    useradmin:
+      enabled: true
+  license:
+    accept: true
+  version: 4.2.12

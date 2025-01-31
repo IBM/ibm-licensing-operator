@@ -1,0 +1,5 @@
+apiVersion: v2
+name: ibm-license-service-reporter-cluster-scoped
+description: A Helm chart for IBM License Service Reporter ArgoCD installation (cluster scoped)
+type: application
+version: 4.2.12
