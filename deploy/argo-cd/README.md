@@ -1,10 +1,12 @@
 # Installing IBM Licensing components as Argo CD applications
 
-Learn how to install IBM Licensing components as Argo CD applications and perform post-installation configuration.
+Learn how to install IBM Licensing components as Argo CD applications.
 
 The following procedure guides you through the following steps:
-- Installation of IBM License Service (ILS), IMB License Srvice Reporter and IBM License Service Scanner.
-- Configuration of the components to ensure that the whole Licensing suite is functional.
+
+- [Prerequisites](#prerequisites): Preparing for installation.
+- [Configuration](#configuration): Configuration of the components to make sure that the whole Licensing suite is functional.
+- [Installation](#installation): Installation of IBM License Service (ILS), IMB License Srvice Reporter and IBM License Service Scanner.
 
 **Note:** IBM License Service Scanner is a new Beta solution that is not yet publicly available.
 
@@ -33,7 +35,7 @@ for more information):
 
 ### Apply prerequisites
 
-There are multiple ways to apply prerequisites in your cluster. We recommend, that the cluster admins review and apply
+There are multiple ways to apply prerequisites in your cluster. It is recommended for the cluster admins to review and apply
 the required modifications manually. However, this can also be automated.
 
 #### Apply the .yaml files
@@ -56,9 +58,9 @@ annotating the required resources with the `PreSync` phase.
 
 ## Configuration
 
-We recommend that you adjust the `Application` .yaml files to configure `helm` charts of the components. For more
+It is reccomended to adjust the `Application` .yaml files to configure the `helm` charts of the components. For more
 information, see the [Argo CD user guide](https://argo-cd.readthedocs.io/en/latest/user-guide/helm/) on `helm`.
-In general, for applications with multiple sources, the modifications are introduced with this structure:
+In general, for applications with multiple sources, the modifications are introduced with the following structure:
 
 ```yaml
 sources:
@@ -67,19 +69,19 @@ sources:
         key: new-value
 ```
 
-Alternatively, you may want to adjust the .yaml files within the `components` directory itself or the `values.yaml`
-files, before deploying an `Application` targeting them. For example, you could fork this repository and adjust
+Alternatively, you might want to adjust the .yaml files within the `components` directory itself or the `values.yaml`
+files, before deploying an `Application` targeting them. For example, you can fork this repository and adjust
 some custom resource configuration directly in the relevant file.
 
 The following are some common scenarios with examples on how to resolve the provided sample issues.
 
-**Note:** Below examples should be applied to the source targeting the path with `helm`, not `helm-cluster-scoped`, as
+**Note:** The following examples should be applied to the source targeting the path with `helm`, not `helm-cluster-scoped`, as
 the cluster-scoped charts only support the `namespace` parameter.
 
 ### Configure the CR
 
 To configure the Licensing components through custom resources, modify the `spec` section. For example, to enable
-hyper-threading in License Service, add the following:
+hyper-threading in License Service, add the following lines:
 
 ```yaml
 helm:
@@ -91,7 +93,7 @@ helm:
 ```
 
 To learn more about the supported configuration options, see the official documentation for License Service and
-License Service Reporter. You may find relevant sections under the following links:
+License Service Reporter. See the relevant sections under the following links:
 
 - [*License Service*](https://www.ibm.com/docs/en/cloud-paks/foundational-services/4.6?topic=service-configuration)
 - [*License Service Reporter*](https://www.ibm.com/docs/en/cloud-paks/foundational-services/4.6?topic=reporter-installing-configuring-license-service)
@@ -174,21 +176,20 @@ Otherwise, License Service operator logs errors related to missing RBAC permissi
 
 ### Specify image registry and image pull secrets
 
-To specify a different image registry for the components' installation:
+To specify a different image registry for the installation of the components, change the value of `imagePullPrefix` in the relevant `Application.yaml` file:
 
 ```yaml
 helm:
   valuesObject:
     imagePullPrefix: <your-registry>
 ```
+As a result, the operator and operand image registries are overwritten. For example, after applying the above changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator`
+becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.12`.
 
-This will result in operator and operand images' registry being overwritten, for example, for `ibm-licensing-operator`,
-it will become `<your-registry>/cpopen/ibm-licensing-operator:4.2.12`.
-
-**Note:** `imagePullPrefix` takes precedence over any values provided in the CR configuration, such as through
+**Note:** `imagePullPrefix` takes precedence over any values that you provided in the CR configuration, for example, through
 `spec.imageRegistry`.
 
-To specify which image pull secret should be used to pull from the registry:
+To specify which image pull secret should be used to pull from the registry, change the value of `imagePullSecret` in the relevant `Application.yaml` file:
 
 ```yaml
 helm:
@@ -196,10 +197,10 @@ helm:
     imagePullSecret: <your-secret>
 ```
 
-This will result in operator and operand images' `imagePullSecrets` field having the secret included in the list, and
-therefore used when pulling the images from the registry.
+As a result, the `imagePullSecrets` field of the operator and the operand include the specified secret, and
+this secret is used when pulling the images from the registry.
 
-**Note:** `imagePullSecret` is prepended to the list of secrets provided in the CR configuration, such as through
+**Note:** `imagePullSecret` is added to the list of secrets provided in the CR configuration, for example, through
 `spec.imagePullSecrets`.
 
 ## Installation
@@ -233,9 +234,9 @@ In such scenario, complete the following steps:
 4. Apply `applications/license-service.yaml` to your cluster and check whether both components are working and are
 connected.
 
-### Install with helm only
+### Installation with helm
 
-Helm installation support is in its alpha stage. To install with helm, run the following commands:
+Helm installation support is in its alpha stage. To install the Licensing components with helm, run the following commands:
 
 - IBM License Service:
 
@@ -253,13 +254,15 @@ helm install reporter ./components/reporter/helm
 
 - IBM License Service Scanner:
 
+**Note:** IBM License Service Scanner is a new Beta solution that is not yet publicly available.
+
 ```commandline
 helm install scanner-cluster-scoped ./components/scanner/helm-cluster-scoped
 helm install scanner ./components/scanner/helm
 ```
 
-Commands such as `helm upgrade` should also be functional, however, due to the alpha stage of the development, may
-result in an unexpected state. Therefore, we recommend an installation on a clean-state cluster.
+Commands such as `helm upgrade` should be functional. However, due to the alpha stage of the development, they can
+result in an unexpected state. Therefore, it is recommended to perform installation on a clean-state cluster.
 
-If you already have some licensing components installed, we recommend using the `--take-ownership` flag introduced in
+If you already have any Licensing components installed, use the `--take-ownership` flag, which is introduced in
 `helm` version `3.17.0`, when running the `install` commands.
