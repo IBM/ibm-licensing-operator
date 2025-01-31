@@ -58,7 +58,7 @@ annotating the required resources with the `PreSync` phase.
 
 ## Configuration
 
-It is reccomended to adjust the `Application` .yaml files to configure the `helm` charts of the components. For more
+It is recommended to adjust the `Application` .yaml files to configure the `helm` charts of the components. For more
 information, see the [Argo CD user guide](https://argo-cd.readthedocs.io/en/latest/user-guide/helm/) on `helm`.
 In general, for applications with multiple sources, the modifications are introduced with the following structure:
 
@@ -183,6 +183,7 @@ helm:
   valuesObject:
     imagePullPrefix: <your-registry>
 ```
+
 As a result, the operator and operand image registries are overwritten. For example, after applying the above changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator`
 becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.12`.
 
