@@ -640,12 +640,12 @@ generate-yaml-argo-cd: kustomize
 	@sed -i '' "s/image: icr.io/image: {{ .Values.imagePullPrefix }}/g" argo-cd/deployment.yaml
 
 	# Replace extra fields (in addition to the namespaces) to template them with helm
-	@echo "spec:\n  {{- \$$imagePullData := dict -}}\n\n  {{- /* Overwrite IBMLicensing CR's spec value, as imagePullPrefix is expected to always be provided */ -}}\n  {{- \$$_ := set \$$imagePullData \"imageRegistry\" .Values.imagePullPrefix -}}\n\n  {{- /* If imagePullSecret is declared, append it to the list of secrets specified in IBMLicensing CR's spec (or create a new list if empty) */ -}}\n  {{- if .Values.imagePullSecret -}}\n    {{- \$$_ := set \$$imagePullData \"imagePullSecrets\" (prepend (default list .Values.spec.imagePullSecrets) .Values.imagePullSecret) -}}\n  {{- end -}}\n\n  {{- toYaml (mergeOverwrite .Values.spec \$$imagePullData) | nindent 2 }}" >> argo-cd/cr.yaml
+	@cat ./common/makefile-generate-yaml-cr >> argo-cd/cr.yaml
 	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.operator).annotations) }}\n      {{- toYaml .Values.operator.annotations | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.operator).labels) }}\n      {{- toYaml .Values.operator.labels | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.operator).annotations) }}\n          {{- toYaml .Values.operator.annotations | nindent 4 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/sed-deployment-labels-bottom: sed-me/{{- if ((.Values.operator).labels) }}\n          {{- toYaml .Values.operator.labels | nindent 4 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.watchNamespace }}/g" argo-cd/deployment.yaml
-	@echo "      {{ if .Values.imagePullSecret }}\n      imagePullSecrets:\n        - name: {{ .Values.imagePullSecret }}\n      {{- end -}}" >> argo-cd/deployment.yaml
+	@cat ./common/makefile-generate-yaml-deployment >> argo-cd/deployment.yaml
 
 	@rm argo-cd/tmp.yaml
