@@ -616,7 +616,7 @@ generate-yaml-argo-cd: kustomize
 	@yq -i 'del(.metadata.namespace)' argo-cd/cluster-rbac.yaml
 
 	# Prepare resources for templating with helm
-	@yq -i '.spec = ["sed-me"]' argo-cd/cr.yaml
+	@yq -i 'del(.spec)' argo-cd/cr.yaml
 	@yq -i '.metadata.annotations.sed-deployment-annotations-top = "sed-me" \
 	| .metadata.labels.sed-deployment-labels-top = "sed-me" \
 	| .spec.template.metadata.annotations.sed-deployment-annotations-bottom = "sed-me" \
@@ -641,7 +641,7 @@ generate-yaml-argo-cd: kustomize
 	@sed -i '' "s/image: icr.io/image: {{ .Values.imagePullPrefix }}/g" argo-cd/deployment.yaml
 
 	# Replace extra fields (in addition to the namespaces) to template them with helm
-	@sed -i '' "s/- sed-me/{{- toYaml .Values.spec | nindent 2 }}/g" argo-cd/cr.yaml
+	@echo "spec:\n  {{- \$$imagePullData := dict -}}\n\n  {{- /* Overwrite IBMLicensing CR's spec value, as imagePullRegistry is expected to always be provided */ -}}\n  {{- \$$_ := set \$$imagePullData \"imageRegistry\" .Values.imagePullPrefix -}}\n\n  {{- /* If imagePullSecret is declared, append it to the list of secrets specified in IBMLicensing CR's spec (or create a new list if empty) */ -}}\n  {{- if .Values.imagePullSecret -}}\n    {{- \$$_ := set \$$imagePullData \"imagePullSecrets\" (prepend (default list .Values.spec.imagePullSecrets) .Values.imagePullSecret) -}}\n  {{- end -}}\n\n  {{- toYaml (mergeOverwrite .Values.spec \$$imagePullData) | nindent 2 }}" >> argo-cd/cr.yaml
 	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.operator).annotations) }}\n      {{- toYaml .Values.operator.annotations | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.operator).labels) }}\n      {{- toYaml .Values.operator.labels | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.operator).annotations) }}\n          {{- toYaml .Values.operator.annotations | nindent 4 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
