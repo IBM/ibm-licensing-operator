@@ -640,12 +640,12 @@ generate-yaml-argo-cd: kustomize
 	@sed -i '' "s/image: icr.io/image: {{ .Values.imagePullPrefix }}/g" argo-cd/deployment.yaml
 
 	# Replace extra fields (in addition to the namespaces) to template them with helm
-	@cat ./common/makefile-generate-yaml-cr >> argo-cd/cr.yaml
+	@cat ./common/makefile-generate/yaml-cr-spec-part >> argo-cd/cr.yaml
 	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.operator).annotations) }}\n      {{- toYaml .Values.operator.annotations | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.operator).labels) }}\n      {{- toYaml .Values.operator.labels | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.operator).annotations) }}\n          {{- toYaml .Values.operator.annotations | nindent 4 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/sed-deployment-labels-bottom: sed-me/{{- if ((.Values.operator).labels) }}\n          {{- toYaml .Values.operator.labels | nindent 4 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.watchNamespace }}/g" argo-cd/deployment.yaml
-	@cat ./common/makefile-generate-yaml-deployment >> argo-cd/deployment.yaml
+	@cat ./common/makefile-generate/yaml-deployment-pull-secrets-part >> argo-cd/deployment.yaml
 
 	@rm argo-cd/tmp.yaml
