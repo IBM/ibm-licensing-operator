@@ -45,8 +45,8 @@ IMAGE_CATALOG_NAME ?= ibm-licensing-operator-catalog
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
 
-CHANNELS=v3,v3.20,v3.21,v3.22,v4.0,beta,dev,stable-v1
-DEFAULT_CHANNEL=v4.0
+CHANNELS=v3,v3.20,v3.21,v3.22,v4.0,v4.2,beta,dev,stable-v1
+DEFAULT_CHANNEL=v4.2
 
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
@@ -441,6 +441,7 @@ alm-example:
 pre-bundle: manifests
 	operator-sdk generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
+	yq -i '.annotations."com.redhat.openshift.versions" = "v4.12-v4.18"' ./bundle/metadata/annotations.yaml
 	yq '.spec.customresourcedefinitions.owned[0]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_definitions.yaml
 	yq '.spec.customresourcedefinitions.owned[1]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_metadata.yaml
 	yq '.spec.customresourcedefinitions.owned[2]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_querysources.yaml
