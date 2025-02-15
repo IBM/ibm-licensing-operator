@@ -45,8 +45,8 @@ IMAGE_CATALOG_NAME ?= ibm-licensing-operator-catalog
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
 
-CHANNELS=v3,v3.20,v3.21,v3.22,v4.0,beta,dev,stable-v1
-DEFAULT_CHANNEL=v4.0
+CHANNELS=v4.2
+DEFAULT_CHANNEL=v4.2
 
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
