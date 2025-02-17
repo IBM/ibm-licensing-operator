@@ -6,5 +6,5 @@ metadata:
     app.kubernetes.io/component: namespace
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: ibm-licensing-scanner
-    app.kubernetes.io/version: 4.2.12
+    app.kubernetes.io/version: 4.2.13
     control-plane: controller-manager
