@@ -56,8 +56,8 @@ You can use the `ibm-licensing-operator` to install License Service on any Kuber
 
 ## Product documentation
 
-For the overview and documentation, see [License Service deployment without an IBM Cloud for IBM stand-alone IBM Containerized Software](https://ibm.biz/license_service4containers).
+For the broader overview and more details, see [License Service documentation](https://ibm.biz/license_service4containers).
 
-<!--- The short link: https://ibm.biz/license_service4containers contains documentation for License Service stand-alond intended for IBM stand alone COntainerized Software. To have this link updated contact the Foundational services ID team, manager: Dan Hawkins.
+<!--- The short link: https://ibm.biz/license_service4containers contains documentation for License Service stand-alone intended for IBM stand alone Containerized Software. To have this link updated contact the Foundational services ID team, manager: Dan Hawkins.
 --->
 
