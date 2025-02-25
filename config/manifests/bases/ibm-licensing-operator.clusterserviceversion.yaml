@@ -17,7 +17,7 @@ metadata:
     features.operators.openshift.io/token-auth-aws: "false"
     features.operators.openshift.io/token-auth-azure: "false"
     features.operators.openshift.io/token-auth-gcp: "false"
-    nss.operator.ibm.com/managed-operators: ibm-licensing-operator
+    nss.operator.ibm.com/managed-operators: ibm-licensing-operator-app
     olm.skipRange: '>=1.0.0 <4.2.13'
     operatorframework.io/suggested-namespace: ibm-licensing
     operators.operatorframework.io/builder: operator-sdk-v1.25.2
