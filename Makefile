@@ -616,7 +616,7 @@ generate-yaml-argo-cd: kustomize
 	@yq -i 'del(.metadata.namespace)' argo-cd/cluster-rbac.yaml
 
 	# Prepare resources for templating with helm
-	@yq -i '.spec = ["sed-me"]' argo-cd/cr.yaml
+	@yq -i 'del(.spec)' argo-cd/cr.yaml
 	@yq -i '.metadata.annotations.sed-deployment-annotations-top = "sed-me" \
 	| .metadata.labels.sed-deployment-labels-top = "sed-me" \
 	| .spec.template.metadata.annotations.sed-deployment-annotations-bottom = "sed-me" \
@@ -636,12 +636,16 @@ generate-yaml-argo-cd: kustomize
 	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.namespace }}/g" argo-cd/rbac.yaml
 	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.namespace }}/g" argo-cd/serviceaccounts.yaml
 
+	# Replace all registry occurrences to template them with helm
+	@sed -i '' "s/image: icr.io/image: {{ .Values.imagePullPrefix }}/g" argo-cd/deployment.yaml
+
 	# Replace extra fields (in addition to the namespaces) to template them with helm
-	@sed -i '' "s/- sed-me/{{- toYaml .Values.spec | nindent 2 }}/g" argo-cd/cr.yaml
+	@cat ./common/makefile-generate/yaml-cr-spec-part >> argo-cd/cr.yaml
 	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.operator).annotations) }}\n      {{- toYaml .Values.operator.annotations | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.operator).labels) }}\n      {{- toYaml .Values.operator.labels | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.operator).annotations) }}\n          {{- toYaml .Values.operator.annotations | nindent 4 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/sed-deployment-labels-bottom: sed-me/{{- if ((.Values.operator).labels) }}\n          {{- toYaml .Values.operator.labels | nindent 4 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.watchNamespace }}/g" argo-cd/deployment.yaml
+	@cat ./common/makefile-generate/yaml-deployment-pull-secrets-part >> argo-cd/deployment.yaml
 
 	@rm argo-cd/tmp.yaml

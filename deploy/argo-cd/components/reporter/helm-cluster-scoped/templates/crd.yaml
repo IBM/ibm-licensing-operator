@@ -484,7 +484,7 @@ spec:
                   description: Version
                   type: string
                 workloadsCustomColumnsRetencyDays:
-                  description: Number of days that the deleted custom column values will be stored in database before removing them permamently. Default value is 90.
+                  description: Number of days that the deleted custom column values will be stored in database before removing them permanently. Default value is 90.
                   type: integer
               required:
                 - license
