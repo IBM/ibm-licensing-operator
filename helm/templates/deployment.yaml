@@ -58,7 +58,7 @@ spec:
             - ibm-licensing-operator
           env:
             - name: IBM_LICENSING_IMAGE
-              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.12
+              value: icr.io/cpopen/cpfs/ibm-licensing:4.2.12
             - name: WATCH_NAMESPACE
               value: {{ .Values.watchNamespace }}
             - name: OPERATOR_NAMESPACE
