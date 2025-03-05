@@ -1,0 +1,106 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    productID: 068a62892a1e4db39641342e592daa25
+    productMetric: FREE
+    productName: IBM Cloud Platform Common Services
+    {{- if ((.Values.operator).annotations) }}
+      {{- toYaml .Values.operator.annotations | nindent 4 -}}
+    {{ end }}
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+    {{- if ((.Values.operator).labels) }}
+      {{- toYaml .Values.operator.labels | nindent 4 -}}
+    {{ end }}
+  name: ibm-licensing-operator
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: ibm-licensing-operator
+  template:
+    metadata:
+      annotations:
+        productID: 068a62892a1e4db39641342e592daa25
+        productMetric: FREE
+        productName: IBM Cloud Platform Common Services
+        {{- if ((.Values.operator).annotations) }}
+          {{- toYaml .Values.operator.annotations | nindent 4 -}}
+        {{ end }}
+      labels:
+        app.kubernetes.io/instance: ibm-licensing-operator
+        app.kubernetes.io/managed-by: ibm-licensing-operator
+        app.kubernetes.io/name: ibm-licensing
+        name: ibm-licensing-operator
+        {{- if ((.Values.operator).labels) }}
+          {{- toYaml .Values.operator.labels | nindent 4 -}}
+        {{ end }}
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+                      - ppc64le
+                      - s390x
+      containers:
+        - command:
+            - ibm-licensing-operator
+          env:
+            - name: IBM_LICENSING_IMAGE
+              value: icr.io/cpopen/cpfs/ibm-licensing:4.2.12
+            - name: WATCH_NAMESPACE
+              value: {{ .Values.watchNamespace }}
+            - name: OPERATOR_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: ibm-licensing-operator
+            - name: SA_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.serviceAccountName
+            - name: CRD_RECONCILE_INTERVAL
+              value: "300"
+          image: {{ .Values.imagePullPrefix }}/cpopen/ibm-licensing-operator:4.2.12
+          imagePullPolicy: IfNotPresent
+          name: ibm-licensing-operator
+          resources:
+            limits:
+              cpu: 20m
+              ephemeral-storage: 500Mi
+              memory: 150Mi
+            requests:
+              cpu: 10m
+              ephemeral-storage: 250Mi
+              memory: 50Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+      serviceAccountName: ibm-licensing-operator
+      {{ if .Values.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret }}
+      {{- end -}}

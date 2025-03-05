@@ -1,0 +1,5 @@
+apiVersion: v2
+name: ibm-license-service
+description: A Helm chart for IBM License Service ArgoCD installation
+type: application
+version: 4.2.12

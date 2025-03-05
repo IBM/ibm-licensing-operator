@@ -1,0 +1,11 @@
+namespace: ibm-licensing
+watchNamespace: ibm-licensing
+imagePullPrefix: icr.io
+spec:
+  version: 4.2.12
+  apiSecretToken: ibm-licensing-token
+  datasource: datacollector
+  httpsEnable: true
+  license:
+    accept: true
+  imageName: cpopen/cpfs/ibm-licensing
