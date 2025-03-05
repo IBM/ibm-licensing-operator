@@ -1,4 +1,4 @@
-- image: icr.io/cpopen/ibm-licensing-operator:4.2.12
+- image: icr.io/cpopen/ibm-licensing-operator:4.2.13
   name: IBM_LICENSING_OPERATOR_IMAGE
-- image: icr.io/cpopen/cpfs/ibm-licensing:4.2.12
+- image: icr.io/cpopen/cpfs/ibm-licensing:4.2.13
   name: IBM_LICENSING_IMAGE

@@ -69,4 +69,5 @@ echo "Updated the common/relatedImages.yaml"
 # All matched versions in the components and prerequisites directories
 find ./deploy/argo-cd/components -type f -exec sh -c 'sed "s/$2/$3/g" "$1" > find-sed.tmp && mv find-sed.tmp "$1"' _ {} "$CURRENT_DEV_CSV" "$NEW_DEV_CSV" \;
 find ./deploy/argo-cd/prerequisites -type f -exec sh -c 'sed "s/$2/$3/g" "$1" > find-sed.tmp && mv find-sed.tmp "$1"' _ {} "$CURRENT_DEV_CSV" "$NEW_DEV_CSV" \;
+inline_sed "s/$CURRENT_DEV_CSV/$NEW_DEV_CSV/" deploy/argo-cd/README.md
 echo "Updated deploy/argo-cd"
