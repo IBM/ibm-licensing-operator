@@ -12,12 +12,6 @@ metadata:
 spec:
   {{- $imagePullData := dict -}}
 
-  {{- /* Overwrite IBMLicensing CR's spec value, as imagePullPrefix is expected to always be provided */ -}}
-  {{- $_ := set $imagePullData "imageRegistry" .Values.global.imagePullPrefix -}}
-
-  {{- /* Since we set imageRegistry we must also provide imageName */ -}}
-  {{- $__ := set $imagePullData "imageName" (printf "%s/ibm-licensing" .Values.cpfs.imageRegistryNamespaceOperand) -}}
-
   {{- /* If imagePullSecret is declared, append it to the list of secrets specified in IBMLicensing CR's spec (or create a new list if empty) */ -}}
   {{- if .Values.global.imagePullSecret -}}
     {{- $_ := set $imagePullData "imagePullSecrets" (prepend (default list .Values.spec.imagePullSecrets) .Values.global.imagePullSecret) -}}
