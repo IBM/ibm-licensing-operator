@@ -185,7 +185,7 @@ helm:
 ```
 
 As a result, the operator and operand image registries are overwritten. For example, after applying the above changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator`
-becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.13`.
+becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.14`.
 
 **Note:** `imagePullPrefix` takes precedence over any values that you provided in the CR configuration, for example, through
 `spec.imageRegistry`.
