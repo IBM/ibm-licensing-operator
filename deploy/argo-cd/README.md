@@ -188,9 +188,9 @@ helm:
 As a result, the operator and operand image registries are overwritten. For example, after applying the above changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator`
 becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.14`.
 
-To also modify the image registry namespace of either the operator or the operand, change the value of
-`cpfs.imageRegistryNamespaceOperator` and/or `cpfs.imageRegistryNamespaceOperand` in the relevant `Application.yaml`
-file:
+To additionally modify the image registry namespace of either the operator or the operand, change the value of 
+`cpfs.imageRegistryNamespaceOperator` or `cpfs.imageRegistryNamespaceOperand`, or both, in the relevant
+`Application.yaml` file:
 
 ```yaml
 helm:
