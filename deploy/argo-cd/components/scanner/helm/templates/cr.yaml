@@ -13,24 +13,21 @@ metadata:
 spec:
   {{- $imagePullData := dict -}}
 
-  {{- /* Overwrite IBMLicenseServiceScanner CR's spec value, as imagePullPrefix is expected to always be provided */ -}}
-  {{- $_ := set $imagePullData "image-pull-prefix" .Values.imagePullPrefix -}}
-
   {{- /* If imagePullSecret is declared, append it to the list of secrets specified in IBMLicenseServiceScanner CR's spec (or create a new list if empty) */ -}}
-  {{- if .Values.imagePullSecret -}}
+  {{- if .Values.global.imagePullSecret -}}
     {{- if (hasKey .Values.spec "container") -}}
       {{- if (hasKey .Values.spec.container "image-pull-secrets") -}}
-        {{- $_ := set $imagePullData "image-pull-secrets" (prepend (index .Values.spec.container "image-pull-secrets") .Values.imagePullSecret) -}}
+        {{- $_ := set $imagePullData "image-pull-secrets" (prepend (index .Values.spec.container "image-pull-secrets") .Values.global.imagePullSecret) -}}
       {{- else -}}
-        {{- $_ := set $imagePullData "image-pull-secrets" (list .Values.imagePullSecret) -}}
+        {{- $_ := set $imagePullData "image-pull-secrets" (list .Values.global.imagePullSecret) -}}
       {{- end -}}
     {{- else -}}
-      {{- $_ := set $imagePullData "image-pull-secrets" (list .Values.imagePullSecret) -}}
+      {{- $_ := set $imagePullData "image-pull-secrets" (list .Values.global.imagePullSecret) -}}
     {{- end -}}
   {{- end -}}
 
   {{- /* Overwrite container data in the spec of IBMLicenseServiceScanner CR */ -}}
   {{- $specData := .Values.spec -}}
-  {{- $_ = set $specData "container" (mergeOverwrite (default dict .Values.spec.container) $imagePullData) -}}
+  {{- $_ := set $specData "container" (mergeOverwrite (default dict .Values.spec.container) $imagePullData) -}}
 
   {{- toYaml $specData | nindent 2 }}
