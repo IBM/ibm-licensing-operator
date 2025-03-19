@@ -57,8 +57,8 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: IBM_LICENSE_SERVICE_SCANNER_OPERAND_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-licensing-scanner:4.2.14
-          image: {{ .Values.imagePullPrefix }}/cpopen/ibm-license-service-scanner-operator:4.2.14
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/ibm-licensing-scanner:4.2.14
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperator }}/ibm-license-service-scanner-operator:4.2.14
           livenessProbe:
             httpGet:
               path: /healthz
@@ -91,7 +91,7 @@ spec:
               type: RuntimeDefault
       serviceAccountName: ibm-licensing-scanner-operator-service-account
       terminationGracePeriodSeconds: 10
-      {{ if .Values.imagePullSecret }}
+      {{ if .Values.global.imagePullSecret }}
       imagePullSecrets:
-        - name: {{ .Values.imagePullSecret }}
+        - name: {{ .Values.global.imagePullSecret }}
       {{- end -}}
