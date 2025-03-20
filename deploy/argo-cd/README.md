@@ -174,35 +174,55 @@ helm:
 
 Otherwise, License Service operator logs errors related to missing RBAC permissions.
 
-### Specify image registry and image pull secrets
+### Specify image registry and image registry namespace
 
-To specify a different image registry for the installation of the components, change the value of `imagePullPrefix` in the relevant `Application.yaml` file:
+To specify a different image registry for the installation of the components, change the value of `global.imagePullPrefix` in the relevant `Application.yaml` file:
 
 ```yaml
 helm:
   valuesObject:
-    imagePullPrefix: <your-registry>
+    global:
+      imagePullPrefix: <your-registry>
 ```
 
 As a result, the operator and operand image registries are overwritten. For example, after applying the above changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator`
 becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.14`.
 
-**Note:** `imagePullPrefix` takes precedence over any values that you provided in the CR configuration, for example, through
-`spec.imageRegistry`.
-
-To specify which image pull secret should be used to pull from the registry, change the value of `imagePullSecret` in the relevant `Application.yaml` file:
+To additionally modify the image registry namespace of either the operator or the operand, change the value of
+`cpfs.imageRegistryNamespaceOperator` or `cpfs.imageRegistryNamespaceOperand`, or both, in the relevant
+`Application.yaml` file:
 
 ```yaml
 helm:
   valuesObject:
-    imagePullSecret: <your-secret>
+    cpfs:
+      imageRegistryNamespaceOperator: <your-operator-image-registry-namespace>
+      imageRegistryNamespaceOperand: <your-operand-image-registry-namespace>
+```
+
+As a result, the operator and operand image registry namespaces are overwritten. For example, after applying the above
+changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator` becomes
+`icr.io/<your-operator-image-registry-namespace>/ibm-licensing-operator:4.2.14`.
+
+**Note:** `global.imagePullPrefix`, `cpfs.imageRegistryNamespaceOperator` and `cpfs.imageRegistryNamespaceOperand` take
+precedence over any values that you provided in the CR configuration, for example, through `spec.imageRegistry`.
+
+### Specify image pull secrets
+
+To specify which image pull secret should be used to pull from the registry, change the value of `global.imagePullSecret` in the relevant `Application.yaml` file:
+
+```yaml
+helm:
+  valuesObject:
+    global:
+      imagePullSecret: <your-secret>
 ```
 
 As a result, the `imagePullSecrets` field of the operator and the operand include the specified secret, and
 this secret is used when pulling the images from the registry.
 
-**Note:** `imagePullSecret` is added to the list of secrets provided in the CR configuration, for example, through
-`spec.imagePullSecrets`.
+**Note:** `global.imagePullSecret` is added to the list of secrets provided in the CR configuration, for example,
+through `spec.imagePullSecrets`.
 
 ## Installation
 

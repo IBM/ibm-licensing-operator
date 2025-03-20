@@ -68,13 +68,13 @@ spec:
             - ibm-license-service-reporter-operator
           env:
             - name: IBM_POSTGRESQL_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-postgresql:4.2.14
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/ibm-postgresql:4.2.14
             - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-license-service-reporter:4.2.14
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/ibm-license-service-reporter:4.2.14
             - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:4.2.14
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/ibm-license-service-reporter-ui:4.2.14
             - name: IBM_LICENSE_SERVICE_REPORTER_AUTH_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-license-service-reporter-oauth2-proxy:4.2.14
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/ibm-license-service-reporter-oauth2-proxy:4.2.14
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -93,7 +93,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
-          image: {{ .Values.imagePullPrefix }}/cpopen/ibm-license-service-reporter-operator:4.2.14
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperator }}/ibm-license-service-reporter-operator:4.2.14
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
@@ -128,7 +128,7 @@ spec:
             seccompProfile:
               type: RuntimeDefault
       serviceAccountName: ibm-license-service-reporter-operator
-      {{ if .Values.imagePullSecret }}
+      {{ if .Values.global.imagePullSecret }}
       imagePullSecrets:
-        - name: {{ .Values.imagePullSecret }}
+        - name: {{ .Values.global.imagePullSecret }}
       {{- end -}}

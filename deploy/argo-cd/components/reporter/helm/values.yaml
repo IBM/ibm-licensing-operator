@@ -1,5 +1,5 @@
 namespace: ibm-ls-reporter
-imagePullPrefix: icr.io
+
 spec:
   authentication:
     useradmin:
@@ -7,3 +7,10 @@ spec:
   license:
     accept: true
   version: 4.2.14
+
+global:
+  imagePullPrefix: icr.io
+  imagePullSecret: ibm-entitlement-key
+cpfs:
+  imageRegistryNamespaceOperator: cpopen
+  imageRegistryNamespaceOperand: cpopen/cpfs
