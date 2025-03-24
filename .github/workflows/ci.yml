@@ -25,8 +25,8 @@ on:
   workflow_dispatch:
     
 env:
-  GO_VERSION: "1.23"
-  GOLANGCI_LINT_VERSION: 1.62.2
+  GO_VERSION: "1.24"
+  GOLANGCI_LINT_VERSION: 1.64.2
 
 jobs:
 
