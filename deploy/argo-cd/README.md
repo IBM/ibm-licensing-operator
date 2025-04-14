@@ -186,7 +186,7 @@ helm:
 ```
 
 As a result, the operator and operand image registries are overwritten. For example, after applying the above changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator`
-becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.14`.
+becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.15`.
 
 To additionally modify the image registry namespace of either the operator or the operand, change the value of
 `cpfs.imageRegistryNamespaceOperator` or `cpfs.imageRegistryNamespaceOperand`, or both, in the relevant
@@ -202,7 +202,7 @@ helm:
 
 As a result, the operator and operand image registry namespaces are overwritten. For example, after applying the above
 changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator` becomes
-`icr.io/<your-operator-image-registry-namespace>/ibm-licensing-operator:4.2.14`.
+`icr.io/<your-operator-image-registry-namespace>/ibm-licensing-operator:4.2.15`.
 
 **Note:** `global.imagePullPrefix`, `cpfs.imageRegistryNamespaceOperator` and `cpfs.imageRegistryNamespaceOperand` take
 precedence over any values that you provided in the CR configuration, for example, through `spec.imageRegistry`.
