@@ -638,7 +638,9 @@ generate-yaml-argo-cd: kustomize
 	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.namespace }}/g" argo-cd/serviceaccounts.yaml
 
 	# Replace all registry occurrences to template them with helm
-	@sed -i '' "s/image: icr.io/image: {{ .Values.imagePullPrefix }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/icr.io/{{ .Values.global.imagePullPrefix }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/cpopen\/cpfs/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/cpopen/{{ .Values.cpfs.imageRegistryNamespaceOperator }}/g" argo-cd/deployment.yaml
 
 	# Replace extra fields (in addition to the namespaces) to template them with helm
 	@cat ./common/makefile-generate/yaml-cr-spec-part >> argo-cd/cr.yaml
