@@ -1,12 +1,9 @@
 spec:
   {{- $imagePullData := dict -}}
 
-  {{- /* Overwrite IBMLicensing CR's spec value, as imagePullPrefix is expected to always be provided */ -}}
-  {{- $_ := set $imagePullData "imageRegistry" .Values.imagePullPrefix -}}
-
   {{- /* If imagePullSecret is declared, append it to the list of secrets specified in IBMLicensing CR's spec (or create a new list if empty) */ -}}
-  {{- if .Values.imagePullSecret -}}
-    {{- $_ := set $imagePullData "imagePullSecrets" (prepend (default list .Values.spec.imagePullSecrets) .Values.imagePullSecret) -}}
+  {{- if .Values.global.imagePullSecret -}}
+    {{- $_ := set $imagePullData "imagePullSecrets" (prepend (default list .Values.spec.imagePullSecrets) .Values.global.imagePullSecret) -}}
   {{- end -}}
 
   {{- toYaml (mergeOverwrite .Values.spec $imagePullData) | nindent 2 }}
