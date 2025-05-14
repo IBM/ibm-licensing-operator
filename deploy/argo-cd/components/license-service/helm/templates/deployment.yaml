@@ -58,7 +58,7 @@ spec:
             - ibm-licensing-operator
           env:
             - name: IBM_LICENSING_IMAGE
-              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.15
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.16
             - name: WATCH_NAMESPACE
               value: {{ .Values.watchNamespace }}
             - name: OPERATOR_NAMESPACE
@@ -77,7 +77,7 @@ spec:
                   fieldPath: spec.serviceAccountName
             - name: CRD_RECONCILE_INTERVAL
               value: "300"
-          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperator }}/ibm-licensing-operator:4.2.15
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperator }}/ibm-licensing-operator:4.2.16
           imagePullPolicy: IfNotPresent
           name: ibm-licensing-operator
           resources:
