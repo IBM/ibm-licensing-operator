@@ -4,7 +4,7 @@ global:
   imagePullSecret: ibm-entitlement-key
   licenseAccept: true
 
-ibmLicensing:
+ibmLicenseService:
   imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs
   watchNamespace: ibm-licensing
