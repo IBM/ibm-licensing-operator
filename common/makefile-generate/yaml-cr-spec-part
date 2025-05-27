@@ -9,4 +9,4 @@ spec:
     {{- $_ := set $imagePullData "imagePullSecrets" (prepend (default list .Values.ibmLicenseService.spec.imagePullSecrets) .Values.global.imagePullSecret | uniq) -}}
   {{- end -}}
 
-  {{- toYaml (mergeOverwrite .Values.ibmLicensing.spec $imagePullData) | nindent 2 }}
+  {{- toYaml (mergeOverwrite .Values.ibmLicenseService.spec $imagePullData) | nindent 2 }}
