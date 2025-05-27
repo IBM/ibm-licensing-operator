@@ -604,7 +604,7 @@ generate-yaml-argo-cd: kustomize
 	# Split the resources into separate YAML files
 	@(echo "---" && yq 'select(.kind == "ClusterRole" or .kind == "ClusterRoleBinding")' argo-cd/tmp.yaml) > argo-cd/cluster-rbac.yaml
 	@(echo "---" && yq 'select(.kind == "IBMLicensing")' argo-cd/tmp.yaml) > argo-cd/cr.yaml
-	@(echo "---" && yq 'select(.kind == "CustomResourceDefinition")' argo-cd/tmp.yaml) > argo-cd/crds.yaml
+	@(echo "---" && yq 'select(.kind == "CustomResourceDefinition")' argo-cd/tmp.yaml) > argo-cd/crd.yaml
 	@(echo "---" && yq 'select(.kind == "Deployment")' argo-cd/tmp.yaml) > argo-cd/deployment.yaml
 	@(echo "---" && yq 'select(.kind == "Role" or .kind == "RoleBinding")' argo-cd/tmp.yaml) > argo-cd/rbac.yaml
 	@(echo "---" && yq 'select(.kind == "ServiceAccount")' argo-cd/tmp.yaml) > argo-cd/serviceaccounts.yaml
@@ -626,14 +626,14 @@ generate-yaml-argo-cd: kustomize
 	| .spec.template.spec.containers[0].env[1].valueFrom = "sed-me"' argo-cd/deployment.yaml
 	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/cluster-rbac.yaml
 	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/cr.yaml
-	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/crds.yaml
+	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/crd.yaml
 	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/deployment.yaml
 	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/rbac.yaml
 	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/serviceaccounts.yaml
 
 	# Add extra fields, for example argo-cd sync waves
 	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-options" = "ServerSideApply=true"' argo-cd/cr.yaml
-	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "-1"' argo-cd/crds.yaml
+	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "-1"' argo-cd/crd.yaml
 	# This sync wave is crucial because the deployment must be created after the CR, to avoid a situation when ArgoCD
 	# starts creating the CR at the same time as the operator does it (patch isn't applied and a name conflict happens)
 	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "1"' argo-cd/deployment.yaml
@@ -641,7 +641,7 @@ generate-yaml-argo-cd: kustomize
 	# Replace all ibm-usage-metering labels to template them with helm
 	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/cluster-rbac.yaml
 	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/cr.yaml
-	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/crds.yaml
+	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/crd.yaml
 	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/rbac.yaml
 	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/serviceaccounts.yaml
