@@ -17,8 +17,9 @@ metadata:
     {{- if ((.Values.operator).labels) }}
       {{- toYaml .Values.operator.labels | nindent 4 -}}
     {{ end }}
+    ibm-license-service: {{ .Chart.Name }}
   name: ibm-licensing-operator
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.global.operatorNamespace }}
 spec:
   replicas: 1
   selector:
@@ -58,9 +59,9 @@ spec:
             - ibm-licensing-operator
           env:
             - name: IBM_LICENSING_IMAGE
-              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.16
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseService.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.16
             - name: WATCH_NAMESPACE
-              value: {{ .Values.watchNamespace }}
+              value: {{ .Values.ibmLicenseService.watchNamespace }}
             - name: OPERATOR_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -77,7 +78,7 @@ spec:
                   fieldPath: spec.serviceAccountName
             - name: CRD_RECONCILE_INTERVAL
               value: "300"
-          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperator }}/ibm-licensing-operator:4.2.16
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseService.imageRegistryNamespaceOperator }}/ibm-licensing-operator:4.2.16
           imagePullPolicy: IfNotPresent
           name: ibm-licensing-operator
           resources:

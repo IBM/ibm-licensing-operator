@@ -6,6 +6,8 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.14.0
     argocd.argoproj.io/sync-wave: "-1"
   name: ibmlicenseservicescanners.operator.ibm.com
+  labels:
+    ibm-license-service-scanner: {{ .Chart.Name }}
 spec:
   group: operator.ibm.com
   names:

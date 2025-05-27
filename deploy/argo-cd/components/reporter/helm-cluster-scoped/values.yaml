@@ -1,1 +1,2 @@
-namespace: ibm-ls-reporter
+global:
+  operatorNamespace: ibm-ls-reporter

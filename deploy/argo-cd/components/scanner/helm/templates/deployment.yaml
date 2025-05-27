@@ -19,8 +19,9 @@ metadata:
     {{- if ((.Values.operator).labels) }}
       {{- toYaml .Values.operator.labels | nindent 4 -}}
     {{ end }}
+    ibm-license-service-scanner: {{ .Chart.Name }}
   name: ibm-licensing-scanner-operator
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.global.operatorNamespace }}
 spec:
   replicas: 1
   selector:
@@ -57,8 +58,8 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: IBM_LICENSE_SERVICE_SCANNER_OPERAND_IMAGE
-              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/ibm-licensing-scanner:4.2.16
-          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.cpfs.imageRegistryNamespaceOperator }}/ibm-license-service-scanner-operator:4.2.16
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceScanner.imageRegistryNamespaceOperand }}/ibm-licensing-scanner:4.2.16
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceScanner.imageRegistryNamespaceOperator }}/ibm-license-service-scanner-operator:4.2.16
           livenessProbe:
             httpGet:
               path: /healthz
