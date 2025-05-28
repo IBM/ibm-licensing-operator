@@ -52,5 +52,5 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-operator
-    namespace: {{ .Values.licenseServiceNamespace }}
+    namespace: {{ .Values.ibmLicenseServiceScanner.licenseServiceNamespace }}
 ---
