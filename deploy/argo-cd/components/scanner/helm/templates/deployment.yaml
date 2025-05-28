@@ -6,8 +6,8 @@ metadata:
     productID: 105fa377cada4660a213f99e02c53782
     productMetric: FREE
     productName: IBM License Service Scanner
-    {{- if ((.Values.operator).annotations) }}
-      {{- toYaml .Values.operator.annotations | nindent 4 -}}
+    {{- if ((.Values.ibmLicenseServiceScanner.operator).annotations) }}
+      {{- toYaml .Values.ibmLicenseServiceScanner.operator.annotations | nindent 4 -}}
     {{ end }}
     argocd.argoproj.io/sync-wave: "1"
   labels:
@@ -16,8 +16,8 @@ metadata:
     app.kubernetes.io/name: ibm-licensing-scanner
     app.kubernetes.io/version: 4.2.16
     control-plane: controller-manager
-    {{- if ((.Values.operator).labels) }}
-      {{- toYaml .Values.operator.labels | nindent 4 -}}
+    {{- if ((.Values.ibmLicenseServiceScanner.operator).labels) }}
+      {{- toYaml .Values.ibmLicenseServiceScanner.operator.labels | nindent 4 -}}
     {{ end }}
     ibm-license-service-scanner: {{ .Chart.Name }}
   name: ibm-licensing-scanner-operator
@@ -34,8 +34,8 @@ spec:
         productID: 105fa377cada4660a213f99e02c53782
         productMetric: FREE
         productName: IBM License Service Scanner
-        {{- if ((.Values.operator).annotations) }}
-          {{- toYaml .Values.operator.annotations | nindent 4 -}}
+        {{- if ((.Values.ibmLicenseServiceScanner.operator).annotations) }}
+          {{- toYaml .Values.ibmLicenseServiceScanner.operator.annotations | nindent 8 -}}
         {{ end }}
       labels:
         app.kubernetes.io/component: ibm-licensing-scanner-operator-pod
@@ -43,8 +43,8 @@ spec:
         app.kubernetes.io/name: ibm-licensing-scanner
         app.kubernetes.io/version: 4.2.16
         control-plane: controller-manager
-        {{- if ((.Values.operator).labels) }}
-          {{- toYaml .Values.operator.labels | nindent 4 -}}
+        {{- if ((.Values.ibmLicenseServiceScanner.operator).labels) }}
+          {{- toYaml .Values.ibmLicenseServiceScanner.operator.labels | nindent 8 -}}
         {{ end }}
     spec:
       containers:

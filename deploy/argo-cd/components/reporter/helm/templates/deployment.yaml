@@ -6,8 +6,8 @@ metadata:
     productID: 068a62892a1e4db39641342e592daa25
     productMetric: FREE
     productName: IBM Cloud Platform Common Services
-    {{- if ((.Values.operator).annotations) }}
-      {{- toYaml .Values.operator.annotations | nindent 4 -}}
+    {{- if ((.Values.ibmLicenseServiceReporter.operator).annotations) }}
+      {{- toYaml .Values.ibmLicenseServiceReporter.operator.annotations | nindent 4 -}}
     {{ end }}
     argocd.argoproj.io/sync-wave: "1"
   labels:
@@ -18,8 +18,8 @@ metadata:
     app.kubernetes.io/name: deployment
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
     control-plane: ibm-license-service-reporter-operator
-    {{- if ((.Values.operator).labels) }}
-      {{- toYaml .Values.operator.labels | nindent 4 -}}
+    {{- if ((.Values.ibmLicenseServiceReporter.operator).labels) }}
+      {{- toYaml .Values.ibmLicenseServiceReporter.operator.labels | nindent 4 -}}
     {{ end }}
     ibm-license-service-reporter: {{ .Chart.Name }}
   name: ibm-license-service-reporter-operator
@@ -36,8 +36,8 @@ spec:
         productID: 068a62892a1e4db39641342e592daa25
         productMetric: FREE
         productName: IBM Cloud Platform Common Services
-        {{- if ((.Values.operator).annotations) }}
-          {{- toYaml .Values.operator.annotations | nindent 4 -}}
+        {{- if ((.Values.ibmLicenseServiceReporter.operator).annotations) }}
+          {{- toYaml .Values.ibmLicenseServiceReporter.operator.annotations | nindent 8 -}}
         {{ end }}
       labels:
         app.kubernetes.io/instance: ibm-license-service-reporter-operator
@@ -45,8 +45,8 @@ spec:
         app.kubernetes.io/name: ibm-license-service-reporter
         control-plane: ibm-license-service-reporter-operator
         name: ibm-license-service-reporter-operator
-        {{- if ((.Values.operator).labels) }}
-          {{- toYaml .Values.operator.labels | nindent 4 -}}
+        {{- if ((.Values.ibmLicenseServiceReporter.operator).labels) }}
+          {{- toYaml .Values.ibmLicenseServiceReporter.operator.labels | nindent 8 -}}
         {{ end }}
     spec:
       affinity:
