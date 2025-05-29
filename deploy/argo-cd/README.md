@@ -92,11 +92,11 @@ helm:
           threadsPerCore: <number of threads>
 ```
 
-#### Updated version:
+#### *Updated version:*
 To configure the Licensing components through custom resources, modify the
-- `ibmLicenseService:spec:` section to edit ibm-license-service CR
-- `ibmLicenseServiceReporter:spec:` section to edit ibm-license-service-reporter CR
-- `ibmLicenseServiceScanner:spec:` section to edit ibm-license-service-scanner CR
+- `ibmLicenseService.spec` section to edit ibm-license-service CR
+- `ibmLicenseServiceReporter.spec` section to edit ibm-license-service-reporter CR
+- `ibmLicenseServiceScanner.spec` section to edit ibm-license-service-scanner CR
 
 For example, to enable hyper-threading in License Service, add the following lines:
 
@@ -129,12 +129,7 @@ helm:
       licenseAccept: true
 ```
 
-Note that this will also set
-```yaml
-license:
-     accept: true
-```
-in CR
+**Note:** `global.licenseAccept` is overriding the license configuration in CR, that might be set through `spec.license.accept`.
 
 ### Change target namespace
 
@@ -147,7 +142,7 @@ helm:
     namespace: my-custom-namespace
 ```
 
-#### Updated version:
+#### *Updated version:*
 ```yaml
 helm:
   valuesObject:
@@ -172,7 +167,7 @@ helm:
         companyName: IBM
 ```
 
-#### Updated version:
+#### *Updated version:*
 ```yaml
 helm:
   valuesObject:
@@ -196,7 +191,7 @@ helm:
         companyName: IBM
 ```
 
-#### Updated version:
+#### *Updated version:*
 ```yaml
 helm:
   valuesObject:
@@ -223,7 +218,7 @@ helm:
     watchNamespace: ibm-licensing,ibm-licensing-scanner
 ```
 
-#### Updated version:
+#### *Updated version:*
 ```yaml
 helm:
   valuesObject:
@@ -248,7 +243,7 @@ helm:
     licenseServiceNamespace: ibm-licensing
 ```
 
-#### Updated version:
+#### *Updated version:*
 ```yaml
 helm:
   valuesObject:
@@ -258,7 +253,7 @@ helm:
 
 Otherwise, License Service operator logs errors related to missing RBAC permissions.
 
-### Specify image registry and image registry namespace
+### Specify image registry
 
 To specify a different image registry for the installation of the components, change the value of `global.imagePullPrefix` in the relevant `Application.yaml` file:
 
@@ -271,6 +266,8 @@ helm:
 
 As a result, the operator and operand image registries are overwritten. For example, after applying the above changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator`
 becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.16`.
+
+### Specify image registry namespace -> This is only possible in the OLD version
 
 To additionally modify the image registry namespace of either the operator or the operand, change the value of
 `cpfs.imageRegistryNamespaceOperator` or `cpfs.imageRegistryNamespaceOperand`, or both, in the relevant
@@ -290,6 +287,29 @@ changes to the `applications/license-service.yaml` file, the image of the `ibm-l
 
 **Note:** `global.imagePullPrefix`, `cpfs.imageRegistryNamespaceOperator` and `cpfs.imageRegistryNamespaceOperand` take
 precedence over any values that you provided in the CR configuration, for example, through `spec.imageRegistry`.
+
+### Specify operator image name and image digest -> This is only possible in the NEW version
+
+To override operator image name:
+
+```yaml
+helm:
+  valuesObject:
+    ibmLicenseService:
+      operatorImageName: cpopen/ibm-licensing
+```
+
+To override operator image digest:
+
+```yaml
+helm:
+  valuesObject:
+    ibmLicenseService:
+      operatorImageDigest:
+        amd64: sha256:502035e80af3888031e8780880365337305a5044c5350943503dcca10c2f3320
+```
+
+**Note:** Only amd64 is supported.
 
 ### Specify image pull secrets
 
