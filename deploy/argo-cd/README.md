@@ -92,6 +92,24 @@ helm:
           threadsPerCore: <number of threads>
 ```
 
+#### Updated version:
+To configure the Licensing components through custom resources, modify the
+- `ibmLicenseService:spec:` section to edit ibm-license-service CR
+- `ibmLicenseServiceReporter:spec:` section to edit ibm-license-service-reporter CR
+- `ibmLicenseServiceScanner:spec:` section to edit ibm-license-service-scanner CR
+
+For example, to enable hyper-threading in License Service, add the following lines:
+
+```yaml
+helm:
+  valuesObject:
+    ibmLicenseService:
+      spec:
+        features:
+          hyperThreading:
+            threadsPerCore: <number of threads>
+```
+
 To learn more about the supported configuration options, see the official documentation for License Service and
 License Service Reporter. See the relevant sections under the following links:
 
@@ -99,6 +117,24 @@ License Service Reporter. See the relevant sections under the following links:
 - [*License Service Reporter*](https://www.ibm.com/docs/en/cloud-paks/foundational-services/4.6?topic=reporter-installing-configuring-license-service)
 
 **Note:** IBM License Service Scanner is a new Beta solution that is not yet publicly available.
+
+### Accept license
+
+To accept the license update the `global.licenseAccept` section.
+
+```yaml
+helm:
+  valuesObject:
+    global:
+      licenseAccept: true
+```
+
+Note that this will also set
+```yaml
+license:
+     accept: true
+```
+in CR
 
 ### Change target namespace
 
@@ -109,6 +145,14 @@ group them by the component. If you want to install a specific component in a di
 helm:
   valuesObject:
     namespace: my-custom-namespace
+```
+
+#### Updated version:
+```yaml
+helm:
+  valuesObject:
+    global:
+      operatorNamespace: my-custom-namespace
 ```
 
 Note that when you change the `namespace` value in `applications/license-service.yaml`, in general, you should also
@@ -128,6 +172,18 @@ helm:
         companyName: IBM
 ```
 
+#### Updated version:
+```yaml
+helm:
+  valuesObject:
+    ibmLicenseService:
+      spec:
+        labels:
+          appName: LicenseService
+        annotations:
+          companyName: IBM
+```
+
 - To apply custom labels and annotations to the operator deployment:
 
 ```yaml
@@ -138,6 +194,18 @@ helm:
         appName: LicenseService
       annotations:
         companyName: IBM
+```
+
+#### Updated version:
+```yaml
+helm:
+  valuesObject:
+    ibmLicenseService:
+      operator:
+        labels:
+          appName: LicenseService
+        annotations:
+          companyName: IBM
 ```
 
 Note that custom labels and annotations are additions to the default ones, and they do not override them.
@@ -155,6 +223,14 @@ helm:
     watchNamespace: ibm-licensing,ibm-licensing-scanner
 ```
 
+#### Updated version:
+```yaml
+helm:
+  valuesObject:
+    ibmLicenseService:
+      watchNamespace: ibm-licensing,ibm-licensing-scanner
+```
+
 Without this change, the following `INFO` log shows up on the License Service operator side, after you apply the
 `Application` from `applications/scanner.yaml`:
 
@@ -170,6 +246,14 @@ configuration. By default, the following namespace is expected:
 helm:
   valuesObject:
     licenseServiceNamespace: ibm-licensing
+```
+
+#### Updated version:
+```yaml
+helm:
+  valuesObject:
+    ibmLicenseServiceScanner:
+      licenseServiceNamespace: ibm-licensing
 ```
 
 Otherwise, License Service operator logs errors related to missing RBAC permissions.
