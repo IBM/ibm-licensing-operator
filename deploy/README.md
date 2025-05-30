@@ -7,6 +7,7 @@ Download the latest License Service Helm Charts from the
 
 You can download them locally and install with [`helm install`](https://helm.sh/docs/helm/helm_install/) or use
 the `raw` GitHub URLs. For example:
+
 ```shell
 helm install license-service-cluster-scoped https://github.com/IBM/charts/raw/refs/heads/master/repo/ibm-helm/ibm-license-service-cluster-scoped-4.2.15+20250506.101113.0.tgz
 helm install license-service https://github.com/IBM/charts/raw/refs/heads/master/repo/ibm-helm/ibm-license-service-4.2.15+20250506.101113.0.tgz
@@ -34,6 +35,7 @@ helm install license-service --set watchNamespace=<custom-namespace> (...)
 ### Custom Resource
 
 To configure License Service custom resource, modify the `spec` section. For example, to enable hyper-threading, set the following parameter:
+
 ```shell
 helm install license-service --set spec.features.hyperThreading.threadsPerCore=<number of threads> (...)
 ```
