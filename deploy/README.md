@@ -95,10 +95,10 @@ As a result, the `imagePullSecrets` field of the operator and the operand includ
 
 ### Accept license
 
-To accept the license update the `global.licenseAccept` section.
+To accept the license, update the `global.licenseAccept` section.
 
 ```shell
 helm install license-service --set global.licenseAccept=true (...)
 ```
 
-**Note:** `global.licenseAccept` take precedence over values that you provided in the CR configuration through `ibmLicenseService.spec.license.accept`.
+**Note:** `global.licenseAccept` takes precedence over values that you provided in the CR configuration through `ibmLicenseService.spec.license.accept`.
