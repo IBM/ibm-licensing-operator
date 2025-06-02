@@ -1,1 +1,2 @@
-namespace: ibm-licensing-scanner
+global:
+  operatorNamespace: ibm-licensing-scanner

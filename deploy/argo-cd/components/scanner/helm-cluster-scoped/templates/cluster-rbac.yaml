@@ -3,6 +3,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ibm-licensing-scanner-operator-role
+  labels:
+    ibm-license-service-scanner: {{ .Chart.Name }}
 rules:
   - apiGroups:
       - apiextensions.k8s.io
@@ -23,6 +25,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: clusterrolebinding
     app.kubernetes.io/part-of: ibm-licensing-scanner-operator
+    ibm-license-service-scanner: {{ .Chart.Name }}
   name: ibm-licensing-scanner-operator-cluster-role-binding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -31,4 +34,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-scanner-operator-service-account
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Values.global.operatorNamespace }}

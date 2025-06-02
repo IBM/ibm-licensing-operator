@@ -2,8 +2,10 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  labels:
+    ibm-license-service-scanner: {{ .Chart.Name }}
   name: ibm-licensing-scanner-auto-connect-role
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.global.operatorNamespace }}
 rules:
   - apiGroups:
       - apps
@@ -39,8 +41,10 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  labels:
+    ibm-license-service-scanner: {{ .Chart.Name }}
   name: ibm-licensing-scanner-auto-connect-role-binding
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.global.operatorNamespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -48,5 +52,5 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-operator
-    namespace: {{ .Values.licenseServiceNamespace }}
+    namespace: {{ .Values.ibmLicenseServiceScanner.licenseServiceNamespace }}
 ---
