@@ -8,26 +8,18 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: ibm-licensing-scanner-instance
     app.kubernetes.io/part-of: ibm-licensing-scanner-operator
+    ibm-license-service-scanner: {{ .Chart.Name }}
   name: ibm-licensing-scanner-instance
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.global.operatorNamespace }}
 spec:
   {{- $imagePullData := dict -}}
 
+  {{- /* Set license */ -}}
+  {{- $_ := set $imagePullData "license" (dict "accept" .Values.global.licenseAccept) -}}
+
   {{- /* If imagePullSecret is declared, append it to the list of secrets specified in IBMLicenseServiceScanner CR's spec (or create a new list if empty) */ -}}
   {{- if .Values.global.imagePullSecret -}}
-    {{- if (hasKey .Values.spec "container") -}}
-      {{- if (hasKey .Values.spec.container "image-pull-secrets") -}}
-        {{- $_ := set $imagePullData "image-pull-secrets" (prepend (index .Values.spec.container "image-pull-secrets") .Values.global.imagePullSecret) -}}
-      {{- else -}}
-        {{- $_ := set $imagePullData "image-pull-secrets" (list .Values.global.imagePullSecret) -}}
-      {{- end -}}
-    {{- else -}}
-      {{- $_ := set $imagePullData "image-pull-secrets" (list .Values.global.imagePullSecret) -}}
-    {{- end -}}
+    {{- $_ := set $imagePullData "containers" (dict "image-pull-secrets" (prepend (default list (.Values.ibmLicenseServiceScanner.spec.containers).imagePullSecrets) .Values.global.imagePullSecret | uniq) ) -}}
   {{- end -}}
 
-  {{- /* Overwrite container data in the spec of IBMLicenseServiceScanner CR */ -}}
-  {{- $specData := .Values.spec -}}
-  {{- $_ := set $specData "container" (mergeOverwrite (default dict .Values.spec.container) $imagePullData) -}}
-
-  {{- toYaml $specData | nindent 2 }}
+  {{- toYaml (mergeOverwrite .Values.ibmLicenseServiceScanner.spec $imagePullData) | nindent 2 }}

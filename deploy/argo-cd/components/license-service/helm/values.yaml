@@ -1,17 +1,15 @@
-namespace: ibm-licensing
-watchNamespace: ibm-licensing
-
-spec:
-  version: 4.2.16
-  apiSecretToken: ibm-licensing-token
-  datasource: datacollector
-  httpsEnable: true
-  license:
-    accept: true
-
 global:
+  operatorNamespace: ibm-licensing
   imagePullPrefix: icr.io
   imagePullSecret: ibm-entitlement-key
-cpfs:
+  licenseAccept: true
+
+ibmLicenseService:
   imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs
+  watchNamespace: ibm-licensing
+  spec:
+    version: 4.2.16
+    apiSecretToken: ibm-licensing-token
+    datasource: datacollector
+    httpsEnable: true
