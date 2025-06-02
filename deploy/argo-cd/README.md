@@ -92,7 +92,8 @@ helm:
           threadsPerCore: <number of threads>
 ```
 
-#### *Updated version:*
+**_Updated version:_**
+
 To configure the Licensing components through custom resources, modify the
 - `ibmLicenseService.spec` section to edit ibm-license-service CR
 - `ibmLicenseServiceReporter.spec` section to edit ibm-license-service-reporter CR
@@ -142,7 +143,8 @@ helm:
     namespace: my-custom-namespace
 ```
 
-#### *Updated version:*
+**_Updated version:_**
+
 ```yaml
 helm:
   valuesObject:
@@ -167,7 +169,8 @@ helm:
         companyName: IBM
 ```
 
-#### *Updated version:*
+**_Updated version:_**
+
 ```yaml
 helm:
   valuesObject:
@@ -191,7 +194,8 @@ helm:
         companyName: IBM
 ```
 
-#### *Updated version:*
+**_Updated version:_**
+
 ```yaml
 helm:
   valuesObject:
@@ -218,7 +222,8 @@ helm:
     watchNamespace: ibm-licensing,ibm-licensing-scanner
 ```
 
-#### *Updated version:*
+**_Updated version:_**
+
 ```yaml
 helm:
   valuesObject:
@@ -243,7 +248,8 @@ helm:
     licenseServiceNamespace: ibm-licensing
 ```
 
-#### *Updated version:*
+**_Updated version:_**
+
 ```yaml
 helm:
   valuesObject:
@@ -279,7 +285,8 @@ helm:
       imageRegistryNamespaceOperand: <your-operand-image-registry-namespace>
 ```
 
-#### *Updated version:*
+**_Updated version:_**
+
 ```yaml
 helm:
   valuesObject:
