@@ -494,6 +494,9 @@ spec:
                 version:
                   description: Version
                   type: string
+                workloadsCustomColumnsRetencyDays:
+                  description: Number of days that the deleted custom column values will be stored in database before removing them permanently. Default value is 90.
+                  type: integer
               required:
                 - license
               type: object
@@ -1947,6 +1950,10 @@ subjects:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    productID: 068a62892a1e4db39641342e592daa25
+    productMetric: FREE
+    productName: IBM Cloud Platform Common Services
   labels:
     app.kubernetes.io/component: manager
     app.kubernetes.io/created-by: ibm-license-service-reporter-operator
@@ -1996,13 +2003,13 @@ spec:
             - ibm-license-service-reporter-operator
           env:
             - name: IBM_POSTGRESQL_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-postgresql:4.2.10
+              value: icr.io/cpopen/cpfs/ibm-postgresql:4.2.15
             - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-license-service-reporter:4.2.10
+              value: icr.io/cpopen/cpfs/ibm-license-service-reporter:4.2.15
             - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:4.2.10
+              value: icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:4.2.15
             - name: IBM_LICENSE_SERVICE_REPORTER_AUTH_IMAGE
-              value: icr.io/cpopen/cpfs/ibm-license-service-reporter-oauth2-proxy:4.2.10
+              value: icr.io/cpopen/cpfs/ibm-license-service-reporter-oauth2-proxy:4.2.15
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -2021,7 +2028,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
-          image: icr.io/cpopen/ibm-license-service-reporter-operator:4.2.10
+          image: icr.io/cpopen/ibm-license-service-reporter-operator:4.2.15
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:

@@ -15,9 +15,9 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 4.2.14
+CSV_VERSION ?= 4.2.16
 CSV_VERSION_DEVELOPMENT ?= development
-OLD_CSV_VERSION ?= 4.2.13
+OLD_CSV_VERSION ?= 4.2.15
 
 # Tools versions
 OPM_VERSION ?= v1.26.2
@@ -638,7 +638,9 @@ generate-yaml-argo-cd: kustomize
 	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.namespace }}/g" argo-cd/serviceaccounts.yaml
 
 	# Replace all registry occurrences to template them with helm
-	@sed -i '' "s/image: icr.io/image: {{ .Values.imagePullPrefix }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/icr.io/{{ .Values.global.imagePullPrefix }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/cpopen\/cpfs/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/cpopen/{{ .Values.cpfs.imageRegistryNamespaceOperator }}/g" argo-cd/deployment.yaml
 
 	# Replace extra fields (in addition to the namespaces) to template them with helm
 	@cat ./common/makefile-generate/yaml-cr-spec-part >> argo-cd/cr.yaml
