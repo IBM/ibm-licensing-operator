@@ -95,7 +95,7 @@ As a result, the `imagePullSecrets` field of the operator and the operand includ
 
 ### Accept license
 
-To accept the license, update the `global.licenseAccept` section.
+To accept the license terms for the particular IBM product for which you are deploying this component (ibm.biz/lsvc-lic), update the `global.licenseAccept` section.
 
 ```shell
 helm install license-service --set global.licenseAccept=true (...)
