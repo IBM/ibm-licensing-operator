@@ -5,6 +5,7 @@ global:
 
 ibmLicensing:
   namespace: ibm-licensing
+  watchNamespace: ibm-licensing
   imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs
   spec:
