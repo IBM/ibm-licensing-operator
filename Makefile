@@ -610,7 +610,6 @@ generate-yaml-argo-cd: kustomize
 	@(echo "---" && yq 'select(.kind == "ServiceAccount")' argo-cd/tmp.yaml) > argo-cd/serviceaccounts.yaml
 
 	# Add missing namespaces
-	@yq -i '.metadata.namespace = "sed-me"' argo-cd/cr.yaml
 	@yq -i 'select(.kind == "ClusterRoleBinding").subjects[0].namespace = "sed-me"' argo-cd/cluster-rbac.yaml
 	@yq -i 'select(.kind == "RoleBinding").subjects[0].namespace = "sed-me"' argo-cd/rbac.yaml
 
@@ -648,7 +647,6 @@ generate-yaml-argo-cd: kustomize
 
 	# Replace all namespaces to template them with helm
 	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/cluster-rbac.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/cr.yaml
 	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/deployment.yaml
 	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/rbac.yaml
 	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/serviceaccounts.yaml
