@@ -1,2 +1,2 @@
-global:
-  operatorNamespace: ibm-licensing
+ibmLicensing:
+  namespace: ibm-licensing

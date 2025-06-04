@@ -1,10 +1,10 @@
 global:
-  operatorNamespace: ibm-licensing
   imagePullPrefix: icr.io
   imagePullSecret: ibm-entitlement-key
   licenseAccept: true
 
-ibmLicenseService:
+ibmLicensing:
+  namespace: ibm-licensing
   imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs
   watchNamespace: ibm-licensing
