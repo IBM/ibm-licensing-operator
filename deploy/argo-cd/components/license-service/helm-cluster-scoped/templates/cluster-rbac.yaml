@@ -195,7 +195,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service
-    namespace: {{ .Values.global.operatorNamespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -213,7 +213,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-restricted
-    namespace: {{ .Values.global.operatorNamespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -231,7 +231,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-default-reader
-    namespace: {{ .Values.global.operatorNamespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -249,7 +249,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-operator
-    namespace: {{ .Values.global.operatorNamespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -267,4 +267,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service
-    namespace: {{ .Values.global.operatorNamespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
