@@ -10,6 +10,5 @@ ibmLicensing:
   imageRegistryNamespaceOperand: cpopen/cpfs
   spec:
     version: 4.2.16
-    apiSecretToken: ibm-licensing-token
     datasource: datacollector
     httpsEnable: true
