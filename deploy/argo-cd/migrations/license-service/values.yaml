@@ -1,0 +1,8 @@
+global:
+  operatorNamespace: ibm-licensing
+  imagePullPrefix: icr.io
+  imagePullSecret: ibm-entitlement-key
+
+ibmLicensing:
+  cpfs: # Probably not needed -> TODO remove this
+    imageRegistryNamespaceOperand: cpopen/cpfs
