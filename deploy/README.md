@@ -2,42 +2,61 @@
 
 ## Installation
 
-Download the latest License Service Helm Charts from the
-[official IBM Helm Charts repository](https://github.com/IBM/charts/tree/master/repo/ibm-helm).
+Download the latest IBM License Service Helm Chart from the
+[official IBM Helm Charts repository](https://github.com/IBM/charts/tree/master/repo/ibm-helm) or save its `raw` GitHub URL.
 
-You can download them locally and install with [`helm install`](https://helm.sh/docs/helm/helm_install/) or use
-the `raw` GitHub URLs. For example:
+If you want to configure your installation, see the [Configuration](#configuration) section.
+
+If you want to install IBM License Service with the default configuration, run [`helm install`](https://helm.sh/docs/helm/helm_install/) with the downloaded files or use the `raw` URL. For example:
 
 ```shell
-helm install license-service-cluster-scoped https://github.com/IBM/charts/raw/refs/heads/master/repo/ibm-helm/ibm-license-service-cluster-scoped-4.2.15+20250506.101113.0.tgz
-helm install license-service https://github.com/IBM/charts/raw/refs/heads/master/repo/ibm-helm/ibm-license-service-4.2.15+20250506.101113.0.tgz
+helm install ibm-licensing-cluster-scoped https://github.com/IBM/charts/raw/refs/heads/master/repo/ibm-helm/ibm-license-service-cluster-scoped-4.2.15+20250506.101113.0.tgz
 ```
 
 ## Configuration
 
-You can use the `-f myvalues.yaml` argument when calling `helm install` to override the default `values.yaml` file. You can also use `--set key=value` to override them directly in the command.
+You can use the `-f` flag when calling `helm install` to override the default `values.yaml` file:
+```shell
+helm install ibm-licensing -f <new-values-yaml> <ibm-licensing-chart>
+```
+
+You can also use `--set key=value` to override them directly in the command:
+```shell
+helm install ibm-licensing -set <key>=<value> <ibm-licensing-chart>
+```
 
 ### Namespace
 
-By default, IBM License Service is installed in its recommended `ibm-licensing` namespace. If you want to install it in a different namespace, set the following parameters:
+By default, IBM License Service is installed in its recommended `ibm-licensing` namespace. If you want to install it in a different namespace, set the following parameter:
 
-```shell
-helm install license-service-cluster-scoped --set global.operatorNamespace=<custom-namespace> (...)
-helm install license-service --set global.operatorNamespace=<custom-namespace> (...)
+```yaml
+ibmLicensing:
+  namespace: <your-custom-namespace>
 ```
 
-In general, when you change the `namespace` value, you should also modify the value of the `watchNamespace`:
+### Watch namespaces
 
-```shell
-helm install license-service --set ibmLicenseService.watchNamespace=<custom-namespace> (...)
+By default, IBM License Service watches for `OperandRequest`-s in all namespaces. To restrict this functionality, you should set the following parameter:
+
+```yaml
+ibmLicensing:
+  watchNamespace: <your-custom-namespace>
 ```
+
+To then restrict IBM License Service privileges, you should remove the <name> `ClusterRole` and <name> `ClusterRoleBinding` and instead create similar roles and role bindings in your watch namespaces.
+
+To specify multiple watch namespaces, separate them with a coma: `namespace-1,namespace-2`.
 
 ### Custom Resource
 
 To configure License Service custom resource, modify the `spec` section. For example, to enable hyper-threading, set the following parameter:
 
-```shell
-helm install license-service --set ibmLicenseService.spec.features.hyperThreading.threadsPerCore=<number of threads> (...)
+```yaml
+ibmLicensing:
+  spec:
+    features:
+      hyperThreading:
+        threadsPerCore: <number of threads>
 ```
 
 To learn more about the supported configuration options, see
@@ -49,56 +68,70 @@ Custom labels and annotations are additions to the default ones, and they do not
 
 - To apply custom labels and annotations to the operator-managed resources, set the following parameters:
 
-```shell
-helm install license-service --set ibmLicenseService.spec.labels.appName=LicenseService --set ibmLicenseService.spec.annotations.companyName=IBM (...)
+```yaml
+ibmLicensing:
+  spec:
+    labels:
+      <your-custom-label>: <some-label>
+    annotations:
+      <your-custom-annotation>: <some-annotation>
 ```
 
 - To apply custom labels and annotations to the operator deployment, set the following parameters:
 
-```shell
-helm install license-service --set ibmLicenseService.operator.labels.appName=LicenseService --set ibmLicenseService.operator.annotations.companyName=IBM (...)
+```yaml
+ibmLicensing:
+  operator:
+    labels:
+      <your-custom-label>: <some-label>
+    annotations:
+      <your-custom-annotation>: <some-annotation>
 ```
 
 ### Specify image registry and image registry namespace
 
 To specify a different image registry, set the following parameter:
 
-```shell
-helm install license-service --set global.imagePullPrefix=<your-registry> (...)
+```yaml
+global:
+  imagePullPrefix: <your-custom-registry>
 ```
 
 As a result, the operator and operand image registries are overwritten. For example, the image of `ibm-licensing-operator` becomes `<your-registry>/cpopen/ibm-licensing-operator@digest`.
 
 To additionally modify the image registry namespace of either the operator or the operand, change the value of
-`ibmLicenseService.imageRegistryNamespaceOperator`, `ibmLicenseService.imageRegistryNamespaceOperand`, or both.
+`ibmLicensing.imageRegistryNamespaceOperator`, `ibmLicensing.imageRegistryNamespaceOperand`, or both.
 
-```shell
-helm install license-service --set ibmLicenseService.imageRegistryNamespaceOperator=<your-operator-image-registry-namespace> (...)
-helm install license-service --set ibmLicenseService.imageRegistryNamespaceOperand=<your-operand-image-registry-namespace> (...)
+```yaml
+ibmLicensing:
+  imageRegistryNamespaceOperator: <your-operator-image-registry-namespace>
+  imageRegistryNamespaceOperand: <your-operand-image-registry-namespace>
 ```
 
 As a result, the operator and operand image registry namespaces are overwritten. For example, the image of `ibm-licensing-operator` becomes `icr.io/<your-operator-image-registry-namespace>/ibm-licensing-operator@digest`.
 
-**Note:** `global.imagePullPrefix`, `ibmLicenseService.imageRegistryNamespaceOperator` and `ibmLicenseService.imageRegistryNamespaceOperand` take precedence over any values that you provided in the CR configuration, for example, through `ibmLicenseService.spec.imageRegistry`.
+**Note:** `global.imagePullPrefix`, `ibmLicensing.imageRegistryNamespaceOperator` and `ibmLicensing.imageRegistryNamespaceOperand` take precedence over any values that you provided in the CR configuration, for example, through `ibmLicensing.spec.imageRegistry`.
 
 ### Specify image pull secrets
 
 To specify which image pull secret should be used to pull from the registry, change the value of `global.imagePullSecret`:
 
-```shell
-helm install license-service --set global.imagePullSecret=<your-secret> (...)
+```yaml
+global:
+  imagePullSecret: <your-custom-pull-secret>
 ```
 
 As a result, the `imagePullSecrets` field of the operator and the operand include the specified secret. This secret is used when pulling the images from the registry.
 
-**Note:** `global.imagePullSecret` is added to the list of secrets provided in the CR configuration, for example, through `ibmLicenseService.spec.imagePullSecrets`.
+**Note:** `global.imagePullSecret` is added to the list of secrets provided in the CR configuration, for example, through `ibmLicensing.spec.imagePullSecrets`.
 
 ### Accept license
 
 To accept the license terms for the particular IBM product for which you are deploying this component (ibm.biz/lsvc-lic), update the `global.licenseAccept` section.
 
-```shell
-helm install license-service --set global.licenseAccept=true (...)
+```yaml
+global:
+  licenseAccept: true
 ```
 
-**Note:** `global.licenseAccept` takes precedence over values that you provided in the CR configuration through `ibmLicenseService.spec.license.accept`.
+**Note:** `global.licenseAccept` takes precedence over values that you provided in the CR configuration through `ibmLicensing.spec.license.accept`.
