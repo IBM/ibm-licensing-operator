@@ -45,9 +45,10 @@ metadata:
   name: ibm-licensing-scanner-auto-connect-role-binding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
+  kind: ClusterRole
   name: ibm-licensing-scanner-auto-connect-role
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-operator
+    namespace: {{ .Values.ibmLicensing.namespace }}
 ---
