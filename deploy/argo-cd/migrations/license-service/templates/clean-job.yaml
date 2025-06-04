@@ -22,16 +22,17 @@ spec:
 
             subscription=$(oc get subscription.operators.coreos.com -n "$operatorNamespace" -o jsonpath="{.items[?(@.spec.name=='ibm-licensing-operator-app')].metadata.name}")
             if [[ -z $subscription ]]; then
-                echo "Subscription not present in namespace $operatorNamespace, aborting."
+              echo "Subscription not present in namespace $operatorNamespace, aborting."
             else
-                # Delete subscription and CSV
-                CSV=$(oc get --ignore-not-found subscription.operators.coreos.com $subscription -n $operatorNamespace -o jsonpath='{.status.currentCSV}')
-                echo "Deleting CSV and Subscription in namespace $operatorNamespace..."
-                oc delete --ignore-not-found csv $CSV -n $operatorNamespace && oc delete --ignore-not-found subscription.operators.coreos.com $subscription -n $operatorNamespace
+              # Delete Catalog Source
+              catalogSourceName=$(oc get --ignore-not-found subscription.operators.coreos.com $subscription -n "$operatorNamespace" -o jsonpath='{.spec.source}')
+              echo "Deleting Catalog Source $catalogSourceName in namespace $operatorNamespace..."
+              oc delete catalogsource $catalogSourceName -n openshift-marketplace
 
-                # Delete Catalog Source
-                catalogSourceName=$(oc get --ignore-not-found subscription.operators.coreos.com $subscription -n $operatorNamespace -o jsonpath='{.spec.source}')
-                oc delete --ignore-not-found sub $catalogSourceName -n $operatorNamespace
+              # Delete subscription and CSV
+              CSV=$(oc get --ignore-not-found subscription.operators.coreos.com $subscription -n $operatorNamespace -o jsonpath='{.status.currentCSV}')
+              echo "Deleting CSV and Subscription in namespace $operatorNamespace..."
+              oc delete --ignore-not-found csv $CSV -n $operatorNamespace && oc delete --ignore-not-found subscription.operators.coreos.com $subscription -n $operatorNamespace
             fi
       restartPolicy: Never
       serviceAccount: ibm-licensing-migration-job-sa

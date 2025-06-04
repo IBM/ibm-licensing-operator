@@ -21,6 +21,7 @@ rules:
   resources:
   - subscriptions
   - clusterserviceversions
+  - catalogsources
   verbs:
   - list
   - get
@@ -42,7 +43,6 @@ rules:
   - ""
   resources:
   - serviceaccounts
-  - secrets
   verbs:
   - list
   - get
