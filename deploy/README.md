@@ -7,22 +7,22 @@ Download the latest IBM License Service Helm Chart from the
 
 If you want to configure your installation, see the [Configuration](#configuration) section.
 
-If you want to install IBM License Service with the default configuration, run [`helm install`](https://helm.sh/docs/helm/helm_install/) with the downloaded files or use the `raw` URL. For example:
+If you want to install IBM License Service with the default configuration, run [`helm install`](https://helm.sh/docs/helm/helm_install/) with the downloaded files or the `raw` URL. For example:
 
 ```shell
-helm install ibm-licensing-cluster-scoped https://github.com/IBM/charts/raw/refs/heads/master/repo/ibm-helm/ibm-license-service-cluster-scoped-4.2.15+20250506.101113.0.tgz
+helm install ibm-licensing-cluster-scoped https://github.com/IBM/charts/raw/refs/heads/master/repo/ibm-helm/<ibm-licensing-cluster-scoped-tgz-file>
 ```
 
 ## Configuration
 
 You can use the `-f` flag when calling `helm install` to override the default `values.yaml` file:
 ```shell
-helm install ibm-licensing -f <new-values-yaml> <ibm-licensing-chart>
+helm install ibm-licensing-cluster-scoped -f <new-values-yaml> <ibm-licensing-cluster-scoped-chart>
 ```
 
 You can also use `--set key=value` to override them directly in the command:
 ```shell
-helm install ibm-licensing -set <key>=<value> <ibm-licensing-chart>
+helm install ibm-licensing-cluster-scoped -set <key>=<value> <ibm-licensing-cluster-scoped-chart>
 ```
 
 ### Namespace
@@ -33,19 +33,6 @@ By default, IBM License Service is installed in its recommended `ibm-licensing` 
 ibmLicensing:
   namespace: <your-custom-namespace>
 ```
-
-### Watch namespaces
-
-By default, IBM License Service watches for `OperandRequest`-s in all namespaces. To restrict this functionality, you should set the following parameter:
-
-```yaml
-ibmLicensing:
-  watchNamespace: <your-custom-namespace>
-```
-
-To then restrict IBM License Service privileges, you should remove the <name> `ClusterRole` and <name> `ClusterRoleBinding` and instead create similar roles and role bindings in your watch namespaces.
-
-To specify multiple watch namespaces, separate them with a coma: `namespace-1,namespace-2`.
 
 ### Custom Resource
 
@@ -135,3 +122,16 @@ global:
 ```
 
 **Note:** `global.licenseAccept` takes precedence over values that you provided in the CR configuration through `ibmLicensing.spec.license.accept`.
+
+### Watch namespaces
+
+By default, IBM License Service watches for `OperandRequest`-s in all namespaces. To restrict this functionality, you should set the following parameter:
+
+```yaml
+ibmLicensing:
+  watchNamespace: <your-custom-namespace>
+```
+
+To then restrict IBM License Service privileges, you should remove the <name> `ClusterRole` and <name> `ClusterRoleBinding` and instead create similar roles and role bindings in your watch namespaces.
+
+To specify multiple watch namespaces, separate them with a coma: `namespace-1,namespace-2`.
