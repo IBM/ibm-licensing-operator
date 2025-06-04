@@ -7,7 +7,6 @@ ibmLicensing:
   namespace: ibm-licensing
   imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs
-  watchNamespace: ibm-licensing
   spec:
     version: 4.2.16
     apiSecretToken: ibm-licensing-token
