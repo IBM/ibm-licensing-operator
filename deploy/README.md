@@ -7,11 +7,14 @@ Download the latest IBM License Service Helm Chart from the
 
 If you want to configure your installation, see the [Configuration](#configuration) section.
 
-If you want to install IBM License Service with the default configuration, run [`helm install`](https://helm.sh/docs/helm/helm_install/) with the downloaded files or the `raw` URL. For example:
+If you want to install IBM License Service with the default configuration, run `helm template` **TWICE** with the downloaded files or the `raw` URL. For example:
 
 ```shell
-helm install ibm-licensing-cluster-scoped https://github.com/IBM/charts/raw/refs/heads/master/repo/ibm-helm/<ibm-licensing-cluster-scoped-tgz-file>
+helm template ibm-licensing-cluster-scoped https://github.com/IBM/charts/raw/refs/heads/master/repo/ibm-helm/<ibm-licensing-cluster-scoped-tgz-file> | kubectl apply -f -
+helm template ibm-licensing-cluster-scoped https://github.com/IBM/charts/raw/refs/heads/master/repo/ibm-helm/<ibm-licensing-cluster-scoped-tgz-file> | kubectl apply -f -
 ```
+
+**Note:** Running the command twice is a temporary workaround and will be remediated in the future.
 
 ## Configuration
 
@@ -125,13 +128,16 @@ global:
 
 ### Watch namespaces
 
-By default, IBM License Service watches for `OperandRequest`-s in all namespaces. To restrict this functionality, you should set the following parameter:
+By default, IBM License Service watches for `OperandRequest`-s in its own namespace only. To extend this functionality, you should set the following parameter:
 
 ```yaml
 ibmLicensing:
-  watchNamespace: <your-custom-namespace>
+  watchNamespace: <your-custom-namespace>,<your-operand-request-namespace>
 ```
 
-To then restrict IBM License Service privileges, you should remove the <name> `ClusterRole` and <name> `ClusterRoleBinding` and instead create similar roles and role bindings in your watch namespaces.
+For example, for IBM License Service installed in its default namespace, to watch for operand requests in `service-namespace-one` and `service-namespace-two`, set the parameter to:
 
-To specify multiple watch namespaces, separate them with a coma: `namespace-1,namespace-2`.
+```yaml
+ibmLicensing:
+  watchNamespace: ibm-licensing,service-namespace-one,service-namespace-two
+```
