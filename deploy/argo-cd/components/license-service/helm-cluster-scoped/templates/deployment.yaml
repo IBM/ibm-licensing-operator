@@ -6,20 +6,20 @@ metadata:
     productID: 068a62892a1e4db39641342e592daa25
     productMetric: FREE
     productName: IBM Cloud Platform Common Services
-    {{- if ((.Values.ibmLicenseService.operator).annotations) }}
-      {{- toYaml .Values.ibmLicenseService.operator.annotations | nindent 4 -}}
+    {{- if ((.Values.ibmLicensing.operator).annotations) }}
+      {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 4 -}}
     {{ end }}
     argocd.argoproj.io/sync-wave: "1"
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
-    {{- if ((.Values.ibmLicenseService.operator).labels) }}
-      {{- toYaml .Values.ibmLicenseService.operator.labels | nindent 4 -}}
+    {{- if ((.Values.ibmLicensing.operator).labels) }}
+      {{- toYaml .Values.ibmLicensing.operator.labels | nindent 4 -}}
     {{ end }}
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: ibm-licensing-operator
-  namespace: {{ .Values.global.operatorNamespace }}
+  namespace: {{ .Values.ibmLicensing.namespace }}
 spec:
   replicas: 1
   selector:
@@ -31,16 +31,16 @@ spec:
         productID: 068a62892a1e4db39641342e592daa25
         productMetric: FREE
         productName: IBM Cloud Platform Common Services
-        {{- if ((.Values.ibmLicenseService.operator).annotations) }}
-          {{- toYaml .Values.ibmLicenseService.operator.annotations | nindent 8 -}}
+        {{- if ((.Values.ibmLicensing.operator).annotations) }}
+          {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 8 -}}
         {{ end }}
       labels:
         app.kubernetes.io/instance: ibm-licensing-operator
         app.kubernetes.io/managed-by: ibm-licensing-operator
         app.kubernetes.io/name: ibm-licensing
         name: ibm-licensing-operator
-        {{- if ((.Values.ibmLicenseService.operator).labels) }}
-          {{- toYaml .Values.ibmLicenseService.operator.labels | nindent 8 -}}
+        {{- if ((.Values.ibmLicensing.operator).labels) }}
+          {{- toYaml .Values.ibmLicensing.operator.labels | nindent 8 -}}
         {{ end }}
     spec:
       affinity:
@@ -59,9 +59,9 @@ spec:
             - ibm-licensing-operator
           env:
             - name: IBM_LICENSING_IMAGE
-              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseService.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.16
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.16
             - name: WATCH_NAMESPACE
-              value: {{ .Values.ibmLicenseService.watchNamespace }}
+              value: {{ .Values.ibmLicensing.watchNamespace }}
             - name: OPERATOR_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -78,7 +78,7 @@ spec:
                   fieldPath: spec.serviceAccountName
             - name: CRD_RECONCILE_INTERVAL
               value: "300"
-          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseService.imageRegistryNamespaceOperator }}/ibm-licensing-operator:4.2.16
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperator }}/ibm-licensing-operator:4.2.16
           imagePullPolicy: IfNotPresent
           name: ibm-licensing-operator
           resources:

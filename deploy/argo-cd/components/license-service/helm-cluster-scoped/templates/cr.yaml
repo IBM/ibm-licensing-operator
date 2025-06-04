@@ -6,9 +6,8 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: instance
-  namespace: {{ .Values.global.operatorNamespace }}
   annotations:
     argocd.argoproj.io/sync-options: ServerSideApply=true
 spec:
@@ -19,7 +18,7 @@ spec:
 
   {{- /* If imagePullSecret is declared, append it to the list of secrets specified in IBMLicensing CR's spec (or create a new list if empty) */ -}}
   {{- if .Values.global.imagePullSecret -}}
-    {{- $_ := set $imagePullData "imagePullSecrets" (prepend (default list .Values.ibmLicenseService.spec.imagePullSecrets) .Values.global.imagePullSecret | uniq) -}}
+    {{- $_ := set $imagePullData "imagePullSecrets" (prepend (default list .Values.ibmLicensing.spec.imagePullSecrets) .Values.global.imagePullSecret | uniq) -}}
   {{- end -}}
 
-  {{- toYaml (mergeOverwrite .Values.ibmLicenseService.spec $imagePullData) | nindent 2 }}
+  {{- toYaml (mergeOverwrite .Values.ibmLicensing.spec $imagePullData) | nindent 2 }}

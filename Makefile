@@ -610,7 +610,6 @@ generate-yaml-argo-cd: kustomize
 	@(echo "---" && yq 'select(.kind == "ServiceAccount")' argo-cd/tmp.yaml) > argo-cd/serviceaccounts.yaml
 
 	# Add missing namespaces
-	@yq -i '.metadata.namespace = "sed-me"' argo-cd/cr.yaml
 	@yq -i 'select(.kind == "ClusterRoleBinding").subjects[0].namespace = "sed-me"' argo-cd/cluster-rbac.yaml
 	@yq -i 'select(.kind == "RoleBinding").subjects[0].namespace = "sed-me"' argo-cd/rbac.yaml
 
@@ -624,12 +623,12 @@ generate-yaml-argo-cd: kustomize
 	| .spec.template.metadata.annotations.sed-deployment-annotations-bottom = "sed-me" \
 	| .spec.template.metadata.labels.sed-deployment-labels-bottom = "sed-me" \
 	| .spec.template.spec.containers[0].env[1].valueFrom = "sed-me"' argo-cd/deployment.yaml
-	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/cluster-rbac.yaml
-	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/cr.yaml
-	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/crd.yaml
-	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/deployment.yaml
-	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/rbac.yaml
-	@yq -i '.metadata.labels.ibm-license-service = "sed-me"' argo-cd/serviceaccounts.yaml
+	@yq -i '.metadata.labels.ibm-licensing = "sed-me"' argo-cd/cluster-rbac.yaml
+	@yq -i '.metadata.labels.ibm-licensing = "sed-me"' argo-cd/cr.yaml
+	@yq -i '.metadata.labels.ibm-licensing = "sed-me"' argo-cd/crd.yaml
+	@yq -i '.metadata.labels.ibm-licensing = "sed-me"' argo-cd/deployment.yaml
+	@yq -i '.metadata.labels.ibm-licensing = "sed-me"' argo-cd/rbac.yaml
+	@yq -i '.metadata.labels.ibm-licensing = "sed-me"' argo-cd/serviceaccounts.yaml
 
 	# Add extra fields, for example argo-cd sync waves
 	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-options" = "ServerSideApply=true"' argo-cd/cr.yaml
@@ -639,32 +638,31 @@ generate-yaml-argo-cd: kustomize
 	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "1"' argo-cd/deployment.yaml
 
 	# Replace all ibm-license-service labels to template them with helm
-	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/cluster-rbac.yaml
-	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/cr.yaml
-	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/crd.yaml
-	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/rbac.yaml
-	@sed -i '' "s/ibm-license-service: sed-me/ibm-license-service: {{ .Chart.Name }}/g" argo-cd/serviceaccounts.yaml
+	@sed -i '' "s/ibm-licensing: sed-me/ibm-licensing: {{ .Chart.Name }}/g" argo-cd/cluster-rbac.yaml
+	@sed -i '' "s/ibm-licensing: sed-me/ibm-licensing: {{ .Chart.Name }}/g" argo-cd/cr.yaml
+	@sed -i '' "s/ibm-licensing: sed-me/ibm-licensing: {{ .Chart.Name }}/g" argo-cd/crd.yaml
+	@sed -i '' "s/ibm-licensing: sed-me/ibm-licensing: {{ .Chart.Name }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/ibm-licensing: sed-me/ibm-licensing: {{ .Chart.Name }}/g" argo-cd/rbac.yaml
+	@sed -i '' "s/ibm-licensing: sed-me/ibm-licensing: {{ .Chart.Name }}/g" argo-cd/serviceaccounts.yaml
 
 	# Replace all namespaces to template them with helm
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.global.operatorNamespace }}/g" argo-cd/cluster-rbac.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.global.operatorNamespace }}/g" argo-cd/cr.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.global.operatorNamespace }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.global.operatorNamespace }}/g" argo-cd/rbac.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.global.operatorNamespace }}/g" argo-cd/serviceaccounts.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/cluster-rbac.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/rbac.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/serviceaccounts.yaml
 
 	# Replace all registry occurrences to template them with helm
 	@sed -i '' "s/icr.io/{{ .Values.global.imagePullPrefix }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/cpopen\/cpfs/{{ .Values.ibmLicenseService.imageRegistryNamespaceOperand }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/cpopen/{{ .Values.ibmLicenseService.imageRegistryNamespaceOperator }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/cpopen\/cpfs/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/cpopen/{{ .Values.ibmLicensing.imageRegistryNamespaceOperator }}/g" argo-cd/deployment.yaml
 
 	# Replace extra fields (in addition to the namespaces) to template them with helm
 	@cat ./common/makefile-generate/yaml-cr-spec-part >> argo-cd/cr.yaml
-	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.ibmLicenseService.operator).annotations) }}\n      {{- toYaml .Values.ibmLicenseService.operator.annotations | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.ibmLicenseService.operator).labels) }}\n      {{- toYaml .Values.ibmLicenseService.operator.labels | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.ibmLicenseService.operator).annotations) }}\n          {{- toYaml .Values.ibmLicenseService.operator.annotations | nindent 8 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-labels-bottom: sed-me/{{- if ((.Values.ibmLicenseService.operator).labels) }}\n          {{- toYaml .Values.ibmLicenseService.operator.labels | nindent 8 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.ibmLicenseService.watchNamespace }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.ibmLicensing.operator).annotations) }}\n      {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.ibmLicensing.operator).labels) }}\n      {{- toYaml .Values.ibmLicensing.operator.labels | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.ibmLicensing.operator).annotations) }}\n          {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 8 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/sed-deployment-labels-bottom: sed-me/{{- if ((.Values.ibmLicensing.operator).labels) }}\n          {{- toYaml .Values.ibmLicensing.operator.labels | nindent 8 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.ibmLicensing.watchNamespace }}/g" argo-cd/deployment.yaml
 	@cat ./common/makefile-generate/yaml-deployment-pull-secrets-part >> argo-cd/deployment.yaml
 
 	@rm argo-cd/tmp.yaml
