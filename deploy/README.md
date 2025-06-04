@@ -19,11 +19,13 @@ helm template ibm-licensing-cluster-scoped https://github.com/IBM/charts/raw/ref
 ## Configuration
 
 You can use the `-f` flag when calling `helm install` to override the default `values.yaml` file:
+
 ```shell
 helm install ibm-licensing-cluster-scoped -f <new-values-yaml> <ibm-licensing-cluster-scoped-chart>
 ```
 
 You can also use `--set key=value` to override them directly in the command:
+
 ```shell
 helm install ibm-licensing-cluster-scoped -set <key>=<value> <ibm-licensing-cluster-scoped-chart>
 ```
