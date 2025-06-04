@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: ibm-license-service
 rules:
   - apiGroups:
@@ -69,7 +69,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: ibm-license-service-restricted
 rules:
   - apiGroups:
@@ -109,7 +109,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: ibm-licensing-default-reader
 rules:
   - nonResourceURLs:
@@ -130,7 +130,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: ibm-licensing-operator
 rules:
   - apiGroups:
@@ -186,7 +186,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: ibm-license-service
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -195,7 +195,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service
-    namespace: {{ .Values.global.operatorNamespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -204,7 +204,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: ibm-license-service-restricted
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -213,7 +213,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-restricted
-    namespace: {{ .Values.global.operatorNamespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -222,7 +222,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: ibm-licensing-default-reader
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -231,7 +231,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-default-reader
-    namespace: {{ .Values.global.operatorNamespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -240,7 +240,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: ibm-licensing-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -249,7 +249,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-operator
-    namespace: {{ .Values.global.operatorNamespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -258,7 +258,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: ibm-license-service-cluster-monitoring-view
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -267,4 +267,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service
-    namespace: {{ .Values.global.operatorNamespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
