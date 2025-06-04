@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: instance
   annotations:
     argocd.argoproj.io/sync-options: ServerSideApply=true

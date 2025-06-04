@@ -17,7 +17,7 @@ metadata:
     {{- if ((.Values.ibmLicensing.operator).labels) }}
       {{- toYaml .Values.ibmLicensing.operator.labels | nindent 4 -}}
     {{ end }}
-    ibm-license-service: {{ .Chart.Name }}
+    ibm-licensing: {{ .Chart.Name }}
   name: ibm-licensing-operator
   namespace: {{ .Values.ibmLicensing.namespace }}
 spec:
