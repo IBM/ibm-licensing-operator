@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: ibm-licensing-migration-job
-        image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/cpfs-utils:4.6.7
+        image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.cpfs.imageRegistryNamespaceOperand }}/cpfs-utils:4.6.7
         command:
           - bash
           - -c

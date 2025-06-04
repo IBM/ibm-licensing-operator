@@ -10,7 +10,7 @@ metadata:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: ibm-licensing-migration-job-role-{{ .Values.global.certmgrNamespace }}
+  name: ibm-licensing-migration-job-role-{{ .Values.global.operatorNamespace }}
   namespace: {{ .Values.global.operatorNamespace }}
   annotations:
     "helm.sh/hook": pre-install
@@ -52,7 +52,7 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: ibm-licensing-migration-job-rb-{{ .Values.global.certmgrNamespace }}
+  name: ibm-licensing-migration-job-rb-{{ .Values.global.operatorNamespace }}
   namespace: {{ .Values.global.operatorNamespace }}
   annotations:
     "helm.sh/hook": pre-install
@@ -64,4 +64,4 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: ibm-licensing-migration-job-role-{{ .Values.global.certmgrNamespace }}
+  name: ibm-licensing-migration-job-role-{{ .Values.global.operatorNamespace }}
