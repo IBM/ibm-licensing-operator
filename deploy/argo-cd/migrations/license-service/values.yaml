@@ -4,5 +4,4 @@ global:
   imagePullSecret: ibm-entitlement-key
 
 ibmLicensing:
-  cpfs: # Probably not needed -> TODO remove this
-    imageRegistryNamespaceOperand: cpopen/cpfs
+  imageRegistryNamespaceOperand: cpopen/cpfs
