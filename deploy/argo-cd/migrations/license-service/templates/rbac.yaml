@@ -27,27 +27,6 @@ rules:
   - get
   - delete
   - watch
-- apiGroups: 
-  - "rbac.authorization.k8s.io"
-  resources:
-  - roles
-  - rolebindings
-  - clusterroles
-  - clusterrolebindings
-  verbs:
-  - list
-  - get
-  - delete
-  - watch
-- apiGroups: 
-  - ""
-  resources:
-  - serviceaccounts
-  verbs:
-  - list
-  - get
-  - delete
-  - watch
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
