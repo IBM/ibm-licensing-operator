@@ -1,6 +1,6 @@
 apiVersion: v2
 name: ibm-licensing-migration
-description: A Helm chart for migrating license service from OLM to No OLM
+description: A Helm chart for License Service migration from OLM to No OLM
 type: application
 version: 0.0.0
-appVersion: "0.0.0"
+appVersion: "4.2.16"

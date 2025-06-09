@@ -2,11 +2,11 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: ibm-licensing-migration-job
-  namespace: {{ .Values.global.operatorNamespace }}
+  namespace: {{ .Values.ibmLicensing.namespace }}
   annotations:
     "helm.sh/hook-delete-policy": before-hook-creation
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "0"
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "2"
 spec:
   template:
     spec:
@@ -18,19 +18,20 @@ spec:
           - -c
           - |
             echo "Starting cleanup for OLM -> No OLM migration..."
-            operatorNamespace={{ .Values.global.operatorNamespace }}
+            operatorNamespace={{ .Values.ibmLicensing.namespace }}
 
             subscription_name=$(oc get subscription.operators.coreos.com -n "$operatorNamespace" -o jsonpath="{.items[?(@.spec.name=='ibm-licensing-operator-app')].metadata.name}")
             if [[ -z $subscription_name ]]; then
               echo "Subscription $subscription_name not present in namespace $operatorNamespace, aborting."
-            else
-              # Delete subscription and CSV
-              csv_name=$(oc get --ignore-not-found subscription.operators.coreos.com $subscription_name -n $operatorNamespace -o jsonpath='{.status.currentCSV}')
-              echo "Deleting CSV $csv_name in namespace $operatorNamespace"
-              oc delete --ignore-not-found csv $csv_name -n $operatorNamespace
-              echo "Deleting Subscription $subscription_name in namespace $operatorNamespace"
-              oc delete --ignore-not-found subscription.operators.coreos.com $subscription_name -n $operatorNamespace
+              exit 1
             fi
+
+            # Delete subscription and CSV
+            csv_name=$(oc get --ignore-not-found subscription.operators.coreos.com $subscription_name -n $operatorNamespace -o jsonpath='{.status.currentCSV}')
+            echo "Deleting CSV $csv_name in namespace $operatorNamespace"
+            oc delete --ignore-not-found csv $csv_name -n $operatorNamespace
+            echo "Deleting Subscription $subscription_name in namespace $operatorNamespace"
+            oc delete --ignore-not-found subscription.operators.coreos.com $subscription_name -n $operatorNamespace
       restartPolicy: Never
       serviceAccount: ibm-licensing-migration-job-sa
       imagePullSecrets:
