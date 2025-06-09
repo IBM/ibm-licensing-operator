@@ -24,6 +24,7 @@ rules:
   - subscriptions
   - clusterserviceversions
   - catalogsources
+  - operatorgroups
   verbs:
   - list
   - get
