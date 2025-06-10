@@ -23,7 +23,6 @@ rules:
   resources:
   - subscriptions
   - clusterserviceversions
-  - catalogsources
   - operatorgroups
   verbs:
   - list
