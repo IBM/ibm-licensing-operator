@@ -637,7 +637,7 @@ generate-yaml-argo-cd: kustomize
 	# starts creating the CR at the same time as the operator does it (patch isn't applied and a name conflict happens)
 	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "1"' argo-cd/deployment.yaml
 
-	# Replace all ibm-license-service labels to template them with helm
+	# Replace all component-id labels to template them with helm
 	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/cluster-rbac.yaml
 	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/cr.yaml
 	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/crd.yaml
