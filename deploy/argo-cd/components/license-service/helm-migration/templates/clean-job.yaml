@@ -13,11 +13,12 @@ spec:
       containers:
       - name: ibm-licensing-migration-job
         image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/cpfs-utils:4.6.7
-        command:
+        command: # Removes Subscription, CSV and OperatorGroup
           - bash
           - -c
           - |
             echo "Starting cleanup for OLM -> No OLM migration..."
+
             operatorNamespace={{ .Values.ibmLicensing.namespace }}
 
             subscription_name=$(oc get subscription.operators.coreos.com -n "$operatorNamespace" -o jsonpath="{.items[?(@.spec.name=='ibm-licensing-operator-app')].metadata.name}")
@@ -27,15 +28,19 @@ spec:
               exit 1
             fi
 
-            # Delete subscription and CSV
+            # Get CSV and Operator Group names
             csv_name=$(oc get --ignore-not-found subscription.operators.coreos.com $subscription_name -n $operatorNamespace -o jsonpath='{.status.currentCSV}')
             operatorgroup_name=$(oc get csv "$csv_name" -n "$operatorNamespace" -o json | jq -r '.metadata.annotations["olm.operatorGroup"]')
+
             echo "Deleting CSV $csv_name in namespace $operatorNamespace"
             oc delete --ignore-not-found csv $csv_name -n $operatorNamespace
+
             echo "Deleting Subscription $subscription_name in namespace $operatorNamespace"
             oc delete --ignore-not-found subscription.operators.coreos.com $subscription_name -n $operatorNamespace
+
             echo "Deleting operatorGroup $operatorgroup_name in namespace $operatorNamespace"
             oc delete --ignore-not-found operatorgroup $operatorgroup_name -n $operatorNamespace
+
       restartPolicy: Never
       serviceAccount: ibm-licensing-migration-job-sa
       imagePullSecrets:
