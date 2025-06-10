@@ -7,7 +7,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "-1"
   name: ibmlicenseservicereporters.operator.ibm.com
   labels:
-    ibm-license-service-reporter: {{ .Chart.Name }}
+    component-id: {{ .Chart.Name }}
 spec:
   group: operator.ibm.com
   names:
