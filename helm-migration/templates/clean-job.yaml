@@ -6,14 +6,14 @@ metadata:
   annotations:
     "helm.sh/hook-delete-policy": before-hook-creation
     "helm.sh/hook": pre-install
-    "helm.sh/hook-weight": "2"
+    "helm.sh/hook-weight": "3"
 spec:
   template:
     spec:
       containers:
       - name: ibm-licensing-migration-job
         image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/cpfs-utils:4.6.7
-        command: # Removes Subscription, CSV and OperatorGroup
+        command:
           - bash
           - -c
           - |
