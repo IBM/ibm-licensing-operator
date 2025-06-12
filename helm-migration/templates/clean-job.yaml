@@ -47,6 +47,15 @@ spec:
               oc delete --ignore-not-found operatorgroup $operatorgroup_names -n $namespace
             fi
 
+            # Make sure rbac resources are deleted, even though they should be deleted automatically after removing CSV
+            role_binding_names=$(oc get --ignore-not-found rolebinding -n $namespace | grep ibm-licensing | grep -v ibm-licensing-migration | awk '{print $1}' | tr "\n" " ")
+            role_names=$(oc get --ignore-not-found --no-headers role -n $namespace | grep ibm-licensing | grep -v ibm-licensing-migration | awk '{print $1}' | tr "\n" " ")
+            service_account_names=$(oc get --ignore-not-found --no-headers serviceaccount -n $namespace | grep -E "ibm-license|ibm-licensing" | grep -v ibm-licensing-migration | awk '{print $1}' | tr "\n" " ")
+
+            oc delete --ignore-not-found rolebinding $role_binding_names -n $namespace
+            oc delete --ignore-not-found role $role_names -n $namespace
+            oc delete --ignore-not-found serviceaccount $service_account_names -n $namespace
+
       restartPolicy: Never
       serviceAccount: ibm-licensing-migration-job-sa
       imagePullSecrets:
