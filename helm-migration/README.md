@@ -1,9 +1,10 @@
 # OLM-based deployment to a Helm-based deployment OLM migration chart
 
 To facilitate the migration from an OLM-based deployment to a Helm-based deployment, a dedicated migration Helm chart is introduced. It runs job that removes following resources:
-- Subscription,
-- CSV,
-- OperatorGroup
+- Subscriptions,
+- CSVs,
+- OperatorGroups
+- Roles, RoleBindings, ServiceAccounts
 
 ### How to use
 ```bash

@@ -5,5 +5,5 @@ global:
 
 ibmLicensing:
   namespace: ibm-licensing
-  # image registry namespace for cpfs utils image
-  imageRegistryNamespaceOperand: cpopen/cpfs
+  # image registry namespace for cpfs utils image used in clean-job
+  imageRegistry: cpopen/cpfs
