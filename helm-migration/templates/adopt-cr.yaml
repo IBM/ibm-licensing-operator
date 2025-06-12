@@ -1,5 +1,5 @@
-# Empty CR to not override existing CR, needed so that helm install --take-ownership adds correct labels/annotations on existing CR
 {{- if .Values.global.crAdoption }}
+# Empty CR to not override existing CR, needed so that helm install --take-ownership adds correct helm labels/annotations on existing CR
 apiVersion: operator.ibm.com/v1alpha1
 kind: IBMLicensing
 metadata:
