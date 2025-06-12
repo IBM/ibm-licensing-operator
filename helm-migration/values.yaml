@@ -1,6 +1,7 @@
 global:
   imagePullPrefix: icr.io
   imagePullSecret: ibm-entitlement-key
+  crAdoption: true
 
 ibmLicensing:
   namespace: ibm-licensing

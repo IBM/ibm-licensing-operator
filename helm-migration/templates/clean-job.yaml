@@ -20,26 +20,32 @@ spec:
             echo "Starting cleanup for OLM -> No OLM migration..."
 
             namespace={{ .Values.ibmLicensing.namespace }}
+            
+            # Get names of resources that will be deleted
+            subscription_names=$(oc get --ignore-not-found subscription.operators.coreos.com -n $namespace | grep ibm-licensing | awk '{print $1}' | tr "\n" " ")
+            csv_names=$(oc get --ignore-not-found csv -n $namespace | grep ibm-licensing | awk '{print $1}' | tr "\n" " ")
+            operatorgroup_names=$(oc get --ignore-not-found operatorgroup -n $namespace | grep ibm-licensing | awk '{print $1}' | tr "\n" " ")
 
-            subscription_name=$(oc get --ignore-not-found subscription.operators.coreos.com -n "$namespace" -o jsonpath="{.items[?(@.spec.name=='ibm-licensing-operator-app')].metadata.name}")
-
-            if [[ -z $subscription_name ]]; then
-              echo "Subscription $subscription_name not present in namespace $namespace, aborting."
-              exit 1
+            if [[ -z $subscription_names ]]; then
+              echo "No Subscription associated with ibm-licensing found in namespace $namespace." 
+            else
+              echo "Removing subscriptions."
+              oc delete --ignore-not-found subscription.operators.coreos.com $subscription_names -n $namespace
             fi
 
-            # Get CSV and Operator Group names
-            csv_name=$(oc get --ignore-not-found subscription.operators.coreos.com $subscription_name -n $namespace -o jsonpath='{.status.currentCSV}')
-            operatorgroup_name=$(oc get --ignore-not-found csv "$csv_name" -n "$namespace" -o jsonpath='{.metadata.annotations.olm\.operatorGroup}')
+            if [[ -z $csv_names ]]; then
+              echo "No CSVs associated with ibm-licensing found in namespace $namespace." 
+            else
+              echo "Removing CSVs."
+              oc delete --ignore-not-found csv $csv_names -n $namespace
+            fi
 
-            echo "Deleting CSV $csv_name in namespace $namespace"
-            oc delete --ignore-not-found csv $csv_name -n $namespace
-
-            echo "Deleting Subscription $subscription_name in namespace $namespace"
-            oc delete --ignore-not-found subscription.operators.coreos.com $subscription_name -n $namespace
-
-            echo "Deleting operatorGroup $operatorgroup_name in namespace $namespace"
-            oc delete --ignore-not-found operatorgroup $operatorgroup_name -n $namespace
+            if [[ -z $operatorgroup_names ]]; then
+              echo "No OperatorGroups associated with ibm-licensing found in namespace $namespace." 
+            else
+              echo "Removing OperatorGroups."
+              oc delete --ignore-not-found operatorgroup $operatorgroup_names -n $namespace
+            fi
 
       restartPolicy: Never
       serviceAccount: ibm-licensing-migration-job-sa
