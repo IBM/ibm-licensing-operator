@@ -24,7 +24,8 @@ spec:
             # Get names of resources that will be deleted
             subscription_names=$(oc get --ignore-not-found subscription.operators.coreos.com -n $namespace | grep ibm-licensing | awk '{print $1}' | tr "\n" " ")
             csv_names=$(oc get --ignore-not-found csv -n $namespace | grep ibm-licensing | awk '{print $1}' | tr "\n" " ")
-            operatorgroup_names=$(oc get --ignore-not-found operatorgroup -n $namespace | grep ibm-licensing | awk '{print $1}' | tr "\n" " ")
+            # Get OperatorGroups that have annotation key "olm.providedAPIs" and its corresponding value starts with "IBMLicensing..."
+            operatorgroup_names=$(oc get --ignore-not-found operatorgroup -n ibm-licensing -o=jsonpath='{range .items[*]}{@.metadata.name}{" "}{@.metadata.annotations}{"\n"}{end}' | awk '{if ($2 ~ "\"olm.providedAPIs\":\"IBMLicensing.*") print $1}')
 
             if [[ -z $subscription_names ]]; then
               echo "No Subscription associated with ibm-licensing found in namespace $namespace." 
