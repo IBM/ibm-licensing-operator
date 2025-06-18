@@ -24,8 +24,6 @@ spec:
             # Get names of resources that will be deleted
             subscription_names=$(oc get --ignore-not-found subscription.operators.coreos.com -n $namespace | grep ibm-licensing-operator-app | awk '{print $1}' | tr "\n" " ")
             csv_names=$(oc get --ignore-not-found csv -n $namespace | grep ibm-licensing-operator | awk '{print $1}' | tr "\n" " ")
-            # Get OperatorGroups that have annotation key "olm.providedAPIs" and its corresponding value starts with "IBMLicensing..."
-            operatorgroup_names=$(oc get --ignore-not-found operatorgroup -n ibm-licensing -o=jsonpath='{range .items[*]}{@.metadata.name}{" "}{@.metadata.annotations}{"\n"}{end}' | awk '{if ($2 ~ "\"olm.providedAPIs\":\"IBMLicensing.*") print $1}')
 
             if [[ -z $subscription_names ]]; then
               echo "No Subscription associated with ibm-licensing found in namespace $namespace." 
@@ -41,16 +39,9 @@ spec:
               oc delete --ignore-not-found csv $csv_names -n $namespace
             fi
 
-            if [[ -z $operatorgroup_names ]]; then
-              echo "No OperatorGroups associated with ibm-licensing found in namespace $namespace." 
-            else
-              echo "Removing OperatorGroups."
-              oc delete --ignore-not-found operatorgroup $operatorgroup_names -n $namespace
-            fi
-
             # Make sure rbac resources are deleted, even though they should be deleted automatically after removing CSV
-            role_binding_names=$(oc get --ignore-not-found rolebinding -n $namespace | grep ibm-licensing | grep -v ibm-licensing-migration | awk '{print $1}' | tr "\n" " ")
-            role_names=$(oc get --ignore-not-found --no-headers role -n $namespace | grep ibm-licensing | grep -v ibm-licensing-migration | awk '{print $1}' | tr "\n" " ")
+            role_binding_names=$(oc get --ignore-not-found rolebinding -n $namespace | grep -E "ibm-license|ibm-licensing" | grep -v ibm-licensing-migration | awk '{print $1}' | tr "\n" " ")
+            role_names=$(oc get --ignore-not-found --no-headers role -n $namespace | grep -E "ibm-license|ibm-licensing" | grep -v ibm-licensing-migration | awk '{print $1}' | tr "\n" " ")
             service_account_names=$(oc get --ignore-not-found --no-headers serviceaccount -n $namespace | grep -E "ibm-license|ibm-licensing" | grep -v ibm-licensing-migration | awk '{print $1}' | tr "\n" " ")
 
             if [[ -n $role_binding_names ]]; then
