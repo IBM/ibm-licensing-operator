@@ -1,2 +1,2 @@
-global:
-  operatorNamespace: ibm-ls-reporter
+ibmLicenseServiceReporter:
+  namespace: ibm-ls-reporter
