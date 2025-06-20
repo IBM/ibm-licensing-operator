@@ -48,6 +48,15 @@ rules:
   - get
   - delete
   - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - list
+  - get
+  - delete
+  - watch
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
