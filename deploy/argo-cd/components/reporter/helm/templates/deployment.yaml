@@ -21,9 +21,9 @@ metadata:
     {{- if ((.Values.ibmLicenseServiceReporter.operator).labels) }}
       {{- toYaml .Values.ibmLicenseServiceReporter.operator.labels | nindent 4 -}}
     {{ end }}
-    ibm-license-service-reporter: {{ .Chart.Name }}
+    component-id: {{ .Chart.Name }}
   name: ibm-license-service-reporter-operator
-  namespace: {{ .Values.global.operatorNamespace }}
+  namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}
 spec:
   replicas: 1
   selector:
