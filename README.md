@@ -5,7 +5,7 @@ You can install License Service with ibm-licensing-operator to collect license u
 - [License Service as a part of an IBM Cloud Pak (included in IBM Cloud Pak foundational services)](#ibm-licensing-operator)
 - [License Service without an IBM Cloud Pak](#ibm-licensing-operator-for-deploying-license-service-without-an-ibm-cloud-pak)
 
-# ibm-licensing-operator
+# ibm-licensing-operator [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/5784/badge)](https://www.bestpractices.dev/projects/5784)
 
 <b>Scenario: License Service as a part of an IBM Cloud Pak (included in IBM Cloud Pak foundational services)</b>
 
