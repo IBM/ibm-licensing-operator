@@ -1,10 +1,10 @@
 global:
-  operatorNamespace: ibm-ls-reporter
   imagePullPrefix: icr.io
   imagePullSecret: ibm-entitlement-key
   licenseAccept: true
 
 ibmLicenseServiceReporter:
+  namespace: ibm-ls-reporter
   imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs
   spec:

@@ -1,9 +1,10 @@
 global:
-  operatorNamespace: ibm-licensing-scanner
   imagePullPrefix: icr.io
   imagePullSecret: ibm-entitlement-key
   licenseAccept: true
+  
 ibmLicenseServiceScanner:
+  namespace: ibm-licensing-scanner
   licenseServiceNamespace: ibm-licensing
   imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs

@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ibm-licensing-migration-job
+  namespace: {{ .Values.ibmLicensing.namespace }}
+  annotations:
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "3"
+spec:
+  template:
+    spec:
+      containers:
+      - name: ibm-licensing-migration-job
+        image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistry }}/cpfs-utils:4.6.7
+        command:
+          - bash
+          - -c
+          - |
+            echo "Starting cleanup for OLM -> No OLM migration..."
+
+            namespace={{ .Values.ibmLicensing.namespace }}
+            
+            # Get names of resources that will be deleted
+            subscription_names=$(oc get --ignore-not-found subscription.operators.coreos.com -n $namespace | grep ibm-licensing-operator-app | awk '{print $1}' | tr "\n" " ")
+            csv_names=$(oc get --ignore-not-found csv -n $namespace | grep ibm-licensing-operator | awk '{print $1}' | tr "\n" " ")
+
+            if [[ -z $subscription_names ]]; then
+              echo "No Subscription associated with ibm-licensing found in namespace $namespace." 
+            else
+              echo "Removing subscriptions."
+              oc delete --ignore-not-found subscription.operators.coreos.com $subscription_names -n $namespace
+            fi
+
+            if [[ -z $csv_names ]]; then
+              echo "No CSVs associated with ibm-licensing found in namespace $namespace." 
+            else
+              echo "Removing CSVs."
+              oc delete --ignore-not-found csv $csv_names -n $namespace
+            fi
+
+            # Make sure operator deployment and rbac resources are deleted, even though it should be deleted automatically after removing CSV
+            oc delete --ignore-not-found deployment ibm-licensing-operator -n $namespace
+
+            role_binding_names=$(oc get --ignore-not-found rolebinding -n $namespace | grep -E "ibm-license|ibm-licensing" | grep -v ibm-licensing-migration | awk '{print $1}' | tr "\n" " ")
+            role_names=$(oc get --ignore-not-found --no-headers role -n $namespace | grep -E "ibm-license|ibm-licensing" | grep -v ibm-licensing-migration | awk '{print $1}' | tr "\n" " ")
+            service_account_names=$(oc get --ignore-not-found --no-headers serviceaccount -n $namespace | grep -E "ibm-license|ibm-licensing" | grep -v ibm-licensing-migration | awk '{print $1}' | tr "\n" " ")
+
+            if [[ -n $role_binding_names ]]; then
+              oc delete --ignore-not-found rolebinding $role_binding_names -n $namespace
+            fi
+
+            if [[ -n $role_names ]]; then
+              oc delete --ignore-not-found role $role_names -n $namespace
+            fi
+
+            if [[ -n $service_account_names ]]; then
+              oc delete --ignore-not-found serviceaccount $service_account_names -n $namespace
+            fi
+
+      restartPolicy: Never
+      serviceAccount: ibm-licensing-migration-job-sa
+      imagePullSecrets:
+      - name: {{ .Values.global.imagePullSecret }}
