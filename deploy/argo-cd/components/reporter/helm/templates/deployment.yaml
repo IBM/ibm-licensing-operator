@@ -69,13 +69,13 @@ spec:
             - ibm-license-service-reporter-operator
           env:
             - name: IBM_POSTGRESQL_IMAGE
-              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceReporter.imageRegistryNamespaceOperand }}/ibm-postgresql:4.2.17
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceReporter.imageRegistryNamespaceOperand }}/ibm-postgresql:4.2.18
             - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceReporter.imageRegistryNamespaceOperand }}/ibm-license-service-reporter:4.2.17
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceReporter.imageRegistryNamespaceOperand }}/ibm-license-service-reporter:4.2.18
             - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceReporter.imageRegistryNamespaceOperand }}/ibm-license-service-reporter-ui:4.2.17
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceReporter.imageRegistryNamespaceOperand }}/ibm-license-service-reporter-ui:4.2.18
             - name: IBM_LICENSE_SERVICE_REPORTER_AUTH_IMAGE
-              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceReporter.imageRegistryNamespaceOperand }}/ibm-license-service-reporter-oauth2-proxy:4.2.17
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceReporter.imageRegistryNamespaceOperand }}/ibm-license-service-reporter-oauth2-proxy:4.2.18
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -94,7 +94,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
-          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceReporter.imageRegistryNamespaceOperator }}/ibm-license-service-reporter-operator:4.2.17
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceReporter.imageRegistryNamespaceOperator }}/ibm-license-service-reporter-operator:4.2.18
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
