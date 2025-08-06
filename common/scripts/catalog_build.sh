@@ -38,11 +38,10 @@ sed -i "/olm.skipRange:/c\    olm.skipRange: \'>=1.0.0 <$LATEST_VERSION\'" "$NEW
 sed -i "/name: ibm-licensing-operator.v/c\  name: ibm-licensing-operator.v$LATEST_VERSION" "$NEW_CSV"
 sed -i "s|icr.io/cpopen/ibm-licensing-operator:.*|${IMAGE_REPO}/${IMAGE_NAME}@${DIGEST}|" "$NEW_CSV"
 
-VCS_URL=https://github.com/IBM/ibm-common-service-catalog
 VCS_REF=random
 
 echo "Building and pushing catalog"
-docker build -t "$CATALOG_NAME":"$MANIFEST_VERSION" --build-arg \ VCS_REF=${VCS_REF} --build-arg VCS_URL=${VCS_URL} --security-opt=no-new-privileges -f Dockerfile .
+docker build -t "$CATALOG_NAME":"$MANIFEST_VERSION" --build-arg \ VCS_REF=${VCS_REF} --build-arg --security-opt=no-new-privileges -f Dockerfile .
 docker push "$CATALOG_NAME":"$MANIFEST_VERSION"
 docker tag "$CATALOG_NAME":"$MANIFEST_VERSION" "$CATALOG_NAME":latest
 docker push "$CATALOG_NAME":latest

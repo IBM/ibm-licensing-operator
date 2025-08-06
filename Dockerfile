@@ -29,13 +29,11 @@ ARG IMAGE_DESCRIPTION
 ARG IMAGE_SUMMARY
 ARG IMAGE_OPENSHIFT_TAGS
 ARG VCS_REF
-ARG VCS_URL
 
 LABEL org.label-schema.vendor="$IMAGE_VENDOR" \
       org.label-schema.name="$IMAGE_NAME_ARCH" \
       org.label-schema.description="$IMAGE_DESCRIPTION" \
       org.label-schema.vcs-ref=$VCS_REF \
-      org.label-schema.vcs-url=$VCS_URL \
       org.label-schema.license="Licensed Materials - Property of IBM" \
       org.label-schema.schema-version="1.0" \
       name="$IMAGE_NAME" \

@@ -43,13 +43,11 @@ USER 1001
 FROM scratch
 
 ARG VCS_REF
-ARG VCS_URL
 
 LABEL org.label-schema.vendor="IBM" \
   org.label-schema.name="IBM Common Service Catalog" \
   org.label-schema.description="The IBM Common Service Catalog image" \
   org.label-schema.vcs-ref=$VCS_REF \
-  org.label-schema.vcs-url=$VCS_URL \
   org.label-schema.license="Licensed Materials - Property of IBM" \
   org.label-schema.schema-version="1.0" \
   name="ibm-common-service-catalog" \
