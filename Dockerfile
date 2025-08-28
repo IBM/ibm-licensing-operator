@@ -67,6 +67,6 @@ COPY LICENSE /licenses
 RUN  echo "$IMAGE_RELEASE" > /IMAGE_RELEASE \ 
   && echo "$IMAGE_BUILDDATE" > /IMAGE_BUILDDATE
 
-ENTRYPOINT "exec ${OPERATOR} $@"
+ENTRYPOINT ["/usr/local/bin/ibm-licensing-operator"]
 
 USER ${USER_UID}
