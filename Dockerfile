@@ -63,13 +63,10 @@ COPY bundle ${DEPLOY_DIR}
 RUN mkdir /licenses
 COPY LICENSE /licenses
 
-COPY build/bin /usr/local/bin
-RUN  /usr/local/bin/user_setup
-
 # add commit image release
 RUN  echo "$IMAGE_RELEASE" > /IMAGE_RELEASE \ 
   && echo "$IMAGE_BUILDDATE" > /IMAGE_BUILDDATE
 
-ENTRYPOINT ["/usr/local/bin/entrypoint"]
+ENTRYPOINT "exec ${OPERATOR} $@"
 
 USER ${USER_UID}
