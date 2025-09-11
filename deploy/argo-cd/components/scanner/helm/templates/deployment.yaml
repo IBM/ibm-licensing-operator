@@ -19,9 +19,9 @@ metadata:
     {{- if ((.Values.ibmLicenseServiceScanner.operator).labels) }}
       {{- toYaml .Values.ibmLicenseServiceScanner.operator.labels | nindent 4 -}}
     {{ end }}
-    ibm-license-service-scanner: {{ .Chart.Name }}
+    component-id: {{ .Chart.Name }}
   name: ibm-licensing-scanner-operator
-  namespace: {{ .Values.global.operatorNamespace }}
+  namespace: {{ .Values.ibmLicenseServiceScanner.namespace }}
 spec:
   replicas: 1
   selector:

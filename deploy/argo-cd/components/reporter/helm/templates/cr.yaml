@@ -8,9 +8,9 @@ metadata:
     app.kubernetes.io/managed-by: operator
     app.kubernetes.io/name: ibmlicenseservicereporter
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
-    ibm-license-service-reporter: {{ .Chart.Name }}
+    component-id: {{ .Chart.Name }}
   name: instance
-  namespace: {{ .Values.global.operatorNamespace }}
+  namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}
 spec:
   {{- $imagePullData := dict -}}
 
