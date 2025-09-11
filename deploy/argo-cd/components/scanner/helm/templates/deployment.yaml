@@ -14,14 +14,14 @@ metadata:
     app.kubernetes.io/component: ibm-licensing-scanner-operator-deployment
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: ibm-licensing-scanner
-    app.kubernetes.io/version: 4.2.18
+    app.kubernetes.io/version: 4.2.19
     control-plane: controller-manager
     {{- if ((.Values.ibmLicenseServiceScanner.operator).labels) }}
       {{- toYaml .Values.ibmLicenseServiceScanner.operator.labels | nindent 4 -}}
     {{ end }}
-    component-id: {{ .Chart.Name }}
+    ibm-license-service-scanner: {{ .Chart.Name }}
   name: ibm-licensing-scanner-operator
-  namespace: {{ .Values.ibmLicenseServiceScanner.namespace }}
+  namespace: {{ .Values.global.operatorNamespace }}
 spec:
   replicas: 1
   selector:
@@ -41,7 +41,7 @@ spec:
         app.kubernetes.io/component: ibm-licensing-scanner-operator-pod
         app.kubernetes.io/managed-by: kustomize
         app.kubernetes.io/name: ibm-licensing-scanner
-        app.kubernetes.io/version: 4.2.18
+        app.kubernetes.io/version: 4.2.19
         control-plane: controller-manager
         {{- if ((.Values.ibmLicenseServiceScanner.operator).labels) }}
           {{- toYaml .Values.ibmLicenseServiceScanner.operator.labels | nindent 8 -}}
@@ -58,8 +58,8 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: IBM_LICENSE_SERVICE_SCANNER_OPERAND_IMAGE
-              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceScanner.imageRegistryNamespaceOperand }}/ibm-licensing-scanner:4.2.18
-          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceScanner.imageRegistryNamespaceOperator }}/ibm-license-service-scanner-operator:4.2.18
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceScanner.imageRegistryNamespaceOperand }}/ibm-licensing-scanner:4.2.19
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicenseServiceScanner.imageRegistryNamespaceOperator }}/ibm-license-service-scanner-operator:4.2.19
           livenessProbe:
             httpGet:
               path: /healthz
