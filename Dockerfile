@@ -29,13 +29,11 @@ ARG IMAGE_DESCRIPTION
 ARG IMAGE_SUMMARY
 ARG IMAGE_OPENSHIFT_TAGS
 ARG VCS_REF
-ARG VCS_URL
 
 LABEL org.label-schema.vendor="$IMAGE_VENDOR" \
       org.label-schema.name="$IMAGE_NAME_ARCH" \
       org.label-schema.description="$IMAGE_DESCRIPTION" \
       org.label-schema.vcs-ref=$VCS_REF \
-      org.label-schema.vcs-url=$VCS_URL \
       org.label-schema.license="Licensed Materials - Property of IBM" \
       org.label-schema.schema-version="1.0" \
       name="$IMAGE_NAME" \
@@ -65,13 +63,10 @@ COPY bundle ${DEPLOY_DIR}
 RUN mkdir /licenses
 COPY LICENSE /licenses
 
-COPY build/bin /usr/local/bin
-RUN  /usr/local/bin/user_setup
-
 # add commit image release
 RUN  echo "$IMAGE_RELEASE" > /IMAGE_RELEASE \ 
   && echo "$IMAGE_BUILDDATE" > /IMAGE_BUILDDATE
 
-ENTRYPOINT ["/usr/local/bin/entrypoint"]
+ENTRYPOINT ["/usr/local/bin/ibm-licensing-operator"]
 
 USER ${USER_UID}
