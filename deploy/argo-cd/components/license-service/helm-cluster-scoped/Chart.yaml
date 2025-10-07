@@ -1,5 +1,5 @@
 apiVersion: v2
-name: ibm-license-service-cluster-scoped
-description: A Helm chart for IBM License Service ArgoCD installation (cluster scoped)
+name: ibm-licensing-cluster-scoped
+description: A Helm chart for IBM License Service installation
 type: application
-version: 4.2.16
+version: 4.2.19

@@ -6,8 +6,9 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
+    component-id: {{ .Chart.Name }}
   name: ibm-license-service
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicensing.namespace }}
 rules:
   - apiGroups:
       - ""
@@ -26,8 +27,9 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
+    component-id: {{ .Chart.Name }}
   name: ibm-license-service-restricted
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicensing.namespace }}
 rules:
   - apiGroups:
       - ""
@@ -68,8 +70,9 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
+    component-id: {{ .Chart.Name }}
   name: ibm-licensing-operator
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicensing.namespace }}
 rules:
   - apiGroups:
       - ""
@@ -220,8 +223,9 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
+    component-id: {{ .Chart.Name }}
   name: ibm-license-service
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicensing.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -229,7 +233,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -238,8 +242,9 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
+    component-id: {{ .Chart.Name }}
   name: ibm-license-service-restricted
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicensing.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -247,7 +252,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-restricted
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -256,8 +261,9 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
+    component-id: {{ .Chart.Name }}
   name: ibm-licensing-operator
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicensing.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -265,4 +271,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-operator
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}

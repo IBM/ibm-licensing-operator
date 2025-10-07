@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
+    component-id: {{ .Chart.Name }}
   name: ibmlicensingdefinitions.operator.ibm.com
 spec:
   group: operator.ibm.com
@@ -109,6 +110,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
+    component-id: {{ .Chart.Name }}
   name: ibmlicensingmetadatas.operator.ibm.com
 spec:
   group: operator.ibm.com
@@ -190,6 +192,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
+    component-id: {{ .Chart.Name }}
   name: ibmlicensingquerysources.operator.ibm.com
 spec:
   group: operator.ibm.com
@@ -266,6 +269,7 @@ metadata:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
     app.kubernetes.io/name: ibm-licensing
+    component-id: {{ .Chart.Name }}
   name: ibmlicensings.operator.ibm.com
 spec:
   group: operator.ibm.com

@@ -15,9 +15,9 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 4.2.16
+CSV_VERSION ?= 4.2.19
 CSV_VERSION_DEVELOPMENT ?= development
-OLD_CSV_VERSION ?= 4.2.15
+OLD_CSV_VERSION ?= 4.2.18
 
 # Tools versions
 OPM_VERSION ?= v1.26.2
@@ -165,7 +165,7 @@ endif
 
 DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 
-$(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "VCS_URL=$(GIT_REMOTE_URL)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
+$(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
 
 ifeq ($(BUILD_LOCALLY),0)
     ifneq ("$(realpath $(DEST))", "$(realpath $(PWD))")
@@ -604,7 +604,7 @@ generate-yaml-argo-cd: kustomize
 	# Split the resources into separate YAML files
 	@(echo "---" && yq 'select(.kind == "ClusterRole" or .kind == "ClusterRoleBinding")' argo-cd/tmp.yaml) > argo-cd/cluster-rbac.yaml
 	@(echo "---" && yq 'select(.kind == "IBMLicensing")' argo-cd/tmp.yaml) > argo-cd/cr.yaml
-	@(echo "---" && yq 'select(.kind == "CustomResourceDefinition")' argo-cd/tmp.yaml) > argo-cd/crds.yaml
+	@(echo "---" && yq 'select(.kind == "CustomResourceDefinition")' argo-cd/tmp.yaml) > argo-cd/crd.yaml
 	@(echo "---" && yq 'select(.kind == "Deployment")' argo-cd/tmp.yaml) > argo-cd/deployment.yaml
 	@(echo "---" && yq 'select(.kind == "Role" or .kind == "RoleBinding")' argo-cd/tmp.yaml) > argo-cd/rbac.yaml
 	@(echo "---" && yq 'select(.kind == "ServiceAccount")' argo-cd/tmp.yaml) > argo-cd/serviceaccounts.yaml
@@ -623,32 +623,46 @@ generate-yaml-argo-cd: kustomize
 	| .spec.template.metadata.annotations.sed-deployment-annotations-bottom = "sed-me" \
 	| .spec.template.metadata.labels.sed-deployment-labels-bottom = "sed-me" \
 	| .spec.template.spec.containers[0].env[1].valueFrom = "sed-me"' argo-cd/deployment.yaml
+	@yq -i '.metadata.labels.component-id = "sed-me"' argo-cd/cluster-rbac.yaml
+	@yq -i '.metadata.labels.component-id = "sed-me"' argo-cd/cr.yaml
+	@yq -i '.metadata.labels.component-id = "sed-me"' argo-cd/crd.yaml
+	@yq -i '.metadata.labels.component-id = "sed-me"' argo-cd/deployment.yaml
+	@yq -i '.metadata.labels.component-id = "sed-me"' argo-cd/rbac.yaml
+	@yq -i '.metadata.labels.component-id = "sed-me"' argo-cd/serviceaccounts.yaml
 
 	# Add extra fields, for example argo-cd sync waves
 	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-options" = "ServerSideApply=true"' argo-cd/cr.yaml
-	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "-1"' argo-cd/crds.yaml
+	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "-1"' argo-cd/crd.yaml
 	# This sync wave is crucial because the deployment must be created after the CR, to avoid a situation when ArgoCD
 	# starts creating the CR at the same time as the operator does it (patch isn't applied and a name conflict happens)
 	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "1"' argo-cd/deployment.yaml
 
+	# Replace all component-id labels to template them with helm
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/cluster-rbac.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/cr.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/crd.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/rbac.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/serviceaccounts.yaml
+
 	# Replace all namespaces to template them with helm
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.namespace }}/g" argo-cd/cluster-rbac.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.namespace }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.namespace }}/g" argo-cd/rbac.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.namespace }}/g" argo-cd/serviceaccounts.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/cluster-rbac.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/rbac.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/serviceaccounts.yaml
 
 	# Replace all registry occurrences to template them with helm
 	@sed -i '' "s/icr.io/{{ .Values.global.imagePullPrefix }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/cpopen\/cpfs/{{ .Values.cpfs.imageRegistryNamespaceOperand }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/cpopen/{{ .Values.cpfs.imageRegistryNamespaceOperator }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/cpopen\/cpfs/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/cpopen/{{ .Values.ibmLicensing.imageRegistryNamespaceOperator }}/g" argo-cd/deployment.yaml
 
 	# Replace extra fields (in addition to the namespaces) to template them with helm
 	@cat ./common/makefile-generate/yaml-cr-spec-part >> argo-cd/cr.yaml
-	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.operator).annotations) }}\n      {{- toYaml .Values.operator.annotations | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.operator).labels) }}\n      {{- toYaml .Values.operator.labels | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.operator).annotations) }}\n          {{- toYaml .Values.operator.annotations | nindent 4 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-labels-bottom: sed-me/{{- if ((.Values.operator).labels) }}\n          {{- toYaml .Values.operator.labels | nindent 4 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.watchNamespace }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.ibmLicensing.operator).annotations) }}\n      {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.ibmLicensing.operator).labels) }}\n      {{- toYaml .Values.ibmLicensing.operator.labels | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.ibmLicensing.operator).annotations) }}\n          {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 8 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/sed-deployment-labels-bottom: sed-me/{{- if ((.Values.ibmLicensing.operator).labels) }}\n          {{- toYaml .Values.ibmLicensing.operator.labels | nindent 8 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.ibmLicensing.watchNamespace }}/g" argo-cd/deployment.yaml
 	@cat ./common/makefile-generate/yaml-deployment-pull-secrets-part >> argo-cd/deployment.yaml
 
 	@rm argo-cd/tmp.yaml

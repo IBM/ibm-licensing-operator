@@ -3,6 +3,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: manager-role
+  labels:
+    component-id: {{ .Chart.Name }}
 rules:
   - apiGroups:
       - operator.ibm.com
@@ -43,6 +45,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: clusterrolebinding
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
+    component-id: {{ .Chart.Name }}
   name: manager-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -51,4 +54,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-reporter-operator
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}

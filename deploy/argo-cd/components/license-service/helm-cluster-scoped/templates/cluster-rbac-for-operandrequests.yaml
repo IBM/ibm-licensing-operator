@@ -1,11 +1,10 @@
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   labels:
     component-id: {{ .Chart.Name }}
-  name: ibm-licensing-scanner-auto-connect-role
-  namespace: {{ .Values.ibmLicenseServiceScanner.namespace }}
+  name: ibm-licensing-opreqs-role
 rules:
   - apiGroups:
       - apps
@@ -39,18 +38,17 @@ rules:
       - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   labels:
     component-id: {{ .Chart.Name }}
-  name: ibm-licensing-scanner-auto-connect-role-binding
-  namespace: {{ .Values.ibmLicenseServiceScanner.namespace }}
+  name: ibm-licensing-opreqs-role-binding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: ibm-licensing-scanner-auto-connect-role
+  kind: ClusterRole
+  name: ibm-licensing-opreqs-role
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-operator
-    namespace: {{ .Values.ibmLicenseServiceScanner.licenseServiceNamespace }}
+    namespace: {{ .Values.ibmLicensing.namespace }}
 ---

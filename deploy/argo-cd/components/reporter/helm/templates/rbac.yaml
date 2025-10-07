@@ -4,7 +4,9 @@ kind: Role
 metadata:
   creationTimestamp: null
   name: ibm-license-service-reporter
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}
+  labels:
+    component-id: {{ .Chart.Name }}
 rules:
   - apiGroups:
       - ""
@@ -26,8 +28,9 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: role
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
+    component-id: {{ .Chart.Name }}
   name: leader-election-role
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}
 rules:
   - apiGroups:
       - ""
@@ -65,7 +68,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: manager-role
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}
+  labels:
+    component-id: {{ .Chart.Name }}
 rules:
   - apiGroups:
       - ""
@@ -101,6 +106,12 @@ rules:
       - delete
       - list
       - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods/exec
+    verbs:
+      - create
   - apiGroups:
       - apps
     resources:
@@ -152,8 +163,9 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
+    component-id: {{ .Chart.Name }}
   name: ibm-license-service-reporter
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -161,7 +173,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-reporter
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -173,8 +185,9 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
+    component-id: {{ .Chart.Name }}
   name: leader-election-rolebinding
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -182,7 +195,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-reporter-operator
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -194,8 +207,9 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: rolebinding
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
+    component-id: {{ .Chart.Name }}
   name: manager-rolebinding
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -203,4 +217,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-license-service-reporter-operator
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}

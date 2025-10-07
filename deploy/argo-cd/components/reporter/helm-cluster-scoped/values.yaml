@@ -1,1 +1,2 @@
-namespace: ibm-ls-reporter
+ibmLicenseServiceReporter:
+  namespace: ibm-ls-reporter

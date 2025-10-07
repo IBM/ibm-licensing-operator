@@ -8,14 +8,18 @@ metadata:
     app.kubernetes.io/managed-by: operator
     app.kubernetes.io/name: ibmlicenseservicereporter
     app.kubernetes.io/part-of: ibm-license-service-reporter-operator
+    component-id: {{ .Chart.Name }}
   name: instance
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.ibmLicenseServiceReporter.namespace }}
 spec:
   {{- $imagePullData := dict -}}
 
+  {{- /* Set license */ -}}
+  {{- $_ := set $imagePullData "license" (dict "accept" .Values.global.licenseAccept) -}}
+
   {{- /* If imagePullSecret is declared, append it to the list of secrets specified in IBMLicenseServiceReporter CR's spec (or create a new list if empty) */ -}}
   {{- if .Values.global.imagePullSecret -}}
-    {{- $_ := set $imagePullData "imagePullSecrets" (prepend (default list .Values.spec.imagePullSecrets) .Values.global.imagePullSecret) -}}
+    {{- $_ := set $imagePullData "imagePullSecrets" (prepend (default list .Values.ibmLicenseServiceReporter.spec.imagePullSecrets) .Values.global.imagePullSecret | uniq) -}}
   {{- end -}}
 
-  {{- toYaml (mergeOverwrite .Values.spec $imagePullData) | nindent 2 }}
+  {{- toYaml (mergeOverwrite .Values.ibmLicenseServiceReporter.spec $imagePullData) | nindent 2 }}

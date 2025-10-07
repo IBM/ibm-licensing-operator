@@ -1,1 +1,2 @@
-namespace: ibm-licensing-scanner
+ibmLicenseServiceScanner:
+  namespace: ibm-licensing-scanner
