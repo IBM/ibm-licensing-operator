@@ -6,7 +6,11 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
+<<<<<<< HEAD
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.19
+=======
+    containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.18
+>>>>>>> latest-4.x
     createdAt: "2020-06-22T10:22:31Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to
       monitor the license usage of products.
@@ -18,7 +22,11 @@ metadata:
     features.operators.openshift.io/token-auth-azure: "false"
     features.operators.openshift.io/token-auth-gcp: "false"
     nss.operator.ibm.com/managed-operators: ibm-licensing-operator-app
+<<<<<<< HEAD
     olm.skipRange: '>=1.0.0 <4.2.19'
+=======
+    olm.skipRange: '>=1.0.0 <4.2.18'
+>>>>>>> latest-4.x
     operatorframework.io/suggested-namespace: ibm-licensing
     operators.operatorframework.io/builder: operator-sdk-v1.25.2
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com",
@@ -299,8 +307,14 @@ spec:
   provider:
     name: IBM
   relatedImages:
+<<<<<<< HEAD
   - image: icr.io/cpopen/ibm-licensing-operator:4.2.19
     name: IBM_LICENSING_OPERATOR_IMAGE
   - image: icr.io/cpopen/cpfs/ibm-licensing:4.2.19
+=======
+  - image: icr.io/cpopen/ibm-licensing-operator:4.2.18
+    name: IBM_LICENSING_OPERATOR_IMAGE
+  - image: icr.io/cpopen/cpfs/ibm-licensing:4.2.18
+>>>>>>> latest-4.x
     name: IBM_LICENSING_IMAGE
   version: 0.0.0

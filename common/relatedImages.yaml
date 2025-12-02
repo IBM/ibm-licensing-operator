@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 - image: icr.io/cpopen/ibm-licensing-operator:4.2.19
   name: IBM_LICENSING_OPERATOR_IMAGE
 - image: icr.io/cpopen/cpfs/ibm-licensing:4.2.19
+=======
+- image: icr.io/cpopen/ibm-licensing-operator:4.2.18
+  name: IBM_LICENSING_OPERATOR_IMAGE
+- image: icr.io/cpopen/cpfs/ibm-licensing:4.2.18
+>>>>>>> latest-4.x
   name: IBM_LICENSING_IMAGE

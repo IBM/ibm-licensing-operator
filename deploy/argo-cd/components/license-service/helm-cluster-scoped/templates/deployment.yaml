@@ -59,7 +59,11 @@ spec:
             - ibm-licensing-operator
           env:
             - name: IBM_LICENSING_IMAGE
+<<<<<<< HEAD
               value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.19
+=======
+              value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.18
+>>>>>>> latest-4.x
             - name: WATCH_NAMESPACE
               value: {{ .Values.ibmLicensing.watchNamespace }}
             - name: OPERATOR_NAMESPACE
@@ -78,7 +82,11 @@ spec:
                   fieldPath: spec.serviceAccountName
             - name: CRD_RECONCILE_INTERVAL
               value: "300"
+<<<<<<< HEAD
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperator }}/ibm-licensing-operator:4.2.19
+=======
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperator }}/ibm-licensing-operator:4.2.18
+>>>>>>> latest-4.x
           imagePullPolicy: IfNotPresent
           name: ibm-licensing-operator
           resources:

@@ -11,4 +11,8 @@ ibmLicenseServiceReporter:
     authentication:
       useradmin:
         enabled: true
+<<<<<<< HEAD
     version: 4.2.19
+=======
+    version: 4.2.18
+>>>>>>> latest-4.x
