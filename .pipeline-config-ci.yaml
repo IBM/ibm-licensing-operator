@@ -8,16 +8,18 @@ tasks:
       - name: checks-setup
         when: 'false'
       - name: detect-secrets
-        when: 'false'
+        when: 'true'
+        include:
+          - docker-socket
+          - dind
       - name: compliance-checks
         when: 'false'
       - name: peer-review
         when: 'false'
       - name: static-scan
         when: 'false'
-
   code-build:
-    displayName: Build image
+    displayName: Build images
     include:
       - dind
       - docker-socket
@@ -26,73 +28,22 @@ tasks:
         when: 'false'
       - name: unit-test
         image: icr.io/continuous-delivery/base-images/base:v1.19.0
-        displayName: Run unit tests - missing evidence workaround
+        displayName: Run tests
         runtimeClassName: medium
         onError: 'stopAndFail'
         script: |
           #!/usr/bin/env bash
-          set -e
-          set -x
+          set -euo pipefail
           cd "$WORKSPACE/$(load_repo app-repo path)"
 
-          echo "Build:"
-          make build
-          curl -Lo ./operator-sdk "https://github.com/operator-framework/operator-sdk/releases/download/v1.25.2/operator-sdk_linux_amd64"
-          curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.17.0/kind-$(uname)-amd64"
-          chmod +x ./operator-sdk
-          chmod +x ./kind
-          ./kind create cluster --image kindest/node:v1.24.15
-          ./kind get clusters
-          kubectl config get-contexts
-          kubectl config set-context kind-kind
-          export PATH=`pwd`:$PATH
-
-          echo "Install OLM:"
-          kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.19.1/crds.yaml
-          kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.19.1/olm.yaml
-
-          echo "Deploy Operators YAML:"
-          kubectl create namespace ${LICENSING_NAMESPACE}
-          n=0; until ((n >= 60)); do kubectl -n ${LICENSING_NAMESPACE} get serviceaccount default -o name && break; n=$((n + 1)); sleep 60; done; ((n < 60))
-          kubectl create secret docker-registry my-registry-token -n ${LICENSING_NAMESPACE} --docker-server=docker-na-public.artifactory.swg-devops.com --docker-username=${ARTIFACTORY_USERNAME} --docker-password=${ARTIFACTORY_TOKEN}
-          kubectl apply -f ./bundle/manifests/operator.ibm.com_ibmlicensings.yaml
-          kubectl apply -f ./config/rbac/service_account.yaml -n ${LICENSING_NAMESPACE}
-          kubectl -n ${LICENSING_NAMESPACE} patch serviceaccount ibm-licensing-operator -p '{"imagePullSecrets": [{"name": "my-registry-token"}]}'
-          kubectl apply -f ./config/rbac/role.yaml
-          kubectl apply -f ./config/rbac/role_binding.yaml
-          kubectl apply -f ./config/rbac/role_operands.yaml
-          kubectl get sa -n ${LICENSING_NAMESPACE}
-
-          echo "Run Scorecard tests:"
-          export PATH=`pwd`:$PATH
-          set -o pipefail
-          make scorecard 2>&1 | tee ./scorecard_logs.txt
-
-          cho "Download binaries:"
-          wget https://github.com/kubernetes-sigs/kind/releases/download/v0.17.0/kind-linux-amd64
-          mv ./kind-linux-amd64 ./kind
-          chmod +x ./kind
-          cp ./common/scripts/tests/kind_config.yaml ./
-          ./kind create cluster --image kindest/node:${{ matrix.k8s }} --config ./kind_config.yaml --name tests
-          kubectl config set-context kind-tests        
-          kubectl get nodes
-
-          echo "Test Unit Operator - License Service:"
-          export PATH=`pwd`:$PATH
-          export SUFIX=$RANDOM
-          export USE_EXISTING_CLUSTER=true
-          set -o pipefail
-          make unit-test 2>&1 | tee ./unittest_logs_${{ matrix.k8s }}.txt
-
-          echo "Check all pods"
-          export PATH=`pwd`:$PATH
-          kubectl config set-context kind-tests
-          kubectl describe pods --all-namespaces  > ./pods_${{ matrix.k8s }}.txt 2>&1
+          source ./build_scripts/setup_env.sh
+          source ./build_scripts/install_dependencies.sh
+          source ./build_scripts/run_tests.sh
 
           set_env "STAGE_UNIT_TEST_STATUS" "success"
           collect-evidence --asset-type "repo" --asset-key "app-repo" --status "success" --tool-type "misc" --evidence-type "com.ibm.unit_tests"
       - name: build-artifact
-        displayName: Build and publish image
+        displayName: Build and publish images
         include:
           - dind
           - docker-socket
@@ -103,20 +54,16 @@ tasks:
           ARCH: amd64
         script: |
           #!/usr/bin/env bash
-          set -e
-          set -x
+          set -euo pipefail
           cd "$WORKSPACE/$(load_repo app-repo path)"
 
           source ./build_scripts/setup_env.sh
           source ./build_scripts/install_dependencies.sh
-
           make build-push-image
-
       - name: sign-artifact
         when: 'false'
       - name: scan-artifact
         when: 'false'
-
   deploy-checks:
     include:
       - dind
@@ -127,12 +74,10 @@ tasks:
         when: 'false'
       - name: acceptance-test
         when: 'false'
-
   deploy-release:
     steps:
       - name: run-stage
         when: 'false'
-
 finally:
   code-ci-finish:
     steps:

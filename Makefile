@@ -226,6 +226,12 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 #    eg: lint: lint-go lint-yaml
 lint: lint-all vet
 
+# Run `make audit` before committing to ensure no secrets or sensitive credentials are present in the codebase
+audit: install-detect-secrets
+	@detect-secrets scan --update .secrets.baseline --exclude-files ".secrets.baseline|requirements.txt|go.mod|go.sum|\
+		pom.xml|build.gradle|package-lock.json|yarn.lock|Cargo.lock|deno.lock|composer.lock|Gemfile.lock|Pipfile.lock"
+	@detect-secrets audit .secrets.baseline
+
 ##@ Build
 
 build:
@@ -524,7 +530,7 @@ verify-installed-tools: ## Verify if tools are installed
 	» yq-${YQ_VERSION} | yq-"$(shell yq --version | awk '{print $$4}')" $'\n\
 	"
 
-install-all-tools: install-operator-sdk install-opm install-controller-gen install-kustomize install-yq verify-installed-tools ## Install all tools locally
+install-all-tools: install-operator-sdk install-opm install-controller-gen install-kustomize install-yq verify-installed-tools install-detect-secrets ## Install all tools locally
 
 install-operator-sdk: ## Install tool locally: operator-sdk
 	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-operator-sdk.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPERATOR_SDK_VERSION}; fi
@@ -540,6 +546,9 @@ install-kustomize: ## Install tool locally: kustomize
 
 install-yq: ## Install tool locally: yq
 	@yq --version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-yq.sh ${TARGET_OS} ${LOCAL_ARCH} ${YQ_VERSION}; fi	
+
+install-detect-secrets: ## Install tool locally: detect-secrets
+	@common/scripts/install-detect-secrets.sh
 
 controller-gen:
 ifeq (, $(shell which controller-gen))

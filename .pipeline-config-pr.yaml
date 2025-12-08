@@ -1,0 +1,45 @@
+version: '2'
+
+tasks:
+  pr-code-checks:
+    displayName: Build images
+    include:
+      - dind
+      - docker-socket
+    steps:
+      - name: checks-setup
+        when: 'false'
+      - name: detect-secrets
+        when: 'true'
+        include:
+          - docker-socket
+          - dind
+      - name: unit-test
+        image: icr.io/continuous-delivery/base-images/base:v1.19.0
+        displayName: Build, test and publish images
+        include:
+          - dind
+          - docker-socket
+        runtimeClassName: medium
+        onError: 'stopAndFail'
+        env:
+          ARCH: amd64
+        script: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          cd "$WORKSPACE/$(load_repo app-repo path)"
+
+          source ./build_scripts/setup_env.sh
+          source ./build_scripts/install_dependencies.sh
+          source ./build_scripts/run_tests.sh
+          make build-push-image
+
+          set_env "STAGE_UNIT_TEST_STATUS" "success"
+          collect-evidence --asset-type "repo" --asset-key "app-repo" --status "success" --tool-type "misc" --evidence-type "com.ibm.unit_tests"
+      - name: compliance-checks
+        when: 'false'
+finally:
+  code-pr-finish:
+    steps:
+      - name: run-stage
+        when: 'false'
