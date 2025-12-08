@@ -16,7 +16,7 @@ metadata:
             "name": "instance"
           },
           "spec": {
-            "version": "4.2.19",
+            "version": "4.2.20",
             "apiSecretToken": "ibm-licensing-token",
             "datasource": "datacollector",
             "httpsEnable": true
@@ -26,7 +26,7 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
-    containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.19
+    containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.20
     createdAt: "2025-02-25T12:16:11Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     features.operators.openshift.io/disconnected: "true"
@@ -37,7 +37,7 @@ metadata:
     features.operators.openshift.io/token-auth-azure: "false"
     features.operators.openshift.io/token-auth-gcp: "false"
     nss.operator.ibm.com/managed-operators: ibm-licensing-operator-app
-    olm.skipRange: '>=1.0.0 <4.2.19'
+    olm.skipRange: '>=1.0.0 <4.2.20'
     operatorframework.io/suggested-namespace: ibm-licensing
     operators.operatorframework.io/builder: operator-sdk-v1.32.0
     operators.operatorframework.io/internal-objects: '["ibmlicensingmetadatas.operator.ibm.com", "ibmlicensingdefinitions.operator.ibm.com", "ibmlicensingquerysources.operator.ibm.com"]'
@@ -51,7 +51,7 @@ metadata:
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: ibm-licensing-operator.v4.2.19
+  name: ibm-licensing-operator.v4.2.20
   namespace: ibm-licensing
 spec:
   apiservicedefinitions: {}
@@ -450,7 +450,7 @@ spec:
                       - ibm-licensing-operator
                     env:
                       - name: IBM_LICENSING_IMAGE
-                        value: icr.io/cpopen/cpfs/ibm-licensing:4.2.19
+                        value: icr.io/cpopen/cpfs/ibm-licensing:4.2.20
                       - name: WATCH_NAMESPACE
                         valueFrom:
                           fieldRef:
@@ -471,7 +471,7 @@ spec:
                             fieldPath: spec.serviceAccountName
                       - name: CRD_RECONCILE_INTERVAL
                         value: "300"
-                    image: icr.io/cpopen/ibm-licensing-operator:4.2.19
+                    image: icr.io/cpopen/ibm-licensing-operator:4.2.20
                     imagePullPolicy: IfNotPresent
                     name: ibm-licensing-operator
                     resources:
@@ -710,9 +710,9 @@ spec:
   maturity: alpha
   provider:
     name: IBM
-  version: 4.2.19
+  version: 4.2.20
   relatedImages:
-    - image: icr.io/cpopen/ibm-licensing-operator:4.2.19
+    - image: icr.io/cpopen/ibm-licensing-operator:4.2.20
       name: IBM_LICENSING_OPERATOR_IMAGE
-    - image: icr.io/cpopen/cpfs/ibm-licensing:4.2.19
+    - image: icr.io/cpopen/cpfs/ibm-licensing:4.2.20
       name: IBM_LICENSING_IMAGE
