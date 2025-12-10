@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Tool versions:
-export GO_VERSION="1.24"
+export GO_VERSION="1.24.10"
 export GOLANGCI_LINT_VERSION="1.64.2"
 export OPERATOR_SDK_VERSION="v1.25.2"
 export KIND_VERSION="v0.17.0"
