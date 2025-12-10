@@ -78,7 +78,6 @@ tasks:
     steps:
       - name: run-stage
         when: 'false'
-        
 finally:
   code-ci-finish:
     steps:
