@@ -6,8 +6,8 @@ echo "Build:"
 make build
 
 echo "Create cluster for Scorecard tests"
-./kind create cluster --image kindest/node:v1.24.15
-./kind get clusters
+kind create cluster --image kindest/node:v1.24.15
+kind get clusters
 kubectl config get-contexts
 kubectl config set-context kind-kind
 
@@ -34,7 +34,7 @@ make scorecard 2>&1 | tee ./scorecard_logs.txt
 
 echo "Create cluster for unit tests:"
 cp ./common/scripts/tests/kind_config.yaml ./
-./kind create cluster --image kindest/node:${{ matrix.k8s }} --config ./kind_config.yaml --name tests
+kind create cluster --image kindest/node:${{ matrix.k8s }} --config ./kind_config.yaml --name tests
 kubectl config set-context kind-tests        
 kubectl get nodes
 
