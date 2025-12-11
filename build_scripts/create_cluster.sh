@@ -70,9 +70,6 @@ do
   sleep 1
 done
 
-echo "Fixing kubeconfig server address for host access..."
-sed -i 's|server: https://.*:443|server: https://127.0.0.1:61616|g' ~/.kube/config
-
 kubectl version
 kubectl cluster-info --context kind-kind
 
@@ -87,7 +84,6 @@ echo "Current namespace:"
 kubectl config view --minify -o jsonpath='{..namespace}'
 echo "=========================="
 
-echo "Cluster already created by prereqs.sh"
 echo "Verifying cluster access..."
 
 kubectl cluster-info --context kind-kind

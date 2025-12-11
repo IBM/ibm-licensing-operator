@@ -472,7 +472,9 @@ bundle-build-development:
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 
 scorecard:
-	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s
+	kubectl create serviceaccount scorecard-sa -n ${NAMESPACE} || true
+	kubectl create clusterrolebinding scorecard-admin --clusterrole=cluster-admin --serviceaccount=${NAMESPACE}:scorecard-sa || true
+	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s --service-account scorecard-sa --kubeconfig ${HOME}/.kube/config
 
 catalogsource: opm
 	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
