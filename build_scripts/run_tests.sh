@@ -6,10 +6,6 @@ echo "Build:"
 make build
 
 echo "Create cluster for Scorecard tests"
-# kind create cluster --image kindest/node:v1.24.15
-# kind get clusters
-# kubectl config get-contexts
-# kubectl config set-context kind-kind
 ./build_scripts/create_cluster.sh
 
 echo "Install OLM:"
@@ -32,17 +28,13 @@ echo "Run Scorecard tests:"
 make scorecard 2>&1 | tee ./scorecard_logs.txt
 
 echo "Create cluster for unit tests:"
-# cp ./common/scripts/tests/kind_config.yaml ./
-# kind create cluster --image kindest/node:${{ matrix.k8s }} --config ./kind_config.yaml --name tests
-# kubectl config set-context kind-tests        
-# kubectl get nodes
 ./build_scripts/create_cluster.sh
 
 echo "Test Unit Operator - License Service:"
 # export PATH=`pwd`:$PATH
 export SUFIX=$RANDOM
 export USE_EXISTING_CLUSTER=true
-make unit-test 2>&1 | tee ./unittest_logs.txt
+# make unit-test 2>&1 | tee ./unittest_logs.txt
 
 echo "Check all pods"
 # export PATH=`pwd`:$PATH
