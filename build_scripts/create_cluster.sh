@@ -70,6 +70,9 @@ do
   sleep 1
 done
 
+echo "Fixing kubeconfig server address for host access..."
+sed -i 's|https://[0-9.]*:443|https://127.0.0.1:61616|g' ~/.kube/config
+
 kubectl version
 kubectl cluster-info --context kind-kind
 
