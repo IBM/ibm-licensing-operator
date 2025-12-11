@@ -13,6 +13,13 @@ unset KUBERNETES_SERVICE_PORT_HTTPS
 
 echo "Starting kind-in-dind image"
 
+# Clean up existing container if it exists
+if docker ps -a --format '{{.Names}}' | grep -q '^kind-dind$'; then
+  echo "Removing existing kind-dind container..."
+  docker rm -f kind-dind || true
+  sleep 15
+fi
+
 # Registry base
 registry="docker-na-public.artifactory.swg-devops.com"
 repo_path="hyc-cloud-private-scratch-docker-local/ibmcom"
