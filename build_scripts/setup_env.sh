@@ -12,7 +12,7 @@ export KIND_VERSION="v0.17.0"
 export GOFLAGS="-buildvcs=false"
 
 # Test veriables:
-export LICENSING_NAMESPACE="ibm-license-service"
+export LICENSING_NAMESPACE="ibm-licensing"
 
 # Re-exporting build pipeline variables:
 export ARTIFACTORY_USERNAME="$(get_env ARTIFACTORY_USERNAME)"
