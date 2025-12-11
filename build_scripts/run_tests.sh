@@ -29,8 +29,6 @@ kubectl apply -f ./config/rbac/role_operands.yaml
 kubectl get sa -n ${LICENSING_NAMESPACE}
 
 echo "Run Scorecard tests:"
-export PATH=`pwd`:$PATH
-set -o pipefail
 make scorecard 2>&1 | tee ./scorecard_logs.txt
 
 echo "Create cluster for unit tests:"
@@ -41,13 +39,12 @@ echo "Create cluster for unit tests:"
 ./build_scripts/create_cluster.sh
 
 echo "Test Unit Operator - License Service:"
-export PATH=`pwd`:$PATH
+# export PATH=`pwd`:$PATH
 export SUFIX=$RANDOM
 export USE_EXISTING_CLUSTER=true
-set -o pipefail
-make unit-test 2>&1 | tee ./unittest_logs_${{ matrix.k8s }}.txt
+make unit-test 2>&1 | tee ./unittest_logs.txt
 
 echo "Check all pods"
-export PATH=`pwd`:$PATH
+# export PATH=`pwd`:$PATH
 kubectl config set-context kind-tests
-kubectl describe pods --all-namespaces  > ./pods_${{ matrix.k8s }}.txt 2>&1
+kubectl describe pods --all-namespaces  > ./pods.txt 2>&1
