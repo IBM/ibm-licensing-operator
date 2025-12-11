@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+
 export PATH="/usr/local/bin:/usr/local/go/bin:$PATH"
 
 # Install Go
@@ -27,11 +28,11 @@ echo "operator-sdk installed: $(operator-sdk version)"
 
 
 # Install kind
-echo "Installing kind ${KIND_VERSION} ..."
-curl -fsSL "https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-$(uname)-amd64" -o /tmp/kind
-sudo install -m 0755 /tmp/kind /usr/local/bin/kind
+# echo "Installing kind ${KIND_VERSION} ..."
+# curl -fsSL "https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-$(uname)-amd64" -o /tmp/kind
+# sudo install -m 0755 /tmp/kind /usr/local/bin/kind
 
-echo "kind installed: $(kind --version)"
+# echo "kind installed: $(kind --version)"
 
 
 echo "Installation complete"

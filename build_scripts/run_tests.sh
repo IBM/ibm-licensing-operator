@@ -6,10 +6,11 @@ echo "Build:"
 make build
 
 echo "Create cluster for Scorecard tests"
-kind create cluster --image kindest/node:v1.24.15
-kind get clusters
-kubectl config get-contexts
-kubectl config set-context kind-kind
+# kind create cluster --image kindest/node:v1.24.15
+# kind get clusters
+# kubectl config get-contexts
+# kubectl config set-context kind-kind
+./create_cluster.sh
 
 echo "Install OLM:"
 kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.19.1/crds.yaml
@@ -33,10 +34,11 @@ set -o pipefail
 make scorecard 2>&1 | tee ./scorecard_logs.txt
 
 echo "Create cluster for unit tests:"
-cp ./common/scripts/tests/kind_config.yaml ./
-kind create cluster --image kindest/node:${{ matrix.k8s }} --config ./kind_config.yaml --name tests
-kubectl config set-context kind-tests        
-kubectl get nodes
+# cp ./common/scripts/tests/kind_config.yaml ./
+# kind create cluster --image kindest/node:${{ matrix.k8s }} --config ./kind_config.yaml --name tests
+# kubectl config set-context kind-tests        
+# kubectl get nodes
+./create_cluster.sh
 
 echo "Test Unit Operator - License Service:"
 export PATH=`pwd`:$PATH
