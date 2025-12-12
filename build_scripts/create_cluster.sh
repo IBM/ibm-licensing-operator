@@ -81,8 +81,11 @@ echo "Fixing kubeconfig server address for host access..."
 sed -i 's|server: https://.*:443|server: https://127.0.0.1:61616|g' ~/.kube/config
 sed -i 's|server: https://.*:61616|server: https://127.0.0.1:61616|g' ~/.kube/config
 
+kubectl config set-cluster kind-kind --insecure-skip-tls-verify=true
+
 echo "Verifying kubeconfig fix..."
 grep "server:" ~/.kube/config
+grep "insecure-skip-tls-verify" ~/.kube/config || echo "insecure-skip-tls-verify not found"
 
 kubectl version
 kubectl cluster-info --context kind-kind
