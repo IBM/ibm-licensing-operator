@@ -55,8 +55,6 @@ tasks:
         image: icr.io/continuous-delivery/base-images/base:v1.19.0
         runtimeClassName: medium
         onError: 'stopAndFail'
-        env:
-          ARCH: amd64
         script: |
           #!/usr/bin/env bash
           set -euo pipefail
