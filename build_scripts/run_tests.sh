@@ -27,8 +27,8 @@ kubectl get sa -n ${LICENSING_NAMESPACE}
 echo "Run Scorecard tests:"
 make scorecard 2>&1 | tee ./scorecard_logs.txt
 
-echo "Create cluster for unit tests:"
-./build_scripts/create_cluster.sh
+# echo "Create cluster for unit tests:"
+# ./build_scripts/create_cluster.sh
 
 echo "Test Unit Operator - License Service:"
 export SUFIX=$RANDOM
