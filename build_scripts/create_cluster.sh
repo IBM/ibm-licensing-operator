@@ -77,7 +77,6 @@ do
   sleep 1
 done
 
-kubectl version
 kubectl cluster-info --context kind-kind
 
 docker exec kind-dind ls -l
