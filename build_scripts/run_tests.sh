@@ -27,15 +27,12 @@ kubectl get sa -n ${LICENSING_NAMESPACE}
 echo "Run Scorecard tests:"
 make scorecard 2>&1 | tee ./scorecard_logs.txt
 
-# echo "Create cluster for unit tests:"
-# ./build_scripts/create_cluster.sh
-
 echo "Test Unit Operator - License Service:"
 export SUFIX=$RANDOM
 export USE_EXISTING_CLUSTER=true
-export KUBECONFIG=$HOME/.kube/config  # Explicitly set KUBECONFIG
-echo "Using KUBECONFIG: $KUBECONFIG"
-cat $KUBECONFIG | grep "server:"  # Verify it's correct
+# export KUBECONFIG=$HOME/.kube/config
+# echo "Using KUBECONFIG: $KUBECONFIG"
+cat $KUBECONFIG | grep "server:"
 make unit-test 2>&1 | tee ./unittest_logs.txt
 
 echo "Check all pods"
