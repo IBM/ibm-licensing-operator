@@ -78,7 +78,6 @@ do
 done
 
 kubectl cluster-info --context kind-kind
-
 docker exec kind-dind ls -l
 
 echo "=========================="
@@ -89,11 +88,6 @@ kubectl config current-context
 echo "Current namespace:"
 kubectl config view --minify -o jsonpath='{..namespace}'
 echo "=========================="
-
-echo "Verifying cluster access..."
-
-kubectl cluster-info --context kind-kind
-kubectl get nodes
 
 # INGRESS
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml

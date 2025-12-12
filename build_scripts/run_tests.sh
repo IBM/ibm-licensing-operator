@@ -36,5 +36,4 @@ cat $KUBECONFIG | grep "server:"
 make unit-test 2>&1 | tee ./unittest_logs.txt
 
 echo "Check all pods"
-kubectl config set-context kind-tests
 kubectl describe pods --all-namespaces  > ./pods.txt 2>&1
