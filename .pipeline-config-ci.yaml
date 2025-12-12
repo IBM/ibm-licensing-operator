@@ -40,10 +40,10 @@ tasks:
           source ./build_scripts/install_dependencies.sh
           source ./build_scripts/run_tests.sh
 
-          # Archive logs:
-          mkdir -p "$WORKSPACE/test-results"
-          cp ./*.txt "$WORKSPACE/test-results/" 2>/dev/null || true
-          cp ./cover.out "$WORKSPACE/test-results/" 2>/dev/null || true
+          # # Archive logs:
+          # mkdir -p "$WORKSPACE/test-results"
+          # cp ./*.txt "$WORKSPACE/test-results/" 2>/dev/null || true
+          # cp ./cover.out "$WORKSPACE/test-results/" 2>/dev/null || true
 
           set_env "STAGE_UNIT_TEST_STATUS" "success"
           collect-evidence --asset-type "repo" --asset-key "app-repo" --status "success" --tool-type "misc" --evidence-type "com.ibm.unit_tests"
