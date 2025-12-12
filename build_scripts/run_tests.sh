@@ -32,7 +32,7 @@ export SUFIX=$RANDOM
 export USE_EXISTING_CLUSTER=true
 # export KUBECONFIG=$HOME/.kube/config
 # echo "Using KUBECONFIG: $KUBECONFIG"
-cat $KUBECONFIG | grep "server:"
+# cat $KUBECONFIG | grep "server:"
 make unit-test 2>&1 | tee ./unittest_logs.txt
 
 echo "Check all pods"
