@@ -33,6 +33,9 @@ make scorecard 2>&1 | tee ./scorecard_logs.txt
 echo "Test Unit Operator - License Service:"
 export SUFIX=$RANDOM
 export USE_EXISTING_CLUSTER=true
+export KUBECONFIG=$HOME/.kube/config  # Explicitly set KUBECONFIG
+echo "Using KUBECONFIG: $KUBECONFIG"
+cat $KUBECONFIG | grep "server:"  # Verify it's correct
 make unit-test 2>&1 | tee ./unittest_logs.txt
 
 echo "Check all pods"
