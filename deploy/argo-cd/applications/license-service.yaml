@@ -12,6 +12,3 @@ spec:
     - repoURL: "https://github.com/IBM/ibm-licensing-operator"
       targetRevision: "master"
       path: deploy/argo-cd/components/license-service/helm-cluster-scoped
-    - repoURL: "https://github.com/IBM/ibm-licensing-operator"
-      targetRevision: "master"
-      path: deploy/argo-cd/components/license-service/helm
