@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/name: ibm-licensing
     component-id: {{ .Chart.Name }}
   name: instance
+  namespace: {{ .Values.ibmLicensing.namespace }}
   annotations:
     argocd.argoproj.io/sync-options: ServerSideApply=true
 spec:
