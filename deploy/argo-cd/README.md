@@ -18,7 +18,9 @@ Before you can deploy Argo CD applications:
 
 The following are the instructions on how to provision and configure a cluster for IBM Licensing components.
 
-### Install Argo CD on an Openshift cluster
+### Install Argo CD
+
+#### On an Openshift cluster
 
 - Install *Red Hat OpenShift GitOps* from the *OperatorHub* (see
 [RedHat documentation](https://docs.openshift.com/gitops/1.14/installing_gitops/installing-openshift-gitops.html)
@@ -33,10 +35,25 @@ for more information):
 - Log in via *OpenShift* and check whether the Applications screen is accessible:
     ![applications-screen.png](docs/images/applications-screen.png)
 
+#### On EKS
+
+- Install *Argo CD* by following the official
+[AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/argocd.html).
+    ![install-argocd-eks-step-1.png](docs/images/install-argocd-eks-step-1.png)
+    ![install-argocd-eks-step-2.png](docs/images/install-argocd-eks-step-2.png)
+
+- Access *Argo CD* UI:
+    ![argo-cd-ui-eks-step-1.png](docs/images/argo-cd-ui-eks-step-1.png)
+    ![argo-cd-ui-eks-step-2.png](docs/images/argo-cd-ui-eks-step-2.png)
+    ![argo-cd-ui-eks-step-3.png](docs/images/argo-cd-ui-eks-step-3.png)
+
+- Log in with the IAM Identity Center user and check whether the Applications screen is accessible:
+    ![applications-screen-eks.png](docs/images/applications-screen-eks.png)
+
 ### Apply prerequisites
 
-There are multiple ways to apply prerequisites in your cluster. It is recommended for the cluster admins to review and apply
-the required modifications manually. However, this can also be automated.
+There are multiple ways to apply prerequisites in your cluster. It is recommended for the cluster admins to review and
+apply the required modifications manually. However, this can also be automated.
 
 #### Apply the .yaml files
 
@@ -44,7 +61,7 @@ Assuming that you are logged in to the cluster, you can apply all prerequisites 
 components with a simple command executed on the `prerequisites` directory:
 
 ```shell
-oc apply -f prerequisites --recursive
+kubectl apply -f prerequisites --recursive
 ```
 
 Note that some values, such as namespaces or annotations, may need adjustment depending on your desired results.
@@ -226,22 +243,35 @@ through `spec.imagePullSecrets`.
 
 ## Installation
 
-To install all components, execute the following command. You must be logged in to your cluster.
+To install all components, execute the following command. You must be logged in to your cluster and in the right
+namespace:
+- For Openshift, by default `openshift-gitops`
+- For EKS, by default `argocd`
 
 ```shell
-oc project openshift-gitops && oc apply -f applications
+kubectl apply -f applications
 ```
 
 ![components.png](docs/images/components.png)
 
 To install the selected components separately, for example to install *IBM License Service* only, execute the following
-command:
+command in the right namespace:
 
 ```shell
-oc project openshift-gitops && oc apply -f applications/license-service.yaml
+kubectl apply -f applications/license-service.yaml
 ```
 
 Remember to `sync` after the applications are applied, or add the `auto-sync` option to your setup.
+
+### EKS clusters
+
+You must register your cluster and modify the `server` field of your `Application`, because the default local cluster
+destination is not supported.
+
+Follow official [AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/argocd-register-clusters.html) to
+register your cluster.
+
+You will also need to configure the right roles and permissions so that your ArgoCD instance can sync the application.
 
 ### Separate installation scenario
 
