@@ -1,8 +1,6 @@
 module github.com/IBM/ibm-licensing-operator
 
-go 1.23.0
-
-toolchain go1.23.2
+go 1.25.5
 
 require (
 	emperror.dev/errors v0.8.0
