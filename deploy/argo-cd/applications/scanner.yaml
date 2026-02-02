@@ -10,8 +10,8 @@ spec:
     server: https://kubernetes.default.svc
   sources:
     - repoURL: "https://github.com/IBM/ibm-licensing-operator"
-      targetRevision: "master"
+      targetRevision: "latest-4.x"
       path: deploy/argo-cd/components/scanner/helm-cluster-scoped
     - repoURL: "https://github.com/IBM/ibm-licensing-operator"
-      targetRevision: "master"
+      targetRevision: "latest-4.x"
       path: deploy/argo-cd/components/scanner/helm
