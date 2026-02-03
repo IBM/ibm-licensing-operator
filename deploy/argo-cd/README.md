@@ -95,6 +95,8 @@ The following are some common scenarios with examples on how to resolve the prov
 **Note:** The following examples should be applied to the source targeting the path with `helm`, not `helm-cluster-scoped`, as
 the cluster-scoped charts only support the `namespace` parameter.
 
+**Exception:** License Service supports only cluster-scoped installation and does not have a separate `helm` chart. For License Service, apply configuration to the `helm-cluster-scoped` source, which supports full CR configuration.
+
 ### Configure the CR
 
 To configure the Licensing components through custom resources, modify the `spec` section. For example, to enable
@@ -291,9 +293,10 @@ Helm installation support is in its alpha stage. To install the Licensing compon
 
 - IBM License Service:
 
+**Note:** License Service supports only cluster-scoped installation and only has a `helm-cluster-scoped` chart.
+
 ```commandline
-helm install license-service-cluster-scoped ./components/license-service/helm-cluster-scoped
-helm install license-service ./components/license-service/helm
+helm install license-service ./components/license-service/helm-cluster-scoped
 ```
 
 - IBM License Service Reporter:
