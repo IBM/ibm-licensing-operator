@@ -92,7 +92,10 @@ some custom resource configuration directly in the relevant file.
 
 The following are some common scenarios with examples on how to resolve the provided sample issues.
 
-**Note:** For License Service Reporter and Scanner, the following examples should be applied to the source targeting the path with `helm`, not `helm-cluster-scoped`. For License Service, which is cluster-scoped only, all configuration should be applied to the `helm-cluster-scoped` source (sources[0]), which supports full CR configuration including all `spec` parameters.
+**Note:** The following examples should be applied to the source targeting the path with `helm`, not `helm-cluster-scoped`, as
+the cluster-scoped charts only support the `namespace` parameter.
+
+**Exception:** License Service does not have a separate `helm` chart. For License Service, apply configuration to the `helm-cluster-scoped` source, which supports full CR configuration.
 
 ### Configure the CR
 
@@ -290,15 +293,13 @@ Helm installation support is in its alpha stage. To install the Licensing compon
 
 - IBM License Service:
 
-**Note:** IBM License Service is cluster-scoped only for Cloud Pak for Data compliance. Only the cluster-scoped chart is required.
+**Note:** License Service only has a `helm-cluster-scoped` chart.
 
 ```commandline
 helm install license-service ./components/license-service/helm-cluster-scoped
 ```
 
 - IBM License Service Reporter:
-
-**Note:** Both cluster-scoped and namespace-scoped charts are required for Reporter.
 
 ```commandline
 helm install reporter-cluster-scoped ./components/reporter/helm-cluster-scoped
@@ -307,7 +308,7 @@ helm install reporter ./components/reporter/helm
 
 - IBM License Service Scanner:
 
-**Note:** IBM License Service Scanner is a new Beta solution that is not yet publicly available. Both cluster-scoped and namespace-scoped charts are required for Scanner.
+**Note:** IBM License Service Scanner is a new Beta solution that is not yet publicly available.
 
 ```commandline
 helm install scanner-cluster-scoped ./components/scanner/helm-cluster-scoped
