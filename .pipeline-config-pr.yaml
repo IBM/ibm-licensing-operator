@@ -42,17 +42,17 @@ tasks:
           echo "=========================================="
           echo "Building amd64 image"
           echo "=========================================="
-          ARCH=amd64 make build-push-image
+          ARCH=amd64 make build-push-image-development
           
           echo "=========================================="
           echo "Building ppc64le image"
           echo "=========================================="
-          ARCH=ppc64le make build-push-image
+          ARCH=ppc64le make build-push-image-development
           
           echo "=========================================="
           echo "Building s390x image"
           echo "=========================================="
-          ARCH=s390x make build-push-image
+          ARCH=s390x make build-push-image-development
           
           echo "=========================================="
           echo "Creating multiarch manifest"

@@ -241,7 +241,6 @@ audit: install-detect-secrets
 build:
 	@echo "Building the $(IMAGE_NAME) binary for $(LOCAL_ARCH)..."
 	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh bin/$(IMAGE_NAME) ./main.go
-	@strip $(STRIP_FLAGS) bin/$(IMAGE_NAME)
 
 build-push-image: build-image push-image catalogsource
 
