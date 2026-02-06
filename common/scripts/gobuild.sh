@@ -49,6 +49,7 @@ fi
 echo "****************************"
 ${GOBINARY} version
 
+echo "Building for architecture: ${BUILD_GOARCH} (GOOS: ${BUILD_GOOS})"
 
 time GOOS=${BUILD_GOOS} GOARCH=${BUILD_GOARCH} ${GOBINARY} build \
         ${V} "${GOBUILDFLAGS_ARRAY[@]}" ${GCFLAGS:+-gcflags "${GCFLAGS}"} \

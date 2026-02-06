@@ -57,6 +57,10 @@ tasks:
           set -euo pipefail
           cd "$WORKSPACE/$(load_repo app-repo path)"
 
+          echo "=========================================="
+          echo "Building for architecture: ppc64le"
+          echo "=========================================="
+
           source ./build_scripts/setup_env.sh
           source ./build_scripts/install_dependencies.sh
           make build-push-image
@@ -75,6 +79,10 @@ tasks:
           #!/usr/bin/env bash
           set -euo pipefail
           cd "$WORKSPACE/$(load_repo app-repo path)"
+
+          echo "=========================================="
+          echo "Building for architecture: s390x"
+          echo "=========================================="
 
           source ./build_scripts/setup_env.sh
           source ./build_scripts/install_dependencies.sh
