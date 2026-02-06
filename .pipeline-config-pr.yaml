@@ -16,14 +16,12 @@ tasks:
           - dind
       - name: unit-test
         image: icr.io/continuous-delivery/base-images/base:v1.19.0
-        displayName: Build, test and publish amd64 image
+        displayName: Build, test and publish multiarch images
         include:
           - dind
           - docker-socket
         runtimeClassName: medium
         onError: 'stopAndFail'
-        env:
-          ARCH: amd64
         script: |
           #!/usr/bin/env bash
           set -euo pipefail
@@ -32,7 +30,6 @@ tasks:
           source ./build_scripts/setup_env.sh
           source ./build_scripts/install_dependencies.sh
           source ./build_scripts/run_tests.sh
-          make build-push-image
 
           # Archive logs:
           mkdir -p "$WORKSPACE/test-results"
@@ -42,67 +39,29 @@ tasks:
           set_env "STAGE_UNIT_TEST_STATUS" "success"
           collect-evidence --asset-type "repo" --asset-key "app-repo" --status "success" --tool-type "misc" --evidence-type "com.ibm.unit_tests"
 
-      - name: build-ppc64le
-        image: icr.io/continuous-delivery/base-images/base:v1.19.0
-        displayName: Build, test and publish ppc64le image
-        include:
-          - dind
-          - docker-socket
-        runtimeClassName: medium
-        onError: 'stopAndFail'
-        env:
-          ARCH: ppc64le
-        script: |
-          #!/usr/bin/env bash
-          set -euo pipefail
-          cd "$WORKSPACE/$(load_repo app-repo path)"
-
           echo "=========================================="
-          echo "Building for architecture: ppc64le"
+          echo "Building amd64 image"
           echo "=========================================="
-
-          source ./build_scripts/setup_env.sh
-          source ./build_scripts/install_dependencies.sh
-          make build-push-image
-        
-      - name: build-s390x
-        image: icr.io/continuous-delivery/base-images/base:v1.19.0
-        displayName: Build, test and publish s390x image
-        include:
-          - dind
-          - docker-socket
-        runtimeClassName: medium
-        onError: 'stopAndFail'
-        env: 
-          ARCH: s390x
-        script: |
-          #!/usr/bin/env bash
-          set -euo pipefail
-          cd "$WORKSPACE/$(load_repo app-repo path)"
-
+          ARCH=amd64 make build-push-image
+          
           echo "=========================================="
-          echo "Building for architecture: s390x"
+          echo "Building ppc64le image"
           echo "=========================================="
-
-          source ./build_scripts/setup_env.sh
-          source ./build_scripts/install_dependencies.sh
-          make build-push-image
-
-      - name: create-mulitarch-manifest
-        image: icr.io/continuous-delivery/base-images/base:v1.19.0
-        displayName: Create multiarch manifest
-        include:
-          - dind
-          - docker-socket
-        runtimeClassName: medium
-        onError: 'stopAndFail'
-        script: |
-          #!/usr/bin/env bash
-          set -euo pipefail
-          cd "$WORKSPACE/$(load_repo app-repo path)"
-
-          source ./build_scripts/setup_env.sh
+          ARCH=ppc64le make build-push-image
+          
+          echo "=========================================="
+          echo "Building s390x image"
+          echo "=========================================="
+          ARCH=s390x make build-push-image
+          
+          echo "=========================================="
+          echo "Creating multiarch manifest"
+          echo "=========================================="
           make multiarch-image-development
+          
+          echo "=========================================="
+          echo "All builds completed successfully"
+          echo "=========================================="
       - name: compliance-checks
         when: 'false'
 finally:
