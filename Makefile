@@ -115,18 +115,22 @@ else
     $(error "This system's OS $(LOCAL_OS) isn't recognized/supported")
 endif
 
-ARCH := $(shell uname -m)
-LOCAL_ARCH := "amd64"
-ifeq ($(ARCH),x86_64)
-    LOCAL_ARCH="amd64"
-else ifeq ($(ARCH),ppc64le)
-    LOCAL_ARCH="ppc64le"
-else ifeq ($(ARCH),s390x)
-    LOCAL_ARCH="s390x"
-else ifeq ($(ARCH),arm64)
-    LOCAL_ARCH="arm64"
+ifdef ARCH
+	LOCAL_ARCH := $(ARCH)
 else
-    $(error "This system's ARCH $(ARCH) isn't recognized/supported")
+	ARCH := $(shell uname -m)
+	LOCAL_ARCH := "amd64"
+	ifeq ($(ARCH),x86_64)
+    	LOCAL_ARCH="amd64"
+	else ifeq ($(ARCH),ppc64le)
+    	LOCAL_ARCH="ppc64le"
+	else ifeq ($(ARCH),s390x)
+    	LOCAL_ARCH="s390x"
+	else ifeq ($(ARCH),arm64)
+    	LOCAL_ARCH="arm64"
+	else
+    	$(error "This system's ARCH $(ARCH) isn't recognized/supported")
+	endif
 endif
 
 # Setup DOCKER_BUILD_OPTS after all includes complete
