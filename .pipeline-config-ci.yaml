@@ -50,15 +50,13 @@ tasks:
           set_env "STAGE_UNIT_TEST_STATUS" "success"
           collect-evidence --asset-type "repo" --asset-key "app-repo" --status "success" --tool-type "misc" --evidence-type "com.ibm.unit_tests"
       - name: build-artifact
-        displayName: Build and publish amd64 image
+        displayName: Build and publish multiarch images
         include:
           - dind
           - docker-socket
         image: icr.io/continuous-delivery/base-images/base:v1.19.0
         runtimeClassName: medium
         onError: 'stopAndFail'
-        env:
-          ARCH: amd64
         script: |
           #!/usr/bin/env bash
           set -euo pipefail
@@ -66,59 +64,31 @@ tasks:
 
           source ./build_scripts/setup_env.sh
           source ./build_scripts/install_dependencies.sh
-          make build-push-image
-      - name: build-artifact-ppc64le
-        displayName: Build and publish ppc64le image
-        include:
-          - dind
-          - docker-socket
-        image: icr.io/continuous-delivery/base-images/base:v1.19.0
-        runtimeClassName: medium
-        onError: 'stopAndFail'
-        env:
-          ARCH: ppc64le
-        script: |
-          #!/usr/bin/env bash
-          set -euo pipefail
-          cd "$WORKSPACE/$(load_repo app-repo path)"
 
-          source ./build_scripts/setup_env.sh
-          source ./build_scripts/install_dependencies.sh
-          make build-push-image
-      - name: build-artifact-s390x
-        displayName: Build and publish s390x image
-        include:
-          - dind
-          - docker-socket
-        image: icr.io/continuous-delivery/base-images/base:v1.19.0
-        runtimeClassName: medium
-        onError: 'stopAndFail'
-        env:
-          ARCH: s390x
-        script: |
-          #!/usr/bin/env bash
-          set -euo pipefail
-          cd "$WORKSPACE/$(load_repo app-repo path)"
-
-          source ./build_scripts/setup_env.sh
-          source ./build_scripts/install_dependencies.sh
-          make build-push-image
-      - name: create-multiarch-manifest
-        displayName: Create multiarch manifest
-        include:
-          - dind
-          - docker-socket
-        image: icr.io/continuous-delivery/base-images/base:v1.19.0
-        runtimeClassName: medium
-        onError: 'stopAndFail'
-        script: |
-          #!/usr/bin/env bash
-          set -euo pipefail
-          cd "$WORKSPACE/$(load_repo app-repo path)"
-
-          source ./build_scripts/setup_env.sh
+          echo "=========================================="
+          echo "Building amd64 image"
+          echo "=========================================="
+          ARCH=amd64 make build-push-image
+          
+          echo "=========================================="
+          echo "Building ppc64le image"
+          echo "=========================================="
+          ARCH=ppc64le make build-push-image
+          
+          echo "=========================================="
+          echo "Building s390x image"
+          echo "=========================================="
+          ARCH=s390x make build-push-image
+          
+          echo "=========================================="
+          echo "Creating multiarch manifest"
+          echo "=========================================="
           make multiarch-image-latest
           make multiarch-image
+          
+          echo "=========================================="
+          echo "All builds completed successfully"
+          echo "=========================================="
       - name: sign-artifact
         when: 'false'
       - name: scan-artifact

@@ -242,7 +242,7 @@ build:
 	@echo "Building the $(IMAGE_NAME) binary for $(LOCAL_ARCH)..."
 	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh bin/$(IMAGE_NAME) ./main.go
 
-build-push-image: build-image push-image catalogsource
+build-push-image: build-image push-image 
 
 build-image: $(CONFIG_DOCKER_TARGET) build
 	@echo $(DOCKER_BUILD_OPTS)
@@ -253,7 +253,11 @@ push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
 
+# pipeline builds the catalog for you and already makes a multi-arch catalog, for amd64 we build it conditionally for dev purposes
 build-push-image-development: build-image-development push-image-development ## Build, push image and catalogsource
+ifeq ($(LOCAL_ARCH),amd64)
+build-push-image-development: catalogsource-development
+endif
 
 build-image-development: $(CONFIG_DOCKER_TARGET) build ## Create a docker image locally
 	@echo $(DOCKER_BUILD_OPTS)
@@ -275,15 +279,17 @@ get-image-sha: ## Replaces operand tag for digest in operator.yaml and csv
 
 multiarch-image: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION) ${MANIFEST_VERSION}
-	common/scripts/catalog_build.sh $(REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
-	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION) ${MANIFEST_VERSION}
 
 multiarch-image-latest: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION)
 
+# CICD pipeline builds the catalog for you and already makes a multi-arch catalog, for amd64 we build it conditionally for dev purposes
 multiarch-image-development: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${VERSION} ${GIT_BRANCH}
+	ifeq ($(LOCAL_ARCH),amd64)
+	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
+	endif
 
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh

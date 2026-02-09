@@ -36,7 +36,7 @@ BUILDINFO=${BUILDINFO:-""}
 STATIC=${STATIC:-1}
 GOBUILDFLAGS=${GOBUILDFLAGS:-}
 GCFLAGS=${GCFLAGS:-}
-LDFLAGS=${LDFLAGS:-"-extldflags -static"}
+LDFLAGS=${LDFLAGS:-"-extldflags -static -s -w"}
 # Split GOBUILDFLAGS by spaces into an array called GOBUILDFLAGS_ARRAY.
 IFS=' ' read -r -a GOBUILDFLAGS_ARRAY <<< "$GOBUILDFLAGS"
 
