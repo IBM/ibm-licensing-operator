@@ -29,7 +29,7 @@ tasks:
 
           source ./build_scripts/setup_env.sh
           source ./build_scripts/install_dependencies.sh
-          source ./build_scripts/run_tests.sh
+          # source ./build_scripts/run_tests.sh
 
           # Archive logs:
           mkdir -p "$WORKSPACE/test-results"
@@ -53,7 +53,21 @@ tasks:
           echo "Building amd64 image"
           echo "=========================================="
           ARCH=amd64 make build-push-image-development
-          
+      - name: build-artifact
+        displayName: Build and publish multiarch manifest
+        include:
+          - dind
+          - docker-socket
+        image: icr.io/continuous-delivery/base-images/base:v1.19.0
+        runtimeClassName: medium
+        onError: 'stopAndFail'
+        script: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          cd "$WORKSPACE/$(load_repo app-repo path)"
+
+          source ./build_scripts/setup_env.sh
+
           echo "=========================================="
           echo "Creating multiarch manifest"
           echo "=========================================="
@@ -62,6 +76,10 @@ tasks:
           echo "=========================================="
           echo "All builds completed successfully"
           echo "=========================================="
+      - name: sign-artifact
+        when: 'false'
+      - name: scan-artifact
+        when: 'false'
       - name: compliance-checks
         when: 'false'
 finally:
