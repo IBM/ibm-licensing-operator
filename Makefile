@@ -283,7 +283,6 @@ multiarch-image: $(CONFIG_DOCKER_TARGET)
 
 multiarch-image-latest: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION)
-	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(SCRATCH_REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION)
 
 multiarch-image-development: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${VERSION} ${GIT_BRANCH}
