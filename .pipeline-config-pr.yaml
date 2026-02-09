@@ -38,6 +38,11 @@ tasks:
 
           set_env "STAGE_UNIT_TEST_STATUS" "success"
           collect-evidence --asset-type "repo" --asset-key "app-repo" --status "success" --tool-type "misc" --evidence-type "com.ibm.unit_tests"
+
+          echo "=========================================="
+          echo "Building amd64 image"
+          echo "=========================================="
+          ARCH=amd64 make build-push-image-development
           
           echo "=========================================="
           echo "Building ppc64le image"
@@ -50,14 +55,14 @@ tasks:
           ARCH=s390x make build-push-image-development
 
           echo "=========================================="
-          echo "Building amd64 image"
-          echo "=========================================="
-          ARCH=amd64 make build-push-image-development
-
-          echo "=========================================="
           echo "Creating multiarch manifest"
           echo "=========================================="
           make multiarch-image-development
+
+          echo "=========================================="
+          echo "Creating catalog image for development"
+          echo "=========================================="
+          make build-catalogsource-development
           
           echo "=========================================="
           echo "All builds completed successfully"

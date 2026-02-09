@@ -253,11 +253,10 @@ push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
 
+build-push-image-development: build-image-development push-image-development ## Build, push image
+
 # pipeline builds the catalog for you and already makes a multi-arch catalog, for amd64 we build it conditionally for dev purposes
-build-push-image-development: build-image-development push-image-development ## Build, push image and catalogsource
-ifeq ($(LOCAL_ARCH),amd64)
-build-push-image-development: catalogsource-development
-endif
+build-catalogsource-development: catalogsource-development
 
 build-image-development: $(CONFIG_DOCKER_TARGET) build ## Create a docker image locally
 	@echo $(DOCKER_BUILD_OPTS)
