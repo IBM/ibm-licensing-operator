@@ -64,11 +64,6 @@ tasks:
 
           source ./build_scripts/setup_env.sh
           source ./build_scripts/install_dependencies.sh
-
-          echo "=========================================="
-          echo "Building amd64 image"
-          echo "=========================================="
-          ARCH=amd64 make build-push-image
           
           echo "=========================================="
           echo "Building ppc64le image"
@@ -79,6 +74,11 @@ tasks:
           echo "Building s390x image"
           echo "=========================================="
           ARCH=s390x make build-push-image
+
+          echo "=========================================="
+          echo "Building amd64 image"
+          echo "=========================================="
+          ARCH=amd64 make build-push-image
           
           echo "=========================================="
           echo "Creating multiarch manifest"
