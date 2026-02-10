@@ -50,15 +50,13 @@ tasks:
           set_env "STAGE_UNIT_TEST_STATUS" "success"
           collect-evidence --asset-type "repo" --asset-key "app-repo" --status "success" --tool-type "misc" --evidence-type "com.ibm.unit_tests"
       - name: build-artifact
-        displayName: Build and publish images
+        displayName: Build and publish multiarch image
         include:
           - dind
           - docker-socket
         image: icr.io/continuous-delivery/base-images/base:v1.19.0
         runtimeClassName: medium
         onError: 'stopAndFail'
-        env:
-          ARCH: amd64
         script: |
           #!/usr/bin/env bash
           set -euo pipefail
@@ -66,7 +64,36 @@ tasks:
 
           source ./build_scripts/setup_env.sh
           source ./build_scripts/install_dependencies.sh
-          make build-push-image
+
+          echo "=========================================="
+          echo "Building amd64 image"
+          echo "=========================================="
+          ARCH=amd64 make build-push-image
+          
+          echo "=========================================="
+          echo "Building ppc64le image"
+          echo "=========================================="
+          ARCH=ppc64le make build-push-image
+          
+          echo "=========================================="
+          echo "Building s390x image"
+          echo "=========================================="
+          ARCH=s390x make build-push-image
+          
+          echo "=========================================="
+          echo "Creating multiarch manifest"
+          echo "=========================================="
+          make multiarch-image-latest
+          make multiarch-image
+
+          echo "=========================================="
+          echo "Creating catalog image"
+          echo "=========================================="
+          ARCH=amd64 make catalogsource
+          
+          echo "=========================================="
+          echo "All builds completed successfully"
+          echo "=========================================="
       - name: sign-artifact
         when: 'false'
       - name: scan-artifact

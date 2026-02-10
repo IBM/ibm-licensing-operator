@@ -36,7 +36,7 @@ BUILDINFO=${BUILDINFO:-""}
 STATIC=${STATIC:-1}
 GOBUILDFLAGS=${GOBUILDFLAGS:-}
 GCFLAGS=${GCFLAGS:-}
-LDFLAGS=${LDFLAGS:-"-extldflags -static"}
+LDFLAGS=${LDFLAGS:-"-extldflags -static -s -w"}
 # Split GOBUILDFLAGS by spaces into an array called GOBUILDFLAGS_ARRAY.
 IFS=' ' read -r -a GOBUILDFLAGS_ARRAY <<< "$GOBUILDFLAGS"
 
@@ -49,6 +49,7 @@ fi
 echo "****************************"
 ${GOBINARY} version
 
+echo "Building for architecture: ${BUILD_GOARCH} (GOOS: ${BUILD_GOOS})"
 
 time GOOS=${BUILD_GOOS} GOARCH=${BUILD_GOARCH} ${GOBINARY} build \
         ${V} "${GOBUILDFLAGS_ARRAY[@]}" ${GCFLAGS:+-gcflags "${GCFLAGS}"} \

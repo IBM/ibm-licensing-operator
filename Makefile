@@ -115,18 +115,22 @@ else
     $(error "This system's OS $(LOCAL_OS) isn't recognized/supported")
 endif
 
-ARCH := $(shell uname -m)
-LOCAL_ARCH := "amd64"
-ifeq ($(ARCH),x86_64)
-    LOCAL_ARCH="amd64"
-else ifeq ($(ARCH),ppc64le)
-    LOCAL_ARCH="ppc64le"
-else ifeq ($(ARCH),s390x)
-    LOCAL_ARCH="s390x"
-else ifeq ($(ARCH),arm64)
-    LOCAL_ARCH="arm64"
+ifdef ARCH
+  LOCAL_ARCH := $(ARCH)
 else
-    $(error "This system's ARCH $(ARCH) isn't recognized/supported")
+  ARCH := $(shell uname -m)
+
+  ifeq ($(ARCH),x86_64)
+    LOCAL_ARCH := amd64
+  else ifeq ($(ARCH),ppc64le)
+    LOCAL_ARCH := ppc64le
+  else ifeq ($(ARCH),s390x)
+    LOCAL_ARCH := s390x
+  else ifeq ($(ARCH),arm64)
+    LOCAL_ARCH := arm64
+  else
+    $(error This system's ARCH '$(ARCH)' isn't recognized/supported)
+  endif
 endif
 
 # Setup DOCKER_BUILD_OPTS after all includes complete
@@ -237,25 +241,24 @@ audit: install-detect-secrets
 build:
 	@echo "Building the $(IMAGE_NAME) binary for $(LOCAL_ARCH)..."
 	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh bin/$(IMAGE_NAME) ./main.go
-	@strip $(STRIP_FLAGS) bin/$(IMAGE_NAME)
 
-build-push-image: build-image push-image catalogsource
+build-push-image: build-image push-image
 
 build-image: $(CONFIG_DOCKER_TARGET) build
 	@echo $(DOCKER_BUILD_OPTS)
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker build -t $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
+	@docker build --platform linux/$(LOCAL_ARCH) -t $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
 push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
 
-build-push-image-development: build-image-development push-image-development catalogsource-development ## Build, push image and catalogsource
+build-push-image-development: build-image-development push-image-development ## Build, push image
 
 build-image-development: $(CONFIG_DOCKER_TARGET) build ## Create a docker image locally
 	@echo $(DOCKER_BUILD_OPTS)
 	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker build -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
+	@docker build --platform linux/$(LOCAL_ARCH) -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
 push-image-development: $(CONFIG_DOCKER_TARGET) build-image-development ## Push previously created image to scratch registry
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
@@ -272,17 +275,12 @@ get-image-sha: ## Replaces operand tag for digest in operator.yaml and csv
 
 multiarch-image: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION) ${MANIFEST_VERSION}
-	common/scripts/catalog_build.sh $(REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
-	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION) ${MANIFEST_VERSION}
 
 multiarch-image-latest: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION)
-	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION)
 
 multiarch-image-development: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${VERSION} ${GIT_BRANCH}
-	common/scripts/catalog_build.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) ${MANIFEST_VERSION}
-	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_CATALOG_NAME) $(VERSION) ${VERSION} ${GIT_BRANCH}
 
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
@@ -493,6 +491,7 @@ ifneq (${DEVOPS_STREAM},)
 	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
 endif
 
+# pipeline builds the catalog for you and already makes a multi-arch catalog, for amd64 we build it conditionally for dev purposes
 catalogsource-development: opm
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
