@@ -89,7 +89,7 @@ tasks:
           echo "=========================================="
           echo "Creating catalog image"
           echo "=========================================="
-          ARCH=amd64 make build-catalogsource
+          ARCH=amd64 make catalogsource
           
           echo "=========================================="
           echo "All builds completed successfully"

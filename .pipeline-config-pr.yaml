@@ -62,7 +62,7 @@ tasks:
           echo "=========================================="
           echo "Creating catalog image for development"
           echo "=========================================="
-          make build-catalogsource-development
+          make catalogsource-development
           
           echo "=========================================="
           echo "All builds completed successfully"
