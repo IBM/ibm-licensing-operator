@@ -50,7 +50,7 @@ tasks:
           set_env "STAGE_UNIT_TEST_STATUS" "success"
           collect-evidence --asset-type "repo" --asset-key "app-repo" --status "success" --tool-type "misc" --evidence-type "com.ibm.unit_tests"
       - name: build-artifact
-        displayName: Build and publish multiarch images
+        displayName: Build and publish multiarch image
         include:
           - dind
           - docker-socket

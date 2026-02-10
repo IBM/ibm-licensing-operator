@@ -16,7 +16,7 @@ tasks:
           - dind
       - name: unit-test
         image: icr.io/continuous-delivery/base-images/base:v1.19.0
-        displayName: Build, test and publish multiarch images
+        displayName: Build, test and publish multiarch image
         include:
           - dind
           - docker-socket
