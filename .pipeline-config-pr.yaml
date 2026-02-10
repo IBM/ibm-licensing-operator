@@ -29,7 +29,7 @@ tasks:
 
           source ./build_scripts/setup_env.sh
           source ./build_scripts/install_dependencies.sh
-          # source ./build_scripts/run_tests.sh
+          source ./build_scripts/run_tests.sh
 
           # Archive logs:
           mkdir -p "$WORKSPACE/test-results"
