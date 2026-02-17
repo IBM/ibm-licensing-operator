@@ -19,20 +19,19 @@ package v1alpha1
 import (
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-type IBMLicensingIngressOptions struct {
+type IBMLicensingGatewayOptions struct {
 
 	// Path after host where API will be available f.e. https://<hostname>:<port>/ibm-licensing-service-instance
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Path",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	Path *string `json:"path,omitempty"`
 
-	// Additional annotations that should include f.e. ingress class if using not default ingress controller
+	// Additional annotations that should include f.e. gateway class if using not default gateway controller
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Annotations",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
@@ -40,17 +39,17 @@ type IBMLicensingIngressOptions struct {
 	// TLS Options to enable secure connection
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="TLS",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
-	TLS []networkingv1.IngressTLS `json:"tls,omitempty"`
+	TLSSecretName string `json:"tlsSecretName"`
 
 	// If you use non-default host include it here
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Host",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	Host *string `json:"host,omitempty"`
 
-	// IngressClassName defines ingress class name option to be passed to the ingress spec field
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="IngressClassName",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// GatewayClassNamw defines gateway class name option to be passed to the gateway spec field
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="GatewayClassName",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
-	IngressClassName *string `json:"ingressClassName,omitempty"`
+	GatewayClassName string `json:"gatewayClassName,omitempty"`
 }
 
 type IBMLicensingRouteOptions struct {
@@ -124,15 +123,15 @@ type IBMLicensingSpec struct {
 	// +optional
 	ChargebackRetentionPeriod *int `json:"chargebackRetentionPeriod,omitempty"`
 
-	// Should Ingress be created to expose IBM Licensing Service API?
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Ingress Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// Should Gateway be created to expose IBM Licensing Service API?
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Gateway Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
-	IngressEnabled *bool `json:"ingressEnabled,omitempty"`
+	GatewayEnabled *bool `json:"gatewayEnabled,omitempty"`
 
-	// If ingress is enabled, you can set its parameters
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Ingress Options",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// If Gateway is enabled, you can set its parameters
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Gateway Options",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
-	IngressOptions *IBMLicensingIngressOptions `json:"ingressOptions,omitempty"`
+	GatewayOptions *IBMLicensingGatewayOptions `json:"gatewayOptions,omitempty"`
 
 	// Sender configuration, set if you have multi-cluster environment from which you collect data
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Sender",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
