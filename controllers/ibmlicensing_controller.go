@@ -24,13 +24,15 @@ import (
 	"sort"
 	"time"
 
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	routev1 "github.com/openshift/api/route/v1"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
+
 	apieq "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metaErrors "k8s.io/apimachinery/pkg/api/meta"
@@ -591,13 +593,13 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 	certificateNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 
 	if err := r.Client.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
-		// Generate certificate only when route/ingress is enabled
-		if instance.Spec.IsRouteEnabled() || instance.Spec.IsIngressEnabled() {
+		// Generate certificate only when route/gateway is enabled
+		if instance.Spec.IsRouteEnabled() || instance.Spec.IsGatewayEnabled() {
 			r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
 			return reconcile.Result{Requeue: true}, err
 		}
 
-		// Skip verification of certificates when route/ingress is disabled
+		// Skip verification of certificates when route/gateway is disabled
 		return reconcile.Result{}, nil
 	}
 
@@ -821,7 +823,7 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 		internalCertSecret := corev1.Secret{}
 		internalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 		if err := r.Client.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
-			r.Log.Error(err, "Cannot retrieve external certificate from secret")
+			r.Log.Error(err, "Cannot retrieve internal certificate from secret")
 			return reconcile.Result{Requeue: true}, nil
 		}
 
@@ -908,49 +910,151 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 	return reconcile.Result{}, nil
 }
 
-func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	expectedIngress := service.GetLicensingIngress(instance)
-	foundIngress := &networkingv1.Ingress{}
-
-	if instance.Spec.IsIngressEnabled() {
-		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedIngress, foundIngress)
-		if err != nil || reconcileResult.Requeue {
-			return reconcileResult, err
+func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	if instance.Spec.IsGatewayEnabled() {
+		if result, err := r.reconcileGateway(instance); err != nil || result.Requeue {
+			return result, err
 		}
-		possibleUpdateNeeded := true
-		reqLogger := r.Log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
-		if foundIngress.ObjectMeta.Name != expectedIngress.ObjectMeta.Name {
-			reqLogger.Info("Names not equal", "old", foundIngress.ObjectMeta.Name, "new", expectedIngress.ObjectMeta.Name)
-		} else if !res.MapHasAllPairsFromOther(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
-			reqLogger.Info("Labels not equal",
-				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Labels),
-				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Labels))
-		} else if !apieq.Semantic.DeepEqual(foundIngress.ObjectMeta.Annotations, expectedIngress.ObjectMeta.Annotations) {
-			reqLogger.Info("Annotations not equal",
-				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Annotations),
-				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Annotations))
-		} else if !apieq.Semantic.DeepEqual(foundIngress.Spec, expectedIngress.Spec) {
-			reqLogger.Info("Specs not equal",
-				"old", fmt.Sprintf("%v", foundIngress.Spec),
-				"new", fmt.Sprintf("%v", expectedIngress.Spec))
-		} else {
-			possibleUpdateNeeded = false
+		if result, err := r.reconcileHTTPRoute(instance); err != nil || result.Requeue {
+			return result, err
 		}
-		if possibleUpdateNeeded {
-			r.attachSpecLabelsAndAnnotationsPrecedingUpdate(instance, expectedIngress)
-			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
+		if result, err := r.reconcileTLSBackendPolicy(instance); err != nil || result.Requeue {
+			return result, err
 		}
-		return r.attachSpecLabelsAndAnnotations(instance, foundIngress, &reqLogger)
+		return reconcile.Result{}, nil
 	}
 
-	r.Log.Info("Ingress is disabled, deleting current ingress if exists")
-	reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
-	if err != nil || reconcileResult.Requeue {
-		return reconcileResult, err
+}
+
+func (r *IBMLicensingReconciler) reconcileGateway(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	expectedGateway := service.GetLicensingGateway(instance)
+	found := &gatewayv1.Gateway{}
+	return r.reconcileExpectedGatewayResource(instance, expectedGateway, found)
+}
+func (r *IBMLicensingReconciler) reconcileHTTPRoute(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	expectedHTTPRoute := service.GetLicensingHTTPRoute(instance)
+	found := &gatewayv1.HTTPRoute{}
+	return r.reconcileExpectedGatewayResource(instance, expectedHTTPRoute, found)
+}
+
+func (r *IBMLicensingReconciler) reconcileTLSBackendPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	//log := r.Log.WithValues("component", "backend-tls", "instance", instance.GetName())
+	internalCertSecret := corev1.Secret{}
+	internalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
+	if err := r.Client.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
+		r.Log.Error(err, "Cannot retrieve internal certificate from secret")
+		return reconcile.Result{Requeue: true}, nil
+	}
+	_, destinationCaCert, _, err := res.ProcessCerfiticateSecret(internalCertSecret)
+	if err != nil {
+		r.Log.Error(err, "Invalid certificate format in secret, retrying")
+		return reconcile.Result{Requeue: true, RequeueAfter: 30 * time.Second}, err
+	}
+	foundCM := &corev1.ConfigMap{}
+	configmap := service.GetGatewayConfigMap(instance, destinationCaCert)
+	resRR, err := r.reconcileExpectedGatewayResource(instance, configmap, foundCM)
+	if err != nil || resRR.Requeue {
+		return resRR, err
+	}
+
+	policy := service.GetBackEndTLSPolicy(instance)
+	foundPolicy := &gatewayv1.BackendTLSPolicy{}
+	res, err := r.reconcileExpectedGatewayResource(instance, policy, foundPolicy)
+	if err != nil || res.Requeue {
+		return res, err
 	}
 
 	return reconcile.Result{}, nil
 }
+
+func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *operatorv1alpha1.IBMLicensing, expected client.Object, found client.Object) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcileGateway", "Entry", "instance.GetName()", instance.GetName())
+	result, err := r.reconcileResourceNamespacedExistence(instance, expected, found)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	needsUpdate := false
+	if !res.MapHasAllPairsFromOther(found.GetLabels(), expected.GetLabels()) {
+		needsUpdate = true
+	} else if !apieq.Semantic.DeepEqual(found.GetAnnotations(), expected.GetAnnotations()) {
+		needsUpdate = true
+	} else {
+		switch e := expected.(type) {
+		case *gatewayv1.Gateway:
+			f := found.(*gatewayv1.Gateway)
+			if !apieq.Semantic.DeepEqual(e.Spec, f.Spec) {
+				needsUpdate = true
+			}
+		case *gatewayv1.HTTPRoute:
+			f := found.(*gatewayv1.HTTPRoute)
+			if !apieq.Semantic.DeepEqual(e.Spec, f.Spec) {
+				needsUpdate = true
+			}
+		case *gatewayv1.BackendTLSPolicy:
+			f := found.(*gatewayv1.BackendTLSPolicy)
+			if !apieq.Semantic.DeepEqual(e.Spec, f.Spec) {
+				needsUpdate = true
+			}
+		case *corev1.ConfigMap:
+			f := found.(*corev1.ConfigMap)
+			if !apieq.Semantic.DeepEqual(e.Data, f.Data) {
+				needsUpdate = true
+			}
+		}
+
+	}
+	if needsUpdate {
+		r.attachSpecLabelsAndAnnotationsPrecedingUpdate(instance, expected)
+		return res.UpdateResource(&reqLogger, r.Client, expected, found)
+	}
+	return reconcile.Result{}, nil
+}
+
+//deprecated
+
+// func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+// 	expectedIngress := service.GetLicensingIngress(instance)
+// 	foundIngress := &networkingv1.Ingress{}
+
+// 	if instance.Spec.IsGatewayEnabled() {
+// 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedIngress, foundIngress)
+// 		if err != nil || reconcileResult.Requeue {
+// 			return reconcileResult, err
+// 		}
+// 		possibleUpdateNeeded := true
+// 		reqLogger := r.Log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
+// 		if foundIngress.ObjectMeta.Name != expectedIngress.ObjectMeta.Name {
+// 			reqLogger.Info("Names not equal", "old", foundIngress.ObjectMeta.Name, "new", expectedIngress.ObjectMeta.Name)
+// 		} else if !res.MapHasAllPairsFromOther(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
+// 			reqLogger.Info("Labels not equal",
+// 				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Labels),
+// 				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Labels))
+// 		} else if !apieq.Semantic.DeepEqual(foundIngress.ObjectMeta.Annotations, expectedIngress.ObjectMeta.Annotations) {
+// 			reqLogger.Info("Annotations not equal",
+// 				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Annotations),
+// 				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Annotations))
+// 		} else if !apieq.Semantic.DeepEqual(foundIngress.Spec, expectedIngress.Spec) {
+// 			reqLogger.Info("Specs not equal",
+// 				"old", fmt.Sprintf("%v", foundIngress.Spec),
+// 				"new", fmt.Sprintf("%v", expectedIngress.Spec))
+// 		} else {
+// 			possibleUpdateNeeded = false
+// 		}
+// 		if possibleUpdateNeeded {
+// 			r.attachSpecLabelsAndAnnotationsPrecedingUpdate(instance, expectedIngress)
+// 			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
+// 		}
+// 		return r.attachSpecLabelsAndAnnotations(instance, foundIngress, &reqLogger)
+// 	}
+
+// 	r.Log.Info("Ingress is disabled, deleting current ingress if exists")
+// 	reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
+// 	if err != nil || reconcileResult.Requeue {
+// 		return reconcileResult, err
+// 	}
+
+// 	return reconcile.Result{}, nil
+// }
 
 func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	if !instance.Spec.IsRHMPEnabled() {
