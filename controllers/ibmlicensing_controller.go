@@ -226,7 +226,6 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		r.reconcileDefaultReaderToken,
 		r.reconcileServiceAccountToken,
 		r.reconcileServices,
-		r.reconcileIngress,
 		r.reconcileRouteWithoutCertificates,
 		r.reconcileCertificateSecrets,
 		r.reconcileRouteWithCertificates,
@@ -923,7 +922,7 @@ func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IB
 		}
 		return reconcile.Result{}, nil
 	}
-
+	return reconcile.Result{}, nil
 }
 
 func (r *IBMLicensingReconciler) reconcileGateway(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -931,6 +930,7 @@ func (r *IBMLicensingReconciler) reconcileGateway(instance *operatorv1alpha1.IBM
 	found := &gatewayv1.Gateway{}
 	return r.reconcileExpectedGatewayResource(instance, expectedGateway, found)
 }
+
 func (r *IBMLicensingReconciler) reconcileHTTPRoute(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	expectedHTTPRoute := service.GetLicensingHTTPRoute(instance)
 	found := &gatewayv1.HTTPRoute{}
@@ -938,7 +938,6 @@ func (r *IBMLicensingReconciler) reconcileHTTPRoute(instance *operatorv1alpha1.I
 }
 
 func (r *IBMLicensingReconciler) reconcileTLSBackendPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	//log := r.Log.WithValues("component", "backend-tls", "instance", instance.GetName())
 	internalCertSecret := corev1.Secret{}
 	internalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 	if err := r.Client.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
@@ -1001,7 +1000,6 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 				needsUpdate = true
 			}
 		}
-
 	}
 	if needsUpdate {
 		r.attachSpecLabelsAndAnnotationsPrecedingUpdate(instance, expected)
