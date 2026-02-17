@@ -23,28 +23,28 @@ import (
 	"os"
 	r "runtime"
 
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 
 	"go.uber.org/zap/zapcore"
 
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
 
-	cache "github.com/IBM/controller-filtered-cache/filteredcache"
+	// cache "github.com/IBM/controller-filtered-cache/filteredcache"
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 
 	operatorv1 "github.com/IBM/ibm-licensing-operator/api/v1"
 	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
@@ -129,25 +129,38 @@ func main() {
 		watchNamespaces = []string{operatorNamespace}
 	}
 
-	gvkLabelMap := map[schema.GroupVersionKind]cache.Selector{
-		corev1.SchemeGroupVersion.WithKind("Secret"): {
-			LabelSelector: "release in (ibm-licensing-service)",
-		},
-		appsv1.SchemeGroupVersion.WithKind("Deployment"): {
-			LabelSelector: "release in (ibm-licensing-service)",
-		},
-		corev1.SchemeGroupVersion.WithKind("Pod"): {
-			LabelSelector: "release in (ibm-licensing-service)",
-		},
+	// Temporarily using standard cache instead of filtered cache due to compatibility issues
+	// TODO: Re-enable filtered cache when controller-filtered-cache is updated for controller-runtime v0.19+
+	// gvkLabelMap := map[schema.GroupVersionKind]cache.Selector{
+	// 	corev1.SchemeGroupVersion.WithKind("Secret"): {
+	// 		LabelSelector: "release in (ibm-licensing-service)",
+	// 	},
+	// 	appsv1.SchemeGroupVersion.WithKind("Deployment"): {
+	// 		LabelSelector: "release in (ibm-licensing-service)",
+	// 	},
+	// 	corev1.SchemeGroupVersion.WithKind("Pod"): {
+	// 		LabelSelector: "release in (ibm-licensing-service)",
+	// 	},
+	// }
+
+	namespaceMap := make(map[string]cache.Config)
+	for _, ns := range watchNamespaces {
+		namespaceMap[ns] = cache.Config{}
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             scheme,
-		MetricsBindAddress: metricsAddr,
-		Port:               9443,
-		LeaderElection:     enableLeaderElection,
-		LeaderElectionID:   "e1f51baf.ibm.com",
-		NewCache:           cache.MultiNamespacedFilteredCacheBuilder(gvkLabelMap, watchNamespaces),
+		Scheme: scheme,
+		Metrics: metricsserver.Options{
+			BindAddress: metricsAddr,
+		},
+		WebhookServer: webhook.NewServer(webhook.Options{
+			Port: 9443,
+		}),
+		LeaderElection:   enableLeaderElection,
+		LeaderElectionID: "e1f51baf.ibm.com",
+		Cache: cache.Options{
+			DefaultNamespaces: namespaceMap,
+		},
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
