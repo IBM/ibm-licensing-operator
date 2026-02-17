@@ -19,7 +19,7 @@ package service
 import (
 	"fmt"
 
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -66,7 +66,7 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing, name string, int
 					Scheme:               getScheme(instance),
 					TargetPort:           &prometheusTargetPort,
 					TLSConfig:            tlsConfig,
-					Interval:             interval,
+					Interval:             monitoringv1.Duration(interval),
 					RelabelConfigs:       getRelabelConfigs(instance),
 				},
 			},
@@ -119,7 +119,7 @@ func getMetricRelabelConfigs(usedMetrics map[string]bool) []*monitoringv1.Relabe
 	}
 	regex += ")"
 
-	var sourceLabels []string
+	var sourceLabels []monitoringv1.LabelName
 	sourceLabels = append(sourceLabels, "__name__")
 
 	relabelConfigs := make([]*monitoringv1.RelabelConfig, 0)
@@ -146,12 +146,14 @@ func getRelabelConfigs(instance *operatorv1alpha1.IBMLicensing) []*monitoringv1.
 func getTLSConfigForServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.TLSConfig {
 	if instance.Spec.HTTPSEnable {
 		return &monitoringv1.TLSConfig{
-			CA: monitoringv1.SecretOrConfigMap{
-				Secret: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: ServiceAccountSecretName,
+			SafeTLSConfig: monitoringv1.SafeTLSConfig{
+				CA: monitoringv1.SecretOrConfigMap{
+					Secret: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: ServiceAccountSecretName,
+						},
+						Key: "service-ca.crt",
 					},
-					Key: "service-ca.crt",
 				},
 			},
 		}

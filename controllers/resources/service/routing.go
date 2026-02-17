@@ -211,6 +211,7 @@ func GetBackEndTLSPolicy(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Bac
 
 }
 
+// Deprecated: GetLicensingIngress is deprecated and not currently used
 // func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.Ingress {
 // 	var (
 // 		tls              []networkingv1.IngressTLS
