@@ -51,6 +51,7 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers"
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
 	"github.com/IBM/ibm-licensing-operator/version"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -95,6 +96,8 @@ func init() {
 	utilruntime.Must(odlm.AddToScheme(scheme))
 
 	utilruntime.Must(operatorv1.AddToScheme(scheme))
+
+	utilruntime.Must(gatewayv1.AddToScheme(scheme))
 
 	utilruntime.Must(operatorframeworkv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
