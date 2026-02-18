@@ -230,7 +230,8 @@ type IBMLicensingFeaturesStatus struct {
 // +operator-sdk:csv:customresourcedefinitions:resources={{Route,v1,},{ServiceAccount,v1,}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{ClusterRole,v1,},{ClusterRoleBinding,v1,}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{Role,v1,},{RoleBinding,v1,}}
-// +operator-sdk:csv:customresourcedefinitions:resources={{ReplicaSets,v1,},{Ingresses,v1beta1,}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{ReplicaSets,v1,}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{Gateway,gateway.networking.k8s.io/v1,},{HTTPRoute,gateway.networking.k8s.io/v1,}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{status,v1alpha1,},{configmaps,v1,}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{ibmlicensings,v1alpha1,},{ibmlicensingmetadatas,v1alpha1}}
 // +kubebuilder:object:root=true
