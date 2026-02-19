@@ -231,10 +231,10 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		// r.reconcileRouteWithoutCertificates,
 		// r.reconcileCertificateSecrets,
 		// r.reconcileRouteWithCertificates,
-		r.reconcileExposure,
 		r.reconcileConfigMaps,
 		r.reconcileDeployment,
 		r.reconcileNetworkPolicy,
+		r.reconcileExposure,
 		r.reconcileRHMPServiceMonitor,
 		r.reconcileAlertingServiceMonitor,
 		r.reconcileMeterDefinition,
@@ -920,6 +920,9 @@ func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IB
 		if result, err := r.reconcileHTTPRoute(instance); err != nil || result.Requeue {
 			return result, err
 		}
+		if result, err := r.reconcileGatewayConfigMap(instance); err != nil || result.Requeue {
+			return result, err
+		}
 		if result, err := r.reconcileTLSBackendPolicy(instance); err != nil || result.Requeue {
 			return result, err
 		}
@@ -940,33 +943,31 @@ func (r *IBMLicensingReconciler) reconcileHTTPRoute(instance *operatorv1alpha1.I
 	return r.reconcileExpectedGatewayResource(instance, expectedHTTPRoute, found)
 }
 
+func (r *IBMLicensingReconciler) reconcileGatewayConfigMap(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+
+	sourceConfigMapName := "ibm-licensing-upload-config"
+	sourceConfigMap := &corev1.ConfigMap{}
+	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: sourceConfigMapName, Namespace: instance.Spec.InstanceNamespace}, sourceConfigMap); err != nil {
+		r.Log.Error(err, "Cannot copy certificate from config map", "configmap", sourceConfigMapName)
+		return reconcile.Result{Requeue: true, RequeueAfter: 15 * time.Second}, err
+	}
+
+	cert, exists := sourceConfigMap.Data["crt.pem"]
+	if !exists {
+		r.Log.Error(nil, "crt.pem not found in source ConfigMap", "configmap", sourceConfigMapName)
+		return reconcile.Result{Requeue: true, RequeueAfter: 15 * time.Second}, fmt.Errorf("crt.pem not found in ConfigMap %s", sourceConfigMapName)
+	}
+
+	expectedConfigMap := service.GetGatewayConfigMap(instance, cert)
+	foundConfigMap := &corev1.ConfigMap{}
+	return r.reconcileExpectedGatewayResource(instance, expectedConfigMap, foundConfigMap)
+
+}
 func (r *IBMLicensingReconciler) reconcileTLSBackendPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	internalCertSecret := corev1.Secret{}
-	internalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
-	if err := r.Client.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
-		r.Log.Error(err, "Cannot retrieve internal certificate from secret")
-		return reconcile.Result{Requeue: true}, nil
-	}
-	_, destinationCaCert, _, err := res.ProcessCerfiticateSecret(internalCertSecret)
-	if err != nil {
-		r.Log.Error(err, "Invalid certificate format in secret, retrying")
-		return reconcile.Result{Requeue: true, RequeueAfter: 30 * time.Second}, err
-	}
-	foundCM := &corev1.ConfigMap{}
-	configmap := service.GetGatewayConfigMap(instance, destinationCaCert)
-	resRR, err := r.reconcileExpectedGatewayResource(instance, configmap, foundCM)
-	if err != nil || resRR.Requeue {
-		return resRR, err
-	}
 
 	policy := service.GetBackEndTLSPolicy(instance)
 	foundPolicy := &gatewayv1.BackendTLSPolicy{}
-	res, err := r.reconcileExpectedGatewayResource(instance, policy, foundPolicy)
-	if err != nil || res.Requeue {
-		return res, err
-	}
-
-	return reconcile.Result{}, nil
+	return r.reconcileExpectedGatewayResource(instance, policy, foundPolicy)
 }
 
 func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *operatorv1alpha1.IBMLicensing, expected client.Object, found client.Object) (reconcile.Result, error) {
