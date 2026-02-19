@@ -66,9 +66,15 @@ func GetLicensingGateway(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Gat
 	options := instance.Spec.GatewayOptions
 	name := GetResourceName(instance) + "-gateway"
 	className := "ibm-licensing"
-	if options.GatewayClassName != "" {
-		className = "ibm-licensing"
+	var annotations map[string]string
+
+	if options != nil {
+		if options.GatewayClassName != "" {
+			className = options.GatewayClassName
+		}
+		annotations = options.Annotations
 	}
+
 	listeners := []gatewayv1.Listener{
 		{
 			Name:     "http",
@@ -80,11 +86,11 @@ func GetLicensingGateway(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Gat
 		},
 	}
 
-	if options.TLSSecretName != "" {
+	if options != nil && options.TLSSecretName != "" {
 		listeners = append(listeners, gatewayv1.Listener{
 			Name:     "https",
 			Protocol: gatewayv1.HTTPSProtocolType,
-			Port:     gatewayv1.PortNumber(443),
+			Port:     gatewayv1.PortNumber(8080),
 			TLS: &gatewayv1.ListenerTLSConfig{
 				Mode: ptr.To(gatewayv1.TLSModeTerminate),
 				CertificateRefs: []gatewayv1.SecretObjectReference{{
@@ -99,7 +105,7 @@ func GetLicensingGateway(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Gat
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
 			Namespace:   instance.Spec.InstanceNamespace,
-			Annotations: options.Annotations,
+			Annotations: annotations,
 		},
 		Spec: gatewayv1.GatewaySpec{
 			GatewayClassName: gatewayv1.ObjectName(className),
@@ -111,9 +117,9 @@ func GetLicensingGateway(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Gat
 
 func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.HTTPRoute {
 	path := "/" + GetResourceName(instance)
-	routeName := instance.Name + "-route"
-	gatewayName := instance.Name + "-gateway"
-	serviceName := instance.Name + "-service"
+	routeName := GetResourceName(instance) + "-route"
+	gatewayName := GetResourceName(instance) + "-gateway"
+	serviceName := GetResourceName(instance)
 
 	return &gatewayv1.HTTPRoute{
 		ObjectMeta: metav1.ObjectMeta{
@@ -124,7 +130,6 @@ func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.H
 			CommonRouteSpec: gatewayv1.CommonRouteSpec{
 				ParentRefs: []gatewayv1.ParentReference{{
 					Name: gatewayv1.ObjectName(gatewayName),
-					//Namespace: ptr.To(gatewayv1.Namespace(instance.Namespace)),
 				}},
 			},
 			Rules: []gatewayv1.HTTPRouteRule{{
@@ -175,9 +180,9 @@ func GetGatewayConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertDa
 }
 
 func GetBackEndTLSPolicy(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.BackendTLSPolicy {
-	policyName := instance.Name + "-backend-tls"
+	policyName := GetResourceName(instance) + "-backend-tls"
 	targetConfigMapName := "ibm-licensing-gateway-api-config"
-	serviceName := "ibm-licensing-service-instance"
+	serviceName := GetLicensingServiceName(instance)
 	hostname := fmt.Sprintf("%s.%s.svc.cluster.local", serviceName, instance.Spec.InstanceNamespace)
 
 	return &gatewayv1.BackendTLSPolicy{
