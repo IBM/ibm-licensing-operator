@@ -17,6 +17,7 @@
 package service
 
 import (
+	"os"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
@@ -65,6 +66,17 @@ func TestGetLicensingEnvironmentVariablesCertsValidationEnabledWithCerts(t *test
 }
 
 func TestGetLicensingEnvironmentVariablesNamespaceScopingFeatureEnabled(t *testing.T) {
+	// Set the WATCH_NAMESPACE environment variable for the test
+	originalWatchNamespace := os.Getenv("WATCH_NAMESPACE")
+	os.Setenv("WATCH_NAMESPACE", "ibm-licensing")
+	defer func() {
+		if originalWatchNamespace != "" {
+			os.Setenv("WATCH_NAMESPACE", originalWatchNamespace)
+		} else {
+			os.Unsetenv("WATCH_NAMESPACE")
+		}
+	}()
+
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",

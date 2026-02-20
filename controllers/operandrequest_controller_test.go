@@ -27,6 +27,7 @@ import (
 
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
 	svcres "github.com/IBM/ibm-licensing-operator/controllers/resources/service"
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
 var _ = Describe("OperandRequest controller", Ordered, func() {
@@ -40,19 +41,24 @@ var _ = Describe("OperandRequest controller", Ordered, func() {
 		cm2Name            = lsBindInfoName + "-" + svcres.LicensingUploadConfig
 	)
 
-	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
-	Expect(operatorNamespace).ToNot(BeEmpty())
-
-	opreqNamespace, _ = os.LookupEnv("OPREQ_TEST_NAMESPACE")
-	Expect(opreqNamespace).ToNot(BeEmpty())
-
 	var (
-		operandRequest = res.OperandRequestObj(operandRequestName, opreqNamespace, res.OperatorName)
+		operandRequest odlm.OperandRequest
 		lsLabels       = map[string]string{"app": "ibm-licensing"}
 		lsAnnotations  = map[string]string{"owned-by": "ibm-licensing"}
 	)
 
 	BeforeAll(func(ctx SpecContext) {
+		var ok bool
+		operatorNamespace, ok = os.LookupEnv("OPERATOR_NAMESPACE")
+		Expect(ok).To(BeTrue(), "OPERATOR_NAMESPACE environment variable must be set")
+		Expect(operatorNamespace).ToNot(BeEmpty())
+
+		opreqNamespace, ok = os.LookupEnv("OPREQ_TEST_NAMESPACE")
+		Expect(ok).To(BeTrue(), "OPREQ_TEST_NAMESPACE environment variable must be set")
+		Expect(opreqNamespace).ToNot(BeEmpty())
+
+		operandRequest = res.OperandRequestObj(operandRequestName, opreqNamespace, res.OperatorName)
+
 		secret := corev1.Secret{}
 		if err := k8sRFromMgr.Get(ctx, types.NamespacedName{Namespace: operatorNamespace, Name: svcres.LicensingToken}, &secret); err != nil {
 			Eventually(func() bool {
