@@ -60,9 +60,6 @@ spec:
       - kind: Deployment
         name: ""
         version: v1
-      - kind: Ingresses
-        name: ""
-        version: v1beta1
       - kind: Pod
         name: ""
         version: v1
@@ -144,35 +141,35 @@ spec:
         path: httpsEnable
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:checkbox
-      - description: Should Ingress be created to expose IBM Licensing Service API?
-        displayName: Ingress Enabled
-        path: ingressEnabled
+      - description: Should Gateway be created to expose IBM Licensing Service API?
+        displayName: Gateway Enabled
+        path: gatewayEnabled
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-      - description: If ingress is enabled, you can set its parameters
-        displayName: Ingress Options
-        path: ingressOptions
+      - description: If geteway is enabled, you can set its parameters
+        displayName: Geteway Options
+        path: getewayOptions
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-      - description: Additional annotations that should include f.e. ingress class
-          if using not default ingress controller
+      - description: Additional annotations that should include f.e. geteway class
+          if using not default geteway controller
         displayName: Annotations
-        path: ingressOptions.annotations
+        path: getewayOptions.annotations
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: If you use non-default host include it here
         displayName: Host
-        path: ingressOptions.host
+        path: getewayOptions.host
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: Path after host where API will be available f.e. https://<hostname>:<port>/ibm-licensing-service-instance
         displayName: Path
-        path: ingressOptions.path
+        path: getewayOptions.path
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: TLS Options to enable secure connection
         displayName: TLS
-        path: ingressOptions.tls
+        path: getewayOptions.tls
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: Existing or to be created namespace where application will start.

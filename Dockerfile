@@ -64,7 +64,7 @@ RUN mkdir /licenses
 COPY LICENSE /licenses
 
 # add commit image release
-RUN  echo "$IMAGE_RELEASE" > /IMAGE_RELEASE \ 
+RUN  echo "$IMAGE_RELEASE" > /IMAGE_RELEASE \
   && echo "$IMAGE_BUILDDATE" > /IMAGE_BUILDDATE
 
 ENTRYPOINT ["/usr/local/bin/ibm-licensing-operator"]

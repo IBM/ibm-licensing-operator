@@ -19,11 +19,11 @@ package service
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/ptr"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetLicensingEnvironmentVariablesCertsValidationDisabledWithCerts(t *testing.T) {
