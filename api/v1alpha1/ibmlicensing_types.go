@@ -26,30 +26,38 @@ import (
 
 type IBMLicensingGatewayOptions struct {
 
-	// Path after host where API will be available f.e. https://<hostname>:<port>/ibm-licensing-service-instance
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Path",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
-	// +optional
-	Path *string `json:"path,omitempty"`
-
 	// Additional annotations that should include f.e. gateway class if using not default gateway controller
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Annotations",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	// TLS Options to enable secure connection
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="TLS",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// TLS Options to enable secure connection. Default is ibm-license-service-cert-internal.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="TLS Secret Name",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +kubebuilder:default="ibm-license-service-cert-internal"
 	// +optional
-	TLSSecretName string `json:"tlsSecretName"`
+	TLSSecretName string `json:"tlsSecretName,omitempty"`
 
-	// If you use non-default host include it here
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Host",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
-	// +optional
-	Host *string `json:"host,omitempty"`
-
-	// GatewayClassNamw defines gateway class name option to be passed to the gateway spec field
+	// GatewayClassName defines gateway class name option to be passed to the gateway spec field. Default is ibm-licensing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="GatewayClassName",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +kubebuilder:default="ibm-licensing"
 	// +optional
 	GatewayClassName string `json:"gatewayClassName,omitempty"`
+
+	// HTTP port for Gateway listener. Default is 80.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="HTTP Port",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
+	// +kubebuilder:default=80
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
+	// +optional
+	HTTPPort *int32 `json:"httpPort,omitempty"`
+
+	// HTTPS port for Gateway listener. Default is 8080. Only used when TLSSecretName is set.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="HTTPS Port",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
+	// +kubebuilder:default=8080
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
+	// +optional
+	HTTPSPort *int32 `json:"httpsPort,omitempty"`
 }
 
 type IBMLicensingRouteOptions struct {
@@ -123,8 +131,9 @@ type IBMLicensingSpec struct {
 	// +optional
 	ChargebackRetentionPeriod *int `json:"chargebackRetentionPeriod,omitempty"`
 
-	// Should Gateway be created to expose IBM Licensing Service API?
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Gateway Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// Should Gateway be created to expose IBM Licensing Service API? Default is true.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Gateway Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +kubebuilder:default=true
 	// +optional
 	GatewayEnabled *bool `json:"gatewayEnabled,omitempty"`
 

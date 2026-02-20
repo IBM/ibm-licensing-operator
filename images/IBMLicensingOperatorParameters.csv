@@ -12,11 +12,11 @@ securityContext,structure,,no,In some clusters additional securityContext option
 - runAsUser,integer,,yes if setting securityContext parameter,Specifies that for IBM Licensing Service pod all processes run with that user ID
 imagePullSecrets,list of texts,,no,Array of pull secrets that should exist at `instanceNamespace` to allow pulling IBM Licensing Service image from `imageRegistry` set in different parameter
 routeEnabled,true or false,true only if supported,no,Should Route be created to expose IBM Licensing Service API? (only if Route is supported on your cluster)
-ingressEnabled,true or false,true only if Route not supported,no,Should Ingress be created to expose IBM Licensing Service API?
+gatewayEnabled,true or false,true only if Route not supported,no,Should Gateway be created to expose IBM Licensing Service API?
 routeOptions,structure,,no,If route is enabled you can set its parameters
 - TLS,structure,,no,More information on Route documentation here: https://godoc.org/github.com/openshift/api/route/v1#TLSConfig
-ingressOptions,structure,,no,If ingress is enabled you can set its parameters
+gatewayOptions,structure,,no,If gateway is enabled you can set its parameters
 - Path,text,,no,Path after host where API will be available f.e. if set to ibm-licensing-service-instance then API will be available at https://<hostname>:<port>/ibm-licensing-service-instance
-- Annotations,list of texts,,no,List of ingress annotations that can include some needed key value pairs such as kubernetes.io/ingress.class:nginx or rewrite-target:/
-- TLS,structure,,no,More information on Ingress documentation here: https://godoc.org/k8s.io/api/extensions/v1beta1#IngressTLS
+- Annotations,list of texts,,no,List of gateway annotations that can include some needed key value pairs
+- TLS,structure,,no,More information on Gateway API documentation here: https://gateway-api.sigs.k8s.io/
 - Host,text,,no,Host where API will be available f.e. if set to my-host.ibm.com then API will be available at https://my-host.ibm.com:<port>/<path>

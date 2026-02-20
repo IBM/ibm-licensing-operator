@@ -28,6 +28,30 @@ import (
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )
 
+const (
+	defaultGatewayClassName = "ibm-licensing"
+	defaultHTTPPort         = int32(8080)
+	defaultHTTPSPort        = int32(443)
+	GatewayConfigMapName    = "ibm-licensing-gateway-api-config"
+	kindService             = "Service"
+	kindSecret              = "Secret"
+	kindConfigMap           = "ConfigMap"
+	backendTLSAPIVersion    = "gateway.networking.k8s.io/v1alpha3"
+	backendTLSKind          = "BackendTLSPolicy"
+)
+
+func GetGatewayName(instance *operatorv1alpha1.IBMLicensing) string {
+	return GetResourceName(instance) + "-gateway"
+}
+
+func GetHTTPRouteName(instance *operatorv1alpha1.IBMLicensing) string {
+	return GetResourceName(instance) + "-route"
+}
+
+func GetBackendTLSPolicyName(instance *operatorv1alpha1.IBMLicensing) string {
+	return GetResourceName(instance) + "-backend-tls"
+}
+
 func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) *routev1.Route {
 	var tls *routev1.TLSConfig
 
@@ -51,7 +75,7 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS 
 		},
 		Spec: routev1.RouteSpec{
 			To: routev1.RouteTargetReference{
-				Kind: "Service",
+				Kind: kindService,
 				Name: GetResourceName(instance),
 			},
 			Port: &routev1.RoutePort{
@@ -62,63 +86,76 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS 
 	}
 }
 
+func newGatewayListener(name string, protocol gatewayv1.ProtocolType, port int32, tlsConfig *gatewayv1.ListenerTLSConfig) gatewayv1.Listener {
+	listener := gatewayv1.Listener{
+		Name:     gatewayv1.SectionName(name),
+		Protocol: protocol,
+		Port:     gatewayv1.PortNumber(port),
+		AllowedRoutes: &gatewayv1.AllowedRoutes{
+			Namespaces: &gatewayv1.RouteNamespaces{From: ptr.To(gatewayv1.NamespacesFromAll)},
+		},
+	}
+	if tlsConfig != nil {
+		listener.TLS = tlsConfig
+	}
+	return listener
+}
+
 func GetLicensingGateway(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Gateway {
 	options := instance.Spec.GatewayOptions
-	name := GetResourceName(instance) + "-gateway"
-	className := "ibm-licensing"
-	var annotations map[string]string
+	name := GetGatewayName(instance)
 
-	if options != nil {
-		if options.GatewayClassName != "" {
-			className = options.GatewayClassName
-		}
-		annotations = options.Annotations
+	if options == nil {
+		options = &operatorv1alpha1.IBMLicensingGatewayOptions{}
+	}
+
+	className := defaultGatewayClassName
+	if options.GatewayClassName != "" {
+		className = options.GatewayClassName
+	}
+
+	httpPort := defaultHTTPPort
+	if options.HTTPPort != nil {
+		httpPort = *options.HTTPPort
+	}
+
+	httpsPort := defaultHTTPSPort
+	if options.HTTPSPort != nil {
+		httpsPort = *options.HTTPSPort
 	}
 
 	listeners := []gatewayv1.Listener{
-		{
-			Name:     "http",
-			Protocol: gatewayv1.HTTPProtocolType,
-			Port:     gatewayv1.PortNumber(80),
-			AllowedRoutes: &gatewayv1.AllowedRoutes{
-				Namespaces: &gatewayv1.RouteNamespaces{From: ptr.To(gatewayv1.NamespacesFromAll)},
-			},
-		},
+		newGatewayListener("http", gatewayv1.HTTPProtocolType, httpPort, nil),
 	}
 
-	if options != nil && options.TLSSecretName != "" {
-		listeners = append(listeners, gatewayv1.Listener{
-			Name:     "https",
-			Protocol: gatewayv1.HTTPSProtocolType,
-			Port:     gatewayv1.PortNumber(8080),
-			TLS: &gatewayv1.ListenerTLSConfig{
-				Mode: ptr.To(gatewayv1.TLSModeTerminate),
-				CertificateRefs: []gatewayv1.SecretObjectReference{{
-					Kind: ptr.To(gatewayv1.Kind("Secret")),
-					Name: gatewayv1.ObjectName(options.TLSSecretName),
-				}},
-			},
-		})
+	if options.TLSSecretName != "" {
+		tlsConfig := &gatewayv1.ListenerTLSConfig{
+			Mode: ptr.To(gatewayv1.TLSModeTerminate),
+			CertificateRefs: []gatewayv1.SecretObjectReference{{
+				Kind: ptr.To(gatewayv1.Kind(kindSecret)),
+				Name: gatewayv1.ObjectName(options.TLSSecretName),
+			}},
+		}
+		listeners = append(listeners, newGatewayListener("https", gatewayv1.HTTPSProtocolType, httpsPort, tlsConfig))
 	}
 
 	return &gatewayv1.Gateway{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
 			Namespace:   instance.Spec.InstanceNamespace,
-			Annotations: annotations,
+			Annotations: options.Annotations,
 		},
 		Spec: gatewayv1.GatewaySpec{
 			GatewayClassName: gatewayv1.ObjectName(className),
 			Listeners:        listeners,
 		},
 	}
-
 }
 
 func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.HTTPRoute {
 	path := "/" + GetResourceName(instance)
-	routeName := GetResourceName(instance) + "-route"
-	gatewayName := GetResourceName(instance) + "-gateway"
+	routeName := GetHTTPRouteName(instance)
+	gatewayName := GetGatewayName(instance)
 	serviceName := GetResourceName(instance)
 
 	return &gatewayv1.HTTPRoute{
@@ -152,7 +189,7 @@ func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.H
 				BackendRefs: []gatewayv1.HTTPBackendRef{{
 					BackendRef: gatewayv1.BackendRef{
 						BackendObjectReference: gatewayv1.BackendObjectReference{
-							Kind: ptr.To(gatewayv1.Kind("Service")),
+							Kind: ptr.To(gatewayv1.Kind(kindService)),
 							Name: gatewayv1.ObjectName(serviceName),
 							Port: ptr.To(gatewayv1.PortNumber(8080)),
 						},
@@ -164,11 +201,10 @@ func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.H
 }
 
 func GetGatewayConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertData string) *corev1.ConfigMap {
-	newConfigMapName := "ibm-licensing-gateway-api-config"
 
-	expectedCM := &corev1.ConfigMap{
+	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        newConfigMapName,
+			Name:        GatewayConfigMapName,
 			Namespace:   instance.Spec.InstanceNamespace,
 			Annotations: instance.Spec.Annotations,
 		},
@@ -176,19 +212,17 @@ func GetGatewayConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertDa
 			"ca.crt": internalCertData,
 		},
 	}
-	return expectedCM
 }
 
 func GetBackEndTLSPolicy(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.BackendTLSPolicy {
-	policyName := GetResourceName(instance) + "-backend-tls"
-	targetConfigMapName := "ibm-licensing-gateway-api-config"
+	policyName := GetBackendTLSPolicyName(instance)
 	serviceName := GetLicensingServiceName(instance)
 	hostname := fmt.Sprintf("%s.%s.svc.cluster.local", serviceName, instance.Spec.InstanceNamespace)
 
 	return &gatewayv1.BackendTLSPolicy{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "gateway.networking.k8s.io/v1alpha3",
-			Kind:       "BackendTLSPolicy",
+			APIVersion: backendTLSAPIVersion,
+			Kind:       backendTLSKind,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      policyName,
@@ -198,7 +232,7 @@ func GetBackEndTLSPolicy(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Bac
 			TargetRefs: []gatewayv1.LocalPolicyTargetReferenceWithSectionName{{
 				LocalPolicyTargetReference: gatewayv1.LocalPolicyTargetReference{
 					Group: gatewayv1.Group(""),
-					Kind:  gatewayv1.Kind("Service"),
+					Kind:  gatewayv1.Kind(kindService),
 					Name:  gatewayv1.ObjectName(serviceName),
 				},
 			},
@@ -207,68 +241,11 @@ func GetBackEndTLSPolicy(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Bac
 				Hostname: gatewayv1.PreciseHostname(hostname),
 				CACertificateRefs: []gatewayv1.LocalObjectReference{{
 					Group: "",
-					Kind:  "ConfigMap",
-					Name:  gatewayv1.ObjectName(targetConfigMapName),
+					Kind:  kindConfigMap,
+					Name:  gatewayv1.ObjectName(GatewayConfigMapName),
 				}},
 			},
 		},
 	}
 
 }
-
-// Deprecated: GetLicensingIngress is deprecated and not currently used
-// func GetLicensingIngress(instance *operatorv1alpha1.IBMLicensing) *networkingv1.Ingress {
-// 	var (
-// 		tls              []networkingv1.IngressTLS
-// 		path, host       string
-// 		annotations      map[string]string
-// 		ingressClassName *string
-// 	)
-// 	path = "/" + GetResourceName(instance)
-// 	options := instance.Spec.GatewayOptions
-// 	if options != nil {
-// 		tls = options.TLS
-// 		if options.Path != nil {
-// 			path = *options.Path
-// 		}
-// 		if options.Host != nil {
-// 			host = *options.Host
-// 		}
-// 		ingressClassName = options.IngressClassName
-// 		annotations = options.Annotations
-// 	}
-// 	return &networkingv1.Ingress{
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name:        GetResourceName(instance),
-// 			Namespace:   instance.Spec.InstanceNamespace,
-// 			Annotations: annotations,
-// 		},
-// 		Spec: networkingv1.IngressSpec{
-// 			TLS:              tls,
-// 			IngressClassName: ingressClassName,
-// 			Rules: []networkingv1.IngressRule{
-// 				{
-// 					Host: host,
-// 					IngressRuleValue: networkingv1.IngressRuleValue{
-// 						HTTP: &networkingv1.HTTPIngressRuleValue{
-// 							Paths: []networkingv1.HTTPIngressPath{
-// 								{
-// 									Path:     path,
-// 									PathType: &resources.PathType,
-// 									Backend: networkingv1.IngressBackend{
-// 										Service: &networkingv1.IngressServiceBackend{
-// 											Name: GetLicensingServiceName(instance),
-// 											Port: networkingv1.ServiceBackendPort{
-// 												Number: licensingServicePort.IntVal,
-// 											},
-// 										},
-// 									},
-// 								},
-// 							},
-// 						},
-// 					},
-// 				},
-// 			},
-// 		},
-// 	}
-// }
