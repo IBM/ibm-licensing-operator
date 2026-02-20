@@ -35,7 +35,6 @@ import (
 
 	apieq "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/meta"
 	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -53,13 +52,6 @@ import (
 
 type reconcileLSFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
 
-// isGatewayAPIAvailable checks if Gateway API CRDs are available in the cluster
-func isGatewayAPIAvailable(mapper meta.RESTMapper) bool {
-	// Check if Gateway resource is available
-	_, err := mapper.RESTMapping(gatewayv1.SchemeGroupVersion.WithKind("Gateway").GroupKind(), gatewayv1.SchemeGroupVersion.Version)
-	return err == nil
-}
-
 func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := res.UpdateCacheClusterExtensions(mgr.GetAPIReader()); err != nil {
 		r.Log.Error(err, "Error during checking K8s API")
@@ -72,19 +64,10 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	watcher := ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.IBMLicensing{}).
 		Owns(&appsv1.Deployment{}).
-		Owns(&corev1.Service{})
-
-	// Conditionally add Gateway API watches only if CRDs are available
-	// This allows tests to run without Gateway API CRDs installed
-	if isGatewayAPIAvailable(mgr.GetRESTMapper()) {
-		r.Log.Info("Gateway API CRDs detected, enabling Gateway API watches")
-		watcher = watcher.
-			Owns(&gatewayv1.Gateway{}).
-			Owns(&gatewayv1.BackendTLSPolicy{}).
-			Owns(&gatewayv1.HTTPRoute{})
-	} else {
-		r.Log.Info("Gateway API CRDs not available, Gateway API watches disabled")
-	}
+		Owns(&corev1.Service{}).
+		Owns(&gatewayv1.Gateway{}).
+		Owns(&gatewayv1.BackendTLSPolicy{}).
+		Owns(&gatewayv1.HTTPRoute{})
 
 	return watcher.Complete(r)
 }
@@ -952,12 +935,6 @@ func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IB
 
 func (r *IBMLicensingReconciler) cleanupGatewayResources(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	r.Log.Info("Gateway is disabled, cleaning up Gateway resources if they exist")
-
-	// Only attempt cleanup if Gateway API CRDs are available
-	if !isGatewayAPIAvailable(r.RESTMapper()) {
-		r.Log.Info("Gateway API CRDs not available, skipping Gateway resource cleanup")
-		return reconcile.Result{}, nil
-	}
 
 	expectedGateway := service.GetLicensingGateway(instance)
 	foundGateway := &gatewayv1.Gateway{}
