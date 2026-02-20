@@ -141,8 +141,9 @@ spec:
                     type: object
                 type: object
               gatewayEnabled:
+                default: true
                 description: Should Gateway be created to expose IBM Licensing Service
-                  API?
+                  API? Default is true.
                 type: boolean
               gatewayOptions:
                 description: If Gateway is enabled, you can set its parameters
@@ -154,18 +155,29 @@ spec:
                       class if using not default gateway controller
                     type: object
                   gatewayClassName:
-                    description: GatewayClassNamw defines gateway class name option
-                      to be passed to the gateway spec field
+                    default: ibm-licensing
+                    description: GatewayClassName defines gateway class name option
+                      to be passed to the gateway spec field. Default is ibm-licensing.
                     type: string
-                  host:
-                    description: If you use non-default host include it here
-                    type: string
-                  path:
-                    description: Path after host where API will be available f.e.
-                      https://<hostname>:<port>/ibm-licensing-service-instance
-                    type: string
+                  httpPort:
+                    default: 80
+                    description: HTTP port for Gateway listener. Default is 80.
+                    format: int32
+                    maximum: 65535
+                    minimum: 1
+                    type: integer
+                  httpsPort:
+                    default: 8080
+                    description: HTTPS port for Gateway listener. Default is 8080.
+                      Only used when TLSSecretName is set.
+                    format: int32
+                    maximum: 65535
+                    minimum: 1
+                    type: integer
                   tlsSecretName:
-                    description: TLS Options to enable secure connection
+                    default: ibm-license-service-cert-internal
+                    description: TLS Options to enable secure connection. Default
+                      is ibm-license-service-cert-internal.
                     type: string
                 type: object
               httpsCertsSource:

@@ -350,7 +350,7 @@ show_token(){
 
 show_url(){
   if ! route_url=$(quiet_err_command kubectl get route ibm-licensing-service-instance -o jsonpath='{.status.ingress[0].host}' -n "$INSTALL_NAMESPACE") || [ "${route_url}" == "" ]; then
-    verbose_output_command log "Could not get Route for License Service in $INSTALL_NAMESPACE, Route CRD might not be available at your cluster, or ingress option was chosen"
+    verbose_output_command log "Could not get Route for License Service in $INSTALL_NAMESPACE, Route CRD might not be available at your cluster, or gateway option was chosen"
   else
     log "License Service Route URL for accessing the API is: https://$route_url"
   fi
@@ -453,4 +453,4 @@ fi
 handle_instance
 show_token
 show_url
-log "IBM License Service should be running, you can check post installation section in README to see possible configurations of IBM Licensing instance, and how to configure ingress/route if needed"
+log "IBM License Service should be running, you can check post installation section in README to see possible configurations of IBM Licensing instance, and how to configure gateway/route if needed"

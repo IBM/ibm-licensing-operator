@@ -64,7 +64,10 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	watcher := ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.IBMLicensing{}).
 		Owns(&appsv1.Deployment{}).
-		Owns(&corev1.Service{})
+		Owns(&corev1.Service{}).
+		Owns(&gatewayv1.Gateway{}).
+		Owns(&gatewayv1.BackendTLSPolicy{}).
+		Owns(&gatewayv1.HTTPRoute{})
 
 	return watcher.Complete(r)
 }
@@ -228,9 +231,9 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		r.reconcileDefaultReaderToken,
 		r.reconcileServiceAccountToken,
 		r.reconcileServices,
-		// r.reconcileRouteWithoutCertificates,
-		// r.reconcileCertificateSecrets,
-		// r.reconcileRouteWithCertificates,
+		r.reconcileRouteWithoutCertificates,
+		r.reconcileCertificateSecrets,
+		r.reconcileRouteWithCertificates,
 		r.reconcileConfigMaps,
 		r.reconcileDeployment,
 		r.reconcileNetworkPolicy,
@@ -913,21 +916,50 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 }
 
 func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	if instance.Spec.IsGatewayEnabled() {
-		if result, err := r.reconcileGateway(instance); err != nil || result.Requeue {
-			return result, err
-		}
-		if result, err := r.reconcileHTTPRoute(instance); err != nil || result.Requeue {
-			return result, err
-		}
-		if result, err := r.reconcileGatewayConfigMap(instance); err != nil || result.Requeue {
-			return result, err
-		}
-		if result, err := r.reconcileTLSBackendPolicy(instance); err != nil || result.Requeue {
-			return result, err
-		}
-		return reconcile.Result{}, nil
+	if !instance.Spec.IsGatewayEnabled() {
+		return r.cleanupGatewayResources(instance)
 	}
+	gatewayReconcilers := []reconcileLSFunctionType{
+		r.reconcileGateway,
+		r.reconcileHTTPRoute,
+		r.reconcileGatewayConfigMap,
+		r.reconcileTLSBackendPolicy,
+	}
+	for _, reconciler := range gatewayReconcilers {
+		if result, err := reconciler(instance); err != nil || result.Requeue {
+			return result, err
+		}
+	}
+	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicensingReconciler) cleanupGatewayResources(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	r.Log.Info("Gateway is disabled, cleaning up Gateway resources if they exist")
+
+	expectedGateway := service.GetLicensingGateway(instance)
+	foundGateway := &gatewayv1.Gateway{}
+	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedGateway, foundGateway); err != nil || result.Requeue {
+		return result, err
+	}
+
+	expectedHTTPRoute := service.GetLicensingHTTPRoute(instance)
+	foundHTTPRoute := &gatewayv1.HTTPRoute{}
+	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedHTTPRoute, foundHTTPRoute); err != nil || result.Requeue {
+		return result, err
+	}
+
+	expectedPolicy := service.GetBackEndTLSPolicy(instance)
+	foundPolicy := &gatewayv1.BackendTLSPolicy{}
+	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedPolicy, foundPolicy); err != nil || result.Requeue {
+		return result, err
+	}
+
+	expectedConfigMap := service.GetGatewayConfigMap(instance, "")
+	foundConfigMap := &corev1.ConfigMap{}
+	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedConfigMap, foundConfigMap); err != nil || result.Requeue {
+		return result, err
+	}
+
 	return reconcile.Result{}, nil
 }
 
@@ -1011,52 +1043,6 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 	}
 	return reconcile.Result{}, nil
 }
-
-//deprecated
-
-// func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-// 	expectedIngress := service.GetLicensingIngress(instance)
-// 	foundIngress := &networkingv1.Ingress{}
-
-// 	if instance.Spec.IsGatewayEnabled() {
-// 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedIngress, foundIngress)
-// 		if err != nil || reconcileResult.Requeue {
-// 			return reconcileResult, err
-// 		}
-// 		possibleUpdateNeeded := true
-// 		reqLogger := r.Log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
-// 		if foundIngress.ObjectMeta.Name != expectedIngress.ObjectMeta.Name {
-// 			reqLogger.Info("Names not equal", "old", foundIngress.ObjectMeta.Name, "new", expectedIngress.ObjectMeta.Name)
-// 		} else if !res.MapHasAllPairsFromOther(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
-// 			reqLogger.Info("Labels not equal",
-// 				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Labels),
-// 				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Labels))
-// 		} else if !apieq.Semantic.DeepEqual(foundIngress.ObjectMeta.Annotations, expectedIngress.ObjectMeta.Annotations) {
-// 			reqLogger.Info("Annotations not equal",
-// 				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Annotations),
-// 				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Annotations))
-// 		} else if !apieq.Semantic.DeepEqual(foundIngress.Spec, expectedIngress.Spec) {
-// 			reqLogger.Info("Specs not equal",
-// 				"old", fmt.Sprintf("%v", foundIngress.Spec),
-// 				"new", fmt.Sprintf("%v", expectedIngress.Spec))
-// 		} else {
-// 			possibleUpdateNeeded = false
-// 		}
-// 		if possibleUpdateNeeded {
-// 			r.attachSpecLabelsAndAnnotationsPrecedingUpdate(instance, expectedIngress)
-// 			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
-// 		}
-// 		return r.attachSpecLabelsAndAnnotations(instance, foundIngress, &reqLogger)
-// 	}
-
-// 	r.Log.Info("Ingress is disabled, deleting current ingress if exists")
-// 	reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
-// 	if err != nil || reconcileResult.Requeue {
-// 		return reconcileResult, err
-// 	}
-
-// 	return reconcile.Result{}, nil
-// }
 
 func (r *IBMLicensingReconciler) reconcileMeterDefinition(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	if !instance.Spec.IsRHMPEnabled() {
