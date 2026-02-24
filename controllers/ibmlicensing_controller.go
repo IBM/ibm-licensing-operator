@@ -24,13 +24,15 @@ import (
 	"sort"
 	"time"
 
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	routev1 "github.com/openshift/api/route/v1"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
+
 	apieq "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metaErrors "k8s.io/apimachinery/pkg/api/meta"
@@ -62,7 +64,10 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	watcher := ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.IBMLicensing{}).
 		Owns(&appsv1.Deployment{}).
-		Owns(&corev1.Service{})
+		Owns(&corev1.Service{}).
+		Owns(&gatewayv1.Gateway{}).
+		Owns(&gatewayv1.BackendTLSPolicy{}).
+		Owns(&gatewayv1.HTTPRoute{})
 
 	return watcher.Complete(r)
 }
@@ -128,7 +133,6 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;watch;list;delete;update
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=route.openshift.io,resources=routes;routes/custom-host,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=marketplace.redhat.com,resources=meterdefinitions,verbs=get;list;create;update;watch
-// +kubebuilder:rbac:namespace=ibm-licensing,groups=networking.k8s.io;extensions,resources=ingresses;networkpolicies,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=services;services/finalizers;events;configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods,verbs=get;list;watch;update;patch
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=namespaces;serviceaccounts,verbs=get;list;watch
@@ -136,6 +140,9 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get
+// +kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=gateways;httproutes,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=backendtlspolicies,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=gatewayclasses,verbs=get;list;watch
 
 func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Request) (reconcile.Result, error) {
 
@@ -224,13 +231,13 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		r.reconcileDefaultReaderToken,
 		r.reconcileServiceAccountToken,
 		r.reconcileServices,
-		r.reconcileIngress,
 		r.reconcileRouteWithoutCertificates,
 		r.reconcileCertificateSecrets,
 		r.reconcileRouteWithCertificates,
 		r.reconcileConfigMaps,
 		r.reconcileDeployment,
 		r.reconcileNetworkPolicy,
+		r.reconcileExposure,
 		r.reconcileRHMPServiceMonitor,
 		r.reconcileAlertingServiceMonitor,
 		r.reconcileMeterDefinition,
@@ -591,13 +598,13 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 	certificateNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 
 	if err := r.Client.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
-		// Generate certificate only when route/ingress is enabled
-		if instance.Spec.IsRouteEnabled() || instance.Spec.IsIngressEnabled() {
+		// Generate certificate only when route/gateway is enabled
+		if instance.Spec.IsRouteEnabled() || instance.Spec.IsGatewayEnabled() {
 			r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
 			return reconcile.Result{Requeue: true}, err
 		}
 
-		// Skip verification of certificates when route/ingress is disabled
+		// Skip verification of certificates when route/gateway is disabled
 		return reconcile.Result{}, nil
 	}
 
@@ -821,7 +828,7 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 		internalCertSecret := corev1.Secret{}
 		internalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 		if err := r.Client.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
-			r.Log.Error(err, "Cannot retrieve external certificate from secret")
+			r.Log.Error(err, "Cannot retrieve internal certificate from secret")
 			return reconcile.Result{Requeue: true}, nil
 		}
 
@@ -908,47 +915,132 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 	return reconcile.Result{}, nil
 }
 
-func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	expectedIngress := service.GetLicensingIngress(instance)
-	foundIngress := &networkingv1.Ingress{}
+func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	if !instance.Spec.IsGatewayEnabled() {
+		return r.cleanupGatewayResources(instance)
+	}
+	gatewayReconcilers := []reconcileLSFunctionType{
+		r.reconcileGateway,
+		r.reconcileHTTPRoute,
+		r.reconcileGatewayConfigMap,
+		r.reconcileTLSBackendPolicy,
+	}
+	for _, reconciler := range gatewayReconcilers {
+		if result, err := reconciler(instance); err != nil || result.Requeue {
+			return result, err
+		}
+	}
+	return reconcile.Result{}, nil
+}
 
-	if instance.Spec.IsIngressEnabled() {
-		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedIngress, foundIngress)
-		if err != nil || reconcileResult.Requeue {
-			return reconcileResult, err
-		}
-		possibleUpdateNeeded := true
-		reqLogger := r.Log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
-		if foundIngress.ObjectMeta.Name != expectedIngress.ObjectMeta.Name {
-			reqLogger.Info("Names not equal", "old", foundIngress.ObjectMeta.Name, "new", expectedIngress.ObjectMeta.Name)
-		} else if !res.MapHasAllPairsFromOther(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
-			reqLogger.Info("Labels not equal",
-				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Labels),
-				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Labels))
-		} else if !apieq.Semantic.DeepEqual(foundIngress.ObjectMeta.Annotations, expectedIngress.ObjectMeta.Annotations) {
-			reqLogger.Info("Annotations not equal",
-				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Annotations),
-				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Annotations))
-		} else if !apieq.Semantic.DeepEqual(foundIngress.Spec, expectedIngress.Spec) {
-			reqLogger.Info("Specs not equal",
-				"old", fmt.Sprintf("%v", foundIngress.Spec),
-				"new", fmt.Sprintf("%v", expectedIngress.Spec))
-		} else {
-			possibleUpdateNeeded = false
-		}
-		if possibleUpdateNeeded {
-			r.attachSpecLabelsAndAnnotationsPrecedingUpdate(instance, expectedIngress)
-			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
-		}
-		return r.attachSpecLabelsAndAnnotations(instance, foundIngress, &reqLogger)
+func (r *IBMLicensingReconciler) cleanupGatewayResources(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	r.Log.Info("Gateway is disabled, cleaning up Gateway resources if they exist")
+
+	expectedGateway := service.GetLicensingGateway(instance)
+	foundGateway := &gatewayv1.Gateway{}
+	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedGateway, foundGateway); err != nil || result.Requeue {
+		return result, err
 	}
 
-	r.Log.Info("Ingress is disabled, deleting current ingress if exists")
-	reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
-	if err != nil || reconcileResult.Requeue {
-		return reconcileResult, err
+	expectedHTTPRoute := service.GetLicensingHTTPRoute(instance)
+	foundHTTPRoute := &gatewayv1.HTTPRoute{}
+	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedHTTPRoute, foundHTTPRoute); err != nil || result.Requeue {
+		return result, err
 	}
 
+	expectedPolicy := service.GetBackEndTLSPolicy(instance)
+	foundPolicy := &gatewayv1.BackendTLSPolicy{}
+	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedPolicy, foundPolicy); err != nil || result.Requeue {
+		return result, err
+	}
+
+	expectedConfigMap := service.GetGatewayConfigMap(instance, "")
+	foundConfigMap := &corev1.ConfigMap{}
+	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedConfigMap, foundConfigMap); err != nil || result.Requeue {
+		return result, err
+	}
+
+	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicensingReconciler) reconcileGateway(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	expectedGateway := service.GetLicensingGateway(instance)
+	found := &gatewayv1.Gateway{}
+	return r.reconcileExpectedGatewayResource(instance, expectedGateway, found)
+}
+
+func (r *IBMLicensingReconciler) reconcileHTTPRoute(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	expectedHTTPRoute := service.GetLicensingHTTPRoute(instance)
+	found := &gatewayv1.HTTPRoute{}
+	return r.reconcileExpectedGatewayResource(instance, expectedHTTPRoute, found)
+}
+
+func (r *IBMLicensingReconciler) reconcileGatewayConfigMap(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+
+	sourceConfigMapName := "ibm-licensing-upload-config"
+	sourceConfigMap := &corev1.ConfigMap{}
+	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: sourceConfigMapName, Namespace: instance.Spec.InstanceNamespace}, sourceConfigMap); err != nil {
+		r.Log.Error(err, "Cannot copy certificate from config map", "configmap", sourceConfigMapName)
+		return reconcile.Result{Requeue: true, RequeueAfter: 15 * time.Second}, err
+	}
+
+	cert, exists := sourceConfigMap.Data["crt.pem"]
+	if !exists {
+		r.Log.Error(nil, "crt.pem not found in source ConfigMap", "configmap", sourceConfigMapName)
+		return reconcile.Result{Requeue: true, RequeueAfter: 15 * time.Second}, fmt.Errorf("crt.pem not found in ConfigMap %s", sourceConfigMapName)
+	}
+
+	expectedConfigMap := service.GetGatewayConfigMap(instance, cert)
+	foundConfigMap := &corev1.ConfigMap{}
+	return r.reconcileExpectedGatewayResource(instance, expectedConfigMap, foundConfigMap)
+
+}
+func (r *IBMLicensingReconciler) reconcileTLSBackendPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+
+	policy := service.GetBackEndTLSPolicy(instance)
+	foundPolicy := &gatewayv1.BackendTLSPolicy{}
+	return r.reconcileExpectedGatewayResource(instance, policy, foundPolicy)
+}
+
+func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *operatorv1alpha1.IBMLicensing, expected client.Object, found client.Object) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcileGateway", "Entry", "instance.GetName()", instance.GetName())
+	result, err := r.reconcileResourceNamespacedExistence(instance, expected, found)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	needsUpdate := false
+	if !res.MapHasAllPairsFromOther(found.GetLabels(), expected.GetLabels()) {
+		needsUpdate = true
+	} else if !apieq.Semantic.DeepEqual(found.GetAnnotations(), expected.GetAnnotations()) {
+		needsUpdate = true
+	} else {
+		switch e := expected.(type) {
+		case *gatewayv1.Gateway:
+			f := found.(*gatewayv1.Gateway)
+			if !apieq.Semantic.DeepEqual(e.Spec, f.Spec) {
+				needsUpdate = true
+			}
+		case *gatewayv1.HTTPRoute:
+			f := found.(*gatewayv1.HTTPRoute)
+			if !apieq.Semantic.DeepEqual(e.Spec, f.Spec) {
+				needsUpdate = true
+			}
+		case *gatewayv1.BackendTLSPolicy:
+			f := found.(*gatewayv1.BackendTLSPolicy)
+			if !apieq.Semantic.DeepEqual(e.Spec, f.Spec) {
+				needsUpdate = true
+			}
+		case *corev1.ConfigMap:
+			f := found.(*corev1.ConfigMap)
+			if !apieq.Semantic.DeepEqual(e.Data, f.Data) {
+				needsUpdate = true
+			}
+		}
+	}
+	if needsUpdate {
+		r.attachSpecLabelsAndAnnotationsPrecedingUpdate(instance, expected)
+		return res.UpdateResource(&reqLogger, r.Client, expected, found)
+	}
 	return reconcile.Result{}, nil
 }
 

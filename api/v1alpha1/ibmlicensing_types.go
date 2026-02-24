@@ -19,38 +19,45 @@ package v1alpha1
 import (
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-type IBMLicensingIngressOptions struct {
+type IBMLicensingGatewayOptions struct {
 
-	// Path after host where API will be available f.e. https://<hostname>:<port>/ibm-licensing-service-instance
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Path",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
-	// +optional
-	Path *string `json:"path,omitempty"`
-
-	// Additional annotations that should include f.e. ingress class if using not default ingress controller
+	// Additional annotations that should include f.e. gateway class if using not default gateway controller
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Annotations",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	// TLS Options to enable secure connection
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="TLS",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// TLS Options to enable secure connection. Default is ibm-license-service-cert-internal.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="TLS Secret Name",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +kubebuilder:default="ibm-license-service-cert-internal"
 	// +optional
-	TLS []networkingv1.IngressTLS `json:"tls,omitempty"`
+	TLSSecretName string `json:"tlsSecretName,omitempty"`
 
-	// If you use non-default host include it here
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Host",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// GatewayClassName defines gateway class name option to be passed to the gateway spec field. Default is ibm-licensing.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="GatewayClassName",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +kubebuilder:default="ibm-licensing"
 	// +optional
-	Host *string `json:"host,omitempty"`
+	GatewayClassName string `json:"gatewayClassName,omitempty"`
 
-	// IngressClassName defines ingress class name option to be passed to the ingress spec field
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="IngressClassName",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// HTTP port for Gateway listener. Default is 80.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="HTTP Port",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
+	// +kubebuilder:default=80
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
 	// +optional
-	IngressClassName *string `json:"ingressClassName,omitempty"`
+	HTTPPort *int32 `json:"httpPort,omitempty"`
+
+	// HTTPS port for Gateway listener. Default is 8080. Only used when TLSSecretName is set.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="HTTPS Port",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
+	// +kubebuilder:default=8080
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
+	// +optional
+	HTTPSPort *int32 `json:"httpsPort,omitempty"`
 }
 
 type IBMLicensingRouteOptions struct {
@@ -124,15 +131,16 @@ type IBMLicensingSpec struct {
 	// +optional
 	ChargebackRetentionPeriod *int `json:"chargebackRetentionPeriod,omitempty"`
 
-	// Should Ingress be created to expose IBM Licensing Service API?
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Ingress Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// Should Gateway be created to expose IBM Licensing Service API? Default is true.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Gateway Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +kubebuilder:default=true
 	// +optional
-	IngressEnabled *bool `json:"ingressEnabled,omitempty"`
+	GatewayEnabled *bool `json:"gatewayEnabled,omitempty"`
 
-	// If ingress is enabled, you can set its parameters
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Ingress Options",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// If Gateway is enabled, you can set its parameters
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Gateway Options",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
-	IngressOptions *IBMLicensingIngressOptions `json:"ingressOptions,omitempty"`
+	GatewayOptions *IBMLicensingGatewayOptions `json:"gatewayOptions,omitempty"`
 
 	// Sender configuration, set if you have multi-cluster environment from which you collect data
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Sender",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
@@ -231,7 +239,8 @@ type IBMLicensingFeaturesStatus struct {
 // +operator-sdk:csv:customresourcedefinitions:resources={{Route,v1,},{ServiceAccount,v1,}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{ClusterRole,v1,},{ClusterRoleBinding,v1,}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{Role,v1,},{RoleBinding,v1,}}
-// +operator-sdk:csv:customresourcedefinitions:resources={{ReplicaSets,v1,},{Ingresses,v1beta1,}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{ReplicaSets,v1,}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{Gateway,gateway.networking.k8s.io/v1,},{HTTPRoute,gateway.networking.k8s.io/v1,}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{status,v1alpha1,},{configmaps,v1,}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{ibmlicensings,v1alpha1,},{ibmlicensingmetadatas,v1alpha1}}
 // +kubebuilder:object:root=true
