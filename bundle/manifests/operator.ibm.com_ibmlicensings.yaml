@@ -2,7 +2,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.14.0
+    controller-gen.kubebuilder.io/version: v0.16.5
   creationTimestamp: null
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
@@ -322,7 +322,6 @@ spec:
                           insecureEdgeTerminationPolicy indicates the desired behavior for insecure connections to a route. While
                           each router may make its own decisions on which ports to expose, this is normally port 80.
 
-
                           * Allow - traffic is sent to the server on the insecure port (default)
                           * Disable - no traffic is allowed on the insecure port.
                           * Redirect - clients are redirected to the secure port.
@@ -333,7 +332,6 @@ spec:
                       termination:
                         description: |-
                           termination indicates termination type.
-
 
                           * edge - TLS termination is done by the router and http is used to communicate with the backend (default)
                           * passthrough - Traffic is sent straight to the destination without the router providing TLS termination
@@ -391,6 +389,26 @@ spec:
                   validateReporterCerts:
                     description: Enable certificates validation when uploading data
                       to the License Service Reporter
+                    type: boolean
+                type: object
+              softwareCentral:
+                description: Software Central integration configuration
+                properties:
+                  enable:
+                    description: Enable automatic upload to Software Central
+                    type: boolean
+                  entitlementKeySecret:
+                    description: Reference to Kubernetes secret in ibm-licensing namespace
+                      containing IBM Entitlement Key
+                    type: string
+                  frequency:
+                    description: 'Cron expression for upload schedule (default: "5
+                      0 * * *")'
+                    pattern: (@(annually|yearly|monthly|weekly|daily|midnight|hourly))|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*)
+                      ?){5,7})
+                    type: string
+                  sandbox:
+                    description: 'Use sandbox environment (default: false)'
                     type: boolean
                 type: object
               version:
@@ -1003,7 +1021,6 @@ spec:
                         arrays contain more detail about the pod's status.
                         There are five possible phase values:
 
-
                         Pending: The pod has been accepted by the Kubernetes system, but one or more of the
                         container images has not been created. This includes time before being scheduled as
                         well as time spent downloading images over the network, which could take a while.
@@ -1015,7 +1032,6 @@ spec:
                         by the system.
                         Unknown: For some reason the state of the pod could not be obtained, typically due to an
                         error in communicating with the host of the pod.
-
 
                         More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-phase
                       type: string
@@ -1031,7 +1047,7 @@ spec:
                         is empty if no IPs have been allocated yet.
                       items:
                         description: "IP address information for entries in the (plural)
-                          PodIPs field.\nEach entry includes:\n\n\n\tIP: An IP address
+                          PodIPs field.\nEach entry includes:\n\n\tIP: An IP address
                           allocated to the pod. Routable at least within the cluster."
                         properties:
                           ip:

@@ -200,6 +200,24 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 
 	}
 
+	// Software Central configuration
+	if spec.IsSoftwareCentralEnabled() {
+		environmentVariables = append(environmentVariables, []corev1.EnvVar{
+			{
+				Name:  "SOFTWARE_CENTRAL_ENABLED",
+				Value: strconv.FormatBool(spec.SoftwareCentral.Enable),
+			},
+			{
+				Name:  "SOFTWARE_CENTRAL_SANDBOX",
+				Value: strconv.FormatBool(spec.SoftwareCentral.Sandbox),
+			},
+			{
+				Name:  "SOFTWARE_CENTRAL_FREQUENCY",
+				Value: spec.SoftwareCentral.Frequency,
+			},
+		}...)
+	}
+
 	if spec.EnvVariable != nil {
 		for key, value := range spec.EnvVariable {
 			environmentVariables = append(environmentVariables, corev1.EnvVar{

@@ -27,7 +27,7 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.20
-    createdAt: "2025-02-25T12:16:11Z"
+    createdAt: "2026-02-27T12:33:57Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
@@ -270,16 +270,16 @@ spec:
             - apiGroups:
                 - ""
               resources:
-                - namespaces
-              verbs:
-                - get
-            - apiGroups:
-                - ""
-              resources:
                 - events
               verbs:
                 - create
                 - patch
+            - apiGroups:
+                - ""
+              resources:
+                - namespaces
+              verbs:
+                - get
             - apiGroups:
                 - operator.ibm.com
               resources:
@@ -504,19 +504,6 @@ spec:
                 - secrets
                 - services
                 - services/finalizers
-              verbs:
-                - create
-                - delete
-                - get
-                - list
-                - patch
-                - update
-                - watch
-            - apiGroups:
-                - ""
-              resources:
-                - configmaps
-                - secrets
               verbs:
                 - create
                 - delete

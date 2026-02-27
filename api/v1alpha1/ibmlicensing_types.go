@@ -157,6 +157,34 @@ type IBMLicensingSpec struct {
 	// Enabling collection of Instana metrics
 	// +optional
 	EnableInstanaMetricCollection bool `json:"enableInstanaMetricCollection,omitempty"`
+
+	// Software Central integration configuration
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Software Central",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	SoftwareCentral *IBMLicensingSoftwareCentralSpec `json:"softwareCentral,omitempty"`
+}
+
+type IBMLicensingSoftwareCentralSpec struct {
+	// Enable automatic upload to Software Central
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Enable Software Central",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +optional
+	Enable bool `json:"enable,omitempty"`
+
+	// Cron expression for upload schedule (default: "5 0 * * *")
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Upload Frequency",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +kubebuilder:validation:Pattern:=`(@(annually|yearly|monthly|weekly|daily|midnight|hourly))|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})`
+	// +optional
+	Frequency string `json:"frequency,omitempty"`
+
+	// Use sandbox environment (default: false)
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Sandbox Mode",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +optional
+	Sandbox bool `json:"sandbox,omitempty"`
+
+	// Reference to Kubernetes secret in ibm-licensing namespace containing IBM Entitlement Key
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Entitlement Key Secret",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	EntitlementKeySecret string `json:"entitlementKeySecret,omitempty"`
 }
 
 type IBMLicensingSenderSpec struct {
