@@ -4,15 +4,15 @@ metadata:
   name: ibm-licensing-migration-job
   namespace: {{ .Values.ibmLicensing.namespace }}
   annotations:
+    "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation
-    "helm.sh/hook": pre-install
     "helm.sh/hook-weight": "3"
 spec:
   template:
     spec:
       containers:
       - name: ibm-licensing-migration-job
-        image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistry }}/cpfs-utils:4.6.7
+        image: {{ .Values.ibmLicensing.imagePullPrefix | default .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistry }}/cpfs-utils:latest
         command:
           - bash
           - -c
@@ -59,6 +59,6 @@ spec:
             fi
 
       restartPolicy: Never
-      serviceAccount: ibm-licensing-migration-job-sa
+      serviceAccountName: ibm-licensing-migration-job-sa
       imagePullSecrets:
       - name: {{ .Values.global.imagePullSecret }}

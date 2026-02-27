@@ -18,7 +18,9 @@ Before you can deploy Argo CD applications:
 
 The following are the instructions on how to provision and configure a cluster for IBM Licensing components.
 
-### Install Argo CD on an Openshift cluster
+### Install Argo CD
+
+#### On an Openshift cluster
 
 - Install *Red Hat OpenShift GitOps* from the *OperatorHub* (see
 [RedHat documentation](https://docs.openshift.com/gitops/1.14/installing_gitops/installing-openshift-gitops.html)
@@ -33,10 +35,25 @@ for more information):
 - Log in via *OpenShift* and check whether the Applications screen is accessible:
     ![applications-screen.png](docs/images/applications-screen.png)
 
+#### On EKS
+
+- Install *Argo CD* by following the official
+[AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/argocd.html).
+    ![install-argocd-eks-step-1.png](docs/images/install-argocd-eks-step-1.png)
+    ![install-argocd-eks-step-2.png](docs/images/install-argocd-eks-step-2.png)
+
+- Access *Argo CD* UI:
+    ![argo-cd-ui-eks-step-1.png](docs/images/argo-cd-ui-eks-step-1.png)
+    ![argo-cd-ui-eks-step-2.png](docs/images/argo-cd-ui-eks-step-2.png)
+    ![argo-cd-ui-eks-step-3.png](docs/images/argo-cd-ui-eks-step-3.png)
+
+- Log in with the IAM Identity Center user and check whether the Applications screen is accessible:
+    ![applications-screen-eks.png](docs/images/applications-screen-eks.png)
+
 ### Apply prerequisites
 
-There are multiple ways to apply prerequisites in your cluster. It is recommended for the cluster admins to review and apply
-the required modifications manually. However, this can also be automated.
+There are multiple ways to apply prerequisites in your cluster. It is recommended for the cluster admins to review and
+apply the required modifications manually. However, this can also be automated.
 
 #### Apply the .yaml files
 
@@ -44,7 +61,7 @@ Assuming that you are logged in to the cluster, you can apply all prerequisites 
 components with a simple command executed on the `prerequisites` directory:
 
 ```shell
-oc apply -f prerequisites --recursive
+kubectl apply -f prerequisites --recursive
 ```
 
 Note that some values, such as namespaces or annotations, may need adjustment depending on your desired results.
@@ -77,6 +94,8 @@ The following are some common scenarios with examples on how to resolve the prov
 
 **Note:** The following examples should be applied to the source targeting the path with `helm`, not `helm-cluster-scoped`, as
 the cluster-scoped charts only support the `namespace` parameter.
+
+**Exception:** License Service supports only cluster-scoped installation and does not have a separate `helm` chart. For License Service, apply configuration to the `helm-cluster-scoped` source, which supports full CR configuration.
 
 ### Configure the CR
 
@@ -186,7 +205,7 @@ helm:
 ```
 
 As a result, the operator and operand image registries are overwritten. For example, after applying the above changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator`
-becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.19`.
+becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.20`.
 
 To additionally modify the image registry namespace of either the operator or the operand, change the value of
 `cpfs.imageRegistryNamespaceOperator` or `cpfs.imageRegistryNamespaceOperand`, or both, in the relevant
@@ -202,7 +221,7 @@ helm:
 
 As a result, the operator and operand image registry namespaces are overwritten. For example, after applying the above
 changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator` becomes
-`icr.io/<your-operator-image-registry-namespace>/ibm-licensing-operator:4.2.19`.
+`icr.io/<your-operator-image-registry-namespace>/ibm-licensing-operator:4.2.20`.
 
 **Note:** `global.imagePullPrefix`, `cpfs.imageRegistryNamespaceOperator` and `cpfs.imageRegistryNamespaceOperand` take
 precedence over any values that you provided in the CR configuration, for example, through `spec.imageRegistry`.
@@ -226,22 +245,35 @@ through `spec.imagePullSecrets`.
 
 ## Installation
 
-To install all components, execute the following command. You must be logged in to your cluster.
+To install all components, execute the following command. You must be logged in to your cluster and in the right
+namespace:
+- For Openshift, by default `openshift-gitops`
+- For EKS, by default `argocd`
 
 ```shell
-oc project openshift-gitops && oc apply -f applications
+kubectl apply -f applications
 ```
 
 ![components.png](docs/images/components.png)
 
 To install the selected components separately, for example to install *IBM License Service* only, execute the following
-command:
+command in the right namespace:
 
 ```shell
-oc project openshift-gitops && oc apply -f applications/license-service.yaml
+kubectl apply -f applications/license-service.yaml
 ```
 
 Remember to `sync` after the applications are applied, or add the `auto-sync` option to your setup.
+
+### EKS clusters
+
+You must register your cluster and modify the `server` field of your `Application`, because the default local cluster
+destination is not supported.
+
+Follow official [AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/argocd-register-clusters.html) to
+register your cluster.
+
+You will also need to configure the right roles and permissions so that your ArgoCD instance can sync the application.
 
 ### Separate installation scenario
 
@@ -261,9 +293,10 @@ Helm installation support is in its alpha stage. To install the Licensing compon
 
 - IBM License Service:
 
+**Note:** License Service supports only cluster-scoped installation and only has a `helm-cluster-scoped` chart.
+
 ```commandline
-helm install license-service-cluster-scoped ./components/license-service/helm-cluster-scoped
-helm install license-service ./components/license-service/helm
+helm install license-service ./components/license-service/helm-cluster-scoped
 ```
 
 - IBM License Service Reporter:

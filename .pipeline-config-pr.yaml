@@ -1,0 +1,76 @@
+version: '2'
+
+tasks:
+  pr-code-checks:
+    displayName: Build images
+    include:
+      - dind
+      - docker-socket
+    steps:
+      - name: checks-setup
+        when: 'false'
+      - name: detect-secrets
+        when: 'true'
+        include:
+          - docker-socket
+          - dind
+      - name: unit-test
+        image: icr.io/continuous-delivery/base-images/base:v1.19.0
+        displayName: Build, test and publish multiarch image
+        include:
+          - dind
+          - docker-socket
+        runtimeClassName: medium
+        onError: 'stopAndFail'
+        script: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          cd "$WORKSPACE/$(load_repo app-repo path)"
+
+          source ./build_scripts/setup_env.sh
+          source ./build_scripts/install_dependencies.sh
+          source ./build_scripts/run_tests.sh
+
+          # Archive logs:
+          mkdir -p "$WORKSPACE/test-results"
+          cp ./*.txt "$WORKSPACE/test-results/" 2>/dev/null || true
+          cp ./cover.out "$WORKSPACE/test-results/" 2>/dev/null || true
+
+          set_env "STAGE_UNIT_TEST_STATUS" "success"
+          collect-evidence --asset-type "repo" --asset-key "app-repo" --status "success" --tool-type "misc" --evidence-type "com.ibm.unit_tests"
+
+          echo "=========================================="
+          echo "Building amd64 image"
+          echo "=========================================="
+          ARCH=amd64 make build-push-image-development
+          
+          echo "=========================================="
+          echo "Building ppc64le image"
+          echo "=========================================="
+          ARCH=ppc64le make build-push-image-development
+          
+          echo "=========================================="
+          echo "Building s390x image"
+          echo "=========================================="
+          ARCH=s390x make build-push-image-development
+
+          echo "=========================================="
+          echo "Creating multiarch manifest"
+          echo "=========================================="
+          make multiarch-image-development
+
+          echo "=========================================="
+          echo "Creating catalog image for development"
+          echo "=========================================="
+          make catalogsource-development
+          
+          echo "=========================================="
+          echo "All builds completed successfully"
+          echo "=========================================="
+      - name: compliance-checks
+        when: 'false'
+finally:
+  code-pr-finish:
+    steps:
+      - name: run-stage
+        when: 'false'
