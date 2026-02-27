@@ -32,6 +32,7 @@ const PrometheusHTTPSCertsVolumeName = "prometheus-https-certs"
 const ReporterHTTPSCertsVolumeName = "reporter-https-certs"
 const EmptyDirVolumeName = "tmp"
 const ReporterTokenVolumeName = "reporter-token"
+const SoftwareCentralEntitlementKeyVolumeName = "swc-entitlement-key"
 
 var emptyDirSizeLimit600Mi, _ = resource.ParseQuantity("600Mi")
 
@@ -100,6 +101,17 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 				{
 					Name:      ReporterHTTPSCertsVolumeName,
 					MountPath: "/opt/ibm/licensing/reporter-certs",
+					ReadOnly:  true,
+				},
+			}...)
+		}
+
+		// volume mount for Software Central entitlement key
+		if spec.IsSoftwareCentralEnabled() && spec.SoftwareCentral.EntitlementKeySecret != "" {
+			volumeMounts = append(volumeMounts, []corev1.VolumeMount{
+				{
+					Name:      SoftwareCentralEntitlementKeyVolumeName,
+					MountPath: "/opt/ibm/licensing/swc-entitlement-key",
 					ReadOnly:  true,
 				},
 			}...)
@@ -187,6 +199,19 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 				VolumeSource: corev1.VolumeSource{
 					Secret: &corev1.SecretVolumeSource{
 						SecretName:  spec.Sender.ReporterCertsSecretName,
+						DefaultMode: &resources.DefaultSecretMode,
+					},
+				},
+			})
+		}
+
+		// create volume containing Software Central entitlement key
+		if spec.IsSoftwareCentralEnabled() && spec.SoftwareCentral.EntitlementKeySecret != "" {
+			volumes = append(volumes, corev1.Volume{
+				Name: SoftwareCentralEntitlementKeyVolumeName,
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName:  spec.SoftwareCentral.EntitlementKeySecret,
 						DefaultMode: &resources.DefaultSecretMode,
 					},
 				},
