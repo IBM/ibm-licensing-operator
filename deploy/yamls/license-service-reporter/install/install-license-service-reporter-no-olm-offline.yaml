@@ -215,7 +215,7 @@ spec:
                   description: Environment variable setting
                   type: object
                 httpsCertsSource:
-                  description: 'options: self-signed or custom'
+                  description: "options: self-signed or custom"
                   enum:
                     - self-signed
                     - custom
@@ -326,16 +326,16 @@ spec:
                   description: IBM License Service Reporter license acceptance.
                   properties:
                     accept:
-                      description: 'By installing the IBM License Service Reporter, you accept the license terms for the particular IBM product for which you are deploying this component: ibm.biz/lsvc-lic.'
+                      description: "By installing the IBM License Service Reporter, you accept the license terms for the particular IBM product for which you are deploying this component: ibm.biz/lsvc-lic."
                       type: boolean
                       x-kubernetes-validations:
-                        - message: 'Please accept license terms of this component (ibm.biz/lsvc-lic) by setting a field spec.license.accept: true'
+                        - message: "Please accept license terms of this component (ibm.biz/lsvc-lic) by setting a field spec.license.accept: true"
                           rule: self == true
                   required:
                     - accept
                   type: object
                 logLevel:
-                  description: 'Should application pod show additional information, options: DEBUG, INFO, VERBOSE'
+                  description: "Should application pod show additional information, options: DEBUG, INFO, VERBOSE"
                   enum:
                     - DEBUG
                     - INFO
@@ -2009,13 +2009,13 @@ spec:
             - ibm-license-service-reporter-operator
           env:
             - name: IBM_POSTGRESQL_IMAGE
-              value: ${MY_DOCKER_REGISTRY}/ibm-postgresql:4.2.20
+              value: ${MY_DOCKER_REGISTRY}/ibm-postgresql:4.2.21
             - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-              value: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter:4.2.20
+              value: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter:4.2.21
             - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-              value: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter-ui:4.2.20
+              value: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter-ui:4.2.21
             - name: IBM_LICENSE_SERVICE_REPORTER_AUTH_IMAGE
-              value: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter-oauth2-proxy:4.2.20
+              value: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter-oauth2-proxy:4.2.21
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -2034,7 +2034,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
-          image: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter-operator:4.2.20
+          image: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter-operator:4.2.21
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
