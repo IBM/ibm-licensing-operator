@@ -304,13 +304,14 @@ func (container *Container) setImagePullPolicyIfNotSet() {
 	}
 }
 
-// IsSoftwareCentralEnabled checks if Software Central integration is enabled
+// checks if Software Central integration is enabled
 func (spec *IBMLicensingSpec) IsSoftwareCentralEnabled() bool {
 	return spec.SoftwareCentral != nil &&
 		spec.SoftwareCentral.Enable
 }
 
-// GetSoftwareCentralURL returns the appropriate Software Central URL based on sandbox setting
+// returns the appropriate Software Central URL based on sandbox setting
+// When `true`, uses `sandbox.swc.saas.ibm.com`; when `false`, uses `swc.saas.ibm.com`
 func (swc *IBMLicensingSoftwareCentralSpec) GetURL() string {
 	if swc.Sandbox {
 		return "https://sandbox.swc.saas.ibm.com"
@@ -318,7 +319,7 @@ func (swc *IBMLicensingSoftwareCentralSpec) GetURL() string {
 	return "https://swc.saas.ibm.com"
 }
 
-// GetFrequency returns the upload frequency or default value
+// returns the upload frequency or default value
 func (swc *IBMLicensingSoftwareCentralSpec) GetFrequency() string {
 	if swc.Frequency != "" {
 		return swc.Frequency
