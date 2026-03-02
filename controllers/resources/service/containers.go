@@ -208,12 +208,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 				Value: strconv.FormatBool(spec.SoftwareCentral.Enable),
 			},
 			{
-				Name:  "SOFTWARE_CENTRAL_SANDBOX",
-				Value: strconv.FormatBool(spec.SoftwareCentral.Sandbox),
+				Name:  "SOFTWARE_CENTRAL_URL",
+				Value: spec.SoftwareCentral.GetURL(),
 			},
 			{
 				Name:  "SOFTWARE_CENTRAL_FREQUENCY",
-				Value: spec.SoftwareCentral.Frequency,
+				Value: spec.SoftwareCentral.GetFrequency(),
 			},
 		}...)
 	}
