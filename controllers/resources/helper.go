@@ -47,6 +47,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
@@ -64,6 +65,7 @@ var (
 	IsAlertingEnabledByDefault = true
 	RHMPEnabled                = false
 	IsODLM                     = true
+	IsGatewayAPI               = false
 
 	PathType = networkingv1.PathTypeImplementationSpecific
 )
@@ -425,6 +427,13 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsODLM = true
 	} else {
 		IsODLM = false
+	}
+
+	gatewayTestInstance := &gatewayv1.GatewayList{}
+	if err := client.List(context.TODO(), gatewayTestInstance, listOpts...); err == nil {
+		IsGatewayAPI = true
+	} else {
+		IsGatewayAPI = false
 	}
 
 	return nil

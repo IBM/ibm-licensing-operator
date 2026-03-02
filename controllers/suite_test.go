@@ -17,6 +17,7 @@
 package controllers
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -84,7 +85,10 @@ var _ = BeforeSuite(func() {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{
+			filepath.Join("..", "config", "crd", "bases"),
+			filepath.Join("..", "config", "crd", "external"),
+		},
 	}
 
 	var err error
@@ -139,7 +143,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(k8sClient).ToNot(BeNil())
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme.Scheme,
 		Metrics: metricsserver.Options{
 			BindAddress: "0",
@@ -187,6 +191,14 @@ var _ = BeforeSuite(func() {
 		err = mgr.Start(ctrl.SetupSignalHandler())
 		Expect(err).ToNot(HaveOccurred())
 	}()
+
+	// Create required namespaces in envtest (they don't exist by default)
+	ctx := context.Background()
+	for _, ns := range []string{namespace, operatorNamespace, opreqNamespace} {
+		nsObj := &corev1.Namespace{}
+		nsObj.Name = ns
+		_ = k8sClient.Create(ctx, nsObj) // ignore AlreadyExists
+	}
 })
 
 var _ = AfterSuite(func() {

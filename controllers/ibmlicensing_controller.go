@@ -64,10 +64,14 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	watcher := ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.IBMLicensing{}).
 		Owns(&appsv1.Deployment{}).
-		Owns(&corev1.Service{}).
-		Owns(&gatewayv1.Gateway{}).
-		Owns(&gatewayv1.BackendTLSPolicy{}).
-		Owns(&gatewayv1.HTTPRoute{})
+		Owns(&corev1.Service{})
+
+	if res.IsGatewayAPI {
+		watcher = watcher.
+			Owns(&gatewayv1.Gateway{}).
+			Owns(&gatewayv1.BackendTLSPolicy{}).
+			Owns(&gatewayv1.HTTPRoute{})
+	}
 
 	return watcher.Complete(r)
 }
