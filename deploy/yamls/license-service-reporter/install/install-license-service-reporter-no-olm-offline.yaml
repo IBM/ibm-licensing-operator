@@ -1790,6 +1790,12 @@ rules:
       - list
       - watch
   - apiGroups:
+      - ""
+    resources:
+      - pods/exec
+    verbs:
+      - create
+  - apiGroups:
       - apps
     resources:
       - daemonsets
@@ -2003,13 +2009,13 @@ spec:
             - ibm-license-service-reporter-operator
           env:
             - name: IBM_POSTGRESQL_IMAGE
-              value: ${MY_DOCKER_REGISTRY}/ibm-postgresql:4.2.15
+              value: ${MY_DOCKER_REGISTRY}/ibm-postgresql:4.2.19
             - name: IBM_LICENSE_SERVICE_REPORTER_IMAGE
-              value: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter:4.2.15
+              value: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter:4.2.19
             - name: IBM_LICENSE_SERVICE_REPORTER_UI_IMAGE
-              value: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter-ui:4.2.15
+              value: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter-ui:4.2.19
             - name: IBM_LICENSE_SERVICE_REPORTER_AUTH_IMAGE
-              value: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter-oauth2-proxy:4.2.15
+              value: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter-oauth2-proxy:4.2.19
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -2028,7 +2034,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
-          image: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter-operator:4.2.15
+          image: ${MY_DOCKER_REGISTRY}/ibm-license-service-reporter-operator:4.2.19
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
