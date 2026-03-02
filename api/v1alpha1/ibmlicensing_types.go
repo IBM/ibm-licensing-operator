@@ -181,7 +181,7 @@ type IBMLicensingSoftwareCentralSpec struct {
 	// +optional
 	Sandbox bool `json:"sandbox,omitempty"`
 
-	// Reference to Kubernetes secret in ibm-licensing namespace containing IBM Entitlement Key
+	// Name of the Kubernetes secret in ibm-licensing namespace containing IBM Entitlement Key
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Entitlement Key Secret",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	EntitlementKeySecret string `json:"entitlementKeySecret,omitempty"`
