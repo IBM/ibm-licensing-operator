@@ -34,10 +34,6 @@ const (
 	defaultLicensingTokenSecretName = "ibm-licensing-token"                //#nosec
 	defaultReporterTokenSecretName  = "ibm-license-service-reporter-token" // secret used by LS to push data to LSR
 	OperandLicensingImageEnvVar     = "IBM_LICENSING_IMAGE"
-
-	SoftwareCentralProductionURL    = "https://swc.saas.ibm.com"
-	SoftwareCentralSandboxURL       = "https://sandbox.swc.saas.ibm.com"
-	SoftwareCentralDefaultFrequency = "5 0 * * *"
 )
 
 var (
@@ -312,21 +308,4 @@ func (container *Container) setImagePullPolicyIfNotSet() {
 func (spec *IBMLicensingSpec) IsSoftwareCentralEnabled() bool {
 	return spec.SoftwareCentral != nil &&
 		spec.SoftwareCentral.Enable
-}
-
-// returns the appropriate Software Central URL based on sandbox setting.
-// When Sandbox is true, uses SoftwareCentralSandboxURL; otherwise uses SoftwareCentralProductionURL.
-func (swc *IBMLicensingSoftwareCentralSpec) GetURL() string {
-	if swc.Sandbox {
-		return SoftwareCentralSandboxURL
-	}
-	return SoftwareCentralProductionURL
-}
-
-// returns the upload frequency or the default value if not set.
-func (swc *IBMLicensingSoftwareCentralSpec) GetFrequency() string {
-	if swc.Frequency != "" {
-		return swc.Frequency
-	}
-	return SoftwareCentralDefaultFrequency
 }

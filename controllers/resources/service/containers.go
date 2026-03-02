@@ -26,6 +26,12 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
+const (
+	SoftwareCentralProductionURL    = "https://swc.saas.ibm.com"
+	SoftwareCentralSandboxURL       = "https://sandbox.swc.saas.ibm.com"
+	SoftwareCentralDefaultFrequency = "5 0 * * *"
+)
+
 func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
 	var httpsEnableString = strconv.FormatBool(spec.HTTPSEnable)
 	var environmentVariables = []corev1.EnvVar{
@@ -209,11 +215,11 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			},
 			{
 				Name:  "SOFTWARE_CENTRAL_URL",
-				Value: spec.SoftwareCentral.GetURL(),
+				Value: getSoftwareCentralURL(spec.SoftwareCentral),
 			},
 			{
 				Name:  "SOFTWARE_CENTRAL_FREQUENCY",
-				Value: spec.SoftwareCentral.GetFrequency(),
+				Value: getSoftwareCentralFrequency(spec.SoftwareCentral),
 			},
 		}...)
 	}
@@ -333,6 +339,23 @@ func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 	}
 
 	return ports
+}
+
+// returns the appropriate Software Central URL based on the sandbox setting.
+// When Sandbox is true, uses SoftwareCentralSandboxURL; otherwise uses SoftwareCentralProductionURL.
+func getSoftwareCentralURL(swc *operatorv1alpha1.IBMLicensingSoftwareCentralSpec) string {
+	if swc.Sandbox {
+		return SoftwareCentralSandboxURL
+	}
+	return SoftwareCentralProductionURL
+}
+
+// returns the upload frequency or the default value if not set.
+func getSoftwareCentralFrequency(swc *operatorv1alpha1.IBMLicensingSoftwareCentralSpec) string {
+	if swc.Frequency != "" {
+		return swc.Frequency
+	}
+	return SoftwareCentralDefaultFrequency
 }
 
 func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Container {
