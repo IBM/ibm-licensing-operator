@@ -93,7 +93,7 @@ func TestGetLicensingEnvironmentVariablesNamespaceScopingFeatureEnabled(t *testi
 	assert.True(t, Contains(envVars, namespaceScopeDenialLimitEnvVar), "Namespaces scoping feature is enabled, appropriate 'NAMESPACE_DENIAL_LIMIT' environemnt variable should be added to Licensing pod.")
 }
 
-// verifies that when SoftwareCentral is not configured, none of the SOFTWARE_CENTRAL_* environment variables are added.
+// verifies that when SoftwareCentral is not configured, none of the SOFTWARE_CENTRAL_* environment variables are added to the Licensing pod.
 func TestGetLicensingEnvironmentVariablesSoftwareCentralDisabled_NilSpec(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
@@ -102,11 +102,11 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralDisabled_NilSpec(t *test
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_ENABLED", Value: "true"}),
+	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_ENABLED", Value: "false"}),
 		"SoftwareCentral is nil, SOFTWARE_CENTRAL_ENABLED should not be added to Licensing pod.")
-	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_SANDBOX", Value: "false"}),
-		"SoftwareCentral is nil, SOFTWARE_CENTRAL_SANDBOX should not be added to Licensing pod.")
-	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_FREQUENCY", Value: ""}),
+	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_URL", Value: SoftwareCentralProductionURL}),
+		"SoftwareCentral is nil, SOFTWARE_CENTRAL_URL should not be added to Licensing pod.")
+	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_FREQUENCY", Value: SoftwareCentralDefaultFrequency}),
 		"SoftwareCentral is nil, SOFTWARE_CENTRAL_FREQUENCY should not be added to Licensing pod.")
 }
 
@@ -116,44 +116,39 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralDisabled_EnableFalse(t *
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
 		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
-			Enable:  false,
-			Sandbox: false,
+			Enable: false,
 		},
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
 	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_ENABLED", Value: "false"}),
 		"SoftwareCentral.Enable is false, SOFTWARE_CENTRAL_ENABLED should not be added to Licensing pod.")
-	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_SANDBOX", Value: "false"}),
-		"SoftwareCentral.Enable is false, SOFTWARE_CENTRAL_SANDBOX should not be added to Licensing pod.")
-	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_FREQUENCY", Value: ""}),
+	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_URL", Value: SoftwareCentralProductionURL}),
+		"SoftwareCentral.Enable is false, SOFTWARE_CENTRAL_URL should not be added to Licensing pod.")
+	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_FREQUENCY", Value: SoftwareCentralDefaultFrequency}),
 		"SoftwareCentral.Enable is false, SOFTWARE_CENTRAL_FREQUENCY should not be added to Licensing pod.")
 }
 
-// verifies that when SoftwareCentral is enabled, all three SOFTWARE_CENTRAL_ENABLED, SOFTWARE_CENTRAL_SANDBOX and SOFTWARE_CENTRAL_FREQUENCY environment
-// variables are added.
+// verifies that when SoftwareCentral is enabled, SOFTWARE_CENTRAL_ENABLED, SOFTWARE_CENTRAL_URL and SOFTWARE_CENTRAL_FREQUENCY environment variables are added.
 func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
 		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
-			Enable:    true,
-			Sandbox:   false,
-			Frequency: "5 0 * * *",
+			Enable: true,
 		},
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
 	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_ENABLED", Value: "true"}),
 		"SoftwareCentral is enabled, SOFTWARE_CENTRAL_ENABLED=true should be added to Licensing pod.")
-	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_SANDBOX", Value: "false"}),
-		"SoftwareCentral is enabled with Sandbox=false, SOFTWARE_CENTRAL_SANDBOX=false should be added to Licensing pod.")
-	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_FREQUENCY", Value: "5 0 * * *"}),
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_URL", Value: SoftwareCentralProductionURL}),
+		"SoftwareCentral is enabled with Sandbox=false, SOFTWARE_CENTRAL_URL should point to production URL.")
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_FREQUENCY", Value: SoftwareCentralDefaultFrequency}),
 		"SoftwareCentral is enabled, SOFTWARE_CENTRAL_FREQUENCY should be set to the provided value.")
 }
 
-// TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled_SandboxTrue verifies that when SoftwareCentral
-// is enabled with Sandbox=true, the SOFTWARE_CENTRAL_SANDBOX environment variable is set to "true".
+// verifies that when SoftwareCentral is enabled with Sandbox=true, the SOFTWARE_CENTRAL_URL environment variable points to the sandbox URL.
 func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled_SandboxTrue(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
@@ -165,12 +160,11 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled_SandboxTrue(t *t
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_SANDBOX", Value: "true"}),
-		"SoftwareCentral.Sandbox is true, SOFTWARE_CENTRAL_SANDBOX=true should be added to Licensing pod.")
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_URL", Value: SoftwareCentralSandboxURL}),
+		"SoftwareCentral.Sandbox is true, SOFTWARE_CENTRAL_URL should point to the sandbox URL.")
 }
 
-// TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled_WithCustomFrequency verifies that when SoftwareCentral
-// is enabled with a custom cron frequency, the SOFTWARE_CENTRAL_FREQUENCY environment variable reflects
+// verifies that when SoftwareCentral is enabled with a custom cron frequency, the SOFTWARE_CENTRAL_FREQUENCY environment variable reflects
 // the custom value rather than the default.
 func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled_WithCustomFrequency(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
