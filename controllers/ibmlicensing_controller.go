@@ -208,6 +208,7 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		return reconcile.Result{}, err
 	}
 
+	// Validate Software Central configuration
 	if instance.Spec.IsSoftwareCentralEnabled() && instance.Spec.SoftwareCentral.EntitlementKeySecret == "" {
 		return reconcile.Result{}, fmt.Errorf("spec.softwareCentral.entitlementKeySecret must be set when Software Central integration is enabled")
 	}
