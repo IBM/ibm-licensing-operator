@@ -394,7 +394,7 @@ spec:
                     description: Enable automatic upload to Software Central
                     type: boolean
                   entitlementKeySecret:
-                    description: Reference to Kubernetes secret in ibm-licensing namespace
+                    description: Name of the Kubernetes secret in ibm-licensing namespace
                       containing IBM Entitlement Key
                     type: string
                   frequency:
