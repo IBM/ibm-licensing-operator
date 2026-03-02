@@ -39,12 +39,15 @@ var _ = Describe("OperandRequest controller", Ordered, func() {
 		cm1Name            = lsBindInfoName + "-" + svcres.LicensingInfo
 		cm2Name            = lsBindInfoName + "-" + svcres.LicensingUploadConfig
 	)
+	BeforeEach(func() {
+		operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
+		Expect(operatorNamespace).ToNot(BeEmpty())
+	})
 
-	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
-	Expect(operatorNamespace).ToNot(BeEmpty())
-
-	opreqNamespace, _ = os.LookupEnv("OPREQ_TEST_NAMESPACE")
-	Expect(opreqNamespace).ToNot(BeEmpty())
+	BeforeEach(func() {
+		opreqNamespace, _ = os.LookupEnv("OPREQ_TEST_NAMESPACE")
+		Expect(opreqNamespace).ToNot(BeEmpty())
+	})
 
 	var (
 		operandRequest = res.OperandRequestObj(operandRequestName, opreqNamespace, res.OperatorName)

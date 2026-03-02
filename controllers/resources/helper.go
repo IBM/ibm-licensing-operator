@@ -66,6 +66,7 @@ var (
 	RHMPEnabled                = false
 	IsODLM                     = true
 	IsGatewayAPI               = false
+	IsBackendTLSPolicyAPI      = false
 
 	PathType = networkingv1.PathTypeImplementationSpecific
 )
@@ -434,6 +435,13 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsGatewayAPI = true
 	} else {
 		IsGatewayAPI = false
+	}
+
+	backendTLSPolicyTestInstance := &gatewayv1.BackendTLSPolicyList{}
+	if err := client.List(context.TODO(), backendTLSPolicyTestInstance, listOpts...); err == nil {
+		IsBackendTLSPolicyAPI = true
+	} else {
+		IsBackendTLSPolicyAPI = false
 	}
 
 	return nil

@@ -69,8 +69,12 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if res.IsGatewayAPI {
 		watcher = watcher.
 			Owns(&gatewayv1.Gateway{}).
-			Owns(&gatewayv1.BackendTLSPolicy{}).
 			Owns(&gatewayv1.HTTPRoute{})
+	}
+
+	if res.IsBackendTLSPolicyAPI {
+		watcher = watcher.
+			Owns(&gatewayv1.BackendTLSPolicy{})
 	}
 
 	return watcher.Complete(r)
