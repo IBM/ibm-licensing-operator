@@ -29,7 +29,7 @@ import (
 const (
 	softwareCentralProductionURL    = "https://swc.saas.ibm.com"
 	softwareCentralSandboxURL       = "https://sandbox.swc.saas.ibm.com"
-	softwareCentralDefaultFrequency = "0 5 0 * * ?"
+	softwareCentralDefaultFrequency = "5 0 * * *"
 )
 
 func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
