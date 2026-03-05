@@ -53,7 +53,7 @@ import (
 type reconcileLSFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
 
 func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := res.UpdateCacheClusterExtensions(mgr.GetAPIReader()); err != nil {
+	if err := res.UpdateCacheClusterExtensions(mgr.GetAPIReader(), r.Log); err != nil {
 		r.Log.Error(err, "Error during checking K8s API")
 	}
 
@@ -82,7 +82,7 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 func (r *IBMLicensingReconciler) createDefaultInstanceAfterCheck() error {
 	reqLogger := r.Log.WithValues("action", "Default IBMLicensing instance creation")
-	ibmLicensing := service.GetDefaultIBMLicensing()
+	ibmLicensing := service.GetDefaultIBMLicensing(r.OperatorNamespace)
 	err := r.Client.Create(context.TODO(), &ibmLicensing)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		reqLogger.Error(err, "Failure.")
@@ -158,7 +158,7 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 	reqLogger.Info("Reconciling IBMLicensing")
 	goruntime.GC()
 
-	if err := res.UpdateCacheClusterExtensions(r.Reader); err != nil {
+	if err := res.UpdateCacheClusterExtensions(r.Reader, reqLogger); err != nil {
 		reqLogger.Error(err, "Error during checking K8s API")
 	}
 
@@ -222,6 +222,17 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 	if err != nil {
 		return reconcile.Result{}, err
 	}
+
+	if foundInstance.Spec.InstanceNamespace == "" && instance.Spec.InstanceNamespace != "" {
+		err = r.Client.Update(context.TODO(), instance)
+		if err != nil {
+			reqLogger.Error(err, "Failed to update IBMLicensing with default InstanceNamespace")
+			return reconcile.Result{}, err
+		}
+		reqLogger.Info("Updated IBMLicensing CR with default InstanceNamespace", "namespace", instance.Spec.InstanceNamespace)
+		return reconcile.Result{Requeue: true}, nil
+	}
+
 	r.controllerStatus(instance)
 
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
@@ -927,6 +938,9 @@ func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IB
 	if !instance.Spec.IsGatewayEnabled() {
 		return r.cleanupGatewayResources(instance)
 	}
+
+	r.checkGatewayClassStatus()
+
 	gatewayReconcilers := []reconcileLSFunctionType{
 		r.reconcileGateway,
 		r.reconcileHTTPRoute,
@@ -939,6 +953,48 @@ func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IB
 		}
 	}
 	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicensingReconciler) checkGatewayClassStatus() {
+	gatewayClassName := "ibm-licensing"
+
+	gatewayClass := &gatewayv1.GatewayClass{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: gatewayClassName}, gatewayClass)
+
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			r.Log.Info("GatewayClass not found.",
+				"gatewayClassName", gatewayClassName,
+				"recommendation", "Install a Gateway controller (e.g., Envoy Gateway) or create a GatewayClass resource")
+		}
+		return
+	}
+
+	accepted := false
+	for _, condition := range gatewayClass.Status.Conditions {
+		if condition.Type == "Accepted" {
+			if condition.Status == metav1.ConditionTrue {
+				accepted = true
+				r.Log.Info("GatewayClass is accepted and ready", "gatewayClassName", gatewayClassName)
+			} else {
+				r.Log.Info("GatewayClass exists but is not accepted. Check if the Gateway controller is running.",
+					"gatewayClassName", gatewayClassName,
+					"status", condition.Status,
+					"reason", condition.Reason,
+					"message", condition.Message,
+					"controller", gatewayClass.Spec.ControllerName)
+			}
+			break
+		}
+	}
+
+	if !accepted && len(gatewayClass.Status.Conditions) == 0 {
+		r.Log.Info("GatewayClass exists but has no status conditions. The Gateway controller may not be running.",
+			"gatewayClassName", gatewayClassName,
+			"controller", gatewayClass.Spec.ControllerName,
+			"recommendation", fmt.Sprintf("Ensure the Gateway controller '%s' is installed and running", gatewayClass.Spec.ControllerName))
+	}
+
 }
 
 func (r *IBMLicensingReconciler) cleanupGatewayResources(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -1015,6 +1071,12 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 	result, err := r.reconcileResourceNamespacedExistence(instance, expected, found)
 	if err != nil || result.Requeue {
 		return result, err
+	}
+
+	// handling not installed CRD
+	if found.GetName() == "" {
+		reqLogger.Info("Resource not found (CRD likely not installed), skipping update check")
+		return reconcile.Result{}, nil
 	}
 	needsUpdate := false
 	if !res.MapHasAllPairsFromOther(found.GetLabels(), expected.GetLabels()) {
@@ -1177,6 +1239,11 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 			err = r.Client.Create(context.TODO(), expectedRes)
 			if err != nil {
 				if !apierrors.IsAlreadyExists(err) {
+					if metaErrors.IsNoMatchError(err) {
+						reqLogger.Info("CRD for "+resType.String()+" not installed, skipping", "Name", expectedRes.GetName(),
+							"Namespace", expectedRes.GetNamespace())
+						return reconcile.Result{}, nil
+					}
 					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
 						"Namespace", expectedRes.GetNamespace())
 					return reconcile.Result{}, err
@@ -1185,6 +1252,10 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 			// Created successfully, or already exists - return and requeue
 			time.Sleep(time.Second * 5)
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Second}, nil
+		} else if metaErrors.IsNoMatchError(err) {
+			reqLogger.Info("CRD for "+resType.String()+" not installed, skipping", "Name", expectedRes.GetName(),
+				"Namespace", expectedRes.GetNamespace())
+			return reconcile.Result{}, nil
 		}
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())

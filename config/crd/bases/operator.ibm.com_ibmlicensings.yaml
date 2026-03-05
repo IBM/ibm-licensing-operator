@@ -163,8 +163,8 @@ spec:
                     minimum: 1
                     type: integer
                   httpsPort:
-                    default: 8080
-                    description: HTTPS port for Gateway listener. Default is 8080.
+                    default: 443
+                    description: HTTPS port for Gateway listener. Default is 443.
                       Only used when TLSSecretName is set.
                     format: int32
                     maximum: 65535

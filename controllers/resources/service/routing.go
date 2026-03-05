@@ -114,30 +114,26 @@ func GetLicensingGateway(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Gat
 		className = options.GatewayClassName
 	}
 
-	httpPort := defaultHTTPPort
-	if options.HTTPPort != nil {
-		httpPort = *options.HTTPPort
-	}
-
 	httpsPort := defaultHTTPSPort
 	if options.HTTPSPort != nil {
 		httpsPort = *options.HTTPSPort
 	}
 
-	listeners := []gatewayv1.Listener{
-		newGatewayListener("http", gatewayv1.HTTPProtocolType, httpPort, nil),
+	listeners := []gatewayv1.Listener{}
+
+	tlsSecretName := options.TLSSecretName
+	if tlsSecretName == "" {
+		tlsSecretName = "ibm-license-service-cert-internal"
 	}
 
-	if options.TLSSecretName != "" {
-		tlsConfig := &gatewayv1.ListenerTLSConfig{
-			Mode: ptr.To(gatewayv1.TLSModeTerminate),
-			CertificateRefs: []gatewayv1.SecretObjectReference{{
-				Kind: ptr.To(gatewayv1.Kind(kindSecret)),
-				Name: gatewayv1.ObjectName(options.TLSSecretName),
-			}},
-		}
-		listeners = append(listeners, newGatewayListener("https", gatewayv1.HTTPSProtocolType, httpsPort, tlsConfig))
+	tlsConfig := &gatewayv1.ListenerTLSConfig{
+		Mode: ptr.To(gatewayv1.TLSModeTerminate),
+		CertificateRefs: []gatewayv1.SecretObjectReference{{
+			Kind: ptr.To(gatewayv1.Kind(kindSecret)),
+			Name: gatewayv1.ObjectName(tlsSecretName),
+		}},
 	}
+	listeners = append(listeners, newGatewayListener("https", gatewayv1.HTTPSProtocolType, httpsPort, tlsConfig))
 
 	return &gatewayv1.Gateway{
 		ObjectMeta: metav1.ObjectMeta{
@@ -191,7 +187,7 @@ func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.H
 						BackendObjectReference: gatewayv1.BackendObjectReference{
 							Kind: ptr.To(gatewayv1.Kind(kindService)),
 							Name: gatewayv1.ObjectName(serviceName),
-							Port: ptr.To(gatewayv1.PortNumber(8080)),
+							Port: ptr.To(gatewayv1.PortNumber(defaultHTTPPort)),
 						},
 					},
 				}},

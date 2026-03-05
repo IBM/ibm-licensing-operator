@@ -42,6 +42,7 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	apieq "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -345,6 +346,9 @@ func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource Resou
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			(*reqLogger).Info("Could not delete "+resTypeString+", as it was already deleted", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+		} else if metaErrors.IsNoMatchError(err) {
+			(*reqLogger).Info("CRD for "+resTypeString+" not installed, skipping delete", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+			return reconcile.Result{}, nil
 		} else {
 			(*reqLogger).Error(err, "Failed to delete "+resTypeString+" during recreation", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
 			return reconcile.Result{}, err
@@ -390,7 +394,7 @@ echo "$(date): All required secrets exist"
 	return script
 }
 
-func UpdateCacheClusterExtensions(client c.Reader) error {
+func UpdateCacheClusterExtensions(client c.Reader, logger logr.Logger) error {
 	namespace, err := GetOperatorNamespace()
 	if err != nil {
 		return errors.New("OPERATOR_NAMESPACE env not found")
@@ -435,6 +439,7 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsGatewayAPI = true
 	} else {
 		IsGatewayAPI = false
+		logger.Info("Gateway API CRDs not found in cluster. Gateway routing features will be disabled. To enable Gateway support, install Gateway API CRDs from https://gateway-api.sigs.k8s.io/")
 	}
 
 	backendTLSPolicyTestInstance := &gatewayv1.BackendTLSPolicyList{}
