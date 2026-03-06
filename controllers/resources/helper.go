@@ -439,7 +439,7 @@ func UpdateCacheClusterExtensions(client c.Reader, logger logr.Logger) error {
 		IsGatewayAPI = true
 	} else {
 		IsGatewayAPI = false
-		logger.Info("Gateway API CRDs not found in cluster. Gateway routing features will be disabled. To enable Gateway support, install Gateway API CRDs from https://gateway-api.sigs.k8s.io/")
+		logger.Info("Gateway API CRDs not found in cluster. Gateway routing features will be disabled. To enable Gateway support, install Gateway API CRDs see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
 	}
 
 	backendTLSPolicyTestInstance := &gatewayv1.BackendTLSPolicyList{}

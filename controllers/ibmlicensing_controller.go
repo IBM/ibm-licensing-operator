@@ -965,7 +965,7 @@ func (r *IBMLicensingReconciler) checkGatewayClassStatus() {
 		if apierrors.IsNotFound(err) {
 			r.Log.Info("GatewayClass not found.",
 				"gatewayClassName", gatewayClassName,
-				"recommendation", "Install a Gateway controller (e.g., Envoy Gateway) or create a GatewayClass resource")
+				"recommendation", "Install a Gateway controller (e.g., Envoy Gateway) or create a GatewayClass resource, see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
 		}
 		return
 	}
@@ -977,7 +977,7 @@ func (r *IBMLicensingReconciler) checkGatewayClassStatus() {
 				accepted = true
 				r.Log.Info("GatewayClass is accepted and ready", "gatewayClassName", gatewayClassName)
 			} else {
-				r.Log.Info("GatewayClass exists but is not accepted. Check if the Gateway controller is running.",
+				r.Log.Info("GatewayClass exists but is not accepted. Check if the Gateway controller is running. see documentation about needed cluster extensions ibm.biz/LS_gateway_API",
 					"gatewayClassName", gatewayClassName,
 					"status", condition.Status,
 					"reason", condition.Reason,
@@ -992,7 +992,7 @@ func (r *IBMLicensingReconciler) checkGatewayClassStatus() {
 		r.Log.Info("GatewayClass exists but has no status conditions. The Gateway controller may not be running.",
 			"gatewayClassName", gatewayClassName,
 			"controller", gatewayClass.Spec.ControllerName,
-			"recommendation", fmt.Sprintf("Ensure the Gateway controller '%s' is installed and running", gatewayClass.Spec.ControllerName))
+			"recommendation", fmt.Sprintf("Ensure the Gateway controller '%s' is installed and running and see see documentation about needed cluster extensions ibm.biz/LS_gateway_API", gatewayClass.Spec.ControllerName))
 	}
 
 }
@@ -1075,7 +1075,7 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 
 	// handling not installed CRD
 	if found.GetName() == "" {
-		reqLogger.Info("Resource not found (CRD likely not installed), skipping update check")
+		reqLogger.Info("Resource not found (CRD likely not installed), skipping update check see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
 		return reconcile.Result{}, nil
 	}
 	needsUpdate := false

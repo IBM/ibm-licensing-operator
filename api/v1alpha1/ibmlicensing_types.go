@@ -43,14 +43,6 @@ type IBMLicensingGatewayOptions struct {
 	// +optional
 	GatewayClassName string `json:"gatewayClassName,omitempty"`
 
-	// HTTP port for Gateway listener. Default is 80.
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="HTTP Port",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
-	// +kubebuilder:default=80
-	// +kubebuilder:validation:Minimum=1
-	// +kubebuilder:validation:Maximum=65535
-	// +optional
-	HTTPPort *int32 `json:"httpPort,omitempty"`
-
 	// HTTPS port for Gateway listener. Default is 443. Only used when TLSSecretName is set.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="HTTPS Port",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
 	// +kubebuilder:default=443
