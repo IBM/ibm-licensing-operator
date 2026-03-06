@@ -159,13 +159,6 @@ spec:
                     description: GatewayClassName defines gateway class name option
                       to be passed to the gateway spec field. Default is ibm-licensing.
                     type: string
-                  httpPort:
-                    default: 80
-                    description: HTTP port for Gateway listener. Default is 80.
-                    format: int32
-                    maximum: 65535
-                    minimum: 1
-                    type: integer
                   httpsPort:
                     default: 443
                     description: HTTPS port for Gateway listener. Default is 443.

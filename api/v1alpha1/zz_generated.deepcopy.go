@@ -205,11 +205,6 @@ func (in *IBMLicensingGatewayOptions) DeepCopyInto(out *IBMLicensingGatewayOptio
 			(*out)[key] = val
 		}
 	}
-	if in.HTTPPort != nil {
-		in, out := &in.HTTPPort, &out.HTTPPort
-		*out = new(int32)
-		**out = **in
-	}
 	if in.HTTPSPort != nil {
 		in, out := &in.HTTPSPort, &out.HTTPSPort
 		*out = new(int32)
