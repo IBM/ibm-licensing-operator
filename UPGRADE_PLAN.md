@@ -8,21 +8,61 @@
 | go directive in go.mod | 1.25.6 | 1.26.1 |
 | Installed Go | 1.26.1 | — |
 
-### Direct dependencies (key)
+### Direct dependencies
 | Module | Required | Effective (replace) | Latest |
 |--------|----------|---------------------|--------|
+| emperror.dev/errors | v0.8.0 | v0.8.0 | v0.8.1 |
+| github.com/IBM/controller-filtered-cache | v0.3.5 | v0.3.5 | v0.3.6 |
+| github.com/IBM/operand-deployment-lifecycle-manager | v1.21.0 | v1.21.0 | v1.23.5 |
+| github.com/coreos/prometheus-operator | v0.41.0 | v0.41.0 | **MOVED** (see P2) |
+| github.com/go-logr/logr | v1.2.4 | v1.2.4 | v1.4.3 |
+| github.com/onsi/ginkgo/v2 | v2.9.2 | v2.9.2 | v2.28.1 |
+| github.com/onsi/gomega | v1.27.4 | v1.27.4 | v1.39.1 |
+| github.com/openshift/api | v0.0.0-20230306 | v0.0.0-20230306 | v0.0.0-20260306 |
+| github.com/operator-framework/api | v0.17.7 | v0.17.7 | v0.41.0 |
+| github.com/redhat-marketplace/redhat-marketplace-operator/v2 | v2.0.0-20230228 | v2.0.0-20230228 | v2.0.0-20260302 |
+| github.com/stretchr/testify | v1.8.4 | v1.8.4 | v1.11.1 |
+| go.uber.org/zap | v1.21.0 | v1.21.0 | v1.27.1 |
 | k8s.io/api | v0.27.2 | **v0.25.7** (replace!) | v0.35.2 |
 | k8s.io/apimachinery | v0.27.2 | **v0.25.7** (replace!) | v0.35.2 |
 | k8s.io/client-go | v12.0.0+incompatible | **v0.25.7** (replace!) | v0.35.2 |
+| k8s.io/utils | v0.0.0-20240502 | v0.0.0-20240502 | v0.0.0-20260210 |
 | sigs.k8s.io/controller-runtime | v0.15.0 | **v0.12.3** (replace!) | v0.23.3 |
-| github.com/coreos/prometheus-operator | v0.41.0 | v0.41.0 | **MOVED** (see §3) |
-| github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring | — (indirect) | v0.57.0 | v0.89.0 |
-| github.com/IBM/controller-filtered-cache | v0.3.5 | v0.3.5 | v0.3.6 |
-| github.com/IBM/operand-deployment-lifecycle-manager | v1.21.0 | v1.21.0 | v1.23.5 |
-| github.com/openshift/api | v0.0.0-20230306 | v0.0.0-20230306 | v0.0.0-20260306 |
-| github.com/operator-framework/api | v0.17.7 | v0.17.7 | v0.41.0 |
-| go.uber.org/zap | v1.21.0 | v1.21.0 | v1.27.1 |
-| github.com/redhat-marketplace/redhat-marketplace-operator/v2 | v2.0.0-20230228 | v2.0.0-20230228 | — |
+
+### Key indirect dependencies
+| Module | go.mod version | Latest | Notes |
+|--------|---------------|--------|-------|
+| github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring | v0.57.0 | v0.89.0 | Will update with Phase 4a |
+| github.com/prometheus/client_golang | v1.15.1 | v1.23.2 | Will update transitively |
+| github.com/prometheus/common | v0.42.0 | v0.67.5 | Will update transitively |
+| github.com/prometheus/procfs | v0.9.0 | v0.20.1 | Will update transitively |
+| github.com/google/gnostic | v0.5.7-v3refs | — | **MOVED** → github.com/google/gnostic-models v0.7.1 |
+| github.com/imdario/mergo | v0.3.12 | — | **MOVED** → dario.cat/mergo v1.0.2 |
+| github.com/golang/protobuf | v1.5.3 | v1.5.4 | **DEPRECATED** → google.golang.org/protobuf |
+| github.com/matttproud/golang_protobuf_extensions | v1.0.4 | v1.0.4 | **DEPRECATED** → merged into prometheus packages |
+| go.uber.org/atomic | v1.9.0 | v1.11.0 | **DEPRECATED** → merged into zap/multierr |
+| go.uber.org/multierr | v1.7.0 | v1.11.0 | Will update with zap upgrade |
+| k8s.io/apiextensions-apiserver | v0.27.2 | v0.35.2 | Will update with k8s upgrade |
+| k8s.io/component-base | v0.27.2 | v0.35.2 | Will update with k8s upgrade |
+| k8s.io/klog (v1) | v1.0.0 | v1.0.0 | **DEPRECATED** → k8s.io/klog/v2 |
+| k8s.io/klog/v2 | v2.90.1 | v2.130.1 | Will update with k8s upgrade |
+| k8s.io/kube-openapi | v0.0.0-20230501 | v0.0.0-20260304 | Will update with k8s upgrade |
+| golang.org/x/crypto | v0.45.0 | v0.48.0 | Will update transitively |
+| golang.org/x/net | v0.47.0 | v0.51.0 | Will update transitively |
+| golang.org/x/oauth2 | v0.27.0 | v0.35.0 | Will update transitively |
+| golang.org/x/sys | v0.38.0 | v0.41.0 | Will update transitively |
+| golang.org/x/term | v0.37.0 | v0.40.0 | Will update transitively |
+| golang.org/x/text | v0.31.0 | v0.34.0 | Will update transitively |
+| golang.org/x/time | v0.3.0 | v0.14.0 | Will update transitively |
+| golang.org/x/tools | v0.38.0 | v0.42.0 | Will update transitively |
+| gomodules.xyz/jsonpatch/v2 | v2.2.0 | v2.5.0 | Will update transitively |
+| google.golang.org/protobuf | v1.33.0 | v1.36.11 | Will update transitively |
+| sigs.k8s.io/json | v0.0.0-20221116 | v0.0.0-20250730 | Will update with k8s upgrade |
+| sigs.k8s.io/structured-merge-diff/v4 | v4.2.3 | v4.7.0 | Will update with k8s upgrade |
+| sigs.k8s.io/yaml | v1.3.0 | v1.6.0 | Will update transitively |
+| github.com/gobuffalo/flect | v0.2.1 | v1.0.3 | Will update with controller-gen upgrade |
+| github.com/spf13/cast | v1.4.1 | v1.10.0 | Will update transitively |
+| github.com/spf13/pflag | v1.0.5 | v1.0.10 | Will update transitively |
 
 ### Build tools (Makefile)
 | Tool | Current | Notes |
@@ -70,7 +110,23 @@ available natively in controller-runtime ≥ v0.15.
 the module was properly versioned. The replace directive fixes it to v0.25.7, but the
 require line is misleading and should be corrected.
 
-### P6 — Security and CVE exposure
+### P6 — Moved indirect packages
+Two indirect packages have moved to new import paths and must be tracked:
+- `github.com/google/gnostic` → `github.com/google/gnostic-models` v0.7.1
+- `github.com/imdario/mergo` → `dario.cat/mergo` v1.0.2
+
+These are pulled transitively by k8s.io/* and will be resolved automatically
+after the k8s upgrade, but the old paths must not appear in `go.mod` after tidy.
+
+### P7 — Deprecated indirect packages
+Four indirect packages are deprecated and should disappear after `go mod tidy`
+once their dependents are upgraded:
+- `go.uber.org/atomic` — merged into `go.uber.org/zap`/`multierr` (drops after Phase 4e)
+- `k8s.io/klog` v1 — superseded by `k8s.io/klog/v2` (drops after Phase 2)
+- `github.com/golang/protobuf` — superseded by `google.golang.org/protobuf` (drops after Phase 2)
+- `github.com/matttproud/golang_protobuf_extensions` — merged into prometheus packages (drops after Phase 4a)
+
+### P8 — Security and CVE exposure
 Several transitive dependencies have known CVEs in their pinned versions
 (e.g., old golang.org/x/net, golang.org/x/crypto). Upgrading the chain will bring
 in patched versions.
@@ -195,6 +251,9 @@ Upgrade in order (run `go get <module>@<version>` + `go mod tidy` after each gro
 go get github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring@v0.89.0
 ```
 Check for any API changes in `monitoringv1` types (RelabelConfig, Endpoint fields).
+Transitive updates expected: `prometheus/client_golang` → v1.23.2, `prometheus/common` → v0.67.5,
+`prometheus/procfs` → v0.20.1, `prometheus/client_model` → v0.6.2,
+`matttproud/golang_protobuf_extensions` should drop.
 
 ### 4b. IBM ODLM
 ```
@@ -205,7 +264,7 @@ Verify API compatibility in `controllers/resources/operandrequests.go` and
 
 ### 4c. OpenShift API
 ```
-go get github.com/openshift/api@v0.0.0-20260101000000  # latest stable tag or commit
+go get github.com/openshift/api@v0.0.0-20260306105915-ec7ab20aa8c4
 ```
 Verify Route and ServiceCA types still compatible.
 
@@ -215,23 +274,53 @@ go get github.com/operator-framework/api@v0.41.0
 ```
 Verify `OperatorGroup` types still compatible in `controllers/operatorgroup_cleaner.go`.
 
-### 4e. go.uber.org/zap
+### 4e. go.uber.org/zap and multierr
 ```
 go get go.uber.org/zap@v1.27.1
+go get go.uber.org/multierr@v1.11.0
 ```
 The `zap.New(func(o *zap.Options){...})` functional options API is unchanged.
 Verify `zapcore.RFC3339TimeEncoder` still available.
+`go.uber.org/atomic` should drop from go.mod after tidy (deprecated, merged into these).
 
 ### 4f. redhat-marketplace-operator
-This is a pseudo-version pinned to a specific commit. Evaluate whether:
-- A newer tagged version exists and is compatible
+Latest pseudo-version is `v2.0.0-20260302222345-0e3562b432b3`. Evaluate whether:
+- The newer pseudo-version is compatible
 - The dependency can be replaced by using only the CRD schema directly
   (the operator only uses `meterdefv1beta1.MeterDefinitionList` for scheme registration)
 
-### 4g. General stdlib modernization
+### 4g. Remaining direct dependencies
 ```
-go get golang.org/x/net@latest golang.org/x/crypto@latest golang.org/x/sys@latest
+go get emperror.dev/errors@v0.8.1
+go get github.com/go-logr/logr@v1.4.3
+go get github.com/onsi/ginkgo/v2@v2.28.1
+go get github.com/onsi/gomega@v1.39.1
+go get github.com/stretchr/testify@v1.11.1
 ```
+
+### 4h. golang.org/x/* packages
+```
+go get golang.org/x/crypto@latest
+go get golang.org/x/net@latest
+go get golang.org/x/oauth2@latest
+go get golang.org/x/sys@latest
+go get golang.org/x/term@latest
+go get golang.org/x/text@latest
+go get golang.org/x/time@latest
+go get golang.org/x/tools@latest
+```
+
+### 4i. Verify deprecated/moved indirect packages are gone
+After `go mod tidy`, confirm these no longer appear in `go.mod`:
+- `go.uber.org/atomic` (deprecated)
+- `k8s.io/klog` v1 (deprecated)
+- `github.com/golang/protobuf` (deprecated)
+- `github.com/matttproud/golang_protobuf_extensions` (deprecated)
+- `github.com/google/gnostic` (moved to `gnostic-models`)
+- `github.com/imdario/mergo` (moved to `dario.cat/mergo`)
+
+If any remain, they are still required by a dependency that has not yet been
+upgraded — investigate and resolve before proceeding.
 
 Run `go mod tidy` after all updates.
 
@@ -298,6 +387,8 @@ After Phase 4+5:
 | operator-framework/api v0.41.0 OperatorGroup API changes | Low | Medium | Review changelog before upgrading |
 | kustomize v4→v5 breaks bundle generation | Medium | Low | Test bundle generation after upgrade |
 | prometheus-operator v0.89.0 monitoring type changes | Low | Low | Mostly additive; RelabelConfig may differ |
+| Moved packages (gnostic, mergo) still referenced after tidy | Low | Low | Explicitly verify absence in go.mod after Phase 2 tidy |
+| Deprecated indirect packages not dropped by tidy | Low | Low | If any remain, identify which dependency still requires them and upgrade it |
 
 ---
 
@@ -305,7 +396,7 @@ After Phase 4+5:
 
 | File | Changes |
 |------|---------|
-| `go.mod` | Remove replace directives, update all versions |
+| `go.mod` | Remove replace directives, update all versions, remove deprecated entries |
 | `go.sum` | Regenerated by go mod tidy |
 | `main.go` | Fix ctrl.Options, remove filtered-cache import, fix prometheus path |
 | `controllers/ibmlicensing_controller.go` | Fix prometheus import path |
@@ -313,5 +404,5 @@ After Phase 4+5:
 | `controllers/resources/service/service_monitor.go` | Fix prometheus import path |
 | `Makefile` | Update tool versions |
 
-Additional files may need changes if ODLM, operator-framework, or openshift API
-types have breaking changes discovered during compilation.
+Additional files may need changes if ODLM, operator-framework, openshift API,
+or prometheus-operator v0.89.0 types have breaking changes discovered during compilation.
