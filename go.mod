@@ -6,12 +6,12 @@ require (
 	emperror.dev/errors v0.8.0
 	github.com/IBM/controller-filtered-cache v0.3.5
 	github.com/IBM/operand-deployment-lifecycle-manager v1.21.0
-	github.com/coreos/prometheus-operator v0.41.0
 	github.com/go-logr/logr v1.2.4
 	github.com/onsi/ginkgo/v2 v2.9.2
 	github.com/onsi/gomega v1.27.4
 	github.com/openshift/api v0.0.0-20230306181726-ab59d80e2b79
 	github.com/operator-framework/api v0.17.7
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.57.0
 	github.com/redhat-marketplace/redhat-marketplace-operator/v2 v2.0.0-20230228135942-40c6ba166b59
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.21.0
@@ -64,7 +64,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.57.0 // indirect
 	github.com/prometheus/client_golang v1.15.1 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
