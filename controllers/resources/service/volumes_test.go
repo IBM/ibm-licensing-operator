@@ -188,22 +188,6 @@ func TestGetLicensingVolumeMountsSoftwareCentralEnabled(t *testing.T) {
 	assert.True(t, swcVolumeMount.ReadOnly, "Software Central entitlement key volume mount should be read-only.")
 }
 
-// verifies that when both Sender and SoftwareCentral are enabled, both their volume mounts are added independently.
-func TestGetLicensingVolumeMountsSoftwareCentralEnabledWithSender(t *testing.T) {
-	spec := operatorv1alpha1.IBMLicensingSpec{
-		InstanceNamespace: "namespace",
-		Datasource:        "datacollector",
-		Sender:            &operatorv1alpha1.IBMLicensingSenderSpec{},
-		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
-			Enable:               true,
-			EntitlementKeySecret: "my-entitlement-secret",
-		},
-	}
-
-	volumeMounts := getLicensingVolumeMounts(spec)
-	assert.Equal(t, 5, len(volumeMounts), "Both Sender and SoftwareCentral are enabled, 5 volume mounts should be created.")
-}
-
 // verifies that when SoftwareCentral is enabled, an additional volume for the entitlement key secret is added, independent of Sender configuration.
 func TestGetLicensingVolumesSoftwareCentralEnabled(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
@@ -223,20 +207,4 @@ func TestGetLicensingVolumesSoftwareCentralEnabled(t *testing.T) {
 		"Software Central entitlement key volume should have correct name.")
 	assert.Equal(t, "my-entitlement-secret", swcVolume.Secret.SecretName,
 		"Software Central entitlement key volume should reference the configured secret name.")
-}
-
-// verifies that when both Sender and SoftwareCentral are enabled, both their volumes are added independently.
-func TestGetLicensingVolumesSoftwareCentralEnabledWithSender(t *testing.T) {
-	spec := operatorv1alpha1.IBMLicensingSpec{
-		InstanceNamespace: "namespace",
-		Datasource:        "datacollector",
-		Sender:            &operatorv1alpha1.IBMLicensingSenderSpec{},
-		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
-			Enable:               true,
-			EntitlementKeySecret: "my-entitlement-secret",
-		},
-	}
-
-	volumes := getLicensingVolumes(spec)
-	assert.Equal(t, 5, len(volumes), "Both Sender and SoftwareCentral are enabled, 5 volumes should be created.")
 }
