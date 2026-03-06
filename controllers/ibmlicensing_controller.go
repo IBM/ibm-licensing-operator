@@ -1072,7 +1072,6 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 	if err != nil || result.Requeue {
 		return result, err
 	}
-
 	// handling not installed CRD
 	if found.GetName() == "" {
 		reqLogger.Info("Resource not found (CRD likely not installed), skipping update check see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
