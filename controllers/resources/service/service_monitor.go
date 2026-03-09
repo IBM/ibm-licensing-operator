@@ -43,7 +43,7 @@ func GetAlertingServiceMonitor(instance *operatorv1alpha1.IBMLicensing) *monitor
 }
 
 func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing, name string, interval string,
-	tlsConfig *monitoringv1.TLSConfig, metricRelabelConfigs []*monitoringv1.RelabelConfig) *monitoringv1.ServiceMonitor {
+	tlsConfig *monitoringv1.TLSConfig, metricRelabelConfigs []monitoringv1.RelabelConfig) *monitoringv1.ServiceMonitor {
 
 	return &monitoringv1.ServiceMonitor{
 		ObjectMeta: metav1.ObjectMeta{
@@ -58,16 +58,17 @@ func GetServiceMonitor(instance *operatorv1alpha1.IBMLicensing, name string, int
 			},
 			Endpoints: []monitoringv1.Endpoint{
 				{
-					BearerTokenSecret: corev1.SecretKeySelector{
-						Key: "",
-					},
 					Path:                 "/metrics",
 					MetricRelabelConfigs: metricRelabelConfigs,
 					Scheme:               getScheme(instance),
 					TargetPort:           &prometheusTargetPort,
-					TLSConfig:            tlsConfig,
-					Interval:             monitoringv1.Duration(interval),
-					RelabelConfigs:       getRelabelConfigs(instance),
+					HTTPConfigWithProxyAndTLSFiles: monitoringv1.HTTPConfigWithProxyAndTLSFiles{
+						HTTPConfigWithTLSFiles: monitoringv1.HTTPConfigWithTLSFiles{
+							TLSConfig: tlsConfig,
+						},
+					},
+					Interval:       monitoringv1.Duration(interval),
+					RelabelConfigs: getRelabelConfigs(instance),
 				},
 			},
 		},
@@ -83,7 +84,7 @@ var orderedAllPrometheusMetrics = []string{
 	"product_license_usage_details",
 }
 
-func getMetricRelabelConfigsForRHMP() []*monitoringv1.RelabelConfig {
+func getMetricRelabelConfigsForRHMP() []monitoringv1.RelabelConfig {
 	var usedMetrics = map[string]bool{
 		"product_license_usage":            true,
 		"product_license_usage_chargeback": true,
@@ -93,7 +94,7 @@ func getMetricRelabelConfigsForRHMP() []*monitoringv1.RelabelConfig {
 	return getMetricRelabelConfigs(usedMetrics)
 }
 
-func getMetricRelabelConfigsForAlerting() []*monitoringv1.RelabelConfig {
+func getMetricRelabelConfigsForAlerting() []monitoringv1.RelabelConfig {
 	var usedMetrics = map[string]bool{
 		"ibm_licensing_usage_daily_high_watermark": true,
 	}
@@ -101,7 +102,7 @@ func getMetricRelabelConfigsForAlerting() []*monitoringv1.RelabelConfig {
 }
 
 // return metric relabel config that drops not used prometheus metrics
-func getMetricRelabelConfigs(usedMetrics map[string]bool) []*monitoringv1.RelabelConfig {
+func getMetricRelabelConfigs(usedMetrics map[string]bool) []monitoringv1.RelabelConfig {
 	regex := "("
 	isFirstMetric := true
 
@@ -121,8 +122,8 @@ func getMetricRelabelConfigs(usedMetrics map[string]bool) []*monitoringv1.Relabe
 
 	sourceLabels := []monitoringv1.LabelName{"__name__"}
 
-	relabelConfigs := make([]*monitoringv1.RelabelConfig, 0)
-	relabelConfigs = append(relabelConfigs, &monitoringv1.RelabelConfig{
+	relabelConfigs := make([]monitoringv1.RelabelConfig, 0)
+	relabelConfigs = append(relabelConfigs, monitoringv1.RelabelConfig{
 		Action:       "drop",
 		Regex:        regex,
 		SourceLabels: sourceLabels,
@@ -131,11 +132,12 @@ func getMetricRelabelConfigs(usedMetrics map[string]bool) []*monitoringv1.Relabe
 	return relabelConfigs
 }
 
-func getRelabelConfigs(instance *operatorv1alpha1.IBMLicensing) []*monitoringv1.RelabelConfig {
-	relabelConfigs := make([]*monitoringv1.RelabelConfig, 0)
+func getRelabelConfigs(instance *operatorv1alpha1.IBMLicensing) []monitoringv1.RelabelConfig {
+	relabelConfigs := make([]monitoringv1.RelabelConfig, 0)
 	if instance.Spec.HTTPSEnable {
-		relabelConfigs = append(relabelConfigs, &monitoringv1.RelabelConfig{
-			Replacement: fmt.Sprintf("%s:%d", getServerName(instance), prometheusTargetPort.IntVal),
+		replacement := fmt.Sprintf("%s:%d", getServerName(instance), prometheusTargetPort.IntVal)
+		relabelConfigs = append(relabelConfigs, monitoringv1.RelabelConfig{
+			Replacement: &replacement,
 			TargetLabel: "__address__",
 		})
 	}
@@ -164,9 +166,12 @@ func getServerName(instance *operatorv1alpha1.IBMLicensing) string {
 	return fmt.Sprintf("%s.%s.svc", GetPrometheusServiceName(), instance.Spec.InstanceNamespace)
 }
 
-func getScheme(instance *operatorv1alpha1.IBMLicensing) string {
+func getScheme(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.Scheme {
+	var s monitoringv1.Scheme
 	if instance.Spec.HTTPSEnable {
-		return "https"
+		s = monitoringv1.SchemeHTTPS
+	} else {
+		s = monitoringv1.SchemeHTTP
 	}
-	return "http"
+	return &s
 }

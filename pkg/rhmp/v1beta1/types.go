@@ -42,10 +42,10 @@ type MeterDefinitionList struct {
 }
 
 type MeterDefinitionSpec struct {
-	Group           string                         `json:"group"`
-	Kind            string                         `json:"kind"`
-	ResourceFilters []ResourceFilter               `json:"resourceFilters"`
-	Meters          []MeterWorkload                `json:"meters"`
+	Group           string                          `json:"group"`
+	Kind            string                          `json:"kind"`
+	ResourceFilters []ResourceFilter                `json:"resourceFilters"`
+	Meters          []MeterWorkload                 `json:"meters"`
 	InstalledBy     *common.NamespacedNameReference `json:"installedBy,omitempty"`
 }
 
