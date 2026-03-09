@@ -26,14 +26,6 @@ elif [ -x "$(command -v pip3)" ]; then
 elif [ -x "$(command -v pip)" ]; then
   pip="pip"
 fi
-if ! [ -x "$(command -v go)" ]; then
-  echo " » Tool not found: go. Install suitable version and try again."
-  exit 1
-fi
-if ! [ -x "$(command -v gem)" ]; then
-  echo " » Tool not found: gem. Install suitable version and try again."
-  exit 1
-fi
 
 # Install detect-secrets:
 if ! [ -x "$(command -v detect-secrets)" ]; then
