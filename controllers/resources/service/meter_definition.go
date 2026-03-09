@@ -19,8 +19,8 @@ package service
 import (
 	"time"
 
-	rhmpcommon "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/common"
-	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+	rhmpcommon "github.com/IBM/ibm-licensing-operator/pkg/rhmp/common"
+	rhmp "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
