@@ -20,11 +20,11 @@ CSV_VERSION_DEVELOPMENT ?= development
 OLD_CSV_VERSION ?= 4.2.20
 
 # Tools versions
-OPM_VERSION ?= v1.26.2
-OPERATOR_SDK_VERSION ?= v1.32.0
-YQ_VERSION ?= v4.30.5
-KUSTOMIZE_VERSION ?= v4.5.7
-CONTROLLER_GEN_VERSION ?= v0.14.0
+OPM_VERSION ?= v1.64.0
+OPERATOR_SDK_VERSION ?= v1.42.0
+YQ_VERSION ?= v4.52.4
+KUSTOMIZE_VERSION ?= v5.8.1
+CONTROLLER_GEN_VERSION ?= v0.20.1
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -368,11 +368,11 @@ deploy: manifests kustomize
 manifests: controller-gen
 	yq -i '.metadata.annotations."olm.skipRange" = ">=1.0.0 <$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
 	yq -i '.metadata.annotations.containerImage = "icr.io/cpopen/${IMG}:$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./api/..." paths="./controllers/..." output:crd:artifacts:config=config/crd/bases
 
 # Generate code
 generate: controller-gen
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 
 # Build the docker image
 docker-build: test
@@ -543,7 +543,7 @@ install-controller-gen: ## Install tool locally: controller-gen
 	@controller-gen --version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/controller-tools/cmd/controller-gen@${CONTROLLER_GEN_VERSION}; fi	
 
 install-kustomize: ## Install tool locally: kustomize
-	@kustomize version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/kustomize/kustomize/v4@${KUSTOMIZE_VERSION}; fi	
+	@kustomize version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/kustomize/kustomize/v5@${KUSTOMIZE_VERSION}; fi
 
 install-yq: ## Install tool locally: yq
 	@yq --version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-yq.sh ${TARGET_OS} ${LOCAL_ARCH} ${YQ_VERSION}; fi	
@@ -573,7 +573,7 @@ ifeq (, $(shell which kustomize))
 	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v4@${KUSTOMIZE_VERSION} ;\
+	go get sigs.k8s.io/kustomize/kustomize/v5@${KUSTOMIZE_VERSION} ;\
 	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
 	}
 KUSTOMIZE=$(GOBIN)/kustomize

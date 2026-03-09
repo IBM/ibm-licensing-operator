@@ -1,8 +1,6 @@
 domain: ibm.com
 layout:
-- go.kubebuilder.io/v2
-plugins:
-  go.operator-sdk.io/v2-alpha: {}
+- go.kubebuilder.io/v4
 projectName: ibm-licensing-operator
 repo: github.com/IBM/ibm-licensing-operator
 resources:
