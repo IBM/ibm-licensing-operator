@@ -125,8 +125,8 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled(t *testing.T) {
 		"SoftwareCentral is enabled, SOFTWARE_CENTRAL_ENABLED=true should be added to Licensing pod.")
 	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_URL", Value: softwareCentralProductionURL}),
 		"SoftwareCentral is enabled with Sandbox=false, SOFTWARE_CENTRAL_URL should point to production URL.")
-	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_FREQUENCY", Value: softwareCentralDefaultFrequency}),
-		"SoftwareCentral is enabled, SOFTWARE_CENTRAL_FREQUENCY should be set to the provided value.")
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_FREQUENCY", Value: "0 5 0 * * *"}),
+		"SoftwareCentral is enabled, SOFTWARE_CENTRAL_FREQUENCY should be set to the default value.")
 }
 
 // verifies that when SoftwareCentral is enabled with Sandbox=true, the SOFTWARE_CENTRAL_URL environment variable points to the sandbox URL.
@@ -158,7 +158,7 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled_WithCustomFreque
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_FREQUENCY", Value: "0 12 * * *"}),
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_FREQUENCY", Value: "0 0 12 * * *"}),
 		"SoftwareCentral is enabled with custom frequency, SOFTWARE_CENTRAL_FREQUENCY should reflect the custom value.")
 }
 
