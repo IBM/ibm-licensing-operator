@@ -24,8 +24,8 @@ echo "Create cluster for Scorecard tests"
 ./build_scripts/create_cluster.sh
 
 echo "Install OLM:"
-kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.41.0/crds.yaml
-kubectl apply -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.41.0/olm.yaml
+kubectl apply --server-side -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.41.0/crds.yaml
+kubectl apply --server-side -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.41.0/olm.yaml
 
 echo "Deploy Operators YAML:"
 kubectl create namespace "${LICENSING_NAMESPACE}"
