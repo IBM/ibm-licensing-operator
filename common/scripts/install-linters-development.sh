@@ -31,17 +31,17 @@ function detect_os() {
     ACTIVE_OS="Unknown"
   fi
 
-  echo "    Active Operating System: ${ACTIVE_OS}"
+  echo "Active Operating System: ${ACTIVE_OS}"
   echo
 }
 
 function check_prerequisites() {
   if ! [ -x "$(command -v python3)" ]; then
-    echo "    >>> Tool not found: python3. Install suitable version and try again."
+    echo ">>> Tool not found: python3. Install suitable version and try again."
     exit 1
   fi
   if ! [ -x "$(command -v go)" ]; then
-    echo "    >>> Tool not found: go. Install suitable version and try again."
+    echo ">>> Tool not found: go. Install suitable version and try again."
     exit 1
   fi
 }
@@ -76,58 +76,58 @@ check_prerequisites
 # Ensure the local bin dir and venv exist
 mkdir -p "${LOCALBIN}"
 if [ ! -d "${VENV_DIR}" ]; then
-  echo "    >>> Creating Python virtual environment at ${VENV_DIR}"
+  echo ">>> Creating Python virtual environment at ${VENV_DIR}"
   python3 -m venv "${VENV_DIR}"
 fi
 
 # Shellcheck
 # Note: shellcheck v0.8.0 has no arm64 darwin binary; the x86_64 binary runs via Rosetta 2 on Apple Silicon.
 if ! [ -x "${LOCALBIN}/shellcheck" ]; then
-  echo "    >>> Installing shellcheck [${SHELLCHECK_VERSION}]"
+  echo ">>> Installing shellcheck [${SHELLCHECK_VERSION}]"
   if [ "${ACTIVE_OS}" == 'MacOS_arm64' ] || [ "${ACTIVE_OS}" == 'MacOS_x86' ]; then
     install_shellcheck_from_binary shellcheck-"${SHELLCHECK_VERSION}".darwin.x86_64.tar.xz
   else
     install_shellcheck_from_binary shellcheck-"${SHELLCHECK_VERSION}".linux.x86_64.tar.xz
   fi
 else
-  echo "    >>> Shellcheck already installed."
+  echo ">>> Shellcheck already installed."
   "${LOCALBIN}/shellcheck" --version
   echo
 fi
 
 # Yamllint (installed in shared venv)
 if ! [ -x "${VENV_DIR}/bin/yamllint" ]; then
-  echo "    >>> Installing yamllint [${YAMLLINT_VERSION}]"
+  echo ">>> Installing yamllint [${YAMLLINT_VERSION}]"
   "${VENV_DIR}/bin/pip" install "yamllint==${YAMLLINT_VERSION}"
   chmod +x "${VENV_DIR}/bin/yamllint"
 else
-  echo "    >>> Yamllint already installed"
+  echo ">>> Yamllint already installed"
   "${VENV_DIR}/bin/yamllint" --version
   echo
 fi
 
 # Golangci-lint
 if ! [ -x "${LOCALBIN}/golangci-lint" ]; then
-  echo "    >>> Installing golangci-lint [${GOLANGCI_LINT_VERSION}]"
+  echo ">>> Installing golangci-lint [${GOLANGCI_LINT_VERSION}]"
   curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${LOCALBIN}" "${GOLANGCI_LINT_VERSION}"
 else
-  echo "    >>> Golangci-lint already installed"
+  echo ">>> Golangci-lint already installed"
   "${LOCALBIN}/golangci-lint" --version
   echo
 fi
 
 # goimports
 if ! [ -x "${LOCALBIN}/goimports" ]; then
-  echo "    >>> Installing goimports [${GOIMPORTS_VERSION}]"
+  echo ">>> Installing goimports [${GOIMPORTS_VERSION}]"
   GOBIN="${LOCALBIN}" go install golang.org/x/tools/cmd/goimports@"${GOIMPORTS_VERSION}"
 else
-  echo "    >>> Goimports already installed"
+  echo ">>> Goimports already installed"
   echo
 fi
 
 # Diffutils (system package — cannot be installed to a local directory)
 if ! [ -x "$(command -v diff3)" ]; then
-  echo "    >>> Installing diffutils [${DIFFUTILS_VERSION}]"
+  echo ">>> Installing diffutils [${DIFFUTILS_VERSION}]"
   if [ "${ACTIVE_OS}" == 'Linux' ]; then
     sudo apt-get update
     sudo apt-get install diffutils
@@ -135,9 +135,9 @@ if ! [ -x "$(command -v diff3)" ]; then
     brew install diffutils
   fi
 else
-  echo "    >>> Diffutils already installed"
+  echo ">>> Diffutils already installed"
   diff3 --version
   echo
 fi
 
-echo "    >>> Installation finished"
+echo ">>> Installation finished"

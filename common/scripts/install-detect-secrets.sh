@@ -25,16 +25,16 @@ mkdir -p "${LOCALBIN}"
 
 # Create venv if it doesn't exist
 if [ ! -d "${VENV_DIR}" ]; then
-  echo " >>> Creating Python virtual environment at ${VENV_DIR}"
+  echo ">>> Creating Python virtual environment at ${VENV_DIR}"
   python3 -m venv "${VENV_DIR}"
 fi
 
 # Install or verify detect-secrets inside the venv
 if "${VENV_DIR}/bin/detect-secrets" --version >/dev/null 2>&1; then
-  echo " >>> detect-secrets already installed in venv"
+  echo ">>> detect-secrets already installed in venv"
   "${VENV_DIR}/bin/detect-secrets" --version
 else
-  echo " >>> Installing detect-secrets into ${VENV_DIR}"
+  echo ">>> Installing detect-secrets into ${VENV_DIR}"
   "${VENV_DIR}/bin/pip" install --upgrade \
     "git+https://github.com/ibm/detect-secrets.git@master#egg=detect-secrets"
 fi
@@ -45,4 +45,4 @@ cat > "${WRAPPER}" <<WRAPPER_SCRIPT
 exec "${VENV_DIR}/bin/detect-secrets" "\$@"
 WRAPPER_SCRIPT
 chmod +x "${WRAPPER}"
-echo " >>> detect-secrets wrapper installed at ${WRAPPER}"
+echo ">>> detect-secrets wrapper installed at ${WRAPPER}"
