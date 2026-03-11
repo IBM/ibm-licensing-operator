@@ -162,6 +162,25 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled_WithCustomFreque
 		"SoftwareCentral is enabled with custom frequency, SOFTWARE_CENTRAL_FREQUENCY should reflect the custom value.")
 }
 
+func TestGetSoftwareCentralFrequencyDefaultValue(t *testing.T) {
+	// Test default frequency
+	softwareCentralSpec := &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{}
+	assert.Equal(t, "0 5 0 * * *", getSoftwareCentralFrequency(softwareCentralSpec))
+
+	// Test frequency with 5 characters
+	softwareCentralSpec = &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+		Frequency: "* * * * *",
+	}
+	assert.Equal(t, "0 * * * * *", getSoftwareCentralFrequency(softwareCentralSpec))
+
+	// Test frequency with 6 characters
+	softwareCentralSpec = &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+		Frequency: "*/20 * * * * *",
+	}
+	assert.Equal(t, "*/20 * * * * *", getSoftwareCentralFrequency(softwareCentralSpec))
+
+}
+
 func Contains[T comparable](s []T, e T) bool {
 	for _, v := range s {
 		if v == e {
