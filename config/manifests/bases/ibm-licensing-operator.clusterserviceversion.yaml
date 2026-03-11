@@ -389,6 +389,7 @@ spec:
   - email: talk2sam@us.ibm.com
     name: talk2sam
   maturity: alpha
+  minKubeVersion: 1.24.0
   provider:
     name: IBM
   relatedImages:
