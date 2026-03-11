@@ -98,16 +98,16 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralDisabled_NilSpec(t *test
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
-		SoftwareCentral:   nil,
+		Sender:            nil,
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
 	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_ENABLED", Value: "false"}),
-		"SoftwareCentral is nil, SOFTWARE_CENTRAL_ENABLED should not be added to Licensing pod.")
+		"Sender is nil, SOFTWARE_CENTRAL_ENABLED should not be added to Licensing pod.")
 	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_URL", Value: softwareCentralProductionURL}),
-		"SoftwareCentral is nil, SOFTWARE_CENTRAL_URL should not be added to Licensing pod.")
+		"Sender is nil, SOFTWARE_CENTRAL_URL should not be added to Licensing pod.")
 	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "SOFTWARE_CENTRAL_FREQUENCY", Value: softwareCentralDefaultFrequency}),
-		"SoftwareCentral is nil, SOFTWARE_CENTRAL_FREQUENCY should not be added to Licensing pod.")
+		"Sender is nil, SOFTWARE_CENTRAL_FREQUENCY should not be added to Licensing pod.")
 }
 
 // verifies that when SoftwareCentral is enabled, SOFTWARE_CENTRAL_ENABLED, SOFTWARE_CENTRAL_URL and SOFTWARE_CENTRAL_FREQUENCY environment variables are added.
@@ -115,8 +115,10 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
-		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
-			Enable: true,
+		Sender: &operatorv1alpha1.IBMLicensingSenderSpec{
+			SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+				Enable: true,
+			},
 		},
 	}
 
@@ -134,9 +136,11 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled_SandboxTrue(t *t
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
-		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
-			Enable:  true,
-			Sandbox: true,
+		Sender: &operatorv1alpha1.IBMLicensingSenderSpec{
+			SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+				Enable:  true,
+				Sandbox: true,
+			},
 		},
 	}
 
@@ -151,9 +155,11 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled_WithCustomFreque
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
-		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
-			Enable:    true,
-			Frequency: "0 12 * * *",
+		Sender: &operatorv1alpha1.IBMLicensingSenderSpec{
+			SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+				Enable:    true,
+				Frequency: "0 12 * * *",
+			},
 		},
 	}
 

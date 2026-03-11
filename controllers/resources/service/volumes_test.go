@@ -171,16 +171,18 @@ func TestGetLicensingVolumeMountsSoftwareCentralEnabled(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
-		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
-			Enable:               true,
-			EntitlementKeySecret: "my-entitlement-secret",
+		Sender: &operatorv1alpha1.IBMLicensingSenderSpec{
+			SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+				Enable:               true,
+				EntitlementKeySecret: "my-entitlement-secret",
+			},
 		},
 	}
 
 	volumeMounts := getLicensingVolumeMounts(spec)
-	assert.Equal(t, 4, len(volumeMounts), "SoftwareCentral is enabled, 4 volume mounts should be created, one additional for entitlement key.")
+	assert.Equal(t, 5, len(volumeMounts), "SoftwareCentral is enabled, 5 volume mounts should be created, one for reporter token and one for entitlement key.")
 
-	swcVolumeMount := volumeMounts[3]
+	swcVolumeMount := volumeMounts[4]
 	assert.Equal(t, SoftwareCentralEntitlementKeyVolumeName, swcVolumeMount.Name,
 		"Software Central entitlement key volume mount should have correct name.")
 	assert.Equal(t, "/opt/ibm/licensing/swc-entitlement-key", swcVolumeMount.MountPath,
@@ -188,21 +190,23 @@ func TestGetLicensingVolumeMountsSoftwareCentralEnabled(t *testing.T) {
 	assert.True(t, swcVolumeMount.ReadOnly, "Software Central entitlement key volume mount should be read-only.")
 }
 
-// verifies that when SoftwareCentral is enabled, an additional volume for the entitlement key secret is added, independent of Sender configuration.
+// verifies that when SoftwareCentral is enabled, an additional volume for the entitlement key secret is added.
 func TestGetLicensingVolumesSoftwareCentralEnabled(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
-		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
-			Enable:               true,
-			EntitlementKeySecret: "my-entitlement-secret",
+		Sender: &operatorv1alpha1.IBMLicensingSenderSpec{
+			SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+				Enable:               true,
+				EntitlementKeySecret: "my-entitlement-secret",
+			},
 		},
 	}
 
 	volumes := getLicensingVolumes(spec)
-	assert.Equal(t, 4, len(volumes), "SoftwareCentral is enabled, 4 volumes should be created, one additional for entitlement key.")
+	assert.Equal(t, 5, len(volumes), "SoftwareCentral is enabled, 5 volumes should be created, one for reporter token and one for entitlement key.")
 
-	swcVolume := volumes[3]
+	swcVolume := volumes[4]
 	assert.Equal(t, SoftwareCentralEntitlementKeyVolumeName, swcVolume.Name,
 		"Software Central entitlement key volume should have correct name.")
 	assert.Equal(t, "my-entitlement-secret", swcVolume.Secret.SecretName,
