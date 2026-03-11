@@ -93,6 +93,25 @@ func TestGetLicensingEnvironmentVariablesNamespaceScopingFeatureEnabled(t *testi
 	assert.True(t, Contains(envVars, namespaceScopeDenialLimitEnvVar), "Namespaces scoping feature is enabled, appropriate 'NAMESPACE_DENIAL_LIMIT' environemnt variable should be added to Licensing pod.")
 }
 
+func TestGetSoftwareCentralFrequencyDefaultValue(t *testing.T) {
+	// Test default frequency
+	softwareCentralSpec := &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{}
+	assert.Equal(t, "0 5 0 * * *", getSoftwareCentralFrequency(softwareCentralSpec))
+
+	// Test frequency with 5 characters
+	softwareCentralSpec = &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+		Frequency: "* * * * *",
+	}
+	assert.Equal(t, "0 * * * * *", getSoftwareCentralFrequency(softwareCentralSpec))
+
+	// Test frequency with 6 characters
+	softwareCentralSpec = &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+		Frequency: "*/20 * * * * *",
+	}
+	assert.Equal(t, "*/20 * * * * *", getSoftwareCentralFrequency(softwareCentralSpec))
+
+}
+
 func Contains[T comparable](s []T, e T) bool {
 	for _, v := range s {
 		if v == e {

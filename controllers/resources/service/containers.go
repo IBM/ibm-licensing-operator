@@ -18,6 +18,7 @@ package service
 
 import (
 	"strconv"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -351,11 +352,22 @@ func getSoftwareCentralURL(swc *operatorv1alpha1.IBMLicensingSoftwareCentralSpec
 }
 
 // returns the upload frequency or the default value if not set.
+// When provided frequency contains 5 characters then leading zero will be added to convert
+// the frequency to Spring Boot cron expression format.
 func getSoftwareCentralFrequency(swc *operatorv1alpha1.IBMLicensingSoftwareCentralSpec) string {
-	if swc.Frequency != "" {
-		return swc.Frequency
+	frequency := swc.Frequency
+
+	// Use default value if frequency was unspecified
+	if frequency == "" {
+		frequency = softwareCentralDefaultFrequency
 	}
-	return softwareCentralDefaultFrequency
+
+	// If frequency contains only 5 characters then add leading zero (0 seconds)
+	if len(strings.Split(frequency, " ")) == 5 {
+		frequency = "0 " + frequency
+	}
+
+	return frequency
 }
 
 func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Container {
