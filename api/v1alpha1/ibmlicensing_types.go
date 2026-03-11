@@ -157,11 +157,6 @@ type IBMLicensingSpec struct {
 	// Enabling collection of Instana metrics
 	// +optional
 	EnableInstanaMetricCollection bool `json:"enableInstanaMetricCollection,omitempty"`
-
-	// Software Central integration configuration
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Software Central",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
-	// +optional
-	SoftwareCentral *IBMLicensingSoftwareCentralSpec `json:"softwareCentral,omitempty"`
 }
 
 type IBMLicensingSoftwareCentralSpec struct {
@@ -224,6 +219,11 @@ type IBMLicensingSenderSpec struct {
 	// +kubebuilder:validation:Pattern:=`(@(annually|yearly|monthly|weekly|daily|midnight|hourly))|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})`
 	// +optional
 	Frequency string `json:"frequency,omitempty"`
+
+	// Software Central integration configuration
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Software Central",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	SoftwareCentral *IBMLicensingSoftwareCentralSpec `json:"softwareCentral,omitempty"`
 }
 
 type IBMLicensingSecurityContext struct {
