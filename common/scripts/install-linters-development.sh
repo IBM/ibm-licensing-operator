@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+LOCALBIN="${1:?Usage: $0 <localbin-path>}"
+VENV_DIR="${LOCALBIN}/.venv"
 ACTIVE_OS=
 
 function detect_os() {
@@ -29,37 +31,19 @@ function detect_os() {
     ACTIVE_OS="Unknown"
   fi
 
-  echo " ✔ Active Operating System: ${ACTIVE_OS}"
+  echo "    Active Operating System: ${ACTIVE_OS}"
   echo
 }
 
 function check_prerequisites() {
-  if ! [ -x "$(command -v pip)" ] && ! [ -x "$(command -v pip3)" ]; then
-    echo " » Tool not found: pip. Install suitable version and try again."
+  if ! [ -x "$(command -v python3)" ]; then
+    echo "    >>> Tool not found: python3. Install suitable version and try again."
     exit 1
-  elif [ -x "$(command -v pip3)" ]; then
-    pip="pip3"
-  elif [ -x "$(command -v pip)" ]; then
-    pip="pip"
   fi
   if ! [ -x "$(command -v go)" ]; then
-    echo " » Tool not found: go. Install suitable version and try again."
+    echo "    >>> Tool not found: go. Install suitable version and try again."
     exit 1
   fi
-  if ! [ -x "$(command -v gem)" ]; then
-    echo " » Tool not found: gem. Install suitable version and try again."
-    exit 1
-  fi
-}
-
-##hadolint-Darwin-x86_64
-##hadolint-Linux-x86_64
-install_hadolint_from_binary() {
-  binaryName=$1
-  # Download binary
-  curl -LO "https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/${binaryName}"
-  # Install binary
-  chmod +x "$binaryName" && mkdir -p /usr/local/bin/ && cp "$binaryName" /usr/local/bin/hadolint && rm "$binaryName"
 }
 
 ##shellcheck-v0.8.0.darwin.x86_64.tar.xz
@@ -67,20 +51,20 @@ install_hadolint_from_binary() {
 install_shellcheck_from_binary() {
   binaryName=$1
   # Download compressed
-  curl -LO "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/${binaryName}"
+  curl -sSfL "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/${binaryName}" \
+    -o "${binaryName}"
   # Decompress
   tar -xf "$binaryName"
   # Install binary
-  chmod +x shellcheck-"${SHELLCHECK_VERSION}"/shellcheck && mkdir -p /usr/local/bin/ && cp shellcheck-"${SHELLCHECK_VERSION}"/shellcheck /usr/local/bin/shellcheck && rm -r shellcheck-"${SHELLCHECK_VERSION}." && rm "${binaryName}"
+  chmod +x shellcheck-"${SHELLCHECK_VERSION}"/shellcheck
+  cp shellcheck-"${SHELLCHECK_VERSION}"/shellcheck "${LOCALBIN}/shellcheck"
+  rm -rf shellcheck-"${SHELLCHECK_VERSION}" "${binaryName}"
 }
 
-# linter versiions
-HADOLINT_VERSION=v2.12.0
+# linter versions
 SHELLCHECK_VERSION=v0.8.0
-YAMLLINT_VERSION=v1.28.0
-GOLANGCI_LINT_VERSION=v1.56.1
-MDL_VERSION=0.11.0
-AWESOME_BOT_VERSION=1.20.0
+YAMLLINT_VERSION=1.28.0
+GOLANGCI_LINT_VERSION=v2.11.2
 GOIMPORTS_VERSION=v0.3.0
 DIFFUTILS_VERSION=v3.8
 
@@ -89,101 +73,71 @@ DIFFUTILS_VERSION=v3.8
 detect_os
 check_prerequisites
 
-# Hadolint
-if ! [ -x "$(command -v hadolint)" ]; then
-  echo " » Installing hadolint [${HADOLINT_VERSION}]"
-  if [ $ACTIVE_OS == 'MacOS_arm64' ]; then
-    brew install hadolint
-  elif [ $ACTIVE_OS == 'MacOS_x86' ]; then
-    install_hadolint_from_binary hadolint-Darwin-x86_64
-  else
-    install_hadolint_from_binary hadolint-Linux-x86_64
-  fi
-else
-  echo " » Hadolint already installed."
-  hadolint --version
-  echo
+# Ensure the local bin dir and venv exist
+mkdir -p "${LOCALBIN}"
+if [ ! -d "${VENV_DIR}" ]; then
+  echo "    >>> Creating Python virtual environment at ${VENV_DIR}"
+  python3 -m venv "${VENV_DIR}"
 fi
 
 # Shellcheck
-if ! [ -x "$(command -v shellcheck)" ]; then
-  echo " » Installing shellcheck [${SHELLCHECK_VERSION}]"
-  if [ $ACTIVE_OS == 'MacOS_arm64' ]; then
-    brew install shellcheck
-  elif [ $ACTIVE_OS == 'MacOS_x86' ]; then
+# Note: shellcheck v0.8.0 has no arm64 darwin binary; the x86_64 binary runs via Rosetta 2 on Apple Silicon.
+if ! [ -x "${LOCALBIN}/shellcheck" ]; then
+  echo "    >>> Installing shellcheck [${SHELLCHECK_VERSION}]"
+  if [ "${ACTIVE_OS}" == 'MacOS_arm64' ] || [ "${ACTIVE_OS}" == 'MacOS_x86' ]; then
     install_shellcheck_from_binary shellcheck-"${SHELLCHECK_VERSION}".darwin.x86_64.tar.xz
   else
     install_shellcheck_from_binary shellcheck-"${SHELLCHECK_VERSION}".linux.x86_64.tar.xz
   fi
-
 else
-  echo " » Shellcheck already installed."
-  shellcheck --version
+  echo "    >>> Shellcheck already installed."
+  "${LOCALBIN}/shellcheck" --version
   echo
 fi
 
-# Yamllint
-if ! [ -x "$(command -v yamllint)" ]; then
-  echo " » Installing yamllint [${YAMLLINT_VERSION}]"
-  $pip install yamllint=="${YAMLLINT_VERSION}"
+# Yamllint (installed in shared venv)
+if ! [ -x "${VENV_DIR}/bin/yamllint" ]; then
+  echo "    >>> Installing yamllint [${YAMLLINT_VERSION}]"
+  "${VENV_DIR}/bin/pip" install "yamllint==${YAMLLINT_VERSION}"
+  chmod +x "${VENV_DIR}/bin/yamllint"
 else
-  echo " » Yamllint already installed"
-  yamllint --version
+  echo "    >>> Yamllint already installed"
+  "${VENV_DIR}/bin/yamllint" --version
   echo
 fi
 
 # Golangci-lint
-if ! [ -x "$(command -v golangci-lint)" ]; then
-  echo " » Installing golangci-lint [${GOLANGCI_LINT_VERSION}]"
-  curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin "${GOLANGCI_LINT_VERSION}"
+if ! [ -x "${LOCALBIN}/golangci-lint" ]; then
+  echo "    >>> Installing golangci-lint [${GOLANGCI_LINT_VERSION}]"
+  curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${LOCALBIN}" "${GOLANGCI_LINT_VERSION}"
 else
-  echo " » Golangci-lint already installed"
-  golangci-lint --version
-  echo
-fi
-
-# Mdl
-if ! [ -x "$(command -v mdl)" ]; then
-  echo " » Installing mdl [${MDL_VERSION}]"
-  sudo gem install mdl -v ${MDL_VERSION}
-else
-  echo " » Mdl already installed"
-  mdl --version
-  echo
-fi
-
-# Awesome_bot
-if ! [ -x "$(command -v awesome_bot)" ]; then
-  echo " » Installing awesome_bot [${AWESOME_BOT_VERSION}]"
-  sudo gem install awesome_bot -v ${AWESOME_BOT_VERSION}
-else
-  echo " » Awesome_bot already installed"
-  awesome_bot --version
+  echo "    >>> Golangci-lint already installed"
+  "${LOCALBIN}/golangci-lint" --version
   echo
 fi
 
 # goimports
-if ! [ -x "$(command -v goimports)" ]; then
-  echo " » Installing goimports [${GOIMPORTS_VERSION}]"
-  go install golang.org/x/tools/cmd/goimports@"${GOIMPORTS_VERSION}"
+if ! [ -x "${LOCALBIN}/goimports" ]; then
+  echo "    >>> Installing goimports [${GOIMPORTS_VERSION}]"
+  GOBIN="${LOCALBIN}" go install golang.org/x/tools/cmd/goimports@"${GOIMPORTS_VERSION}"
 else
-  echo " » Goimports already installed"
+  echo "    >>> Goimports already installed"
   echo
 fi
 
-# Diffutils
+# Diffutils (system package — cannot be installed to a local directory)
 if ! [ -x "$(command -v diff3)" ]; then
-  echo " » Installing diffutils [${DIFFUTILS_VERSION}]"
-  if [ $ACTIVE_OS == 'Linux' ]; then
+  echo "    >>> Installing diffutils [${DIFFUTILS_VERSION}]"
+  if [ "${ACTIVE_OS}" == 'Linux' ]; then
     sudo apt-get update
     sudo apt-get install diffutils
   else
     brew install diffutils
   fi
 else
-  echo " » Diffutils already installed"
+  echo "    >>> Diffutils already installed"
   diff3 --version
   echo
 fi
 
-echo " » Installation finished"
+echo "    >>> Installation finished"

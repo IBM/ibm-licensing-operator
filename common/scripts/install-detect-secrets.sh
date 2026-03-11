@@ -17,22 +17,32 @@
 
 set -euo pipefail
 
-# Check for prerequisites:
-if ! [ -x "$(command -v pip)" ] && ! [ -x "$(command -v pip3)" ]; then
-  echo " » Tool not found: pip. Install suitable version and try again."
-  exit 1
-elif [ -x "$(command -v pip3)" ]; then
-  pip="pip3"
-elif [ -x "$(command -v pip)" ]; then
-  pip="pip"
+LOCALBIN="${1:?Usage: $0 <localbin-path>}"
+VENV_DIR="${LOCALBIN}/.venv"
+WRAPPER="${LOCALBIN}/detect-secrets"
+
+mkdir -p "${LOCALBIN}"
+
+# Create venv if it doesn't exist
+if [ ! -d "${VENV_DIR}" ]; then
+  echo " >>> Creating Python virtual environment at ${VENV_DIR}"
+  python3 -m venv "${VENV_DIR}"
 fi
 
-# Install detect-secrets:
-if ! [ -x "$(command -v detect-secrets)" ]; then
-  echo " » Installing detect-secrets"
-  $pip install --upgrade "git+https://github.com/ibm/detect-secrets.git@master#egg=detect-secrets"
+# Install or verify detect-secrets inside the venv
+if "${VENV_DIR}/bin/detect-secrets" --version >/dev/null 2>&1; then
+  echo " >>> detect-secrets already installed in venv"
+  "${VENV_DIR}/bin/detect-secrets" --version
 else
-  echo " » detect-secrets already installed"
-  detect-secrets --version
-  echo
+  echo " >>> Installing detect-secrets into ${VENV_DIR}"
+  "${VENV_DIR}/bin/pip" install --upgrade \
+    "git+https://github.com/ibm/detect-secrets.git@master#egg=detect-secrets"
 fi
+
+# Create/update wrapper script in LOCALBIN so detect-secrets is on PATH
+cat > "${WRAPPER}" <<WRAPPER_SCRIPT
+#!/bin/bash
+exec "${VENV_DIR}/bin/detect-secrets" "\$@"
+WRAPPER_SCRIPT
+chmod +x "${WRAPPER}"
+echo " >>> detect-secrets wrapper installed at ${WRAPPER}"
