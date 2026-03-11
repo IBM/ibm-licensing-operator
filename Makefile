@@ -339,11 +339,11 @@ prepare-unit-test:
 	kubectl apply -f ./config/rbac/service_account_ns.yaml|| echo ""
 	sed "s/ibm-licensing/${NAMESPACE}/g" < ./config/rbac/role_binding.yaml > ./config/rbac/role_binding_ns.yaml
 	kubectl apply -f ./config/rbac/role_binding_ns.yaml || echo ""
-	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/master/v2/config/crd/bases/marketplace.redhat.com_meterdefinitions.yaml
+	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/674d4e57186b/v2/config/crd/bases/marketplace.redhat.com_meterdefinitions.yaml
 	kubectl apply -f marketplace.redhat.com_meterdefinitions.yaml
 	curl -O https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
 	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
-	curl -O https://raw.githubusercontent.com/IBM/operand-deployment-lifecycle-manager/v1.21.0/bundle/manifests/operator.ibm.com_operandrequests.yaml
+	curl -O https://raw.githubusercontent.com/IBM/operand-deployment-lifecycle-manager/v1.23.5/bundle/manifests/operator.ibm.com_operandrequests.yaml
 	kubectl apply -f operator.ibm.com_operandrequests.yaml
 
 unit-test: prepare-unit-test
