@@ -215,7 +215,7 @@ spec:
                   description: Environment variable setting
                   type: object
                 httpsCertsSource:
-                  description: 'options: self-signed or custom'
+                  description: "options: self-signed or custom"
                   enum:
                     - self-signed
                     - custom
@@ -326,16 +326,16 @@ spec:
                   description: IBM License Service Reporter license acceptance.
                   properties:
                     accept:
-                      description: 'By installing the IBM License Service Reporter, you accept the license terms for the particular IBM product for which you are deploying this component: ibm.biz/lsvc-lic.'
+                      description: "By installing the IBM License Service Reporter, you accept the license terms for the particular IBM product for which you are deploying this component: ibm.biz/lsvc-lic."
                       type: boolean
                       x-kubernetes-validations:
-                        - message: 'Please accept license terms of this component (ibm.biz/lsvc-lic) by setting a field spec.license.accept: true'
+                        - message: "Please accept license terms of this component (ibm.biz/lsvc-lic) by setting a field spec.license.accept: true"
                           rule: self == true
                   required:
                     - accept
                   type: object
                 logLevel:
-                  description: 'Should application pod show additional information, options: DEBUG, INFO, VERBOSE'
+                  description: "Should application pod show additional information, options: DEBUG, INFO, VERBOSE"
                   enum:
                     - DEBUG
                     - INFO
