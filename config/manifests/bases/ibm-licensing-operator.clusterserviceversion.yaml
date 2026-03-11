@@ -39,14 +39,37 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: 'IBMLicensing custom resource is used to create an instance of
-        the License Service, used to collect information about license usage of IBM
-        containerized products and IBM Cloud Paks per cluster. You can retrieve license
-        usage data through a dedicated API call and generate an audit snapshot on
-        demand. Documentation: For additional details regarding install parameters
-        check: https://ibm.biz/icpfs39install. License: Please refer to the IBM Terms
-        website (ibm.biz/lsvc-lic) to find the license terms for the particular IBM
-        product for which you are deploying this component.'
+    - description: |-
+        IBMLicensingDefinition is a custom resource for internal use only. It is used by some IBM products to assign their pods to the licensed products for the licensing specific calculation, performed by the IBM License Service.
+        It is prepared in close collaboration with those IBM products, and affects only them. It cannot be modified by a customer, to ensure compliance with the license usage metering and reporting.
+      displayName: IBM Licensing Definition
+      kind: IBMLicensingDefinition
+      name: ibmlicensingdefinitions.operator.ibm.com
+      version: v1
+    - description: |-
+        IBMLicensingMetadata is the schema for IBM License Service. Thanks to IBMLicensingMetadata, you can track
+        the license usage of Virtual Processor Core (VPC) metric by Pods that are managed by automation,
+        for which licensing annotations are not defined at the time of deployment, such as the open source OpenLiberty.
+        / For more information, see documentation: https://ibm.biz/icpfs39install.
+        License: By installing this product you accept the license terms. For more information about the license,
+        see https://ibm.biz/icpfs39license.
+      displayName: IBMLicensing Metadata
+      kind: IBMLicensingMetadata
+      name: ibmlicensingmetadatas.operator.ibm.com
+      version: v1alpha1
+    - description: |-
+        IBMLicensingQuerySource is a custom resource for internal use only. It is used by some IBM products to assign their pods to the licensed products for the licensing specific calculation, performed by the IBM License Service.
+        It is prepared in close collaboration with those IBM products, and affects only them. It cannot be modified by a customer, to ensure compliance with the license usage metering and reporting.
+      displayName: IBM Licensing Query Source
+      kind: IBMLicensingQuerySource
+      name: ibmlicensingquerysources.operator.ibm.com
+      version: v1
+    - description: |-
+        IBMLicensing custom resource is used to create an instance of the License Service, used to collect information about license usage of IBM containerized products and IBM Cloud Paks per cluster.
+        You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
+        Documentation: For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
+        License: Please refer to the IBM Terms website (ibm.biz/lsvc-lic)
+        to find the license terms for the particular IBM product for which you are deploying this component.
       displayName: IBM License Service
       kind: IBMLicensing
       name: ibmlicensings.operator.ibm.com
@@ -100,18 +123,14 @@ spec:
         name: ""
         version: v1alpha1
       specDescriptors:
-      - description: Please refer to the IBM Terms website (ibm.biz/lsvc-lic) to find
-          the license terms for the particular IBM product for which you are deploying
-          this component.
-        displayName: License Acceptance
-        path: license
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Annotations to be copied into all relevant resources
+        displayName: Annotations
+        path: annotations
       - description: Consider updating to enable chargeback feature
         displayName: Chargeback Enabled
         path: chargebackEnabled
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:checkbox
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Chargeback data retention period in days. Default value is 62
           days.
         displayName: Chargeback Retention Period in days
@@ -131,11 +150,62 @@ spec:
       - description: Set additional features under this field
         displayName: Features
         path: features
+      - description: Change alerting settings.
+        displayName: Alerting settings
+        path: features.alerting
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Should this function be enabled.
+        displayName: Enabled
+        path: features.alerting.enabled
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Authorization settings.
+        displayName: Auth
+        path: features.auth
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Enable URL based Auth
+        displayName: Url Based Based Enabled
+        path: features.auth.urlBasedEnabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading
+          (SMT) enabled
+        displayName: Hyper Threading
+        path: features.hyperThreading
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Special terms, must be granted by IBM Pricing.
+        displayName: Custom namespaces Config Map
+        path: features.nssConfigMap
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
       - description: Limit for failed namespace access attempts before reporting an
-          error in custom namespaces scoping
+          error in custom namespaces scoping.
+        displayName: Namespace Scope Denial Limit
         path: features.nssDenialLimit
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Special terms, must be granted by IBM Pricing.
+        displayName: Namespace scope enabled
+        path: features.nssEnabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Change prometheus query source settings.
+        displayName: Prometheus query source settings
+        path: features.prometheusQuerySource
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Should this function be enabled (by default it is).
+        displayName: Enabled
+        path: features.prometheusQuerySource.enabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: What url to use for prometheus API (by default use OCP Thanos
+          Querier).
+        displayName: URL
+        path: features.prometheusQuerySource.url
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
       - description: Enables https access at pod level, httpsCertsSource needed if
@@ -143,7 +213,7 @@ spec:
         displayName: HTTPS Enable
         path: httpsEnable
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:checkbox
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Should Ingress be created to expose IBM Licensing Service API?
         displayName: Ingress Enabled
         path: ingressEnabled
@@ -165,6 +235,12 @@ spec:
         path: ingressOptions.host
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
+      - description: IngressClassName defines ingress class name option to be passed
+          to the ingress spec field
+        displayName: IngressClassName
+        path: ingressOptions.ingressClassName
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Path after host where API will be available f.e. https://<hostname>:<port>/ibm-licensing-service-instance
         displayName: Path
         path: ingressOptions.path
@@ -175,24 +251,39 @@ spec:
         path: ingressOptions.tls
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-      - description: Existing or to be created namespace where application will start.
-          In case metering data collection is used, should be the same namespace as
-          metering components
+      - description: |-
+          Existing or to be created namespace where application will start. In case metering data collection is used,
+          should be the same namespace as metering components
         displayName: Instance Namespace
         path: instanceNamespace
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Labels to be copied into all relevant resources
+        displayName: Labels
+        path: labels
+      - description: IBM License Service license acceptance.
+        displayName: License Acceptance
+        path: license
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: 'By installing the IBM License Service, you accept the license
+          terms for the particular IBM product for which you are deploying this component:
+          ibm.biz/lsvc-lic.'
+        displayName: License acceptance
+        path: license.accept
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:checkbox
       - description: Is Red Hat Marketplace enabled
         displayName: RHMP Enabled
         path: rhmpEnabled
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:hidden
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Should Route be created to expose IBM Licensing Service API?
           (only on OpenShift cluster)
         displayName: Route Enabled
         path: routeEnabled
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:checkbox
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: If default SCC user ID fails, you can set runAsUser option to
           fix that
         displayName: Security Context
@@ -216,6 +307,20 @@ spec:
         path: sender.clusterName
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Frequency of workloads scans as cron expression. If not provided,
+          workloads reporting is disabled.
+        displayName: Workloads Reporting Frequency
+        path: sender.frequency
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:io.kubernetes:hidden
+      - description: Name of the secret that contains the License Service Reporter
+          certificate(s) used to establish a secure connection with it. You need to
+          create it in instance namespace
+        displayName: Reporter Certificates Secret Name
+        path: sender.reporterCertsSecretName
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: License Service Reporter authentication token, provided by secret
           that you need to create in instance namespace
         displayName: Reporter Secret Token
@@ -228,24 +333,12 @@ spec:
         path: sender.reporterURL
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-      - description: Frequency of workloads scans as cron expression. If not provided,
-          workloads reporting is disabled.
-        displayName: Frequency
-        path: sender.frequency
+      - description: Enable certificates validation when uploading data to the License
+          Service Reporter
+        displayName: Validate Reporter Certificates
+        path: sender.validateReporterCerts
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
-        - urn:alm:descriptor:com.tectonic.ui:hidden
-      version: v1alpha1
-    - description: 'IBMLicensingMetadata is the schema for IBM License Service. Thanks
-        to IBMLicensingMetadata, you can track the license usage of Virtual Processor
-        Core (VPC) metric by Pods that are managed by automation, for which licensing
-        annotations are not defined at the time of deployment, such as the open source
-        OpenLiberty. / For more information, see documentation: https://ibm.biz/icpfs39install.
-        By installing the operator for IBM License Service, you accept the license
-        terms: https://ibm.biz/icpfs39license.'
-      displayName: IBMLicensing Metadata
-      kind: IBMLicensingMetadata
-      name: ibmlicensingmetadatas.operator.ibm.com
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       version: v1alpha1
   description: |-
     **Important:**

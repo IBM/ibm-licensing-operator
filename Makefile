@@ -450,14 +450,17 @@ update-roles-alm-example: alm-example yq
 alm-example: yq
 	mkdir -p /tmp/json
 	$(YQ) -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml > /tmp/json/ibmlicensing.json
+	$(YQ) -P -o=json ./config/samples/operator_v1_ibmlicensingdefinition.yaml > /tmp/json/ibmlicensingdefinition.json
+	$(YQ) -P -o=json ./config/samples/operator_v1alpha1_ibmlicensingmetadata.yaml > /tmp/json/ibmlicensingmetadata.json
+	$(YQ) -P -o=json ./config/samples/operator_v1_ibmlicensingquerysource.yaml > /tmp/json/ibmlicensingquerysource.json
 
-	jq -s '.' /tmp/json/ibmlicensing.json > /tmp/json/merged.json
+	jq -s '.' /tmp/json/ibmlicensing.json /tmp/json/ibmlicensingdefinition.json /tmp/json/ibmlicensingmetadata.json /tmp/json/ibmlicensingquerysource.json > /tmp/json/merged.json
 	$(YQ) -i '.metadata.annotations.alm-examples |= load_str("/tmp/json/merged.json")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
 	rm -r /tmp/json
 
 # Generate bundle manifests and metadata, then validate generated files. Yq is used to change order of owned resources here to ensure Licensing is first.
-pre-bundle: manifests operator-sdk yq
+pre-bundle: manifests operator-sdk kustomize yq
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
 	$(YQ) -i '.annotations."com.redhat.openshift.versions" = "v4.12"' ./bundle/metadata/annotations.yaml
@@ -472,9 +475,9 @@ pre-bundle: manifests operator-sdk yq
 	$(YQ) -i '.spec.relatedImages = load("./common/relatedImages.yaml")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
 	rm yq_tmp_licensing.yaml yq_tmp_metadata.yaml yq_tmp_definitions.yaml yq_tmp_querysources.yaml
-	$(OPERATOR_SDK) bundle validate ./bundle
 
 bundle: pre-bundle update-roles-alm-example
+	$(OPERATOR_SDK) bundle validate ./bundle
 
 # Build the bundle image.
 bundle-build:

@@ -12,9 +12,11 @@ resources:
 configurations:
 - kustomizeconfig.yaml
 
-commonLabels:
-  app.kubernetes.io/instance: "ibm-licensing-operator"
-  app.kubernetes.io/managed-by: "ibm-licensing-operator"
-  app.kubernetes.io/name: "ibm-licensing"
+labels:
+- pairs:
+    app.kubernetes.io/instance: "ibm-licensing-operator"
+    app.kubernetes.io/managed-by: "ibm-licensing-operator"
+    app.kubernetes.io/name: "ibm-licensing"
+  includeSelectors: false
 
 

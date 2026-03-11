@@ -2,12 +2,86 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    alm-examples: '[]'
+    alm-examples: |
+      [
+        {
+          "apiVersion": "operator.ibm.com/v1alpha1",
+          "kind": "IBMLicensing",
+          "metadata": {
+            "labels": {
+              "app.kubernetes.io/instance": "ibm-licensing-operator",
+              "app.kubernetes.io/managed-by": "ibm-licensing-operator",
+              "app.kubernetes.io/name": "ibm-licensing"
+            },
+            "name": "instance"
+          },
+          "spec": {
+            "version": "4.2.21",
+            "apiSecretToken": "ibm-licensing-token",
+            "datasource": "datacollector",
+            "httpsEnable": true
+          }
+        },
+        {
+          "apiVersion": "operator.ibm.com/v1",
+          "kind": "IBMLicensingDefinition",
+          "metadata": {
+            "name": "ibmlicensingdefinition-sample"
+          },
+          "spec": {
+            "action": "modifyOriginal",
+            "condition": {
+              "metadata": {
+                "annotations": {
+                  "someKey": "someValue"
+                }
+              }
+            },
+            "scope": "cluster",
+            "set": {
+              "someKey": "someValue"
+            }
+          }
+        },
+        {
+          "apiVersion": "operator.ibm.com/v1alpha1",
+          "kind": "IBMLicensingMetadata",
+          "metadata": {
+            "name": "ibmlicensingmetadata-sample"
+          },
+          "spec": {
+            "condition": {
+              "annotation": {}
+            },
+            "extend": {}
+          }
+        },
+        {
+          "apiVersion": "operator.ibm.com/v1",
+          "kind": "IBMLicensingQuerySource",
+          "metadata": {
+            "name": "ibmlicensingquerysource-sample"
+          },
+          "spec": {
+            "aggregationPolicy": "MAX",
+            "query": "some_prometheus_query{}",
+            "annotations": {
+              "cloudpakId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "cloudpakName": "Some Cloudpak Name",
+              "cloudpakMetric": "VIRTUAL_PROCESSOR_CORE",
+              "productID": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "productName": "Some Product Name",
+              "productMetric": "SOME_METRIC_THAT_QUERY_CALCULATES",
+              "productCloudpakRatio": "5:1"
+            }
+          }
+        }
+      ]
     capabilities: Seamless Upgrades
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.21
-    createdAt: "2026-03-10T15:26:25Z"
+    createdAt: "2026-03-11T13:45:48Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
@@ -37,10 +111,288 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-      - null
-      - null
-      - null
-      - null
+      - description: |-
+          IBMLicensing custom resource is used to create an instance of the License Service, used to collect information about license usage of IBM containerized products and IBM Cloud Paks per cluster.
+          You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
+          Documentation: For additional details regarding install parameters check: https://ibm.biz/icpfs39install.
+          License: Please refer to the IBM Terms website (ibm.biz/lsvc-lic)
+          to find the license terms for the particular IBM product for which you are deploying this component.
+        displayName: IBM License Service
+        kind: IBMLicensing
+        name: ibmlicensings.operator.ibm.com
+        resources:
+          - kind: ClusterRole
+            name: ""
+            version: v1
+          - kind: ClusterRoleBinding
+            name: ""
+            version: v1
+          - kind: Deployment
+            name: ""
+            version: v1
+          - kind: Ingresses
+            name: ""
+            version: v1beta1
+          - kind: Pod
+            name: ""
+            version: v1
+          - kind: ReplicaSets
+            name: ""
+            version: v1
+          - kind: Role
+            name: ""
+            version: v1
+          - kind: RoleBinding
+            name: ""
+            version: v1
+          - kind: Route
+            name: ""
+            version: v1
+          - kind: Secret
+            name: ""
+            version: v1
+          - kind: Service
+            name: ""
+            version: v1
+          - kind: ServiceAccount
+            name: ""
+            version: v1
+          - kind: configmaps
+            name: ""
+            version: v1
+          - kind: ibmlicensingmetadatas
+            name: ""
+            version: v1alpha1
+          - kind: ibmlicensings
+            name: ""
+            version: v1alpha1
+          - kind: status
+            name: ""
+            version: v1alpha1
+        specDescriptors:
+          - description: Annotations to be copied into all relevant resources
+            displayName: Annotations
+            path: annotations
+          - description: Consider updating to enable chargeback feature
+            displayName: Chargeback Enabled
+            path: chargebackEnabled
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Chargeback data retention period in days. Default value is 62 days.
+            displayName: Chargeback Retention Period in days
+            path: chargebackRetentionPeriod
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:number
+          - description: 'Where should data be collected, options: metering, datacollector'
+            displayName: Datasource
+            path: datasource
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Environment variable setting
+            displayName: Environment variable setting
+            path: envVariable
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:hidden
+          - description: Set additional features under this field
+            displayName: Features
+            path: features
+          - description: Change alerting settings.
+            displayName: Alerting settings
+            path: features.alerting
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:hidden
+          - description: Should this function be enabled.
+            displayName: Enabled
+            path: features.alerting.enabled
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Authorization settings.
+            displayName: Auth
+            path: features.auth
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:hidden
+          - description: Enable URL based Auth
+            displayName: Url Based Based Enabled
+            path: features.auth.urlBasedEnabled
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:hidden
+          - description: Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading (SMT) enabled
+            displayName: Hyper Threading
+            path: features.hyperThreading
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:hidden
+          - description: Special terms, must be granted by IBM Pricing.
+            displayName: Custom namespaces Config Map
+            path: features.nssConfigMap
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:hidden
+          - description: Limit for failed namespace access attempts before reporting an error in custom namespaces scoping.
+            displayName: Namespace Scope Denial Limit
+            path: features.nssDenialLimit
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:hidden
+          - description: Special terms, must be granted by IBM Pricing.
+            displayName: Namespace scope enabled
+            path: features.nssEnabled
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:hidden
+          - description: Change prometheus query source settings.
+            displayName: Prometheus query source settings
+            path: features.prometheusQuerySource
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:hidden
+          - description: Should this function be enabled (by default it is).
+            displayName: Enabled
+            path: features.prometheusQuerySource.enabled
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: What url to use for prometheus API (by default use OCP Thanos Querier).
+            displayName: URL
+            path: features.prometheusQuerySource.url
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:hidden
+          - description: Enables https access at pod level, httpsCertsSource needed if true
+            displayName: HTTPS Enable
+            path: httpsEnable
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Should Ingress be created to expose IBM Licensing Service API?
+            displayName: Ingress Enabled
+            path: ingressEnabled
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: If ingress is enabled, you can set its parameters
+            displayName: Ingress Options
+            path: ingressOptions
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Additional annotations that should include f.e. ingress class if using not default ingress controller
+            displayName: Annotations
+            path: ingressOptions.annotations
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: If you use non-default host include it here
+            displayName: Host
+            path: ingressOptions.host
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: IngressClassName defines ingress class name option to be passed to the ingress spec field
+            displayName: IngressClassName
+            path: ingressOptions.ingressClassName
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Path after host where API will be available f.e. https://<hostname>:<port>/ibm-licensing-service-instance
+            displayName: Path
+            path: ingressOptions.path
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: TLS Options to enable secure connection
+            displayName: TLS
+            path: ingressOptions.tls
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: |-
+              Existing or to be created namespace where application will start. In case metering data collection is used,
+              should be the same namespace as metering components
+            displayName: Instance Namespace
+            path: instanceNamespace
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Labels to be copied into all relevant resources
+            displayName: Labels
+            path: labels
+          - description: IBM License Service license acceptance.
+            displayName: License Acceptance
+            path: license
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: 'By installing the IBM License Service, you accept the license terms for the particular IBM product for which you are deploying this component: ibm.biz/lsvc-lic.'
+            displayName: License acceptance
+            path: license.accept
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:checkbox
+          - description: Is Red Hat Marketplace enabled
+            displayName: RHMP Enabled
+            path: rhmpEnabled
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Should Route be created to expose IBM Licensing Service API? (only on OpenShift cluster)
+            displayName: Route Enabled
+            path: routeEnabled
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: If default SCC user ID fails, you can set runAsUser option to fix that
+            displayName: Security Context
+            path: securityContext
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Sender configuration, set if you have multi-cluster environment from which you collect data
+            displayName: Sender
+            path: sender
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Unique ID of reporting cluster
+            displayName: Cluster ID
+            path: sender.clusterID
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: What is the name of this reporting cluster in multi-cluster system. If not provided, CLUSTER_ID will be used as CLUSTER_NAME at Operand level
+            displayName: Cluster Name
+            path: sender.clusterName
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Frequency of workloads scans as cron expression. If not provided, workloads reporting is disabled.
+            displayName: Workloads Reporting Frequency
+            path: sender.frequency
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+              - urn:alm:descriptor:io.kubernetes:hidden
+          - description: Name of the secret that contains the License Service Reporter certificate(s) used to establish a secure connection with it. You need to create it in instance namespace
+            displayName: Reporter Certificates Secret Name
+            path: sender.reporterCertsSecretName
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: License Service Reporter authentication token, provided by secret that you need to create in instance namespace
+            displayName: Reporter Secret Token
+            path: sender.reporterSecretToken
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: URL for License Service Reporter receiver that collects and aggregate multi cluster licensing data.
+            displayName: Reporter URL
+            path: sender.reporterURL
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Enable certificates validation when uploading data to the License Service Reporter
+            displayName: Validate Reporter Certificates
+            path: sender.validateReporterCerts
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+        version: v1alpha1
+      - description: |-
+          IBMLicensingDefinition is a custom resource for internal use only. It is used by some IBM products to assign their pods to the licensed products for the licensing specific calculation, performed by the IBM License Service.
+          It is prepared in close collaboration with those IBM products, and affects only them. It cannot be modified by a customer, to ensure compliance with the license usage metering and reporting.
+        displayName: IBM Licensing Definition
+        kind: IBMLicensingDefinition
+        name: ibmlicensingdefinitions.operator.ibm.com
+        version: v1
+      - description: |-
+          IBMLicensingMetadata is the schema for IBM License Service. Thanks to IBMLicensingMetadata, you can track
+          the license usage of Virtual Processor Core (VPC) metric by Pods that are managed by automation,
+          for which licensing annotations are not defined at the time of deployment, such as the open source OpenLiberty.
+          / For more information, see documentation: https://ibm.biz/icpfs39install.
+          License: By installing this product you accept the license terms. For more information about the license,
+          see https://ibm.biz/icpfs39license.
+        displayName: IBMLicensing Metadata
+        kind: IBMLicensingMetadata
+        name: ibmlicensingmetadatas.operator.ibm.com
+        version: v1alpha1
+      - description: |-
+          IBMLicensingQuerySource is a custom resource for internal use only. It is used by some IBM products to assign their pods to the licensed products for the licensing specific calculation, performed by the IBM License Service.
+          It is prepared in close collaboration with those IBM products, and affects only them. It cannot be modified by a customer, to ensure compliance with the license usage metering and reporting.
+        displayName: IBM Licensing Query Source
+        kind: IBMLicensingQuerySource
+        name: ibmlicensingquerysources.operator.ibm.com
+        version: v1
   description: |-
     **Important:**
     - If you are using the IBM Licensing Operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For the link to your IBM Cloud Pak documentation, see [IBM Cloud Paks that use Common Services](https://ibm.biz/BdyGwb).
@@ -63,7 +415,410 @@ spec:
       mediatype: image/png
   install:
     spec:
-      deployments: []
+      clusterPermissions:
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - events
+              verbs:
+                - create
+                - patch
+            - apiGroups:
+                - ""
+              resources:
+                - namespaces
+              verbs:
+                - get
+            - apiGroups:
+                - operator.ibm.com
+              resources:
+                - ibmlicensings
+                - ibmlicensings/finalizers
+                - ibmlicensings/status
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - operator.ibm.com
+              resources:
+                - operandrequests
+                - operandrequests/finalizers
+                - operandrequests/status
+              verbs:
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - operator.openshift.io
+              resources:
+                - servicecas
+              verbs:
+                - list
+          serviceAccountName: ibm-licensing-operator
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+                - namespaces
+                - nodes
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - apps
+              resources:
+                - deployments
+                - replicasets
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - batch
+              resources:
+                - jobs
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - metrics.k8s.io
+              resources:
+                - pods
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - operator.ibm.com
+              resources:
+                - ibmlicensingmetadatas
+                - ibmlicensingdefinitions
+                - ibmlicensingquerysources
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - authentication.k8s.io
+              resources:
+                - tokenreviews
+              verbs:
+                - create
+            - apiGroups:
+                - authorization.k8s.io
+              resources:
+                - subjectaccessreviews
+              verbs:
+                - create
+          serviceAccountName: ibm-license-service
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - namespaces
+                - nodes
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - operator.ibm.com
+              resources:
+                - ibmlicensingmetadatas
+                - ibmlicensingdefinitions
+                - ibmlicensingquerysources
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - authentication.k8s.io
+              resources:
+                - tokenreviews
+              verbs:
+                - create
+            - apiGroups:
+                - authorization.k8s.io
+              resources:
+                - subjectaccessreviews
+              verbs:
+                - create
+          serviceAccountName: ibm-license-service-restricted
+        - rules:
+            - nonResourceURLs:
+                - /products
+                - /snapshot
+                - /bundled_products
+                - /health
+                - /status
+                - /services
+                - /workloads
+              verbs:
+                - get
+          serviceAccountName: ibm-licensing-default-reader
+      deployments:
+        - label:
+            app.kubernetes.io/instance: ibm-licensing-operator
+            app.kubernetes.io/managed-by: ibm-licensing-operator
+            app.kubernetes.io/name: ibm-licensing
+          name: ibm-licensing-operator
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                name: ibm-licensing-operator
+            strategy: {}
+            template:
+              metadata:
+                annotations:
+                  productID: 068a62892a1e4db39641342e592daa25
+                  productMetric: FREE
+                  productName: IBM Cloud Platform Common Services
+                labels:
+                  app.kubernetes.io/instance: ibm-licensing-operator
+                  app.kubernetes.io/managed-by: ibm-licensing-operator
+                  app.kubernetes.io/name: ibm-licensing
+                  name: ibm-licensing-operator
+              spec:
+                affinity:
+                  nodeAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                      nodeSelectorTerms:
+                        - matchExpressions:
+                            - key: kubernetes.io/arch
+                              operator: In
+                              values:
+                                - amd64
+                                - ppc64le
+                                - s390x
+                containers:
+                  - command:
+                      - ibm-licensing-operator
+                    env:
+                      - name: IBM_LICENSING_IMAGE
+                        value: icr.io/cpopen/cpfs/ibm-licensing:4.2.21
+                      - name: WATCH_NAMESPACE
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.annotations['olm.targetNamespaces']
+                      - name: OPERATOR_NAMESPACE
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.namespace
+                      - name: POD_NAME
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.name
+                      - name: OPERATOR_NAME
+                        value: ibm-licensing-operator
+                      - name: SA_NAME
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: spec.serviceAccountName
+                      - name: CRD_RECONCILE_INTERVAL
+                        value: "300"
+                    image: icr.io/cpopen/ibm-licensing-operator:4.2.21
+                    imagePullPolicy: IfNotPresent
+                    name: ibm-licensing-operator
+                    resources:
+                      limits:
+                        cpu: 20m
+                        ephemeral-storage: 500Mi
+                        memory: 150Mi
+                      requests:
+                        cpu: 10m
+                        ephemeral-storage: 250Mi
+                        memory: 50Mi
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
+                      privileged: false
+                      readOnlyRootFilesystem: true
+                      runAsNonRoot: true
+                      seccompProfile:
+                        type: RuntimeDefault
+                serviceAccountName: ibm-licensing-operator
+      permissions:
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - configmaps
+                - events
+                - secrets
+                - services
+                - services/finalizers
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - ""
+              resources:
+                - namespaces
+                - serviceaccounts
+              verbs:
+                - get
+                - list
+                - watch
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+              verbs:
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - apps
+              resources:
+                - deployments
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - extensions
+                - networking.k8s.io
+              resources:
+                - ingresses
+                - networkpolicies
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - marketplace.redhat.com
+              resources:
+                - meterdefinitions
+              verbs:
+                - create
+                - get
+                - list
+                - update
+                - watch
+            - apiGroups:
+                - monitoring.coreos.com
+              resources:
+                - servicemonitors
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - update
+                - watch
+            - apiGroups:
+                - operator.ibm.com
+              resources:
+                - ibmlicensings
+                - ibmlicensings/finalizers
+                - ibmlicensings/status
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - operator.ibm.com
+              resources:
+                - operandbindinfos
+              verbs:
+                - delete
+                - get
+                - list
+                - watch
+            - apiGroups:
+                - operators.coreos.com
+              resources:
+                - operatorgroups
+              verbs:
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - route.openshift.io
+              resources:
+                - routes
+                - routes/custom-host
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+          serviceAccountName: ibm-licensing-operator
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - configmaps
+              verbs:
+                - create
+                - get
+                - list
+                - update
+          serviceAccountName: ibm-license-service
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - configmaps
+              verbs:
+                - create
+                - get
+                - list
+                - update
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - apps
+              resources:
+                - deployments
+                - replicasets
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - batch
+              resources:
+                - jobs
+              verbs:
+                - list
+                - get
+          serviceAccountName: ibm-license-service-restricted
     strategy: deployment
   installModes:
     - supported: true
