@@ -22,14 +22,15 @@ import (
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )
 
-func GetDefaultIBMLicensing() operatorv1alpha1.IBMLicensing {
+func GetDefaultIBMLicensing(operatorNamespace string) operatorv1alpha1.IBMLicensing {
 	return operatorv1alpha1.IBMLicensing{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "instance",
 		},
 		Spec: operatorv1alpha1.IBMLicensingSpec{
-			Datasource:  "datacollector",
-			HTTPSEnable: true,
+			Datasource:        "datacollector",
+			HTTPSEnable:       true,
+			InstanceNamespace: operatorNamespace,
 		},
 	}
 }
