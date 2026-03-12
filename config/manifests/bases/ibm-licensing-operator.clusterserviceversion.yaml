@@ -41,216 +41,56 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-      - description:
-          "IBMLicensing custom resource is used to create an instance of
-          the License Service, used to collect information about license usage of IBM
-          containerized products and IBM Cloud Paks per cluster. You can retrieve license
-          usage data through a dedicated API call and generate an audit snapshot on
-          demand. Documentation: For additional details regarding install parameters
-          check: https://ibm.biz/icpfs39install. License: Please refer to the IBM Terms
-          website (ibm.biz/lsvc-lic) to find the license terms for the particular IBM
-          product for which you are deploying this component."
-        displayName: IBM License Service
-        kind: IBMLicensing
-        name: ibmlicensings.operator.ibm.com
-        resources:
-          - kind: ClusterRole
-            name: ""
-            version: v1
-          - kind: ClusterRoleBinding
-            name: ""
-            version: v1
-          - kind: Deployment
-            name: ""
-            version: v1
-          - kind: Ingresses
-            name: ""
-            version: v1beta1
-          - kind: Pod
-            name: ""
-            version: v1
-          - kind: ReplicaSets
-            name: ""
-            version: v1
-          - kind: Role
-            name: ""
-            version: v1
-          - kind: RoleBinding
-            name: ""
-            version: v1
-          - kind: Route
-            name: ""
-            version: v1
-          - kind: Secret
-            name: ""
-            version: v1
-          - kind: Service
-            name: ""
-            version: v1
-          - kind: ServiceAccount
-            name: ""
-            version: v1
-          - kind: configmaps
-            name: ""
-            version: v1
-          - kind: ibmlicensingmetadatas
-            name: ""
-            version: v1alpha1
-          - kind: ibmlicensings
-            name: ""
-            version: v1alpha1
-          - kind: status
-            name: ""
-            version: v1alpha1
-        specDescriptors:
-          - description:
-              Please refer to the IBM Terms website (ibm.biz/lsvc-lic) to find
-              the license terms for the particular IBM product for which you are deploying
-              this component.
-            displayName: License Acceptance
-            path: license
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description: Consider updating to enable chargeback feature
-            displayName: Chargeback Enabled
-            path: chargebackEnabled
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:checkbox
-          - description:
-              Chargeback data retention period in days. Default value is 62
-              days.
-            displayName: Chargeback Retention Period in days
-            path: chargebackRetentionPeriod
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:number
-          - description: "Where should data be collected, options: metering, datacollector"
-            displayName: Datasource
-            path: datasource
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description: Environment variable setting
-            displayName: Environment variable setting
-            path: envVariable
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:hidden
-          - description: Set additional features under this field
-            displayName: Features
-            path: features
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description:
-              Limit for failed namespace access attempts before reporting an
-              error in custom namespaces scoping
-            path: features.nssDenialLimit
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:hidden
-          - description:
-              Enables https access at pod level, httpsCertsSource needed if
-              true
-            displayName: HTTPS Enable
-            path: httpsEnable
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:checkbox
-          - description: Should Ingress be created to expose IBM Licensing Service API?
-            displayName: Ingress Enabled
-            path: ingressEnabled
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description: If ingress is enabled, you can set its parameters
-            displayName: Ingress Options
-            path: ingressOptions
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description:
-              Additional annotations that should include f.e. ingress class
-              if using not default ingress controller
-            displayName: Annotations
-            path: ingressOptions.annotations
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description: If you use non-default host include it here
-            displayName: Host
-            path: ingressOptions.host
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description: Path after host where API will be available f.e. https://<hostname>:<port>/ibm-licensing-service-instance
-            displayName: Path
-            path: ingressOptions.path
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description: TLS Options to enable secure connection
-            displayName: TLS
-            path: ingressOptions.tls
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description:
-              Existing or to be created namespace where application will start.
-              In case metering data collection is used, should be the same namespace as
-              metering components
-            displayName: Instance Namespace
-            path: instanceNamespace
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description: Is Red Hat Marketplace enabled
-            displayName: RHMP Enabled
-            path: rhmpEnabled
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:hidden
-          - description:
-              Should Route be created to expose IBM Licensing Service API?
-              (only on OpenShift cluster)
-            displayName: Route Enabled
-            path: routeEnabled
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:checkbox
-          - description:
-              If default SCC user ID fails, you can set runAsUser option to
-              fix that
-            displayName: Security Context
-            path: securityContext
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description:
-              Sender configuration, set if you have multi-cluster environment
-              from which you collect data
-            displayName: Sender
-            path: sender
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description: Unique ID of reporting cluster
-            displayName: Cluster ID
-            path: sender.clusterID
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description:
-              What is the name of this reporting cluster in multi-cluster system.
-              If not provided, CLUSTER_ID will be used as CLUSTER_NAME at Operand level
-            displayName: Cluster Name
-            path: sender.clusterName
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description:
-              License Service Reporter authentication token, provided by secret
-              that you need to create in instance namespace
-            displayName: Reporter Secret Token
-            path: sender.reporterSecretToken
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description:
-              URL for License Service Reporter receiver that collects and aggregate
-              multi cluster licensing data.
-            displayName: Reporter URL
-            path: sender.reporterURL
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-          - description:
-              Frequency of workloads scans as cron expression. If not provided,
-              workloads reporting is disabled.
-            displayName: Frequency
-            path: sender.frequency
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
-              - urn:alm:descriptor:com.tectonic.ui:hidden
+    - description: 'IBMLicensing custom resource is used to create an instance of
+        the License Service, used to collect information about license usage of IBM
+        containerized products and IBM Cloud Paks per cluster. You can retrieve license
+        usage data through a dedicated API call and generate an audit snapshot on
+        demand. Documentation: For additional details regarding install parameters
+        check: https://ibm.biz/icpfs39install. License: Please refer to the IBM Terms
+        website (ibm.biz/lsvc-lic) to find the license terms for the particular IBM
+        product for which you are deploying this component.'
+      displayName: IBM License Service
+      kind: IBMLicensing
+      name: ibmlicensings.operator.ibm.com
+      resources:
+      - kind: ClusterRole
+        name: ""
+        version: v1
+      - kind: ClusterRoleBinding
+        name: ""
+        version: v1
+      - kind: Deployment
+        name: ""
+        version: v1
+      - kind: Pod
+        name: ""
+        version: v1
+      - kind: ReplicaSets
+        name: ""
+        version: v1
+      - kind: Role
+        name: ""
+        version: v1
+      - kind: RoleBinding
+        name: ""
+        version: v1
+      - kind: Route
+        name: ""
+        version: v1
+      - kind: Secret
+        name: ""
+        version: v1
+      - kind: Service
+        name: ""
+        version: v1
+      - kind: ServiceAccount
+        name: ""
+        version: v1
+      - kind: configmaps
+        name: ""
+        version: v1
+      - kind: ibmlicensingmetadatas
+        name: ""
         version: v1alpha1
       - description:
           "IBMLicensingMetadata is the schema for IBM License Service. Thanks
@@ -264,6 +104,157 @@ spec:
         kind: IBMLicensingMetadata
         name: ibmlicensingmetadatas.operator.ibm.com
         version: v1alpha1
+      - kind: status
+        name: ""
+        version: v1alpha1
+      specDescriptors:
+      - description: Please refer to the IBM Terms website (ibm.biz/lsvc-lic) to find
+          the license terms for the particular IBM product for which you are deploying
+          this component.
+        displayName: License Acceptance
+        path: license
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Consider updating to enable chargeback feature
+        displayName: Chargeback Enabled
+        path: chargebackEnabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:checkbox
+      - description: Chargeback data retention period in days. Default value is 62
+          days.
+        displayName: Chargeback Retention Period in days
+        path: chargebackRetentionPeriod
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:number
+      - description: 'Where should data be collected, options: metering, datacollector'
+        displayName: Datasource
+        path: datasource
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Environment variable setting
+        displayName: Environment variable setting
+        path: envVariable
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Set additional features under this field
+        displayName: Features
+        path: features
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Limit for failed namespace access attempts before reporting an
+          error in custom namespaces scoping
+        path: features.nssDenialLimit
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Enables https access at pod level, httpsCertsSource needed if
+          true
+        displayName: HTTPS Enable
+        path: httpsEnable
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:checkbox
+      - description: Should Gateway be created to expose IBM Licensing Service API?
+        displayName: Gateway Enabled
+        path: gatewayEnabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: If geteway is enabled, you can set its parameters
+        displayName: Geteway Options
+        path: getewayOptions
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Additional annotations that should include f.e. geteway class
+          if using not default geteway controller
+        displayName: Annotations
+        path: getewayOptions.annotations
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: If you use non-default host include it here
+        displayName: Host
+        path: getewayOptions.host
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Path after host where API will be available f.e. https://<hostname>:<port>/ibm-licensing-service-instance
+        displayName: Path
+        path: getewayOptions.path
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: TLS Options to enable secure connection
+        displayName: TLS
+        path: getewayOptions.tls
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Existing or to be created namespace where application will start.
+          In case metering data collection is used, should be the same namespace as
+          metering components
+        displayName: Instance Namespace
+        path: instanceNamespace
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Is Red Hat Marketplace enabled
+        displayName: RHMP Enabled
+        path: rhmpEnabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Should Route be created to expose IBM Licensing Service API?
+          (only on OpenShift cluster)
+        displayName: Route Enabled
+        path: routeEnabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:checkbox
+      - description: If default SCC user ID fails, you can set runAsUser option to
+          fix that
+        displayName: Security Context
+        path: securityContext
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Sender configuration, set if you have multi-cluster environment
+          from which you collect data
+        displayName: Sender
+        path: sender
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Unique ID of reporting cluster
+        displayName: Cluster ID
+        path: sender.clusterID
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: What is the name of this reporting cluster in multi-cluster system.
+          If not provided, CLUSTER_ID will be used as CLUSTER_NAME at Operand level
+        displayName: Cluster Name
+        path: sender.clusterName
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: License Service Reporter authentication token, provided by secret
+          that you need to create in instance namespace
+        displayName: Reporter Secret Token
+        path: sender.reporterSecretToken
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: URL for License Service Reporter receiver that collects and aggregate
+          multi cluster licensing data.
+        displayName: Reporter URL
+        path: sender.reporterURL
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Frequency of workloads scans as cron expression. If not provided,
+          workloads reporting is disabled.
+        displayName: Frequency
+        path: sender.frequency
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:hidden
+      version: v1alpha1
+    - description: 'IBMLicensingMetadata is the schema for IBM License Service. Thanks
+        to IBMLicensingMetadata, you can track the license usage of Virtual Processor
+        Core (VPC) metric by Pods that are managed by automation, for which licensing
+        annotations are not defined at the time of deployment, such as the open source
+        OpenLiberty. / For more information, see documentation: https://ibm.biz/icpfs39install.
+        By installing the operator for IBM License Service, you accept the license
+        terms: https://ibm.biz/icpfs39license.'
+      displayName: IBMLicensing Metadata
+      kind: IBMLicensingMetadata
+      name: ibmlicensingmetadatas.operator.ibm.com
+      version: v1alpha1
   description: |-
     **Important:**
     - If you are using the IBM Licensing Operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For the link to your IBM Cloud Pak documentation, see [IBM Cloud Paks that use Common Services](https://ibm.biz/BdyGwb).

@@ -156,7 +156,7 @@ CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
 
 # Identify stream based in current git branch
 DEVOPS_STREAM :=
-ifeq ($(GIT_BRANCH),master) 
+ifeq ($(GIT_BRANCH),master)
 	DEVOPS_STREAM="cd"
 	DEFAULT_CHANNEL=v4.0
 else ifeq ($(GIT_BRANCH),release-ltsr)
@@ -359,6 +359,7 @@ install: manifests kustomize
 uninstall: manifests kustomize
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
+
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
@@ -368,11 +369,11 @@ deploy: manifests kustomize
 manifests: controller-gen
 	yq -i '.metadata.annotations."olm.skipRange" = ">=1.0.0 <$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
 	yq -i '.metadata.annotations.containerImage = "icr.io/cpopen/${IMG}:$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./api/..." paths="./controllers/..." output:crd:artifacts:config=config/crd/bases
 
 # Generate code
 generate: controller-gen
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..." paths="./controllers/..."
 
 # Build the docker image
 docker-build: test
@@ -406,7 +407,7 @@ update-roles-alm-example: alm-example
 
 	yq -i '.spec.install.spec.clusterPermissions[3].rules |= load("/tmp/reader-clusterrole.yaml") | \
 		.spec.install.spec.clusterPermissions[3].serviceAccountName = "ibm-licensing-default-reader" \
-	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml	
+	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
 	yq -i '.spec.install.spec.permissions[1].rules |= load("/tmp/role.yaml") | \
 		.spec.install.spec.permissions[1].serviceAccountName = "ibm-license-service" \
@@ -481,7 +482,7 @@ catalogsource: opm
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${REGISTRY}/${IMG}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
-	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml	
+	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
 	docker push ${REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
@@ -499,7 +500,7 @@ catalogsource-development: opm
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
-	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml	
+	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive  -c ${PODMAN}  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
@@ -537,16 +538,16 @@ install-operator-sdk: ## Install tool locally: operator-sdk
 	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-operator-sdk.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPERATOR_SDK_VERSION}; fi
 
 install-opm: ## Install tool locally: opm
-	@opm version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-opm.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPM_VERSION}; fi	
+	@opm version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-opm.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPM_VERSION}; fi
 
 install-controller-gen: ## Install tool locally: controller-gen
-	@controller-gen --version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/controller-tools/cmd/controller-gen@${CONTROLLER_GEN_VERSION}; fi	
+	@controller-gen --version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/controller-tools/cmd/controller-gen@${CONTROLLER_GEN_VERSION}; fi
 
 install-kustomize: ## Install tool locally: kustomize
-	@kustomize version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/kustomize/kustomize/v4@${KUSTOMIZE_VERSION}; fi	
+	@kustomize version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/kustomize/kustomize/v4@${KUSTOMIZE_VERSION}; fi
 
 install-yq: ## Install tool locally: yq
-	@yq --version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-yq.sh ${TARGET_OS} ${LOCAL_ARCH} ${YQ_VERSION}; fi	
+	@yq --version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-yq.sh ${TARGET_OS} ${LOCAL_ARCH} ${YQ_VERSION}; fi
 
 install-detect-secrets: ## Install tool locally: detect-secrets
 	@common/scripts/install-detect-secrets.sh

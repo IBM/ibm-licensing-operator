@@ -17,17 +17,18 @@
 package controllers
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	operatorframeworkv1 "github.com/operator-framework/api/pkg/operators/v1"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	meterdefv1beta1 "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
 	"go.uber.org/zap/zapcore"
 	corev1 "k8s.io/api/core/v1"
@@ -39,6 +40,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 
@@ -82,16 +85,16 @@ var _ = BeforeSuite(func() {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{
+			filepath.Join("..", "config", "crd", "bases"),
+			filepath.Join("..", "config", "crd", "external"),
+		},
 	}
 
 	var err error
 	cfg, err = testEnv.Start()
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
-
-	err = operatoribmcomv1alpha1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
 
 	err = operatoribmcomv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
@@ -114,10 +117,16 @@ var _ = BeforeSuite(func() {
 	err = networkingv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
+	err = gatewayv1.Install(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
 	err = meterdefv1beta1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = operatorframeworkv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = gatewayv1.Install(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
@@ -134,10 +143,11 @@ var _ = BeforeSuite(func() {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(k8sClient).ToNot(BeNil())
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             scheme.Scheme,
-		MetricsBindAddress: "0",
-		Namespace:          "",
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
+		Scheme: scheme.Scheme,
+		Metrics: metricsserver.Options{
+			BindAddress: "0",
+		},
 	})
 	Expect(err).ToNot(HaveOccurred())
 
@@ -181,6 +191,14 @@ var _ = BeforeSuite(func() {
 		err = mgr.Start(ctrl.SetupSignalHandler())
 		Expect(err).ToNot(HaveOccurred())
 	}()
+
+	// Create required namespaces in envtest (they don't exist by default)
+	ctx := context.Background()
+	for _, ns := range []string{namespace, operatorNamespace, opreqNamespace} {
+		nsObj := &corev1.Namespace{}
+		nsObj.Name = ns
+		_ = k8sClient.Create(ctx, nsObj) // ignore AlreadyExists
+	}
 })
 
 var _ = AfterSuite(func() {
