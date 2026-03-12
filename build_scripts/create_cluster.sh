@@ -104,9 +104,6 @@ echo "Current namespace:"
 kubectl config view --minify -o jsonpath='{..namespace}'
 echo "=========================="
 
-# INGRESS
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx
 
 echo "Creating certificates inside Kind nodes..."
 # Get the Kind node name
@@ -124,4 +121,3 @@ echo "Certificates created in Kind node filesystem"
 
 echo "Cluster verification complete"
 
-kubectl rollout status deployment ingress-nginx-controller  -n ingress-nginx

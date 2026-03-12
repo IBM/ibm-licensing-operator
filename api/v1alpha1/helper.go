@@ -129,8 +129,8 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 		spec.RouteEnabled = &isRouteEnabled
 	}
 	isNotOnOpenshiftCluster := !isRouteEnabled
-	if spec.IngressEnabled == nil {
-		spec.IngressEnabled = &isNotOnOpenshiftCluster
+	if spec.GatewayEnabled == nil {
+		spec.GatewayEnabled = &isNotOnOpenshiftCluster
 	}
 	if spec.RHMPEnabled == nil {
 		spec.RHMPEnabled = &rhmpEnabled
@@ -174,8 +174,8 @@ func (spec *IBMLicensingSpec) IsRouteEnabled() bool {
 	return spec.RouteEnabled != nil && *spec.RouteEnabled
 }
 
-func (spec *IBMLicensingSpec) IsIngressEnabled() bool {
-	return spec.IngressEnabled != nil && *spec.IngressEnabled
+func (spec *IBMLicensingSpec) IsGatewayEnabled() bool {
+	return spec.GatewayEnabled != nil && *spec.GatewayEnabled
 }
 
 func (spec *IBMLicensingSpec) IsRHMPEnabled() bool {

@@ -52,7 +52,7 @@ type OperandRequestReconciler struct {
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *OperandRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := res.UpdateCacheClusterExtensions(mgr.GetAPIReader()); err != nil {
+	if err := res.UpdateCacheClusterExtensions(mgr.GetAPIReader(), r.Log); err != nil {
 		r.Log.Error(err, "Error during checking K8s API")
 	}
 
@@ -136,7 +136,7 @@ func (r *OperandRequestReconciler) UpdateOperandRequestWithPhase(
 func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	reqLogger := r.Log.WithValues("operandrequest", req.NamespacedName)
 
-	if err := res.UpdateCacheClusterExtensions(r.Reader); err != nil {
+	if err := res.UpdateCacheClusterExtensions(r.Reader, reqLogger); err != nil {
 		reqLogger.Error(err, "Error during checking K8s API")
 	}
 

@@ -30,6 +30,7 @@ import (
 	meterdefv1beta1 "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 
 	"go.uber.org/zap/zapcore"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -97,6 +98,8 @@ func init() {
 	utilruntime.Must(meterdefv1beta1.AddToScheme(scheme))
 
 	utilruntime.Must(odlm.AddToScheme(scheme))
+
+	utilruntime.Must(gatewayv1.AddToScheme(scheme))
 
 	utilruntime.Must(operatorv1.AddToScheme(scheme))
 
