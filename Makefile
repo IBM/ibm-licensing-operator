@@ -32,6 +32,9 @@ GOIMPORTS_VERSION ?= v0.3.0
 LOCALBIN := $(PWD)/bin
 export PATH := $(LOCALBIN):$(PATH)
 
+# Local temp directory for intermediate build files (gitignored)
+LOCAL_TMP := $(PWD)/temp
+
 # Tool binaries (all resolved to LOCALBIN)
 CONTROLLER_GEN := $(LOCALBIN)/controller-gen
 KUSTOMIZE      := $(LOCALBIN)/kustomize
@@ -399,35 +402,36 @@ docker-push:
 
 # Take the roles (e.g. permissions) from bundle manifest that are created by kubebuilder and put them in CSV
 update-roles-alm-example: alm-example yq
-	$(YQ) -P '.rules' ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/clusterrole.yaml
-	$(YQ) -P '.rules' ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml > /tmp/role.yaml
-	$(YQ) -P '.rules' ./bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/reader-clusterrole.yaml
-	$(YQ) -P '.rules' ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/clusterrole2.yaml
-	$(YQ) -P '.rules' ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_role.yaml > /tmp/role2.yaml
+	mkdir -p $(LOCAL_TMP)
+	$(YQ) -P '.rules' ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml > $(LOCAL_TMP)/clusterrole.yaml
+	$(YQ) -P '.rules' ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml > $(LOCAL_TMP)/role.yaml
+	$(YQ) -P '.rules' ./bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml > $(LOCAL_TMP)/reader-clusterrole.yaml
+	$(YQ) -P '.rules' ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_clusterrole.yaml > $(LOCAL_TMP)/clusterrole2.yaml
+	$(YQ) -P '.rules' ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_role.yaml > $(LOCAL_TMP)/role2.yaml
 
-	sed -i -e 's/^/  /' /tmp/clusterrole.yaml
-	sed -i -e 's/^/  /' /tmp/role.yaml
-	sed -i -e 's/^/  /' /tmp/reader-clusterrole.yaml
-	sed -i -e 's/^/  /' /tmp/clusterrole2.yaml
-	sed -i -e 's/^/  /' /tmp/role2.yaml
+	sed -i -e 's/^/  /' $(LOCAL_TMP)/clusterrole.yaml
+	sed -i -e 's/^/  /' $(LOCAL_TMP)/role.yaml
+	sed -i -e 's/^/  /' $(LOCAL_TMP)/reader-clusterrole.yaml
+	sed -i -e 's/^/  /' $(LOCAL_TMP)/clusterrole2.yaml
+	sed -i -e 's/^/  /' $(LOCAL_TMP)/role2.yaml
 
-	$(YQ) -i '.spec.install.spec.clusterPermissions[1].rules |= load("/tmp/clusterrole.yaml") | \
+	$(YQ) -i '.spec.install.spec.clusterPermissions[1].rules |= load("$(LOCAL_TMP)/clusterrole.yaml") | \
 		.spec.install.spec.clusterPermissions[1].serviceAccountName = "ibm-license-service" \
 	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	$(YQ) -i '.spec.install.spec.clusterPermissions[2].rules |= load("/tmp/clusterrole2.yaml") | \
+	$(YQ) -i '.spec.install.spec.clusterPermissions[2].rules |= load("$(LOCAL_TMP)/clusterrole2.yaml") | \
 		.spec.install.spec.clusterPermissions[2].serviceAccountName = "ibm-license-service-restricted" \
 	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	$(YQ) -i '.spec.install.spec.clusterPermissions[3].rules |= load("/tmp/reader-clusterrole.yaml") | \
+	$(YQ) -i '.spec.install.spec.clusterPermissions[3].rules |= load("$(LOCAL_TMP)/reader-clusterrole.yaml") | \
 		.spec.install.spec.clusterPermissions[3].serviceAccountName = "ibm-licensing-default-reader" \
 	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	$(YQ) -i '.spec.install.spec.permissions[1].rules |= load("/tmp/role.yaml") | \
+	$(YQ) -i '.spec.install.spec.permissions[1].rules |= load("$(LOCAL_TMP)/role.yaml") | \
 		.spec.install.spec.permissions[1].serviceAccountName = "ibm-license-service" \
 	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	$(YQ) -i '.spec.install.spec.permissions[2].rules |= load("/tmp/role2.yaml") | \
+	$(YQ) -i '.spec.install.spec.permissions[2].rules |= load("$(LOCAL_TMP)/role2.yaml") | \
 		.spec.install.spec.permissions[2].serviceAccountName = "ibm-license-service-restricted" \
 	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
@@ -448,16 +452,16 @@ update-roles-alm-example: alm-example yq
 
 # Takes config samples CRs and update alm-exmaple in CSV
 alm-example: yq
-	mkdir -p /tmp/json
-	$(YQ) -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml > /tmp/json/ibmlicensing.json
-	$(YQ) -P -o=json ./config/samples/operator_v1_ibmlicensingdefinition.yaml > /tmp/json/ibmlicensingdefinition.json
-	$(YQ) -P -o=json ./config/samples/operator_v1alpha1_ibmlicensingmetadata.yaml > /tmp/json/ibmlicensingmetadata.json
-	$(YQ) -P -o=json ./config/samples/operator_v1_ibmlicensingquerysource.yaml > /tmp/json/ibmlicensingquerysource.json
+	mkdir -p $(LOCAL_TMP)/json
+	$(YQ) -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml > $(LOCAL_TMP)/json/ibmlicensing.json
+	$(YQ) -P -o=json ./config/samples/operator_v1_ibmlicensingdefinition.yaml > $(LOCAL_TMP)/json/ibmlicensingdefinition.json
+	$(YQ) -P -o=json ./config/samples/operator_v1alpha1_ibmlicensingmetadata.yaml > $(LOCAL_TMP)/json/ibmlicensingmetadata.json
+	$(YQ) -P -o=json ./config/samples/operator_v1_ibmlicensingquerysource.yaml > $(LOCAL_TMP)/json/ibmlicensingquerysource.json
 
-	jq -s '.' /tmp/json/ibmlicensing.json /tmp/json/ibmlicensingdefinition.json /tmp/json/ibmlicensingmetadata.json /tmp/json/ibmlicensingquerysource.json > /tmp/json/merged.json
-	$(YQ) -i '.metadata.annotations.alm-examples |= load_str("/tmp/json/merged.json")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	jq -s '.' $(LOCAL_TMP)/json/ibmlicensing.json $(LOCAL_TMP)/json/ibmlicensingdefinition.json $(LOCAL_TMP)/json/ibmlicensingmetadata.json $(LOCAL_TMP)/json/ibmlicensingquerysource.json > $(LOCAL_TMP)/json/merged.json
+	$(YQ) -i '.metadata.annotations.alm-examples |= load_str("$(LOCAL_TMP)/json/merged.json")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	rm -r /tmp/json
+	rm -r $(LOCAL_TMP)/json
 
 # Generate bundle manifests and metadata, then validate generated files. Yq is used to change order of owned resources here to ensure Licensing is first.
 pre-bundle: manifests operator-sdk kustomize yq
