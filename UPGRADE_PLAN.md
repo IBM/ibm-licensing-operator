@@ -1,77 +1,76 @@
 # Dependency & Go Upgrade Plan — ibm-licensing-operator
 
-## Current State (as of 2026-03-06)
+## Current State (as of 2026-03-06) — Final state after all phases (completed 2026-03-09)
 
 ### Go toolchain
-| Item | Current | Latest |
-|------|---------|--------|
-| go directive in go.mod | 1.25.6 | 1.26.1 |
-| Installed Go | 1.26.1 | — |
+| Item | Before upgrade | After upgrade |
+|------|---------------|--------------|
+| go directive in go.mod | 1.25.6 | **1.26.1** |
+| Installed Go | 1.26.1 | 1.26.1 (unchanged) |
 
 ### Direct dependencies
-| Module | Required | Effective (replace) | Latest |
-|--------|----------|---------------------|--------|
-| emperror.dev/errors | v0.8.0 | v0.8.0 | v0.8.1 |
-| github.com/IBM/controller-filtered-cache | v0.3.5 | v0.3.5 | v0.3.6 |
-| github.com/IBM/operand-deployment-lifecycle-manager | v1.21.0 | v1.21.0 | v1.23.5 |
-| github.com/coreos/prometheus-operator | v0.41.0 | v0.41.0 | **MOVED** (see P2) |
-| github.com/go-logr/logr | v1.2.4 | v1.2.4 | v1.4.3 |
-| github.com/onsi/ginkgo/v2 | v2.9.2 | v2.9.2 | v2.28.1 |
-| github.com/onsi/gomega | v1.27.4 | v1.27.4 | v1.39.1 |
-| github.com/openshift/api | v0.0.0-20230306 | v0.0.0-20230306 | v0.0.0-20260306 |
-| github.com/operator-framework/api | v0.17.7 | v0.17.7 | v0.41.0 |
-| github.com/redhat-marketplace/redhat-marketplace-operator/v2 | v2.0.0-20230228 | v2.0.0-20230228 | v2.0.0-20260302 |
-| github.com/stretchr/testify | v1.8.4 | v1.8.4 | v1.11.1 |
-| go.uber.org/zap | v1.21.0 | v1.21.0 | v1.27.1 |
-| k8s.io/api | v0.27.2 | **v0.25.7** (replace!) | v0.35.2 |
-| k8s.io/apimachinery | v0.27.2 | **v0.25.7** (replace!) | v0.35.2 |
-| k8s.io/client-go | v12.0.0+incompatible | **v0.25.7** (replace!) | v0.35.2 |
-| k8s.io/utils | v0.0.0-20240502 | v0.0.0-20240502 | v0.0.0-20260210 |
-| sigs.k8s.io/controller-runtime | v0.15.0 | **v0.12.3** (replace!) | v0.23.3 |
+| Module | Before (effective) | After | Notes |
+|--------|--------------------|-------|-------|
+| emperror.dev/errors | v0.8.0 | **v0.8.1** | |
+| github.com/IBM/controller-filtered-cache | v0.3.5 | **REMOVED** | Replaced by native cache.Options in controller-runtime ≥ v0.15 |
+| github.com/IBM/operand-deployment-lifecycle-manager | v1.21.0 | **v1.23.5** | |
+| github.com/coreos/prometheus-operator | v0.41.0 | **REMOVED** | Moved; replaced by prometheus-operator/prometheus-operator below |
+| github.com/go-logr/logr | v1.2.4 | **v1.4.3** | |
+| github.com/onsi/ginkgo/v2 | v2.9.2 | **v2.28.1** | |
+| github.com/onsi/gomega | v1.27.4 | **v1.39.1** | |
+| github.com/openshift/api | v0.0.0-20230306 | **v0.0.0-20260306105915** | |
+| github.com/operator-framework/api | v0.17.7 | **v0.41.0** | |
+| github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring | v0.57.0 (indirect) | **v0.89.0** (direct) | Replaces coreos/prometheus-operator |
+| github.com/redhat-marketplace/redhat-marketplace-operator/v2 | v2.0.0-20230228 | **REMOVED** | Types vendored locally into pkg/rhmp/ |
+| github.com/stretchr/testify | v1.8.4 | **v1.11.1** | |
+| go.uber.org/zap | v1.21.0 | **v1.27.1** | |
+| k8s.io/api | **v0.25.7** (replace!) | **v0.35.1** | replace directive removed |
+| k8s.io/apimachinery | **v0.25.7** (replace!) | **v0.35.1** | replace directive removed |
+| k8s.io/client-go | **v0.25.7** (replace!) | **v0.35.1** | replace directive removed; legacy +incompatible fixed |
+| k8s.io/utils | v0.0.0-20240502 | **v0.0.0-20260108** | |
+| sigs.k8s.io/controller-runtime | **v0.12.3** (replace!) | **v0.23.1** | replace directive removed |
 
 ### Key indirect dependencies
-| Module | go.mod version | Latest | Notes |
-|--------|---------------|--------|-------|
-| github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring | v0.57.0 | v0.89.0 | Will update with Phase 4a |
-| github.com/prometheus/client_golang | v1.15.1 | v1.23.2 | Will update transitively |
-| github.com/prometheus/common | v0.42.0 | v0.67.5 | Will update transitively |
-| github.com/prometheus/procfs | v0.9.0 | v0.20.1 | Will update transitively |
-| github.com/google/gnostic | v0.5.7-v3refs | — | **MOVED** → github.com/google/gnostic-models v0.7.1 |
-| github.com/imdario/mergo | v0.3.12 | — | **MOVED** → dario.cat/mergo v1.0.2 |
-| github.com/golang/protobuf | v1.5.3 | v1.5.4 | **DEPRECATED** → google.golang.org/protobuf |
-| github.com/matttproud/golang_protobuf_extensions | v1.0.4 | v1.0.4 | **DEPRECATED** → merged into prometheus packages |
-| go.uber.org/atomic | v1.9.0 | v1.11.0 | **DEPRECATED** → merged into zap/multierr |
-| go.uber.org/multierr | v1.7.0 | v1.11.0 | Will update with zap upgrade |
-| k8s.io/apiextensions-apiserver | v0.27.2 | v0.35.2 | Will update with k8s upgrade |
-| k8s.io/component-base | v0.27.2 | v0.35.2 | Will update with k8s upgrade |
-| k8s.io/klog (v1) | v1.0.0 | v1.0.0 | **DEPRECATED** → k8s.io/klog/v2 |
-| k8s.io/klog/v2 | v2.90.1 | v2.130.1 | Will update with k8s upgrade |
-| k8s.io/kube-openapi | v0.0.0-20230501 | v0.0.0-20260304 | Will update with k8s upgrade |
-| golang.org/x/crypto | v0.45.0 | v0.48.0 | Will update transitively |
-| golang.org/x/net | v0.47.0 | v0.51.0 | Will update transitively |
-| golang.org/x/oauth2 | v0.27.0 | v0.35.0 | Will update transitively |
-| golang.org/x/sys | v0.38.0 | v0.41.0 | Will update transitively |
-| golang.org/x/term | v0.37.0 | v0.40.0 | Will update transitively |
-| golang.org/x/text | v0.31.0 | v0.34.0 | Will update transitively |
-| golang.org/x/time | v0.3.0 | v0.14.0 | Will update transitively |
-| golang.org/x/tools | v0.38.0 | v0.42.0 | Will update transitively |
-| gomodules.xyz/jsonpatch/v2 | v2.2.0 | v2.5.0 | Will update transitively |
-| google.golang.org/protobuf | v1.33.0 | v1.36.11 | Will update transitively |
-| sigs.k8s.io/json | v0.0.0-20221116 | v0.0.0-20250730 | Will update with k8s upgrade |
-| sigs.k8s.io/structured-merge-diff/v4 | v4.2.3 | v4.7.0 | Will update with k8s upgrade |
-| sigs.k8s.io/yaml | v1.3.0 | v1.6.0 | Will update transitively |
-| github.com/gobuffalo/flect | v0.2.1 | v1.0.3 | Will update with controller-gen upgrade |
-| github.com/spf13/cast | v1.4.1 | v1.10.0 | Will update transitively |
-| github.com/spf13/pflag | v1.0.5 | v1.0.10 | Will update transitively |
+| Module | Before | After | Notes |
+|--------|--------|-------|-------|
+| github.com/prometheus/client_golang | v1.15.1 | **v1.23.2** | |
+| github.com/prometheus/common | v0.42.0 | **v0.67.5** | |
+| github.com/prometheus/procfs | v0.9.0 | **v0.19.2** | |
+| github.com/google/gnostic | v0.5.7-v3refs | **GONE** | Replaced by gnostic-models |
+| github.com/google/gnostic-models | — | **v0.7.1** | |
+| github.com/imdario/mergo | v0.3.12 | **GONE** | Replaced by dario.cat/mergo (via controller-runtime) |
+| github.com/golang/protobuf | v1.5.3 | **GONE** | Deprecated; superseded by google.golang.org/protobuf |
+| github.com/matttproud/golang_protobuf_extensions | v1.0.4 | **GONE** | Deprecated; merged into prometheus packages |
+| go.uber.org/atomic | v1.9.0 | **GONE** | Deprecated; merged into zap/multierr |
+| go.uber.org/multierr | v1.7.0 | **v1.11.0** | |
+| k8s.io/apiextensions-apiserver | v0.27.2 | **v0.35.1** | |
+| k8s.io/component-base | v0.27.2 | **GONE** | No longer required transitively |
+| k8s.io/klog (v1) | v1.0.0 | **GONE** | Deprecated; superseded by klog/v2 |
+| k8s.io/klog/v2 | v2.90.1 | **v2.130.1** | |
+| k8s.io/kube-openapi | v0.0.0-20230501 | **v0.0.0-20260127** | |
+| golang.org/x/net | v0.47.0 | **v0.51.0** | |
+| golang.org/x/oauth2 | v0.27.0 | **v0.36.0** | |
+| golang.org/x/sys | v0.38.0 | **v0.42.0** | |
+| golang.org/x/term | v0.37.0 | **v0.40.0** | |
+| golang.org/x/text | v0.31.0 | **v0.34.0** | |
+| golang.org/x/time | v0.3.0 | **v0.15.0** | |
+| golang.org/x/tools | v0.38.0 | **v0.42.0** | |
+| gomodules.xyz/jsonpatch/v2 | v2.2.0 | **v2.4.0** | |
+| google.golang.org/protobuf | v1.33.0 | **v1.36.11** | |
+| sigs.k8s.io/json | v0.0.0-20221116 | **v0.0.0-20250730** | |
+| sigs.k8s.io/structured-merge-diff/v4 | v4.2.3 | **GONE** | Replaced by v6 |
+| sigs.k8s.io/structured-merge-diff/v6 | — | **v6.3.2-0.20260122** | |
+| sigs.k8s.io/yaml | v1.3.0 | **v1.6.0** | |
+| github.com/spf13/pflag | v1.0.5 | **v1.0.10** | |
 
 ### Build tools (Makefile)
-| Tool | Current | Notes |
-|------|---------|-------|
-| operator-sdk | v1.32.0 | Outdated |
-| opm | v1.26.2 | Outdated |
-| kustomize | v4.5.7 | Outdated (v5.x available) |
-| controller-gen | v0.14.0 | Outdated |
-| yq | v4.30.5 | Outdated |
+| Tool | Before | After |
+|------|--------|-------|
+| operator-sdk | v1.32.0 | **v1.42.0** |
+| opm | v1.26.2 | **v1.64.0** |
+| kustomize | v4.5.7 | **v5.8.1** |
+| controller-gen | v0.14.0 | **v0.20.1** |
+| yq | v4.30.5 | **v4.52.4** |
 
 ---
 

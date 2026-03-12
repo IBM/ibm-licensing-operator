@@ -24,7 +24,6 @@ import (
 	"sort"
 	"time"
 
-	rhmp "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 	"github.com/go-logr/logr"
 	routev1 "github.com/openshift/api/route/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -43,6 +42,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
+
+	rhmp "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"

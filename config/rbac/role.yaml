@@ -12,33 +12,11 @@ rules:
   - create
   - patch
 - apiGroups:
-  - ""
+  - gateway.networking.k8s.io
   resources:
   - namespaces
   verbs:
   - get
-- apiGroups:
-  - gateway.networking.k8s.io
-  resources:
-  - backendtlspolicies
-  - gateways
-  - httproutes
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - gateway.networking.k8s.io
-  resources:
-  - gatewayclasses
-  verbs:
-  - get
-  - list
-  - watch
 - apiGroups:
   - operator.ibm.com
   resources:

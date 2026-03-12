@@ -20,11 +20,29 @@ CSV_VERSION_DEVELOPMENT ?= development
 OLD_CSV_VERSION ?= 4.2.20
 
 # Tools versions
-OPM_VERSION ?= v1.26.2
-OPERATOR_SDK_VERSION ?= v1.32.0
-YQ_VERSION ?= v4.30.5
-KUSTOMIZE_VERSION ?= v4.5.7
-CONTROLLER_GEN_VERSION ?= v0.14.0
+OPM_VERSION ?= v1.64.0
+OPERATOR_SDK_VERSION ?= v1.42.0
+YQ_VERSION ?= v4.52.4
+KUSTOMIZE_VERSION ?= v5.8.1
+CONTROLLER_GEN_VERSION ?= v0.20.1
+GOLANGCI_LINT_VERSION ?= v2.11.2
+GOIMPORTS_VERSION ?= v0.3.0
+
+# Local bin directory for all project tools (gitignored)
+LOCALBIN := $(PWD)/bin
+export PATH := $(LOCALBIN):$(PATH)
+
+# Tool binaries (all resolved to LOCALBIN)
+CONTROLLER_GEN := $(LOCALBIN)/controller-gen
+KUSTOMIZE      := $(LOCALBIN)/kustomize
+OPM            := $(LOCALBIN)/opm
+OPERATOR_SDK   := $(LOCALBIN)/operator-sdk
+YQ             := $(LOCALBIN)/yq
+GOLANGCI_LINT  := $(LOCALBIN)/golangci-lint
+GOIMPORTS      := $(LOCALBIN)/goimports
+DETECT_SECRETS := $(LOCALBIN)/detect-secrets
+SHELLCHECK     := $(LOCALBIN)/shellcheck
+YAMLLINT       := $(LOCALBIN)/.venv/bin/yamllint
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -93,8 +111,8 @@ BASE_DIR := $(shell basename $(PWD))
 # Keep an existing GOPATH, make a private one if it is undefined
 GOPATH_DEFAULT := $(PWD)/.go
 export GOPATH ?= $(GOPATH_DEFAULT)
-GOBIN_DEFAULT := $(GOPATH)/bin
-export GOBIN ?= $(GOBIN_DEFAULT)
+# Go tools are installed into LOCALBIN (not GOPATH/bin)
+export GOBIN := $(LOCALBIN)
 TESTARGS_DEFAULT := "-v"
 export TESTARGS ?= $(TESTARGS_DEFAULT)
 DEST := $(GOPATH)/src/$(GIT_HOST)/$(BASE_DIR)
@@ -156,7 +174,7 @@ CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
 
 # Identify stream based in current git branch
 DEVOPS_STREAM :=
-ifeq ($(GIT_BRANCH),master) 
+ifeq ($(GIT_BRANCH),master)
 	DEVOPS_STREAM="cd"
 	DEFAULT_CHANNEL=v4.0
 else ifeq ($(GIT_BRANCH),release-ltsr)
@@ -197,11 +215,8 @@ version.properties:
 # work section
 ############################################################
 
-$(GOBIN):
-	@echo "create gobin"
-	@mkdir -p $(GOBIN)
-
-work: $(GOBIN)
+$(LOCALBIN):
+	@mkdir -p $(LOCALBIN)
 
 ##@ Development
 
@@ -231,10 +246,10 @@ check: lint ## Check all files lint errors, this is also done before pushing the
 lint: lint-all vet
 
 # Run `make audit` before committing to ensure no secrets or sensitive credentials are present in the codebase
-audit: install-detect-secrets
-	@detect-secrets scan --update .secrets.baseline --exclude-files ".secrets.baseline|requirements.txt|go.mod|go.sum|\
+audit: $(DETECT_SECRETS) ## Run detect-secrets to scan for any secrets or sensitive credentials
+	@$(DETECT_SECRETS) scan --update .secrets.baseline --exclude-files ".secrets.baseline|requirements.txt|go.mod|go.sum|\
 		pom.xml|build.gradle|package-lock.json|yarn.lock|Cargo.lock|deno.lock|composer.lock|Gemfile.lock|Pipfile.lock"
-	@detect-secrets audit .secrets.baseline
+	@$(DETECT_SECRETS) audit .secrets.baseline
 
 ##@ Build
 
@@ -324,11 +339,11 @@ prepare-unit-test:
 	kubectl apply -f ./config/rbac/service_account_ns.yaml|| echo ""
 	sed "s/ibm-licensing/${NAMESPACE}/g" < ./config/rbac/role_binding.yaml > ./config/rbac/role_binding_ns.yaml
 	kubectl apply -f ./config/rbac/role_binding_ns.yaml || echo ""
-	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/master/v2/config/crd/bases/marketplace.redhat.com_meterdefinitions.yaml
+	curl -O https://raw.githubusercontent.com/redhat-marketplace/redhat-marketplace-operator/674d4e57186b/v2/config/crd/bases/marketplace.redhat.com_meterdefinitions.yaml
 	kubectl apply -f marketplace.redhat.com_meterdefinitions.yaml
 	curl -O https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/master/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
 	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
-	curl -O https://raw.githubusercontent.com/IBM/operand-deployment-lifecycle-manager/v1.21.0/bundle/manifests/operator.ibm.com_operandrequests.yaml
+	curl -O https://raw.githubusercontent.com/IBM/operand-deployment-lifecycle-manager/v1.23.5/bundle/manifests/operator.ibm.com_operandrequests.yaml
 	kubectl apply -f operator.ibm.com_operandrequests.yaml
 
 unit-test: prepare-unit-test
@@ -365,14 +380,14 @@ deploy: manifests kustomize
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: controller-gen
-	yq -i '.metadata.annotations."olm.skipRange" = ">=1.0.0 <$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
-	yq -i '.metadata.annotations.containerImage = "icr.io/cpopen/${IMG}:$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
+manifests: controller-gen yq
+	$(YQ) -i '.metadata.annotations."olm.skipRange" = ">=1.0.0 <$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.metadata.annotations.containerImage = "icr.io/cpopen/${IMG}:$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./api/..." paths="./controllers/..." output:crd:artifacts:config=config/crd/bases
 
 # Generate code
 generate: controller-gen
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..." paths="./controllers/..."
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 
 # Build the docker image
 docker-build: test
@@ -383,12 +398,12 @@ docker-push:
 	docker push ${IMG}
 
 # Take the roles (e.g. permissions) from bundle manifest that are created by kubebuilder and put them in CSV
-update-roles-alm-example: alm-example
-	yq -P '.rules' ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/clusterrole.yaml
-	yq -P '.rules' ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml > /tmp/role.yaml
-	yq -P '.rules' ./bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/reader-clusterrole.yaml
-	yq -P '.rules' ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/clusterrole2.yaml
-	yq -P '.rules' ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_role.yaml > /tmp/role2.yaml
+update-roles-alm-example: alm-example yq
+	$(YQ) -P '.rules' ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/clusterrole.yaml
+	$(YQ) -P '.rules' ./bundle/manifests/ibm-license-service_rbac.authorization.k8s.io_v1_role.yaml > /tmp/role.yaml
+	$(YQ) -P '.rules' ./bundle/manifests/ibm-licensing-default-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/reader-clusterrole.yaml
+	$(YQ) -P '.rules' ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_clusterrole.yaml > /tmp/clusterrole2.yaml
+	$(YQ) -P '.rules' ./bundle/manifests/ibm-license-service-restricted_rbac.authorization.k8s.io_v1_role.yaml > /tmp/role2.yaml
 
 	sed -i -e 's/^/  /' /tmp/clusterrole.yaml
 	sed -i -e 's/^/  /' /tmp/role.yaml
@@ -396,23 +411,23 @@ update-roles-alm-example: alm-example
 	sed -i -e 's/^/  /' /tmp/clusterrole2.yaml
 	sed -i -e 's/^/  /' /tmp/role2.yaml
 
-	yq -i '.spec.install.spec.clusterPermissions[1].rules |= load("/tmp/clusterrole.yaml") | \
+	$(YQ) -i '.spec.install.spec.clusterPermissions[1].rules |= load("/tmp/clusterrole.yaml") | \
 		.spec.install.spec.clusterPermissions[1].serviceAccountName = "ibm-license-service" \
 	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	yq -i '.spec.install.spec.clusterPermissions[2].rules |= load("/tmp/clusterrole2.yaml") | \
+	$(YQ) -i '.spec.install.spec.clusterPermissions[2].rules |= load("/tmp/clusterrole2.yaml") | \
 		.spec.install.spec.clusterPermissions[2].serviceAccountName = "ibm-license-service-restricted" \
 	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	yq -i '.spec.install.spec.clusterPermissions[3].rules |= load("/tmp/reader-clusterrole.yaml") | \
+	$(YQ) -i '.spec.install.spec.clusterPermissions[3].rules |= load("/tmp/reader-clusterrole.yaml") | \
 		.spec.install.spec.clusterPermissions[3].serviceAccountName = "ibm-licensing-default-reader" \
-	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml	
+	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	yq -i '.spec.install.spec.permissions[1].rules |= load("/tmp/role.yaml") | \
+	$(YQ) -i '.spec.install.spec.permissions[1].rules |= load("/tmp/role.yaml") | \
 		.spec.install.spec.permissions[1].serviceAccountName = "ibm-license-service" \
 	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
-	yq -i '.spec.install.spec.permissions[2].rules |= load("/tmp/role2.yaml") | \
+	$(YQ) -i '.spec.install.spec.permissions[2].rules |= load("/tmp/role2.yaml") | \
 		.spec.install.spec.permissions[2].serviceAccountName = "ibm-license-service-restricted" \
 	' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
@@ -432,34 +447,37 @@ update-roles-alm-example: alm-example
 	rm -f ./bundle/manifests/ibm-license-service-restricted_v1_serviceaccount.yaml
 
 # Takes config samples CRs and update alm-exmaple in CSV
-alm-example:
+alm-example: yq
 	mkdir -p /tmp/json
-	yq -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml > /tmp/json/ibmlicensing.json
+	$(YQ) -P -o=json ./config/samples/operator.ibm.com_v1alpha1_ibmlicensing.yaml > /tmp/json/ibmlicensing.json
+	$(YQ) -P -o=json ./config/samples/operator_v1_ibmlicensingdefinition.yaml > /tmp/json/ibmlicensingdefinition.json
+	$(YQ) -P -o=json ./config/samples/operator_v1alpha1_ibmlicensingmetadata.yaml > /tmp/json/ibmlicensingmetadata.json
+	$(YQ) -P -o=json ./config/samples/operator_v1_ibmlicensingquerysource.yaml > /tmp/json/ibmlicensingquerysource.json
 
-	jq -s '.' /tmp/json/ibmlicensing.json > /tmp/json/merged.json
-	yq -i '.metadata.annotations.alm-examples |= load_str("/tmp/json/merged.json")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	jq -s '.' /tmp/json/ibmlicensing.json /tmp/json/ibmlicensingdefinition.json /tmp/json/ibmlicensingmetadata.json /tmp/json/ibmlicensingquerysource.json > /tmp/json/merged.json
+	$(YQ) -i '.metadata.annotations.alm-examples |= load_str("/tmp/json/merged.json")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
 	rm -r /tmp/json
 
 # Generate bundle manifests and metadata, then validate generated files. Yq is used to change order of owned resources here to ensure Licensing is first.
-pre-bundle: manifests
-	operator-sdk generate kustomize manifests -q
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
-	yq -i '.annotations."com.redhat.openshift.versions" = "v4.12"' ./bundle/metadata/annotations.yaml
-	yq '.spec.customresourcedefinitions.owned[0]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_definitions.yaml
-	yq '.spec.customresourcedefinitions.owned[1]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_metadata.yaml
-	yq '.spec.customresourcedefinitions.owned[2]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_querysources.yaml
-	yq '.spec.customresourcedefinitions.owned[3]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_licensing.yaml
-	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[0] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_licensing.yaml
-	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[1] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_definitions.yaml
-	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[2] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_metadata.yaml
-	yq -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[3] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_querysources.yaml
-	yq -i '.spec.relatedImages = load("./common/relatedImages.yaml")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+pre-bundle: manifests operator-sdk kustomize yq
+	$(OPERATOR_SDK) generate kustomize manifests -q
+	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
+	$(YQ) -i '.annotations."com.redhat.openshift.versions" = "v4.12"' ./bundle/metadata/annotations.yaml
+	$(YQ) '.spec.customresourcedefinitions.owned[0]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_definitions.yaml
+	$(YQ) '.spec.customresourcedefinitions.owned[1]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_metadata.yaml
+	$(YQ) '.spec.customresourcedefinitions.owned[2]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_querysources.yaml
+	$(YQ) '.spec.customresourcedefinitions.owned[3]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_licensing.yaml
+	$(YQ) -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[0] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_licensing.yaml
+	$(YQ) -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[1] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_definitions.yaml
+	$(YQ) -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[2] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_metadata.yaml
+	$(YQ) -i eval-all 'select(fileIndex==0).spec.customresourcedefinitions.owned[3] = select(fileIndex==1) | select(fileIndex==0)' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml yq_tmp_querysources.yaml
+	$(YQ) -i '.spec.relatedImages = load("./common/relatedImages.yaml")' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 
 	rm yq_tmp_licensing.yaml yq_tmp_metadata.yaml yq_tmp_definitions.yaml yq_tmp_querysources.yaml
-	operator-sdk bundle validate ./bundle
 
 bundle: pre-bundle update-roles-alm-example
+	$(OPERATOR_SDK) bundle validate ./bundle
 
 # Build the bundle image.
 bundle-build:
@@ -469,19 +487,17 @@ bundle-build:
 bundle-build-development:
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 
-scorecard:
+scorecard: operator-sdk
 	kubectl create serviceaccount scorecard-sa -n ${NAMESPACE} || true
 	kubectl create clusterrolebinding scorecard-admin --clusterrole=cluster-admin --serviceaccount=${NAMESPACE}:scorecard-sa || true
-	operator-sdk scorecard ./bundle -n ${NAMESPACE} -w 120s --service-account scorecard-sa --kubeconfig ${HOME}/.kube/config
+	$(OPERATOR_SDK) scorecard ./bundle -n ${NAMESPACE} -w 120s --service-account scorecard-sa --kubeconfig ${HOME}/.kube/config
 
-catalogsource: opm
+catalogsource: opm yq
 	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
-	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
-	chmod +x ./yq
-	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${REGISTRY}/${IMG}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
-	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml	
+	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${REGISTRY}/${IMG}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
+	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
 	docker push ${REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
@@ -492,14 +508,12 @@ ifneq (${DEVOPS_STREAM},)
 endif
 
 # pipeline builds the catalog for you and already makes a multi-arch catalog, for amd64 we build it conditionally for dev purposes
-catalogsource-development: opm
+catalogsource-development: opm yq
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
-	curl -Lo ./yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_$(TARGET_OS)_$(LOCAL_ARCH)"
-	chmod +x ./yq
-	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-	./yq -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-	./yq -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
-	./yq -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml	
+	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
+	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add --permissive  -c ${PODMAN}  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
@@ -511,93 +525,119 @@ catalogsource-development: opm
 
 ##@ Install
 
-install-linters:  ## Install/verify required linting tools
-	common/scripts/install-linters-development.sh
+install-linters: ## Install/verify required linting tools
+	bash common/scripts/install-linters-development.sh $(LOCALBIN)
 
 verify-installed-tools: ## Verify if tools are installed
-	@command -v operator-sdk >/dev/null 2>&1 || { echo >&2 "Required tool: operator-sdk-${OPERATOR_SDK_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
-	@command -v opm >/dev/null 2>&1 || { echo >&2 "Required tool: opm-${OPM_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
-	@command -v controller-gen >/dev/null 2>&1 || { echo >&2 "Required tool: controller-gen-${CONTROLLER_GEN_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
-	@command -v kustomize >/dev/null 2>&1 || { echo >&2 "Required tool: kustomize-${KUSTOMIZE_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
-	@command -v yq >/dev/null 2>&1 || { echo >&2 "Required tool: yq-${YQ_VERSION} is not installed.  Run 'make install-all-tools' to install it."; exit 1; }
-	@echo "Successfully verified installed tools. Make sure the version matches required to avoid further issues.$'\n"
+	@test -x $(OPERATOR_SDK) || { echo >&2 "Required tool: operator-sdk-$(OPERATOR_SDK_VERSION) is not installed in $(LOCALBIN). Run 'make install-all-tools' to install it."; exit 1; }
+	@test -x $(OPM) || { echo >&2 "Required tool: opm-$(OPM_VERSION) is not installed in $(LOCALBIN). Run 'make install-all-tools' to install it."; exit 1; }
+	@test -x $(CONTROLLER_GEN) || { echo >&2 "Required tool: controller-gen-$(CONTROLLER_GEN_VERSION) is not installed in $(LOCALBIN). Run 'make install-all-tools' to install it."; exit 1; }
+	@test -x $(KUSTOMIZE) || { echo >&2 "Required tool: kustomize-$(KUSTOMIZE_VERSION) is not installed in $(LOCALBIN). Run 'make install-all-tools' to install it."; exit 1; }
+	@test -x $(YQ) || { echo >&2 "Required tool: yq-$(YQ_VERSION) is not installed in $(LOCALBIN). Run 'make install-all-tools' to install it."; exit 1; }
+	@test -x $(SHELLCHECK) || { echo >&2 "Required tool: shellcheck is not installed in $(LOCALBIN). Run 'make install-linters' to install it."; exit 1; }
+	@test -x $(YAMLLINT) || { echo >&2 "Required tool: yamllint is not installed in $(LOCALBIN). Run 'make install-linters' to install it."; exit 1; }
+	@test -x $(GOLANGCI_LINT) || { echo >&2 "Required tool: golangci-lint-$(GOLANGCI_LINT_VERSION) is not installed in $(LOCALBIN). Run 'make install-linters' to install it."; exit 1; }
+	@echo "Successfully verified all tools present in $(LOCALBIN)."
+	@echo "Required | Installed"
+	@echo ">>> operator-sdk-$(OPERATOR_SDK_VERSION) | $$($(OPERATOR_SDK) version | awk '{print $$3}')"
+	@echo ">>> opm-$(OPM_VERSION) | $$($(OPM) version | awk '{print $$2}' | awk -F ':' '{print $$2}')"
+	@echo ">>> controller-gen-$(CONTROLLER_GEN_VERSION) | $$($(CONTROLLER_GEN) --version | awk '{print $$2}')"
+	@echo ">>> kustomize-$(KUSTOMIZE_VERSION) | $$($(KUSTOMIZE) version)"
+	@echo ">>> yq-$(YQ_VERSION) | $$($(YQ) --version | awk '{print $$4}')"
 
-	@echo "Printing installed tools summary $'\n\
-	Required | Installed $'\n\
-	» operator-sdk-${OPERATOR_SDK_VERSION} | operator-sdk-"$(shell operator-sdk version | awk '{print $$3}')" $'\n\
-	» opm-${OPM_VERSION} | opm-"$(shell opm version | awk '{print $$2}' | awk -F ':' '{print $$2}')" $'\n\
-	» controller-gen-${CONTROLLER_GEN_VERSION} | controller-gen-"$(shell controller-gen --version | awk '{print $$2}')", $'\n\
-	» kustomize-${KUSTOMIZE_VERSION} | kustomize-"$(shell kustomize version | awk '{print $$1}' | awk -F ':' '{print $$2}')", $'\n\
-	» yq-${YQ_VERSION} | yq-"$(shell yq --version | awk '{print $$4}')" $'\n\
-	"
+install-all-tools: install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-linters verify-installed-tools ## Install all tools locally
 
-install-all-tools: install-operator-sdk install-opm install-controller-gen install-kustomize install-yq verify-installed-tools install-detect-secrets ## Install all tools locally
+.PHONY: install-operator-sdk
+install-operator-sdk: $(OPERATOR_SDK) ## Install tool locally: operator-sdk
 
-install-operator-sdk: ## Install tool locally: operator-sdk
-	@operator-sdk version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-operator-sdk.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPERATOR_SDK_VERSION}; fi
+.PHONY: install-opm
+install-opm: $(OPM) ## Install tool locally: opm
 
-install-opm: ## Install tool locally: opm
-	@opm version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-opm.sh ${TARGET_OS} ${LOCAL_ARCH} ${OPM_VERSION}; fi	
+.PHONY: install-controller-gen
+install-controller-gen: $(CONTROLLER_GEN) ## Install tool locally: controller-gen
 
-install-controller-gen: ## Install tool locally: controller-gen
-	@controller-gen --version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/controller-tools/cmd/controller-gen@${CONTROLLER_GEN_VERSION}; fi	
+.PHONY: install-kustomize
+install-kustomize: $(KUSTOMIZE) ## Install tool locally: kustomize
 
-install-kustomize: ## Install tool locally: kustomize
-	@kustomize version 2> /dev/null ; if [ $$? -ne 0 ]; then go install sigs.k8s.io/kustomize/kustomize/v4@${KUSTOMIZE_VERSION}; fi	
+.PHONY: install-yq
+install-yq: $(YQ) ## Install tool locally: yq
 
-install-yq: ## Install tool locally: yq
-	@yq --version 2> /dev/null ; if [ $$? -ne 0 ]; then bash common/scripts/install-yq.sh ${TARGET_OS} ${LOCAL_ARCH} ${YQ_VERSION}; fi	
+.PHONY: install-detect-secrets
+install-detect-secrets: $(DETECT_SECRETS) ## Install tool locally: detect-secrets
 
-install-detect-secrets: ## Install tool locally: detect-secrets
-	@common/scripts/install-detect-secrets.sh
+.PHONY: controller-gen
+controller-gen: $(CONTROLLER_GEN) ## Install controller-gen if not present in LOCALBIN
 
-controller-gen:
-ifeq (, $(shell which controller-gen))
-	@{ \
-	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@${CONTROLLER_GEN_VERSION} ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	}
-CONTROLLER_GEN=$(GOBIN)/controller-gen
-else
-CONTROLLER_GEN=$(shell which controller-gen)
-endif
+$(CONTROLLER_GEN): $(LOCALBIN)
+	@test -x $(CONTROLLER_GEN) && $(CONTROLLER_GEN) --version 2>/dev/null | grep -q "$(CONTROLLER_GEN_VERSION)" && echo "controller-gen $(CONTROLLER_GEN_VERSION) already installed" || \
+		( echo "Installing controller-gen $(CONTROLLER_GEN_VERSION)..." && GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_GEN_VERSION) )
 
-kustomize:
-ifeq (, $(shell which kustomize))
-	@{ \
-	set -e ;\
-	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v4@${KUSTOMIZE_VERSION} ;\
-	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
-	}
-KUSTOMIZE=$(GOBIN)/kustomize
-else
-KUSTOMIZE=$(shell which kustomize)
-endif
+.PHONY: kustomize
+kustomize: $(KUSTOMIZE) ## Install kustomize if not present in LOCALBIN
 
-opm:
-ifeq (, $(shell which opm))
-	@{ \
-	set -e ;\
-	OPM_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$OPM_GEN_TMP_DIR ;\
-	git clone  --branch ${OPM_VERSION}  https://github.com/operator-framework/operator-registry.git ;\
-	cd ./operator-registry ; \
-	git checkout ${OPM_VERSION};\
-	GOARCH=$(LOCAL_ARCH) GOFLAGS="-mod=vendor" go build -ldflags "-X 'github.com/operator-framework/operator-registry/cmd/opm/version.opmVersion=${OPM_VERSION}'"  -tags "json1" -o bin/opm ./cmd/opm ;\
-	cp ./bin/opm ~/ ; \
-	rm -rf $$OPM_GEN_TMP_DIR ;\
-	}
-OPM=~/opm
-else
-OPM=$(shell which opm)
-endif
+$(KUSTOMIZE): $(LOCALBIN)
+	@test -x $(KUSTOMIZE) && $(KUSTOMIZE) version 2>/dev/null | grep -q "$(KUSTOMIZE_VERSION)" && echo "kustomize $(KUSTOMIZE_VERSION) already installed" || \
+		( echo "Installing kustomize $(KUSTOMIZE_VERSION)..." && GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v5@$(KUSTOMIZE_VERSION) )
+
+.PHONY: opm
+opm: $(OPM) ## Install opm if not present in LOCALBIN
+
+$(OPM): $(LOCALBIN)
+	@test -x $(OPM) && $(OPM) version 2>/dev/null | grep -q "$(OPM_VERSION)" && echo "opm $(OPM_VERSION) already installed" || \
+		( echo "Installing opm $(OPM_VERSION)..." && \
+		  curl -sSfL https://github.com/operator-framework/operator-registry/releases/download/$(OPM_VERSION)/$(TARGET_OS)-$(LOCAL_ARCH)-opm -o $(OPM) && \
+		  chmod +x $(OPM) )
+
+.PHONY: operator-sdk
+operator-sdk: $(OPERATOR_SDK) ## Install operator-sdk if not present in LOCALBIN
+
+$(OPERATOR_SDK): $(LOCALBIN)
+	@test -x $(OPERATOR_SDK) && $(OPERATOR_SDK) version 2>/dev/null | grep -q "$(OPERATOR_SDK_VERSION)" && echo "operator-sdk $(OPERATOR_SDK_VERSION) already installed" || \
+		( echo "Installing operator-sdk $(OPERATOR_SDK_VERSION)..." && \
+		  bash common/scripts/install-operator-sdk.sh $(TARGET_OS) $(LOCAL_ARCH) $(OPERATOR_SDK_VERSION) $(OPERATOR_SDK) )
+
+.PHONY: yq
+yq: $(YQ) ## Install yq if not present in LOCALBIN
+
+$(YQ): $(LOCALBIN)
+	@test -x $(YQ) && $(YQ) --version 2>/dev/null | grep -q "$(YQ_VERSION)" && echo "yq $(YQ_VERSION) already installed" || \
+		( echo "Installing yq $(YQ_VERSION)..." && \
+		  bash common/scripts/install-yq.sh $(TARGET_OS) $(LOCAL_ARCH) $(YQ_VERSION) $(YQ) )
+
+.PHONY: golangci-lint
+golangci-lint: $(GOLANGCI_LINT) ## Install golangci-lint if not present in LOCALBIN
+
+$(GOLANGCI_LINT): $(LOCALBIN)
+	@test -x $(GOLANGCI_LINT) && $(GOLANGCI_LINT) --version 2>/dev/null | grep -q "$(GOLANGCI_LINT_VERSION:v%=%)" && echo "golangci-lint $(GOLANGCI_LINT_VERSION) already installed" || \
+		( echo "Installing golangci-lint $(GOLANGCI_LINT_VERSION)..." && \
+		  curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LOCALBIN) $(GOLANGCI_LINT_VERSION) )
+
+.PHONY: goimports
+goimports: $(GOIMPORTS) ## Install goimports if not present in LOCALBIN
+
+$(GOIMPORTS): $(LOCALBIN)
+	@test -x $(GOIMPORTS) && echo "goimports already installed" || \
+		( echo "Installing goimports $(GOIMPORTS_VERSION)..." && \
+		  GOBIN=$(LOCALBIN) go install golang.org/x/tools/cmd/goimports@$(GOIMPORTS_VERSION) )
+
+$(DETECT_SECRETS): $(LOCALBIN)
+	@test -x $(DETECT_SECRETS) && echo "detect-secrets already installed" || \
+		bash common/scripts/install-detect-secrets.sh $(LOCALBIN)
+
+
+.PHONY: shellcheck
+shellcheck: $(SHELLCHECK) ## Install shellcheck if not present in LOCALBIN
+
+$(SHELLCHECK): $(LOCALBIN)
+	@test -x $(SHELLCHECK) && echo "shellcheck already installed" || \
+		( echo "Installing shellcheck..." && bash common/scripts/install-linters-development.sh $(LOCALBIN) )
+
+.PHONY: yamllint
+yamllint: $(YAMLLINT) ## Install yamllint if not present in LOCALBIN
+
+$(YAMLLINT): $(LOCALBIN)
+	@test -x $(YAMLLINT) && echo "yamllint already installed" || \
+		( echo "Installing yamllint..." && bash common/scripts/install-linters-development.sh $(LOCALBIN) )
 
 ifeq (, $(shell which podman))
 PODMAN=docker
@@ -605,47 +645,47 @@ else
 PODMAN=podman
 endif
 
-.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help
+.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-linters verify-installed-tools audit scorecard
 
 .PHONY: generate-yaml-argo-cd
-generate-yaml-argo-cd: kustomize
+generate-yaml-argo-cd: kustomize yq
 	@mkdir -p argo-cd && $(KUSTOMIZE) build config/manifests > argo-cd/tmp.yaml
 
 	# Split the resources into separate YAML files
-	@(echo "---" && yq 'select(.kind == "ClusterRole" or .kind == "ClusterRoleBinding")' argo-cd/tmp.yaml) > argo-cd/cluster-rbac.yaml
-	@(echo "---" && yq 'select(.kind == "IBMLicensing")' argo-cd/tmp.yaml) > argo-cd/cr.yaml
-	@(echo "---" && yq 'select(.kind == "CustomResourceDefinition")' argo-cd/tmp.yaml) > argo-cd/crd.yaml
-	@(echo "---" && yq 'select(.kind == "Deployment")' argo-cd/tmp.yaml) > argo-cd/deployment.yaml
-	@(echo "---" && yq 'select(.kind == "Role" or .kind == "RoleBinding")' argo-cd/tmp.yaml) > argo-cd/rbac.yaml
-	@(echo "---" && yq 'select(.kind == "ServiceAccount")' argo-cd/tmp.yaml) > argo-cd/serviceaccounts.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "ClusterRole" or .kind == "ClusterRoleBinding")' argo-cd/tmp.yaml) > argo-cd/cluster-rbac.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "IBMLicensing")' argo-cd/tmp.yaml) > argo-cd/cr.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "CustomResourceDefinition")' argo-cd/tmp.yaml) > argo-cd/crd.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "Deployment")' argo-cd/tmp.yaml) > argo-cd/deployment.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "Role" or .kind == "RoleBinding")' argo-cd/tmp.yaml) > argo-cd/rbac.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "ServiceAccount")' argo-cd/tmp.yaml) > argo-cd/serviceaccounts.yaml
 
 	# Add missing namespaces
-	@yq -i 'select(.kind == "ClusterRoleBinding").subjects[0].namespace = "sed-me"' argo-cd/cluster-rbac.yaml
-	@yq -i 'select(.kind == "RoleBinding").subjects[0].namespace = "sed-me"' argo-cd/rbac.yaml
+	@$(YQ) -i 'select(.kind == "ClusterRoleBinding").subjects[0].namespace = "sed-me"' argo-cd/cluster-rbac.yaml
+	@$(YQ) -i 'select(.kind == "RoleBinding").subjects[0].namespace = "sed-me"' argo-cd/rbac.yaml
 
 	# Remove redundant data
-	@yq -i 'del(.metadata.namespace)' argo-cd/cluster-rbac.yaml
+	@$(YQ) -i 'del(.metadata.namespace)' argo-cd/cluster-rbac.yaml
 
 	# Prepare resources for templating with helm
-	@yq -i 'del(.spec)' argo-cd/cr.yaml
-	@yq -i '.metadata.annotations.sed-deployment-annotations-top = "sed-me" \
+	@$(YQ) -i 'del(.spec)' argo-cd/cr.yaml
+	@$(YQ) -i '.metadata.annotations.sed-deployment-annotations-top = "sed-me" \
 	| .metadata.labels.sed-deployment-labels-top = "sed-me" \
 	| .spec.template.metadata.annotations.sed-deployment-annotations-bottom = "sed-me" \
 	| .spec.template.metadata.labels.sed-deployment-labels-bottom = "sed-me" \
 	| .spec.template.spec.containers[0].env[1].valueFrom = "sed-me"' argo-cd/deployment.yaml
-	@yq -i '.metadata.labels.component-id = "sed-me"' argo-cd/cluster-rbac.yaml
-	@yq -i '.metadata.labels.component-id = "sed-me"' argo-cd/cr.yaml
-	@yq -i '.metadata.labels.component-id = "sed-me"' argo-cd/crd.yaml
-	@yq -i '.metadata.labels.component-id = "sed-me"' argo-cd/deployment.yaml
-	@yq -i '.metadata.labels.component-id = "sed-me"' argo-cd/rbac.yaml
-	@yq -i '.metadata.labels.component-id = "sed-me"' argo-cd/serviceaccounts.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/cluster-rbac.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/cr.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/crd.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/deployment.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/rbac.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/serviceaccounts.yaml
 
 	# Add extra fields, for example argo-cd sync waves
-	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-options" = "ServerSideApply=true"' argo-cd/cr.yaml
-	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "-1"' argo-cd/crd.yaml
+	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-options" = "ServerSideApply=true"' argo-cd/cr.yaml
+	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "-1"' argo-cd/crd.yaml
 	# This sync wave is crucial because the deployment must be created after the CR, to avoid a situation when ArgoCD
 	# starts creating the CR at the same time as the operator does it (patch isn't applied and a name conflict happens)
-	@yq -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "1"' argo-cd/deployment.yaml
+	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "1"' argo-cd/deployment.yaml
 
 	# Replace all component-id labels to template them with helm
 	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/cluster-rbac.yaml

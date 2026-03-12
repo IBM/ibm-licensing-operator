@@ -19,9 +19,10 @@ package service
 import (
 	"time"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	rhmpcommon "github.com/IBM/ibm-licensing-operator/pkg/rhmp/common"
 	rhmp "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )

@@ -22,7 +22,6 @@ import (
 	"testing"
 	"time"
 
-	meterdefv1beta1 "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	servicecav1 "github.com/openshift/api/operator/v1"
@@ -41,6 +40,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
+
+	meterdefv1beta1 "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 

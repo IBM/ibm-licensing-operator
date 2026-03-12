@@ -23,11 +23,12 @@ import (
 	"os"
 	r "runtime"
 
-	meterdefv1beta1 "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
+
+	meterdefv1beta1 "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 
 	"go.uber.org/zap/zapcore"
 

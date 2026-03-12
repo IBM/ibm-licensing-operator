@@ -43,41 +43,51 @@ INSTALL_HOOKS := $(shell find .git/hooks -type l -exec rm {} \; && \
 # lint section
 ############################################################
 
-FINDFILES=find . \( -path ./.git -o -path ./.github -o -path ./common/scripts/catalog -o -path ./common/scripts/tests -o -path ./common/scripts/catalog_build.sh -o -path ./.go -o -path ./vendor \) -prune -o -type f 
+FINDFILES=find . \( -path ./.git -o -path ./.github -o -path ./common/scripts/catalog -o -path ./common/scripts/tests -o -path ./common/scripts/catalog_build.sh -o -path ./.go -o -path ./vendor -o -path ./bin \) -prune -o -type f
 XARGS = xargs -0 ${XARGS_FLAGS}
 CLEANXARGS = xargs ${XARGS_FLAGS}
 
-lint-dockerfiles:
-	@${FINDFILES} -name 'Dockerfile*' -print0 | ${XARGS} hadolint -c ./common/config/.hadolint.yml
+lint-scripts: $(SHELLCHECK)
+	@echo ">>> Starting shell script lint (shellcheck)"
+	@${FINDFILES} -name '*.sh' -print0 | ${XARGS} $(SHELLCHECK)
+	@echo ">>> Shell script lint finished"
 
-lint-scripts:
-	@${FINDFILES} -name '*.sh' -print0 | ${XARGS} shellcheck
-
-lint-yaml:
-	@${FINDFILES} \( -name '*.yml' -o -name '*.yaml' \) \( ! \( -name 'kustomization.yaml' \) \) -print0 | ${XARGS} grep -L -e "{{" | ${CLEANXARGS} yamllint -c ./common/config/.yamllint.yml
+lint-yaml: $(YAMLLINT)
+	@echo ">>> Starting YAML lint (yamllint)"
+	@${FINDFILES} \( -name '*.yml' -o -name '*.yaml' \) -print0 | ${XARGS} grep -L -e "{{" | ${CLEANXARGS} $(YAMLLINT) -c ./common/config/.yamllint.yml
+	@echo ">>> YAML lint finished"
 
 lint-copyright-banner:
+	@echo ">>> Starting copyright banner lint"
 	@${FINDFILES} \( -name '*.go' -o -name '*.cc' -o -name '*.h' -o -name '*.proto' -o -name '*.py' -o -name '*.sh' \) \( ! \( -name '*.gen.go' -o -name '*.pb.go' -o -name '*_pb2.py' -o -name '*_generated.deepcopy.go' \) \) -print0 |\
 		${XARGS} common/scripts/lint_copyright_banner.sh
+	@echo ">>> Copyright banner lint finished"
 
-lint-go:
-	@golangci-lint --version
+lint-go: $(GOLANGCI_LINT)
+	@echo ">>> Starting Go lint (golangci-lint $(shell $(GOLANGCI_LINT) --version 2>/dev/null | head -1))"
 	@${FINDFILES} -name '*.go' \( ! \( -name '*.gen.go' -o -name '*.pb.go' -o -name '*_generated.deepcopy.go' \) \) -print0 | ${XARGS} common/scripts/lint_go.sh
+	@echo ">>> Go lint finished"
 
 lint-markdown:
+	@echo ">>> Starting Markdown lint (mdl)"
 	@${FINDFILES} -name '*.md' -print0 | ${XARGS} mdl --ignore-front-matter --style common/config/mdl.rb
+	@echo ">>> Markdown lint finished"
+	@echo ">>> Starting Markdown link check (awesome_bot)"
 ifdef MARKDOWN_LINT_WHITELIST
 	@${FINDFILES} -name '*.md' -print0 | ${XARGS} awesome_bot --skip-save-results --allow_ssl --allow-timeout --allow-dupe --allow-redirect --white-list ${MARKDOWN_LINT_WHITELIST}
 else
 	@${FINDFILES} -name '*.md' -print0 | ${XARGS} awesome_bot --skip-save-results --allow_ssl --allow-timeout --allow-dupe --allow-redirect
 endif
+	@echo ">>> Markdown link check finished"
 
-lint-all: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown
+lint-all: lint-scripts lint-yaml lint-copyright-banner lint-go
 
-format-go:
-	@${FINDFILES} -name '*.go' \( ! \( -name '*.gen.go' -o -name '*.pb.go' -o -name '*_generated.deepcopy.go' \) \) -print0 | ${XARGS} goimports -w -local "github.com/IBM"
+format-go: $(GOIMPORTS)
+	@echo ">>> Starting Go format (goimports)"
+	@${FINDFILES} -name '*.go' \( ! \( -name '*.gen.go' -o -name '*.pb.go' -o -name '*_generated.deepcopy.go' \) \) -print0 | ${XARGS} $(GOIMPORTS) -w -local "github.com/IBM"
+	@echo ">>> Go format finished"
 
-.PHONY: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown lint-all format-go
+.PHONY: lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown lint-all format-go
 
 # Run go vet for this project. More info: https://golang.org/cmd/vet/
 code-vet:
