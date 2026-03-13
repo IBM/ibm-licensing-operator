@@ -12,7 +12,7 @@ namespace: ibm-licensing
 #commonLabels:
 #  someName: someValue2
 
-bases:
+resources:
 - ../crd
 - ../rbac
 - ../manager

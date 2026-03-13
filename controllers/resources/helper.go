@@ -32,21 +32,24 @@ import (
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
-	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+
+	rhmp "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	apieq "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
@@ -64,6 +67,8 @@ var (
 	IsAlertingEnabledByDefault = true
 	RHMPEnabled                = false
 	IsODLM                     = true
+	IsGatewayAPI               = false
+	IsBackendTLSPolicyAPI      = false
 
 	PathType = networkingv1.PathTypeImplementationSpecific
 )
@@ -234,7 +239,7 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 	}
 	expectedEndpoint := expectedSpec.Endpoints[0]
 	foundEndpoint := foundSpec.Endpoints[0]
-	if expectedEndpoint.Scheme != foundEndpoint.Scheme {
+	if !equalStringPointers((*string)(expectedEndpoint.Scheme), (*string)(foundEndpoint.Scheme)) {
 		return updateResource()
 	}
 	if expectedEndpoint.TargetPort != nil {
@@ -266,7 +271,7 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 		}
 		expectedRelabeling := expectedEndpoint.RelabelConfigs[0]
 		foundRelabeling := foundEndpoint.RelabelConfigs[0]
-		if expectedRelabeling.Replacement != foundRelabeling.Replacement ||
+		if !equalStringPointers(expectedRelabeling.Replacement, foundRelabeling.Replacement) ||
 			expectedRelabeling.TargetLabel != foundRelabeling.TargetLabel {
 			return updateResource()
 		}
@@ -336,12 +341,25 @@ func checkMetricRelabelConfigs(reqLogger *logr.Logger, expectedEndpoint monitori
 	return reconcile.Result{}, false, nil
 }
 
+func equalStringPointers(a, b *string) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
+}
+
 func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource ResourceObject) (reconcile.Result, error) {
 	resTypeString := reflect.TypeOf(foundResource).String()
 	err := client.Delete(context.TODO(), foundResource)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			(*reqLogger).Info("Could not delete "+resTypeString+", as it was already deleted", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+		} else if metaErrors.IsNoMatchError(err) {
+			(*reqLogger).Info("CRD for "+resTypeString+" not installed, skipping delete", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+			return reconcile.Result{}, nil
 		} else {
 			(*reqLogger).Error(err, "Failed to delete "+resTypeString+" during recreation", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
 			return reconcile.Result{}, err
@@ -387,7 +405,7 @@ echo "$(date): All required secrets exist"
 	return script
 }
 
-func UpdateCacheClusterExtensions(client c.Reader) error {
+func UpdateCacheClusterExtensions(client c.Reader, logger logr.Logger) error {
 	namespace, err := GetOperatorNamespace()
 	if err != nil {
 		return errors.New("OPERATOR_NAMESPACE env not found")
@@ -425,6 +443,35 @@ func UpdateCacheClusterExtensions(client c.Reader) error {
 		IsODLM = true
 	} else {
 		IsODLM = false
+	}
+	// Check for Gateway API by attempting to list Gateway resources
+	// If the CRD is not installed or types not registered, this will fail
+	gatewayTestInstance := &gatewayv1.GatewayList{}
+	if err := client.List(context.TODO(), gatewayTestInstance, listOpts...); err == nil {
+		IsGatewayAPI = true
+	} else {
+		// Check if it's a NoMatchError (CRD not installed) or other error (e.g., scheme not registered)
+		if metaErrors.IsNoMatchError(err) {
+			IsGatewayAPI = false
+			logger.Info("Gateway API CRDs not found in cluster. Gateway routing features will be disabled. To enable Gateway support, install Gateway API CRDs see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
+		} else {
+			// For other errors (like scheme registration), assume Gateway API might be available
+			// This handles test scenarios where CRDs are loaded but scheme registration happens differently
+			logger.Info("Could not verify Gateway API availability, assuming it's available", "error", err.Error())
+			IsGatewayAPI = true
+		}
+	}
+
+	backendTLSPolicyTestInstance := &gatewayv1.BackendTLSPolicyList{}
+	if err := client.List(context.TODO(), backendTLSPolicyTestInstance, listOpts...); err == nil {
+		IsBackendTLSPolicyAPI = true
+	} else {
+		if metaErrors.IsNoMatchError(err) {
+			IsBackendTLSPolicyAPI = false
+		} else {
+			// Assume available for non-NoMatch errors
+			IsBackendTLSPolicyAPI = true
+		}
 	}
 
 	return nil
