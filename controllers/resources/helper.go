@@ -235,7 +235,7 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 	}
 	expectedEndpoint := expectedSpec.Endpoints[0]
 	foundEndpoint := foundSpec.Endpoints[0]
-	if expectedEndpoint.Scheme != foundEndpoint.Scheme {
+	if !equalStringPointers((*string)(expectedEndpoint.Scheme), (*string)(foundEndpoint.Scheme)) {
 		return updateResource()
 	}
 	if expectedEndpoint.TargetPort != nil {
@@ -267,7 +267,7 @@ func UpdateServiceMonitor(reqLogger *logr.Logger, client c.Client, expected, fou
 		}
 		expectedRelabeling := expectedEndpoint.RelabelConfigs[0]
 		foundRelabeling := foundEndpoint.RelabelConfigs[0]
-		if expectedRelabeling.Replacement != foundRelabeling.Replacement ||
+		if !equalStringPointers(expectedRelabeling.Replacement, foundRelabeling.Replacement) ||
 			expectedRelabeling.TargetLabel != foundRelabeling.TargetLabel {
 			return updateResource()
 		}
@@ -335,6 +335,16 @@ func checkMetricRelabelConfigs(reqLogger *logr.Logger, expectedEndpoint monitori
 		}
 	}
 	return reconcile.Result{}, false, nil
+}
+
+func equalStringPointers(a, b *string) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
 }
 
 func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource ResourceObject) (reconcile.Result, error) {
