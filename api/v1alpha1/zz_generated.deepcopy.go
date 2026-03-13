@@ -135,7 +135,7 @@ func (in *IBMLicenseServiceRouteOptions) DeepCopyInto(out *IBMLicenseServiceRout
 	if in.TLS != nil {
 		in, out := &in.TLS, &out.TLS
 		*out = new(v1.TLSConfig)
-		**out = **in
+		(*in).DeepCopyInto(*out)
 	}
 }
 
@@ -397,7 +397,7 @@ func (in *IBMLicensingRouteOptions) DeepCopyInto(out *IBMLicensingRouteOptions) 
 	if in.TLS != nil {
 		in, out := &in.TLS, &out.TLS
 		*out = new(v1.TLSConfig)
-		**out = **in
+		(*in).DeepCopyInto(*out)
 	}
 }
 

@@ -17,17 +17,31 @@
 
 set -euo pipefail
 
-echo ">>> Installing Operator SDK"
+# Diffutils is a system package — it cannot be installed to a local directory.
+# Version v3.8 is the minimum required.
 
-TARGET_OS=$1
-LOCAL_ARCH=$2
-OPERATOR_SDK_VERSION=$3
-INSTALL_PATH=$4
+function detect_os() {
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "Linux"
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "MacOS"
+  else
+    echo "Unknown"
+  fi
+}
 
-mkdir -p "$(dirname "${INSTALL_PATH}")"
-# Download binary directly to the target path
-curl -sSfL \
-  "https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk_${TARGET_OS}_${LOCAL_ARCH}" \
-  -o "${INSTALL_PATH}"
-chmod +x "${INSTALL_PATH}"
-echo ">>> operator-sdk ${OPERATOR_SDK_VERSION} installed to ${INSTALL_PATH}"
+ACTIVE_OS="$(detect_os)"
+
+if [ -x "$(command -v diff3)" ]; then
+  echo ">>> Diffutils already installed"
+  diff3 --version
+  exit 0
+fi
+
+echo ">>> Installing diffutils"
+if [ "${ACTIVE_OS}" == 'Linux' ]; then
+  sudo apt-get update
+  sudo apt-get install diffutils
+else
+  brew install diffutils
+fi

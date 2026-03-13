@@ -24,10 +24,9 @@ import (
 	"sort"
 	"time"
 
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	routev1 "github.com/openshift/api/route/v1"
-	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -42,6 +41,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	rhmp "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
@@ -590,7 +591,9 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 	internalCertificate := &corev1.Secret{}
 	certificateNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 
-	if err := r.Client.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
+	// Use Reader (bypasses label-filtered cache) because on OCP the internal cert is created by
+	// ServiceCA and does not carry the "release=ibm-licensing-service" label required by ByObject cache.
+	if err := r.Reader.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
 		// Generate certificate only when route/ingress is enabled
 		if instance.Spec.IsRouteEnabled() || instance.Spec.IsIngressEnabled() {
 			r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
@@ -740,7 +743,16 @@ func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.
 		return reconcileResult, err
 	}
 
-	shouldUpdate := res.ShouldUpdateDeployment(
+	replicasMismatch := foundDeployment.Spec.Replicas == nil ||
+		expectedDeployment.Spec.Replicas == nil ||
+		*foundDeployment.Spec.Replicas != *expectedDeployment.Spec.Replicas
+	if replicasMismatch {
+		reqLogger.Info("Deployment has wrong replica count",
+			"found", foundDeployment.Spec.Replicas,
+			"expected", expectedDeployment.Spec.Replicas)
+	}
+
+	shouldUpdate := replicasMismatch || res.ShouldUpdateDeployment(
 		&reqLogger,
 		&expectedDeployment.Spec.Template,
 		&foundDeployment.Spec.Template,
@@ -820,8 +832,10 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 
 		internalCertSecret := corev1.Secret{}
 		internalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
-		if err := r.Client.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
-			r.Log.Error(err, "Cannot retrieve external certificate from secret")
+		// Use Reader (bypasses label-filtered cache) because on OCP the internal cert is created by
+		// ServiceCA and does not carry the "release=ibm-licensing-service" label required by ByObject cache.
+		if err := r.Reader.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
+			r.Log.Error(err, "Cannot retrieve internal certificate from secret")
 			return reconcile.Result{Requeue: true}, nil
 		}
 
@@ -1080,6 +1094,29 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
 						"Namespace", expectedRes.GetNamespace())
 					return reconcile.Result{}, err
+				}
+				// Resource exists in the cluster but is missing from the label-filtered cache (upgrade migration).
+				// Fetch it via Reader (bypasses cache) and patch the missing labels so it enters the cache.
+				if readerErr := r.Reader.Get(context.TODO(), namespacedName, foundRes); readerErr == nil {
+					existingLabels := foundRes.GetLabels()
+					if existingLabels == nil {
+						existingLabels = make(map[string]string)
+					}
+					changed := false
+					for k, v := range expectedRes.GetLabels() {
+						if existingLabels[k] != v {
+							existingLabels[k] = v
+							changed = true
+						}
+					}
+					if changed {
+						reqLogger.Info("Adding missing labels to existing "+resType.String()+" (upgrade migration)",
+							"Name", expectedRes.GetName(), "Namespace", expectedRes.GetNamespace())
+						foundRes.SetLabels(existingLabels)
+						if updateErr := r.Client.Update(context.TODO(), foundRes); updateErr != nil {
+							reqLogger.Error(updateErr, "Failed to add labels to existing "+resType.String())
+						}
+					}
 				}
 			}
 			// Created successfully, or already exists - return and requeue

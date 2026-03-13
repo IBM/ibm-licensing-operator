@@ -45,6 +45,7 @@ func GetDefaultReaderToken(instance *operatorv1alpha1.IBMLicensing) (*corev1.Sec
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        DefaultReaderTokenName,
 			Namespace:   instance.Spec.InstanceNamespace,
+			Labels:      LabelsForMeta(instance),
 			Annotations: map[string]string{ServiceAccountSecretAnnotationKey: DefaultReaderServiceAccountName},
 		},
 		Type: corev1.SecretTypeServiceAccountToken,
@@ -57,6 +58,7 @@ func GetServiceAccountSecret(instance *operatorv1alpha1.IBMLicensing) (*corev1.S
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        ServiceAccountSecretName,
 			Namespace:   instance.Spec.InstanceNamespace,
+			Labels:      LabelsForMeta(instance),
 			Annotations: map[string]string{ServiceAccountSecretAnnotationKey: GetServiceAccountName(instance)},
 		},
 		Type: corev1.SecretTypeServiceAccountToken,
