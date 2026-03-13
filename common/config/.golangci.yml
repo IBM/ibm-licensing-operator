@@ -42,14 +42,6 @@ linters:
   # - stylecheck
 
   settings:
-    errcheck:
-      # report about not checking of errors in type assetions: `a := b.(MyStruct)`;
-      # default is false: such cases aren't reported by default.
-      check-type-assertions: false
-
-      # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
-      # default is false: such cases aren't reported by default.
-      check-blank: false
     revive:
       # minimal confidence for issues, default is 0.8
       confidence: 0.0
@@ -63,7 +55,7 @@ linters:
       excludes:
         - G101 # Look for hard coded credentials
         - G304 # Potential file inclusion via variable (false positive for operator config file reads)
-        - G118 # Context cancel func assigned to a slice element is not detected by gosec
+        - G118 # False positive: cancel func stored in a slice (routinesToCancel) for deferred cleanup — gosec cannot trace cancel funcs through slice assignments
     misspell:
       # Correct spellings using locale preferences for US or UK.
       # Default is to use a neutral variety of English.
@@ -83,52 +75,6 @@ linters:
       # if it's called for subdir of a project it can't find external interfaces. All text editor integrations
       # with golangci-lint call it on a directory with the changed file.
       check-exported: false
-    gocritic:
-      enabled-checks:
-        - appendCombine
-        - argOrder
-        - assignOp
-        - badCond
-        - boolExprSimplify
-        - builtinShadow
-        - captLocal
-        - caseOrder
-        - codegenComment
-        - commentedOutCode
-        - commentedOutImport
-        - defaultCaseOrder
-        - deprecatedComment
-        - docStub
-        - dupArg
-        - dupBranchBody
-        - dupCase
-        - dupSubExpr
-        - elseif
-        - emptyFallthrough
-        - equalFold
-        - flagDeref
-        - flagName
-        - hexLiteral
-        - indexAlloc
-        - initClause
-        - methodExprCall
-        - nilValReturn
-        - octalLiteral
-        - offBy1
-        - rangeExprCopy
-        - regexpMust
-        - sloppyLen
-        - stringXbytes
-        - switchTrue
-        - typeAssertChain
-        - typeSwitchVar
-        - typeUnparen
-        - underef
-        - unlambda
-        - unnecessaryBlock
-        - unslice
-        - valSwap
-        - weakCond
 
   exclusions:
     paths:
@@ -144,8 +90,12 @@ linters:
       - path: _test\.go$|^tests/|^samples/|^vendor/
         linters:
           - errcheck
-      # SA1019: result.Requeue is deprecated in controller-runtime — pre-existing, non-breaking
-      - text: "SA1019: .* is deprecated"
+      # result.Requeue is deprecated in controller-runtime — broad refactor tracked separately
+      - text: "SA1019: .*\\.Requeue is deprecated"
+        linters:
+          - staticcheck
+      # GetEventRecorderFor is deprecated — migrating to events.EventRecorder API is a larger refactor
+      - text: "SA1019: .*GetEventRecorderFor is deprecated"
         linters:
           - staticcheck
       # QF1008: cosmetic embedded-field selector simplification
