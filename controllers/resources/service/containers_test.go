@@ -65,6 +65,8 @@ func TestGetLicensingEnvironmentVariablesCertsValidationEnabledWithCerts(t *test
 }
 
 func TestGetLicensingEnvironmentVariablesNamespaceScopingFeatureEnabled(t *testing.T) {
+	t.Setenv("WATCH_NAMESPACE", "ibm-licensing")
+
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
