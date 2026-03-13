@@ -27,6 +27,8 @@ KUSTOMIZE_VERSION ?= v5.8.1
 CONTROLLER_GEN_VERSION ?= v0.20.1
 GOLANGCI_LINT_VERSION ?= v2.11.2
 GOIMPORTS_VERSION ?= v0.3.0
+SHELLCHECK_VERSION ?= v0.8.0
+YAMLLINT_VERSION ?= 1.28.0
 
 # Local bin directory for all project tools (gitignored)
 LOCALBIN := $(PWD)/bin
@@ -529,8 +531,8 @@ catalogsource-development: opm yq
 
 ##@ Install
 
-install-linters: ## Install/verify required linting tools
-	bash common/scripts/install-linters-development.sh $(LOCALBIN)
+install-linters: $(SHELLCHECK) $(YAMLLINT) $(GOLANGCI_LINT) ## Install/verify required linting tools
+	bash common/scripts/install-diffutils.sh
 
 verify-installed-tools: ## Verify if tools are installed
 	@test -x $(OPERATOR_SDK) || { echo >&2 "Required tool: operator-sdk-$(OPERATOR_SDK_VERSION) is not installed in $(LOCALBIN). Run 'make install-all-tools' to install it."; exit 1; }
@@ -541,6 +543,8 @@ verify-installed-tools: ## Verify if tools are installed
 	@test -x $(SHELLCHECK) || { echo >&2 "Required tool: shellcheck is not installed in $(LOCALBIN). Run 'make install-linters' to install it."; exit 1; }
 	@test -x $(YAMLLINT) || { echo >&2 "Required tool: yamllint is not installed in $(LOCALBIN). Run 'make install-linters' to install it."; exit 1; }
 	@test -x $(GOLANGCI_LINT) || { echo >&2 "Required tool: golangci-lint-$(GOLANGCI_LINT_VERSION) is not installed in $(LOCALBIN). Run 'make install-linters' to install it."; exit 1; }
+	@test -x $(GOIMPORTS) || { echo >&2 "Required tool: goimports-$(GOIMPORTS_VERSION) is not installed in $(LOCALBIN). Run 'make install-all-tools' to install it."; exit 1; }
+	@test -x $(DETECT_SECRETS) || { echo >&2 "Required tool: detect-secrets is not installed in $(LOCALBIN). Run 'make install-all-tools' to install it."; exit 1; }
 	@echo "Successfully verified all tools present in $(LOCALBIN)."
 	@echo "Required | Installed"
 	@echo ">>> operator-sdk-$(OPERATOR_SDK_VERSION) | $$($(OPERATOR_SDK) version | awk '{print $$3}')"
@@ -549,7 +553,7 @@ verify-installed-tools: ## Verify if tools are installed
 	@echo ">>> kustomize-$(KUSTOMIZE_VERSION) | $$($(KUSTOMIZE) version)"
 	@echo ">>> yq-$(YQ_VERSION) | $$($(YQ) --version | awk '{print $$4}')"
 
-install-all-tools: install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-linters verify-installed-tools ## Install all tools locally
+install-all-tools: install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools ## Install all tools locally
 
 .PHONY: install-operator-sdk
 install-operator-sdk: $(OPERATOR_SDK) ## Install tool locally: operator-sdk
@@ -568,6 +572,9 @@ install-yq: $(YQ) ## Install tool locally: yq
 
 .PHONY: install-detect-secrets
 install-detect-secrets: $(DETECT_SECRETS) ## Install tool locally: detect-secrets
+
+.PHONY: install-goimports
+install-goimports: $(GOIMPORTS) ## Install tool locally: goimports
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Install controller-gen if not present in LOCALBIN
@@ -628,20 +635,19 @@ $(DETECT_SECRETS): $(LOCALBIN)
 	@test -x $(DETECT_SECRETS) && echo "detect-secrets already installed" || \
 		bash common/scripts/install-detect-secrets.sh $(LOCALBIN)
 
-
 .PHONY: shellcheck
 shellcheck: $(SHELLCHECK) ## Install shellcheck if not present in LOCALBIN
 
 $(SHELLCHECK): $(LOCALBIN)
 	@test -x $(SHELLCHECK) && echo "shellcheck already installed" || \
-		( echo "Installing shellcheck..." && bash common/scripts/install-linters-development.sh $(LOCALBIN) )
+		( echo "Installing shellcheck $(SHELLCHECK_VERSION)..." && bash common/scripts/install-shellcheck.sh $(SHELLCHECK_VERSION) $(SHELLCHECK) )
 
 .PHONY: yamllint
 yamllint: $(YAMLLINT) ## Install yamllint if not present in LOCALBIN
 
 $(YAMLLINT): $(LOCALBIN)
 	@test -x $(YAMLLINT) && echo "yamllint already installed" || \
-		( echo "Installing yamllint..." && bash common/scripts/install-linters-development.sh $(LOCALBIN) )
+		( echo "Installing yamllint $(YAMLLINT_VERSION)..." && bash common/scripts/install-yamllint.sh $(LOCALBIN) $(YAMLLINT_VERSION) )
 
 ifeq (, $(shell which podman))
 PODMAN=docker
@@ -649,7 +655,7 @@ else
 PODMAN=podman
 endif
 
-.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-linters verify-installed-tools audit scorecard
+.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard
 
 .PHONY: generate-yaml-argo-cd
 generate-yaml-argo-cd: kustomize yq
