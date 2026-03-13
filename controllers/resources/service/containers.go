@@ -18,12 +18,19 @@ package service
 
 import (
 	"strconv"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
+)
+
+const (
+	softwareCentralProductionURL    = "https://swc.saas.ibm.com"
+	softwareCentralSandboxURL       = "https://sandbox.swc.saas.ibm.com"
+	softwareCentralDefaultFrequency = "5 0 * * *"
 )
 
 func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
@@ -200,6 +207,24 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 
 	}
 
+	// Software Central configuration
+	if spec.IsSoftwareCentralEnabled() {
+		environmentVariables = append(environmentVariables, []corev1.EnvVar{
+			{
+				Name:  "SOFTWARE_CENTRAL_ENABLED",
+				Value: strconv.FormatBool(spec.SoftwareCentral.Enable),
+			},
+			{
+				Name:  "SOFTWARE_CENTRAL_URL",
+				Value: getSoftwareCentralURL(spec.SoftwareCentral),
+			},
+			{
+				Name:  "SOFTWARE_CENTRAL_FREQUENCY",
+				Value: getSoftwareCentralFrequency(spec.SoftwareCentral),
+			},
+		}...)
+	}
+
 	if spec.EnvVariable != nil {
 		for key, value := range spec.EnvVariable {
 			environmentVariables = append(environmentVariables, corev1.EnvVar{
@@ -315,6 +340,34 @@ func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 	}
 
 	return ports
+}
+
+// returns the appropriate Software Central URL based on the sandbox setting.
+// When Sandbox is true, uses SoftwareCentralSandboxURL; otherwise uses SoftwareCentralProductionURL.
+func getSoftwareCentralURL(swc *operatorv1alpha1.IBMLicensingSoftwareCentralSpec) string {
+	if swc.Sandbox {
+		return softwareCentralSandboxURL
+	}
+	return softwareCentralProductionURL
+}
+
+// returns the upload frequency or the default value if not set.
+// When provided frequency contains 5 characters then leading zero will be added to convert
+// the frequency to Spring Boot cron expression format.
+func getSoftwareCentralFrequency(swc *operatorv1alpha1.IBMLicensingSoftwareCentralSpec) string {
+	frequency := swc.Frequency
+
+	// Use default value if frequency was unspecified
+	if frequency == "" {
+		frequency = softwareCentralDefaultFrequency
+	}
+
+	// If frequency contains only 5 characters then add leading zero (0 seconds)
+	if len(strings.Split(frequency, " ")) == 5 {
+		frequency = "0 " + frequency
+	}
+
+	return frequency
 }
 
 func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Container {
