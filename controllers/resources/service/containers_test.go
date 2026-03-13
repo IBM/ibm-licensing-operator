@@ -115,10 +115,8 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
-		Sender: &operatorv1alpha1.IBMLicensingSenderSpec{
-			SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
-				Enable: true,
-			},
+		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+			Enable: true,
 		},
 	}
 
@@ -136,11 +134,9 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled_SandboxTrue(t *t
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
-		Sender: &operatorv1alpha1.IBMLicensingSenderSpec{
-			SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
-				Enable:  true,
-				Sandbox: true,
-			},
+		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+			Enable:  true,
+			Sandbox: true,
 		},
 	}
 
@@ -155,11 +151,9 @@ func TestGetLicensingEnvironmentVariablesSoftwareCentralEnabled_WithCustomFreque
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
-		Sender: &operatorv1alpha1.IBMLicensingSenderSpec{
-			SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
-				Enable:    true,
-				Frequency: "0 12 * * *",
-			},
+		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+			Enable:    true,
+			Frequency: "0 12 * * *",
 		},
 	}
 

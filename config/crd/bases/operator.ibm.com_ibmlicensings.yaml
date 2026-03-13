@@ -382,29 +382,29 @@ spec:
                     description: URL for License Service Reporter receiver that collects
                       and aggregate multi cluster licensing data.
                     type: string
-                  softwareCentral:
-                    description: Software Central integration configuration
-                    properties:
-                      enable:
-                        description: Enable automatic upload to Software Central
-                        type: boolean
-                      entitlementKeySecret:
-                        description: Name of the Kubernetes secret in ibm-licensing
-                          namespace containing IBM Entitlement Key
-                        type: string
-                      frequency:
-                        description: 'Cron expression for upload schedule (default:
-                          "5 0 * * *")'
-                        pattern: (@(annually|yearly|monthly|weekly|daily|midnight|hourly))|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*)
-                          ?){5,7})
-                        type: string
-                      sandbox:
-                        description: 'Use sandbox environment (default: false)'
-                        type: boolean
-                    type: object
                   validateReporterCerts:
                     description: Enable certificates validation when uploading data
                       to the License Service Reporter
+                    type: boolean
+                type: object
+              softwareCentral:
+                description: Software Central integration configuration
+                properties:
+                  enable:
+                    description: Enable automatic upload to Software Central
+                    type: boolean
+                  entitlementKeySecret:
+                    description: Name of the Kubernetes secret in ibm-licensing namespace
+                      containing IBM Entitlement Key
+                    type: string
+                  frequency:
+                    description: 'Cron expression for upload schedule (default: "5
+                      0 * * *")'
+                    pattern: (@(annually|yearly|monthly|weekly|daily|midnight|hourly))|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*)
+                      ?){5,7})
+                    type: string
+                  sandbox:
+                    description: 'Use sandbox environment (default: false)'
                     type: boolean
                 type: object
               version:

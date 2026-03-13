@@ -306,7 +306,6 @@ func (container *Container) setImagePullPolicyIfNotSet() {
 
 // checks if Software Central integration is enabled
 func (spec *IBMLicensingSpec) IsSoftwareCentralEnabled() bool {
-	return spec.Sender != nil &&
-		spec.Sender.SoftwareCentral != nil &&
-		spec.Sender.SoftwareCentral.Enable
+	return spec.SoftwareCentral != nil &&
+		spec.SoftwareCentral.Enable
 }

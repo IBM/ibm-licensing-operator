@@ -212,7 +212,7 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 			Name: SoftwareCentralEntitlementKeyVolumeName,
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
-					SecretName:  spec.Sender.SoftwareCentral.EntitlementKeySecret,
+					SecretName:  spec.SoftwareCentral.EntitlementKeySecret,
 					DefaultMode: &resources.DefaultSecretMode,
 				},
 			},

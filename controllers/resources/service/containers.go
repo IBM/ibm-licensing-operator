@@ -212,15 +212,15 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 		environmentVariables = append(environmentVariables, []corev1.EnvVar{
 			{
 				Name:  "SOFTWARE_CENTRAL_ENABLED",
-				Value: strconv.FormatBool(spec.Sender.SoftwareCentral.Enable),
+				Value: strconv.FormatBool(spec.SoftwareCentral.Enable),
 			},
 			{
 				Name:  "SOFTWARE_CENTRAL_URL",
-				Value: getSoftwareCentralURL(spec.Sender.SoftwareCentral),
+				Value: getSoftwareCentralURL(spec.SoftwareCentral),
 			},
 			{
 				Name:  "SOFTWARE_CENTRAL_FREQUENCY",
-				Value: getSoftwareCentralFrequency(spec.Sender.SoftwareCentral),
+				Value: getSoftwareCentralFrequency(spec.SoftwareCentral),
 			},
 		}...)
 	}
