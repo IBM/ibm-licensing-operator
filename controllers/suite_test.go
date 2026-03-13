@@ -42,8 +42,9 @@ import (
 
 	meterdefv1beta1 "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 
-	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
+
+	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 
 	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
