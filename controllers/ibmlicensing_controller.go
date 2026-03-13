@@ -606,9 +606,11 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 	internalCertificate := &corev1.Secret{}
 	certificateNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 
-	if err := r.Client.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
-		// Generate certificate only when route/gateway is enabled
-		if instance.Spec.IsRouteEnabled() || instance.Spec.IsGatewayEnabled() {
+	// Use Reader (bypasses label-filtered cache) because on OCP the internal cert is created by
+	// ServiceCA and does not carry the "release=ibm-licensing-service" label required by ByObject cache.
+	if err := r.Reader.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
+		// Generate certificate only when route/ingress is enabled
+		if instance.Spec.IsRouteEnabled() || instance.Spec.IsIngressEnabled() {
 			r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
 			return reconcile.Result{Requeue: true}, err
 		}
@@ -756,7 +758,16 @@ func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.
 		return reconcileResult, err
 	}
 
-	shouldUpdate := res.ShouldUpdateDeployment(
+	replicasMismatch := foundDeployment.Spec.Replicas == nil ||
+		expectedDeployment.Spec.Replicas == nil ||
+		*foundDeployment.Spec.Replicas != *expectedDeployment.Spec.Replicas
+	if replicasMismatch {
+		reqLogger.Info("Deployment has wrong replica count",
+			"found", foundDeployment.Spec.Replicas,
+			"expected", expectedDeployment.Spec.Replicas)
+	}
+
+	shouldUpdate := replicasMismatch || res.ShouldUpdateDeployment(
 		&reqLogger,
 		&expectedDeployment.Spec.Template,
 		&foundDeployment.Spec.Template,
@@ -836,8 +847,10 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 
 		internalCertSecret := corev1.Secret{}
 		internalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
-		if err := r.Client.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
-			r.Log.Error(err, "Cannot retrieve external certificate from secret")
+		// Use Reader (bypasses label-filtered cache) because on OCP the internal cert is created by
+		// ServiceCA and does not carry the "release=ibm-licensing-service" label required by ByObject cache.
+		if err := r.Reader.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
+			r.Log.Error(err, "Cannot retrieve internal certificate from secret")
 			return reconcile.Result{Requeue: true}, nil
 		}
 
@@ -1228,25 +1241,36 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 				"Namespace", expectedRes.GetNamespace())
 			err = r.Client.Create(context.TODO(), expectedRes)
 			if err != nil {
-				if apierrors.IsAlreadyExists(err) {
-					// Resource already exists, try to get it again to update cache
-					reqLogger.Info(resType.String()+" already exists, fetching again", "Name", expectedRes.GetName(),
+				if !apierrors.IsAlreadyExists(err) {
+					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
 						"Namespace", expectedRes.GetNamespace())
-					time.Sleep(time.Second * 2)
-					return reconcile.Result{Requeue: true, RequeueAfter: time.Second}, nil
+					return reconcile.Result{}, err
 				}
-				if metaErrors.IsNoMatchError(err) {
-					reqLogger.Info("CRD for "+resType.String()+" not installed, skipping", "Name", expectedRes.GetName(),
-						"Namespace", expectedRes.GetNamespace())
-					return reconcile.Result{}, nil
+				// Resource exists in the cluster but is missing from the label-filtered cache (upgrade migration).
+				// Fetch it via Reader (bypasses cache) and patch the missing labels so it enters the cache.
+				if readerErr := r.Reader.Get(context.TODO(), namespacedName, foundRes); readerErr == nil {
+					existingLabels := foundRes.GetLabels()
+					if existingLabels == nil {
+						existingLabels = make(map[string]string)
+					}
+					changed := false
+					for k, v := range expectedRes.GetLabels() {
+						if existingLabels[k] != v {
+							existingLabels[k] = v
+							changed = true
+						}
+					}
+					if changed {
+						reqLogger.Info("Adding missing labels to existing "+resType.String()+" (upgrade migration)",
+							"Name", expectedRes.GetName(), "Namespace", expectedRes.GetNamespace())
+						foundRes.SetLabels(existingLabels)
+						if updateErr := r.Client.Update(context.TODO(), foundRes); updateErr != nil {
+							reqLogger.Error(updateErr, "Failed to add labels to existing "+resType.String())
+						}
+					}
 				}
-				reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
-					"Namespace", expectedRes.GetNamespace())
-				return reconcile.Result{}, err
 			}
-			// Created successfully - return and requeue to wait for token generation
-			reqLogger.Info(resType.String()+" created successfully, waiting for token generation", "Name", expectedRes.GetName(),
-				"Namespace", expectedRes.GetNamespace())
+			// Created successfully, or already exists - return and requeue
 			time.Sleep(time.Second * 5)
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Second}, nil
 		} else if metaErrors.IsNoMatchError(err) {
