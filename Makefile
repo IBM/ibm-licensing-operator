@@ -466,7 +466,7 @@ alm-example: yq
 	rm -r $(LOCAL_TMP)/json
 
 # Generate bundle manifests and metadata, then validate generated files. Yq is used to change order of owned resources here to ensure Licensing is first.
-pre-bundle: manifests operator-sdk kustomize yq
+pre-bundle: generate manifests operator-sdk kustomize yq
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
 	$(YQ) -i '.annotations."com.redhat.openshift.versions" = "v4.12"' ./bundle/metadata/annotations.yaml
