@@ -2,6 +2,7 @@
 
 **Original audit:** 2026-03-06 (pre-upgrade baseline)
 **Updated to reflect final state after all upgrade phases:** 2026-03-09
+**Build tool versions updated + linter script refactor:** 2026-03-13
 
 ## Direct Dependencies
 
@@ -100,13 +101,19 @@ All `replace` directives have been removed. Effective version now equals require
 
 ## Build Tools (Makefile)
 
-| Tool | Before upgrade | After upgrade |
-|------|---------------|--------------|
-| `operator-sdk` | v1.32.0 | **v1.42.0** |
-| `opm` | v1.26.2 | **v1.64.0** |
-| `kustomize` | v4.5.7 | **v5.8.1** |
-| `controller-gen` | v0.14.0 | **v0.20.1** |
-| `yq` | v4.30.5 | **v4.52.4** |
+All tool versions are now defined exclusively in the Makefile. Previously `golangci-lint`, `goimports`, `shellcheck`, and `yamllint` had versions hardcoded in `install-linters-development.sh` (now removed). Each tool now has a dedicated install script under `common/scripts/`.
+
+| Tool | Before ILS-1821 | After ILS-1821 | Current (2026-03-13) |
+|------|----------------|----------------|----------------------|
+| `operator-sdk` | v1.32.0 | v1.42.0 | **v1.42.1** |
+| `opm` | v1.26.2 | v1.64.0 | v1.64.0 |
+| `kustomize` | v4.5.7 | v5.8.1 | v5.8.1 |
+| `controller-gen` | v0.14.0 | v0.20.1 | v0.20.1 |
+| `yq` | v4.30.5 | v4.52.4 | v4.52.4 |
+| `golangci-lint` | v2.11.2 (in script) | v2.11.2 (in script) | v2.11.2 (v2.11.3 hangs — regression) |
+| `goimports` | v0.3.0 (in script) | v0.3.0 (in script) | **v0.43.0** |
+| `shellcheck` | v0.8.0 (in script) | v0.8.0 (in script) | **v0.11.0** |
+| `yamllint` | 1.28.0 (in script) | 1.28.0 (in script) | **1.37.1** |
 
 ## Summary
 
