@@ -607,7 +607,7 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 	certificateNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 
 	// Use Reader (bypasses label-filtered cache) because on OCP the internal cert is created by
-	// ServiceCA and does not carry the "release=ibm-licensing-service" label required by ByObject cache.
+	// ServiceCA and dooes not carry the "release=ibm-licensing-service" label required by ByObject cache.
 	if err := r.Reader.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
 		// Generate certificate only when route/gateway is enabled
 		if instance.Spec.IsRouteEnabled() || instance.Spec.IsGatewayEnabled() {
