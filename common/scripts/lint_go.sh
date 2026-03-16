@@ -15,4 +15,11 @@
 # limitations under the License.
 #
 
+# Populate $GOPATH/pkg/mod so golangci-lint's SSA builder does not have to
+# re-extract all module sources.  The Makefile sets GOPATH=$(PWD)/.go which
+# differs from the path used by plain `go build`, so the local module cache
+# may be empty on first use after a fresh checkout or after adding new
+# dependencies.  `go mod download` is a no-op when everything is cached.
+go mod download
+
 GOGC=25 golangci-lint run --print-resources-usage --verbose --concurrency 1 -c ./common/config/.golangci.yml
