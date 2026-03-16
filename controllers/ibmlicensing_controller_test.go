@@ -37,7 +37,7 @@ import (
 
 var _ = Describe("IBMLicensing controller", Ordered, func() {
 	const (
-		name = "instance-test"
+		name = "instance"
 	)
 
 	var (
