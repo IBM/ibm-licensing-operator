@@ -1,5 +1,5 @@
 //
-// Copyright 2023 IBM Corporation
+// Copyright 2026 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -41,15 +41,15 @@ const (
 )
 
 func GetGatewayName(instance *operatorv1alpha1.IBMLicensing) string {
-	return GetResourceName(instance) + "-gateway"
+	return "ibm-licensing-service-gateway"
 }
 
 func GetHTTPRouteName(instance *operatorv1alpha1.IBMLicensing) string {
-	return GetResourceName(instance) + "-route"
+	return "ibm-licensing-route"
 }
 
 func GetBackendTLSPolicyName(instance *operatorv1alpha1.IBMLicensing) string {
-	return GetResourceName(instance) + "-backend-tls"
+	return "licensing-backend-tls"
 }
 
 func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) *routev1.Route {
