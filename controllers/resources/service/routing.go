@@ -45,7 +45,7 @@ func GetGatewayName(instance *operatorv1alpha1.IBMLicensing) string {
 }
 
 func GetHTTPRouteName(instance *operatorv1alpha1.IBMLicensing) string {
-	return "ibm-licensing-route"
+	return "ibm-licensing"
 }
 
 func GetBackendTLSPolicyName(instance *operatorv1alpha1.IBMLicensing) string {

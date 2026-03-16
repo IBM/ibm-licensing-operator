@@ -450,21 +450,14 @@ func UpdateCacheClusterExtensions(client c.Reader, logger logr.Logger) error {
 		IsODLM = false
 	}
 	// Check for Gateway API by attempting to list Gateway resources
-	// If the CRD is not installed or types not registered, this will fail
+	// If the CRD is not installed, this will return NoMatchError
 	gatewayTestInstance := &gatewayv1.GatewayList{}
-	if err := client.List(context.TODO(), gatewayTestInstance, listOpts...); err == nil {
+	if err = client.List(context.TODO(), gatewayTestInstance); err == nil || !metaErrors.IsNoMatchError(err) {
 		IsGatewayAPI = true
+		logger.Info("Gateway API available in cluster")
 	} else {
-		// Check if it's a NoMatchError (CRD not installed) or other error (e.g., scheme not registered)
-		if metaErrors.IsNoMatchError(err) {
-			IsGatewayAPI = false
-			logger.Info("Gateway API CRDs not found in cluster. Gateway routing features will be disabled. To enable Gateway support, install Gateway API CRDs see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
-		} else {
-			// For other errors (like scheme registration), assume Gateway API might be available
-			// This handles test scenarios where CRDs are loaded but scheme registration happens differently
-			logger.Info("Could not verify Gateway API availability, assuming it's available", "error", err.Error())
-			IsGatewayAPI = true
-		}
+		IsGatewayAPI = false
+		logger.Info("Gateway API CRDs not found in cluster. Gateway routing features will be disabled.")
 	}
 
 	backendTLSPolicyTestInstance := &gatewayv1.BackendTLSPolicyList{}
