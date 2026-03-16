@@ -1295,6 +1295,20 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 		return result, nil
 	}
 
+	// Ensure the release label is present so the secret is visible to the label-filtered cache.
+	// Pre-upgrade secrets may be missing this label; patch it once without regenerating the cert.
+	certLabels := certSecret.GetLabels()
+	if certLabels == nil {
+		certLabels = make(map[string]string)
+	}
+	if certLabels[res.LicensingReleaseLabelKey] != res.LicensingReleaseLabelValue {
+		certLabels[res.LicensingReleaseLabelKey] = res.LicensingReleaseLabelValue
+		certSecret.SetLabels(certLabels)
+		if updateErr := r.Client.Update(context.TODO(), certSecret); updateErr != nil {
+			reqLogger.Error(updateErr, "Failed to add release label to cert secret")
+		}
+	}
+
 	result, err := r.attachSpecLabelsAndAnnotations(instance, certSecret, &reqLogger)
 	if err != nil || result.Requeue {
 		return result, err

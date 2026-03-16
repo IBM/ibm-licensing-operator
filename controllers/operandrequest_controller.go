@@ -262,7 +262,9 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 	}
 
 	secret := corev1.Secret{}
-	if err := r.Client.Get(ctx, types.NamespacedName{Name: sourceName, Namespace: sourceNs}, &secret); err != nil {
+	// Use Reader (bypasses label-filtered cache) because source secrets may not carry
+	// the "release=ibm-licensing-service" label required by the ByObject cache.
+	if err := r.Reader.Get(ctx, types.NamespacedName{Name: sourceName, Namespace: sourceNs}, &secret); err != nil {
 		if apierrors.IsNotFound(err) {
 			reqLogger.Info("Secret not found", "name", sourceName, "namespace", sourceNs)
 			return true, nil
@@ -301,7 +303,9 @@ func (r *OperandRequestReconciler) copySecret(ctx context.Context, req reconcile
 		if apierrors.IsAlreadyExists(err) {
 			// If already exist, update the Secret
 			existingSecret := corev1.Secret{}
-			if err := r.Client.Get(ctx, types.NamespacedName{Namespace: targetNs, Name: targetName}, &existingSecret); err != nil {
+			// Use Reader (bypasses label-filtered cache) because the target secret may not yet
+			// carry the "release=ibm-licensing-service" label required by the ByObject cache.
+			if err := r.Reader.Get(ctx, types.NamespacedName{Namespace: targetNs, Name: targetName}, &existingSecret); err != nil {
 				reqLogger.Error(err, "failed to get Secret", "name", targetName, "namespace", targetNs)
 				return false, err
 			}

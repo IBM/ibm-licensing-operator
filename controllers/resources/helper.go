@@ -52,6 +52,11 @@ import (
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 )
 
+const (
+	LicensingReleaseLabelKey   = "release"
+	LicensingReleaseLabelValue = "ibm-licensing-service"
+)
+
 // cannot set to const due to k8s struct needing pointers to primitive types
 var (
 	TrueVar  = true
@@ -565,7 +570,7 @@ func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, dns []str
 			Name:      namespacedName.Name,
 			Namespace: namespacedName.Namespace,
 			Labels: map[string]string{
-				"release": "ibm-licensing-service",
+				LicensingReleaseLabelKey: LicensingReleaseLabelValue,
 			},
 		},
 		Data: map[string][]byte{
