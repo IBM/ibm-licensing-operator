@@ -1215,7 +1215,9 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operatorv1alpha1.IBMLicensing, secretNsName types.NamespacedName, hostname []string, rolloutPods bool) (reconcile.Result, error) {
 	certSecret := &corev1.Secret{}
 
-	if err := r.Client.Get(context.TODO(), secretNsName, certSecret); err != nil {
+	// Use Reader (bypasses label-filtered cache) so that pre-existing cert secrets
+	// without the "release=ibm-licensing-service" label are visible (e.g. after upgrade).
+	if err := r.Reader.Get(context.TODO(), secretNsName, certSecret); err != nil {
 		r.Log.WithValues("cert name", secretNsName).Info("certificate secret not existing. Generating self signed certificate")
 
 		secret, err := r.getSelfSignedCertWithOwnerReference(instance, secretNsName, hostname)
