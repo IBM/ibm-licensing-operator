@@ -322,8 +322,8 @@ redhat-certify-ready: bundle verify-bundle ## makes bundle and verify it using o
 
 ##@ Cleanup
 
-clean: ## Clean build binary
-	rm -f bin/$(IMG)
+clean: ## Clean build binary and all installed tools
+	rm -rf bin/
 
 ##@ Help
 

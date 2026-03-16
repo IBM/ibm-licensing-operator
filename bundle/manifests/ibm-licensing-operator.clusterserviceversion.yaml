@@ -81,7 +81,7 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.21
-    createdAt: "2026-03-13T13:43:22Z"
+    createdAt: "2026-03-16T08:28:46Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
@@ -845,7 +845,7 @@ spec:
     - email: talk2sam@us.ibm.com
       name: talk2sam
   maturity: alpha
-  minKubeVersion: 1.24.0
+  minKubeVersion: 1.26.0
   provider:
     name: IBM
   version: 4.2.21
