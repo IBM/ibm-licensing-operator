@@ -825,7 +825,9 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 		}
 
 		externalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: externalCertName}
-		if err := r.Client.Get(context.TODO(), externalNamespacedName, &externalCertSecret); err != nil {
+		// Use Reader (bypasses label-filtered cache) because custom certs are user-provided and
+		// do not carry the "release=ibm-licensing-service" label required by ByObject cache.
+		if err := r.Reader.Get(context.TODO(), externalNamespacedName, &externalCertSecret); err != nil {
 			r.Log.Error(err, "Cannot retrieve external certificate from secret")
 			return reconcile.Result{Requeue: true}, nil
 		}
