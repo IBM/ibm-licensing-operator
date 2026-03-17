@@ -41,7 +41,7 @@ func TestGetLicensingEnvironmentVariablesCertsValidationDisabledWithCerts(t *tes
 		Value: "true",
 	}
 
-	envVars := getLicensingEnvironmentVariables(spec)
+	envVars := getLicensingEnvironmentVariables(spec, "")
 	assert.False(t, Contains(envVars, validateReporterCertsEnv), "Sender ValidateReporterCerts is disabled, 'VALIDATE_REPORTER_CERTS' environemnt variable should not be added to Licensing pod.")
 }
 
@@ -60,7 +60,7 @@ func TestGetLicensingEnvironmentVariablesCertsValidationEnabledWithCerts(t *test
 		Value: "true",
 	}
 
-	envVars := getLicensingEnvironmentVariables(spec)
+	envVars := getLicensingEnvironmentVariables(spec, "")
 	assert.True(t, Contains(envVars, validateReporterCertsEnv), "Sender ValidateReporterCerts is enabled, appropriate 'VALIDATE_REPORTER_CERTS' environemnt variable should be added to Licensing pod.")
 }
 
@@ -87,7 +87,7 @@ func TestGetLicensingEnvironmentVariablesNamespaceScopingFeatureEnabled(t *testi
 		Value: "10",
 	}
 
-	envVars := getLicensingEnvironmentVariables(spec)
+	envVars := getLicensingEnvironmentVariables(spec, "ibm-licensing")
 	assert.True(t, Contains(envVars, featureEnabledEnvVar), "Namespaces scoping feature is enabled, environemnt variable 'NAMESPACE_SCOPE_ENABLED' set to true should be added to Licensing pod.")
 	assert.True(t, Contains(envVars, watchNamespacesEnvVar), "Namespaces scoping feature is enabled, appropriate 'WATCH_NAMESPACE' environemnt variable should be added to Licensing pod.")
 	assert.True(t, Contains(envVars, namespaceScopeDenialLimitEnvVar), "Namespaces scoping feature is enabled, appropriate 'NAMESPACE_DENIAL_LIMIT' environemnt variable should be added to Licensing pod.")

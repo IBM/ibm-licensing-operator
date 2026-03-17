@@ -22,6 +22,7 @@ import (
 	"reflect"
 	goruntime "runtime"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -733,9 +734,35 @@ func (r *IBMLicensingReconciler) reconcileNetworkPolicy(instance *operatorv1alph
 	return reconcile.Result{}, nil
 }
 
+// resolveWatchNamespacesForNSS returns the WATCH_NAMESPACE value to inject into the LS pod.
+// When NSS is enabled without a custom configmap, it reads targetNamespaces directly from the
+// OperatorGroup (via r.Reader, bypassing the cache) rather than from os.Getenv("WATCH_NAMESPACE").
+// This avoids a race where the old operator pod reconciles before OLM has restarted it with the
+// updated env var, causing the LS pod to start with an incomplete WATCH_NAMESPACE and failing to
+// populate chargeback group data correctly. Falls back to the env var for non-OLM deployments.
+func (r *IBMLicensingReconciler) resolveWatchNamespacesForNSS(instance *operatorv1alpha1.IBMLicensing) string {
+	if !instance.Spec.IsNamespaceScopeEnabled() || instance.Spec.IsCustomNamespaceScopeConfigMap() {
+		return ""
+	}
+	og, err := res.GetLicensingOperatorGroupInNamespace(r.Reader, r.OperatorNamespace)
+	if err == nil && og != nil && len(og.Spec.TargetNamespaces) > 0 {
+		return strings.Join(og.Spec.TargetNamespaces, ",")
+	}
+	watchNamespaces, _ := res.GetWatchNamespace()
+	return watchNamespaces
+}
+
 func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
-	expectedDeployment := service.GetLicensingDeployment(instance)
+
+	// When NSS is enabled without a custom configmap, read targetNamespaces directly from the
+	// OperatorGroup rather than from the operator's own WATCH_NAMESPACE env var. This avoids a
+	// race where the old operator pod reconciles before OLM has restarted it with the updated env
+	// var, causing the LS pod to start with an incomplete WATCH_NAMESPACE (missing scoped
+	// namespaces) and failing to populate chargeback group data correctly.
+	watchNamespaces := r.resolveWatchNamespacesForNSS(instance)
+
+	expectedDeployment := service.GetLicensingDeployment(instance, watchNamespaces)
 
 	foundDeployment := &appsv1.Deployment{}
 	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedDeployment, foundDeployment)

@@ -26,7 +26,7 @@ import (
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
-func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
+func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec, watchNamespaces string) []corev1.EnvVar {
 	var httpsEnableString = strconv.FormatBool(spec.HTTPSEnable)
 	var environmentVariables = []corev1.EnvVar{
 		{
@@ -112,9 +112,6 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 				},
 			})
 		} else {
-			// It's not possible for error to occur here so we can ignore it.
-			// Should an error occur, it would already fail in main.go and would not reach this code.
-			watchNamespaces, _ := resources.GetWatchNamespace()
 			environmentVariables = append(environmentVariables, corev1.EnvVar{
 				Name:  "WATCH_NAMESPACE",
 				Value: watchNamespaces,
@@ -244,10 +241,10 @@ echo "$(date): All required secrets exist"
 	return script
 }
 
-func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Container {
+func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec, watchNamespaces string) []corev1.Container {
 	containers := []corev1.Container{}
 	if spec.IsMetering() {
-		baseContainer := getLicensingContainerBase(spec)
+		baseContainer := getLicensingContainerBase(spec, watchNamespaces)
 		meteringSecretCheckContainer := corev1.Container{}
 		baseContainer.DeepCopyInto(&meteringSecretCheckContainer)
 		meteringSecretCheckContainer.Name = "metering-check-secret"
@@ -259,7 +256,7 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 		containers = append(containers, meteringSecretCheckContainer)
 	}
 	if resources.IsServiceCAAPI && spec.HTTPSEnable && spec.HTTPSCertsSource == operatorv1alpha1.OcpCertsSource {
-		baseContainer := getLicensingContainerBase(spec)
+		baseContainer := getLicensingContainerBase(spec, watchNamespaces)
 		ocpSecretCheckContainer := corev1.Container{}
 
 		baseContainer.DeepCopyInto(&ocpSecretCheckContainer)
@@ -272,7 +269,7 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 		containers = append(containers, ocpSecretCheckContainer)
 
 		if spec.IsPrometheusServiceNeeded() {
-			baseContainer := getLicensingContainerBase(spec)
+			baseContainer := getLicensingContainerBase(spec, watchNamespaces)
 			ocpPrometheusSecretCheckContainer := corev1.Container{}
 
 			baseContainer.DeepCopyInto(&ocpPrometheusSecretCheckContainer)
@@ -288,13 +285,13 @@ func GetLicensingInitContainers(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 	return containers
 }
 
-func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec) corev1.Container {
+func getLicensingContainerBase(spec operatorv1alpha1.IBMLicensingSpec, watchNamespaces string) corev1.Container {
 	container := resources.GetContainerBase(spec.Container)
 	if spec.SecurityContext != nil {
 		container.SecurityContext.RunAsUser = &spec.SecurityContext.RunAsUser
 	}
 	container.VolumeMounts = getLicensingVolumeMounts(spec)
-	container.Env = getLicensingEnvironmentVariables(spec)
+	container.Env = getLicensingEnvironmentVariables(spec, watchNamespaces)
 	container.Ports = getLicensingContainerPorts(spec)
 	return container
 }
@@ -317,10 +314,10 @@ func getLicensingContainerPorts(spec operatorv1alpha1.IBMLicensingSpec) []corev1
 	return ports
 }
 
-func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Container {
+func GetLicensingContainer(spec operatorv1alpha1.IBMLicensingSpec, watchNamespaces string) []corev1.Container {
 	var containers []corev1.Container
 
-	licensingContainer := getLicensingContainerBase(spec)
+	licensingContainer := getLicensingContainerBase(spec, watchNamespaces)
 	probeHandler := getProbeHandler(spec)
 	licensingContainer.Name = "license-service"
 	licensingContainer.LivenessProbe = resources.GetLivenessProbe(probeHandler)
