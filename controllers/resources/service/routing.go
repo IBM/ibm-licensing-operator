@@ -88,7 +88,7 @@ func newGatewayListener(name string, protocol gatewayv1.ProtocolType, port int32
 	listener := gatewayv1.Listener{
 		Name:     gatewayv1.SectionName(name),
 		Protocol: protocol,
-		Port:     gatewayv1.PortNumber(port),
+		Port:     port,
 		AllowedRoutes: &gatewayv1.AllowedRoutes{
 			Namespaces: &gatewayv1.RouteNamespaces{From: ptr.To(gatewayv1.NamespacesFromAll)},
 		},
