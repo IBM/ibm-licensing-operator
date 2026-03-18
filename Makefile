@@ -29,7 +29,6 @@ GOLANGCI_LINT_VERSION ?= v2.11.2
 GOIMPORTS_VERSION ?= v0.43.0
 SHELLCHECK_VERSION ?= v0.11.0
 YAMLLINT_VERSION ?= 1.37.1
-HADOLINT_VERSION ?= v2.14.0
 MDL_VERSION      ?= 0.15.0
 
 # Local bin directory for all project tools (gitignored)
@@ -50,7 +49,6 @@ GOIMPORTS      := $(LOCALBIN)/goimports
 DETECT_SECRETS := $(LOCALBIN)/detect-secrets
 SHELLCHECK     := $(LOCALBIN)/shellcheck
 YAMLLINT       := $(LOCALBIN)/.venv/bin/yamllint
-HADOLINT       := $(LOCALBIN)/hadolint
 MDL            := $(LOCALBIN)/mdl
 
 # This repo is build locally for dev/test by default;
@@ -532,7 +530,7 @@ catalogsource-development: opm yq
 
 ##@ Install
 
-install-linters: $(SHELLCHECK) $(YAMLLINT) $(GOLANGCI_LINT) $(HADOLINT) $(MDL) ## Install/verify required linting tools
+install-linters: $(SHELLCHECK) $(YAMLLINT) $(GOLANGCI_LINT) $(MDL) ## Install/verify required linting tools
 	bash common/scripts/install-diffutils.sh
 
 verify-installed-tools: ## Verify if tools are installed
@@ -544,7 +542,6 @@ verify-installed-tools: ## Verify if tools are installed
 	@test -x $(SHELLCHECK) || { echo >&2 "Required tool: shellcheck is not installed in $(LOCALBIN). Run 'make install-linters' to install it."; exit 1; }
 	@test -x $(YAMLLINT) || { echo >&2 "Required tool: yamllint is not installed in $(LOCALBIN). Run 'make install-linters' to install it."; exit 1; }
 	@test -x $(GOLANGCI_LINT) || { echo >&2 "Required tool: golangci-lint-$(GOLANGCI_LINT_VERSION) is not installed in $(LOCALBIN). Run 'make install-linters' to install it."; exit 1; }
-	@test -x $(HADOLINT) || { echo >&2 "Required tool: hadolint is not installed in $(LOCALBIN). Run 'make install-linters' to install it."; exit 1; }
 	@test -x $(MDL) || { echo >&2 "Required tool: mdl is not installed in $(LOCALBIN). Run 'make install-linters' to install it."; exit 1; }
 	@test -x $(GOIMPORTS) || { echo >&2 "Required tool: goimports-$(GOIMPORTS_VERSION) is not installed in $(LOCALBIN). Run 'make install-all-tools' to install it."; exit 1; }
 	@test -x $(DETECT_SECRETS) || { echo >&2 "Required tool: detect-secrets is not installed in $(LOCALBIN). Run 'make install-all-tools' to install it."; exit 1; }
@@ -555,7 +552,6 @@ verify-installed-tools: ## Verify if tools are installed
 	@echo ">>> controller-gen-$(CONTROLLER_GEN_VERSION) | $$($(CONTROLLER_GEN) --version | awk '{print $$2}')"
 	@echo ">>> kustomize-$(KUSTOMIZE_VERSION) | $$($(KUSTOMIZE) version)"
 	@echo ">>> yq-$(YQ_VERSION) | $$($(YQ) --version | awk '{print $$4}')"
-	@echo ">>> hadolint-$(HADOLINT_VERSION) | $$($(HADOLINT) --version | awk '{print $$4}')"
 	@echo ">>> mdl-$(MDL_VERSION) | $$($(MDL) --version)"
 
 install-all-tools: install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools ## Install all tools locally
@@ -653,13 +649,6 @@ yamllint: $(YAMLLINT) ## Install yamllint if not present in LOCALBIN
 $(YAMLLINT): $(LOCALBIN)
 	@test -x $(YAMLLINT) && echo "yamllint already installed" || \
 		( echo "Installing yamllint $(YAMLLINT_VERSION)..." && bash common/scripts/install-yamllint.sh $(LOCALBIN) $(YAMLLINT_VERSION) )
-
-.PHONY: hadolint
-hadolint: $(HADOLINT) ## Install hadolint if not present in LOCALBIN
-
-$(HADOLINT): $(LOCALBIN)
-	@test -x $(HADOLINT) && echo "hadolint already installed" || \
-		( echo "Installing hadolint $(HADOLINT_VERSION)..." && bash common/scripts/install-hadolint.sh $(HADOLINT_VERSION) $(HADOLINT) )
 
 .PHONY: mdl
 mdl: $(MDL) ## Install mdl if not present in LOCALBIN

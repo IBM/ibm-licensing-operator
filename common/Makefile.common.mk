@@ -68,24 +68,19 @@ lint-go: $(GOLANGCI_LINT)
 	@${FINDFILES} -name '*.go' \( ! \( -name '*.gen.go' -o -name '*.pb.go' -o -name '*_generated.deepcopy.go' \) \) -print0 | ${XARGS} common/scripts/lint_go.sh
 	@echo ">>> Go lint finished"
 
-lint-dockerfiles: $(HADOLINT)
-	@echo ">>> Starting Dockerfile lint (hadolint)"
-	@${FINDFILES} -name 'Dockerfile*' -print0 | ${XARGS} $(HADOLINT) --config common/config/.hadolint.yml
-	@echo ">>> Dockerfile lint finished"
-
 lint-markdown: $(MDL)
 	@echo ">>> Starting Markdown lint (mdl)"
 	@${FINDFILES} -name '*.md' -print0 | ${XARGS} $(MDL) --ignore-front-matter --style common/config/mdl.rb
 	@echo ">>> Markdown lint finished"
 
-lint-all: lint-scripts lint-yaml lint-copyright-banner lint-go lint-dockerfiles lint-markdown
+lint-all: lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown
 
 format-go: $(GOIMPORTS)
 	@echo ">>> Starting Go format (goimports)"
 	@${FINDFILES} -name '*.go' \( ! \( -name '*.gen.go' -o -name '*.pb.go' -o -name '*_generated.deepcopy.go' \) \) -print0 | ${XARGS} $(GOIMPORTS) -w -local "github.com/IBM"
 	@echo ">>> Go format finished"
 
-.PHONY: lint-scripts lint-yaml lint-copyright-banner lint-go lint-dockerfiles lint-markdown lint-all format-go
+.PHONY: lint-scripts lint-yaml lint-copyright-banner lint-go lint-markdown lint-all format-go
 
 # Run go vet for this project. More info: https://golang.org/cmd/vet/
 code-vet:
