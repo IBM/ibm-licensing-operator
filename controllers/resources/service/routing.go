@@ -17,8 +17,6 @@
 package service
 
 import (
-	"fmt"
-
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -213,7 +211,7 @@ func GetGatewayConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertDa
 func GetBackEndTLSPolicy(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.BackendTLSPolicy {
 	policyName := GetBackendTLSPolicyName(instance)
 	serviceName := GetLicensingServiceName(instance)
-	hostname := fmt.Sprintf("%s.%s.svc.cluster.local", serviceName, instance.Spec.InstanceNamespace)
+	hostname := GetServiceHostname(instance)
 
 	return &gatewayv1.BackendTLSPolicy{
 		TypeMeta: metav1.TypeMeta{

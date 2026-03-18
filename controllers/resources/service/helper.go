@@ -87,6 +87,10 @@ func GetServiceURL(instance *operatorv1alpha1.IBMLicensing) string {
 	return urlPrefix + GetResourceName(instance) + "." + instance.Spec.InstanceNamespace + ".svc.cluster.local:" + licensingServicePort.String()
 }
 
+func GetServiceHostname(instance *operatorv1alpha1.IBMLicensing) string {
+	return GetResourceName(instance) + "." + instance.Spec.InstanceNamespace + ".svc.cluster.local"
+}
+
 /*
 MergeWithSpecLabels attaches spec labels to the provided map of predefined labels.
 
