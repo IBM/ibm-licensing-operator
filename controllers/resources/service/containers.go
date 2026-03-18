@@ -228,6 +228,12 @@ func getProbeHandler(spec operatorv1alpha1.IBMLicensingSpec) corev1.ProbeHandler
 				IntVal: licensingServicePort.IntVal,
 			},
 			Scheme: probeScheme,
+			HTTPHeaders: []corev1.HTTPHeader{
+				{
+					Name:  "Host",
+					Value: "ibm-licensing-service-instance.ibm-licensing.svc",
+				},
+			},
 		},
 	}
 }
