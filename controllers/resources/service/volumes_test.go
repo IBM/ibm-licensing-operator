@@ -165,3 +165,46 @@ func TestGetLicensingVolumesCertsValidationDisabledWithCerts(t *testing.T) {
 	volumes := getLicensingVolumes(spec)
 	assert.Equal(t, 4, len(volumes), "Sender is enabled, 4 volumes should be created despite setting ReporterCertsSecretName because validation is disabled.")
 }
+
+// verifies that when SoftwareCentral is enabled, an additional volume mount for the entitlement key is added.
+func TestGetLicensingVolumeMountsSoftwareCentralEnabled(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+			Enable:               true,
+			EntitlementKeySecret: "my-entitlement-secret",
+		},
+	}
+
+	volumeMounts := getLicensingVolumeMounts(spec)
+	assert.Equal(t, 4, len(volumeMounts), "SoftwareCentral is enabled, 4 volume mounts should be created (3 base + entitlement key).")
+
+	swcVolumeMount := volumeMounts[3]
+	assert.Equal(t, SoftwareCentralEntitlementKeyVolumeName, swcVolumeMount.Name,
+		"Software Central entitlement key volume mount should have correct name.")
+	assert.Equal(t, "/opt/ibm/licensing/swc-entitlement-key", swcVolumeMount.MountPath,
+		"Software Central entitlement key volume mount should have correct mount path.")
+	assert.True(t, swcVolumeMount.ReadOnly, "Software Central entitlement key volume mount should be read-only.")
+}
+
+// verifies that when SoftwareCentral is enabled, an additional volume for the entitlement key secret is added.
+func TestGetLicensingVolumesSoftwareCentralEnabled(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		SoftwareCentral: &operatorv1alpha1.IBMLicensingSoftwareCentralSpec{
+			Enable:               true,
+			EntitlementKeySecret: "my-entitlement-secret",
+		},
+	}
+
+	volumes := getLicensingVolumes(spec)
+	assert.Equal(t, 4, len(volumes), "SoftwareCentral is enabled, 4 volumes should be created (3 base + entitlement key).")
+
+	swcVolume := volumes[3]
+	assert.Equal(t, SoftwareCentralEntitlementKeyVolumeName, swcVolume.Name,
+		"Software Central entitlement key volume should have correct name.")
+	assert.Equal(t, "my-entitlement-secret", swcVolume.Secret.SecretName,
+		"Software Central entitlement key volume should reference the configured secret name.")
+}
