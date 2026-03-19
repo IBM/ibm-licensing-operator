@@ -33,7 +33,7 @@ metadata:
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: ibm-licensing-operator.v0.0.0
+  name: ibm-licensing-operator-app.v0.0.0
   namespace: ibm-licensing
 spec:
   apiservicedefinitions: {}

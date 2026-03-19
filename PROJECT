@@ -3,7 +3,7 @@ layout:
 - go.kubebuilder.io/v2
 plugins:
   go.operator-sdk.io/v2-alpha: {}
-projectName: ibm-licensing-operator
+projectName: ibm-licensing-operator-app
 repo: github.com/IBM/ibm-licensing-operator
 resources:
 - controller: true
