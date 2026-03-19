@@ -339,6 +339,32 @@ spec:
         path: sender.validateReporterCerts
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Software Central integration configuration
+        displayName: Software Central
+        path: softwareCentral
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Enable automatic upload to Software Central
+        displayName: Enable Software Central
+        path: softwareCentral.enable
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Name of the Kubernetes secret in ibm-licensing namespace containing
+          IBM Entitlement Key
+        displayName: Entitlement Key Secret
+        path: softwareCentral.entitlementKeySecret
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: 'Cron expression for upload schedule (default: "5 0 * * *")'
+        displayName: Upload Frequency
+        path: softwareCentral.frequency
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: 'Use sandbox environment (default: false)'
+        displayName: Sandbox Mode
+        path: softwareCentral.sandbox
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       version: v1alpha1
   description: |-
     **Important:**
