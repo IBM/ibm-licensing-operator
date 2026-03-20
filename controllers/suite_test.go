@@ -42,6 +42,8 @@ import (
 
 	meterdefv1beta1 "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
+
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 
 	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
@@ -84,7 +86,10 @@ var _ = BeforeSuite(func() {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{
+			filepath.Join("..", "config", "crd", "bases"),
+			filepath.Join("..", "config", "crd", "external"),
+		},
 	}
 
 	var err error
@@ -120,6 +125,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	err = operatorframeworkv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = gatewayv1.Install(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")

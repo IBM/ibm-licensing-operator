@@ -136,6 +136,39 @@ spec:
                         type: string
                     type: object
                 type: object
+              gatewayEnabled:
+                default: true
+                description: Should Gateway be created to expose IBM Licensing Service
+                  API? Default is true.
+                type: boolean
+              gatewayOptions:
+                description: If Gateway is enabled, you can set its parameters
+                properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Additional annotations that should include f.e. gateway
+                      class if using not default gateway controller
+                    type: object
+                  gatewayClassName:
+                    default: ibm-licensing
+                    description: GatewayClassName defines gateway class name option
+                      to be passed to the gateway spec field. Default is ibm-licensing.
+                    type: string
+                  httpsPort:
+                    default: 443
+                    description: HTTPS port for Gateway listener. Default is 443.
+                      Only used when TLSSecretName is set.
+                    format: int32
+                    maximum: 65535
+                    minimum: 1
+                    type: integer
+                  tlsSecretName:
+                    default: ibm-license-service-cert-internal
+                    description: TLS Options to enable secure connection. Default
+                      is ibm-license-service-cert-internal.
+                    type: string
+                type: object
               httpsCertsSource:
                 description: 'options: self-signed or custom'
                 enum:
@@ -176,57 +209,6 @@ spec:
                   override default value and disable IBM_LICENSING_IMAGE env value
                   in operator deployment
                 type: string
-              ingressEnabled:
-                description: Should Ingress be created to expose IBM Licensing Service
-                  API?
-                type: boolean
-              ingressOptions:
-                description: If ingress is enabled, you can set its parameters
-                properties:
-                  annotations:
-                    additionalProperties:
-                      type: string
-                    description: Additional annotations that should include f.e. ingress
-                      class if using not default ingress controller
-                    type: object
-                  host:
-                    description: If you use non-default host include it here
-                    type: string
-                  ingressClassName:
-                    description: IngressClassName defines ingress class name option
-                      to be passed to the ingress spec field
-                    type: string
-                  path:
-                    description: Path after host where API will be available f.e.
-                      https://<hostname>:<port>/ibm-licensing-service-instance
-                    type: string
-                  tls:
-                    description: TLS Options to enable secure connection
-                    items:
-                      description: IngressTLS describes the transport layer security
-                        associated with an ingress.
-                      properties:
-                        hosts:
-                          description: |-
-                            hosts is a list of hosts included in the TLS certificate. The values in
-                            this list must match the name/s used in the tlsSecret. Defaults to the
-                            wildcard host setting for the loadbalancer controller fulfilling this
-                            Ingress, if left unspecified.
-                          items:
-                            type: string
-                          type: array
-                          x-kubernetes-list-type: atomic
-                        secretName:
-                          description: |-
-                            secretName is the name of the secret used to terminate TLS traffic on
-                            port 443. Field is left optional to allow TLS routing based on SNI
-                            hostname alone. If the SNI host in a listener conflicts with the "Host"
-                            header field used by an IngressRule, the SNI host is used for termination
-                            and value of the "Host" header is used for routing.
-                          type: string
-                      type: object
-                    type: array
-                type: object
               instanceNamespace:
                 description: |-
                   Existing or to be created namespace where application will start. In case metering data collection is used,
