@@ -1,4 +1,4 @@
-**IMPORTANT:** The `master` branch contains the currently developed version of License Service and its content should not be used. Switch to another branch to view the content for the already-released version of License Service, for example `release-<version>` branch.
+**IMPORTANT:** The `master` branch contains code that will be released in the next release. The `develop` branch is used for current development. For already-released versions of License Service, switch to the `latest-4.x` branch or specific release branches.
 
 You can install License Service with ibm-licensing-operator to collect license usage information in two scenarios:
 
