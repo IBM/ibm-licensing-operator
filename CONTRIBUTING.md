@@ -124,6 +124,8 @@ This command automatically runs:
 
 **Important:** Always commit the generated files (CRDs, bundle manifests) along with your API changes.
 
+**Note:** The `temp/` directory is used for intermediate build files and is gitignored. Do not commit files from this directory.
+
 ## Building tools
 
 Building the operators requires following tools installed:
