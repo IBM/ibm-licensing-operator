@@ -40,26 +40,24 @@ Repo maintainers can assign you an issue or pull request by leaving a
 ## Linting prerequisite
 
 - git
-- go version v1.17+
-- some tools below requires python with pip (tested on python3), and ruby with gem and bundler to install
-- Linting Tools
+- go version v1.26+
+- All linting tools are automatically installed when running `make install-linters`
 
-| linting tool                                                            | version                                                                      | instructions                                                                                                                             |
-|-------------------------------------------------------------------------|------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
-| [shellcheck](https://github.com/koalaman/shellcheck#installing)         | [v0.8.0](https://github.com/koalaman/shellcheck/releases/tag/v0.8.0)         | - download binary from version link, make executable with `chmod +x` and add to bin directory<br/>- for MacOS: `brew install shellcheck` |
-| [yamllint](https://github.com/adrienverge/yamllint#installation)        | [v1.28.0](https://github.com/adrienverge/yamllint/releases/tag/v1.28.0)      | - `pip install yamllint==1.28.0`                                                                                                         |
-| [golangci-lint](https://github.com/golangci/golangci-lint#install)      | [v1.56.1](https://github.com/golangci/golangci-lint/releases/tag/v1.56.1)    | - `go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.56.1`<br/>- for MacOS: `brew install golangci-lint`                     |
-| [mdl](https://github.com/markdownlint/markdownlint#installation)        | [v0.11.0](https://github.com/markdownlint/markdownlint/releases/tag/v0.11.0) | - download using `git clone https://github.com/markdownlint/markdownlint.git -b v0.11.0` and install using `sudo rake install`           |
-| [goimports](https://pkg.go.dev/golang.org/x/tools@v0.3.0/cmd/goimports) | [v0.3.0](https://pkg.go.dev/golang.org/x/tools@v0.3.0/cmd/goimports)         | - `go install golang.org/x/tools/cmd/goimports@v0.3.0`                                                                                   |
-| [diffutils](https://www.gnu.org/software/diffutils/)                    | [v3.8](https://ftp.gnu.org/gnu/diffutils/diffutils-3.8.tar.xz)               | - download binary from version link, make executable with `chmod +x` and add to bin directory<br/>- for MacOS: `brew install diffutils`  |
+| linting tool                                                            | version                                                                      | notes                                                                                                                             |
+|-------------------------------------------------------------------------|------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| [shellcheck](https://github.com/koalaman/shellcheck#installing)         | [v0.11.0](https://github.com/koalaman/shellcheck/releases/tag/v0.11.0)       | Automatically installed by `make install-linters`                                                                                 |
+| [yamllint](https://github.com/adrienverge/yamllint#installation)        | [1.37.1](https://github.com/adrienverge/yamllint/releases/tag/v1.37.1)       | Automatically installed by `make install-linters` (requires Python with pip)                                                      |
+| [golangci-lint](https://github.com/golangci/golangci-lint#install)      | [v2.11.2](https://github.com/golangci/golangci-lint/releases/tag/v2.11.2)    | Automatically installed by `make install-linters`                                                                                 |
+| [mdl](https://github.com/markdownlint/markdownlint#installation)        | [0.15.0](https://github.com/markdownlint/markdownlint/releases/tag/v0.15.0)  | Automatically installed by `make install-linters` (requires Ruby with gem and bundler)                                            |
+| [goimports](https://pkg.go.dev/golang.org/x/tools@v0.43.0/cmd/goimports) | [v0.43.0](https://pkg.go.dev/golang.org/x/tools@v0.43.0/cmd/goimports)       | Automatically installed by `make install-all-tools`                                                                               |
 
-To install required linters for the development process, you can use script:
+To install all required linters for the development process, run:
 
 ```shell
 make install-linters
 ```
 
-Some tools will need root privileges, so provide your password upon being asked.
+Some tools might need root privileges, so provide your password upon being asked.
 
 - if you have an error during `make check`, for example:
 
@@ -73,28 +71,67 @@ Then try downloading newer golang version from [golang.org](https://golang.org) 
 
 It was tested to work with these environment variables and setup:
 
-- go version go1.17 linux/amd64
+- go version go1.26 linux/amd64
 - Red Hat Enterprise Linux 8
 - GOROOT=/usr/local/go
 - GOPATH=$HOME/go
 - GO111MODULE=on
 
+## Development Workflow
+
+### Quick development check
+
+For a quick check during development, run:
+
+```shell
+make code-dev
+```
+
+This runs: `go mod tidy`, `go fmt`, `go vet`, and `make check` (all linters).
+
 ## Pre-check before submitting a PR
 
-After your PR is ready to commit, please run following commands to check your code.
+Before committing your changes, ensure you run the following checks:
+
+### 1. Run linting checks
 
 ```shell
 make check
 ```
 
+This runs all linters (shellcheck, yamllint, golangci-lint, mdl) and go vet. This is also automatically run by git hooks before pushing code to remote branch.
+
+### 2. Scan for secrets
+
+```shell
+make audit
+```
+
+This runs detect-secrets to ensure no secrets or sensitive credentials are present in the codebase. Always run this before committing to avoid accidentally exposing sensitive information.
+
+### 3. After API changes
+
+If you made changes to the API (files in `api/` or `controllers/` directories), you must regenerate the manifests and bundle:
+
+```shell
+make bundle
+```
+
+This command automatically runs:
+- `make generate` - Generates deepcopy code for API types
+- `make manifests` - Generates CRDs, RBAC, and webhook configurations
+- Updates bundle manifests with the latest changes
+
+**Important:** Always commit the generated files (CRDs, bundle manifests) along with your API changes.
+
 ## Building tools
 
 Building the operators requires following tools installed:
-- operator-sdk-v1.25.2
-- opm-v1.26.2
-- controller-gen-v0.7.0
-- kustomize-v4.5.7
-- yq-v4.30.5
+- operator-sdk-v1.42.1
+- opm-v1.64.0
+- controller-gen-v0.20.1
+- kustomize-v5.8.1
+- yq-v4.52.4
 
 Tools can installed using make target:
 
@@ -128,10 +165,10 @@ Now, you can follow the [README](./README.md) to work with the ibm-licensing-ope
 
 Run script `common/scripts/next_csv.sh` in project root directory with parameters: a current version, new version, old
 version..
-Example to bump operator from 1.9.0 to 1.10.0:
+Example to bump operator from 4.2.20 to 4.2.21:
 
 ```shell
-common/scripts/next_csv.sh 1.9.0 1.10.0 1.8.0
+common/scripts/next_csv.sh 4.2.20 4.2.21 4.2.19
 ```
 
 ## Commit hook on OSX

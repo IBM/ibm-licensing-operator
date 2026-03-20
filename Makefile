@@ -531,7 +531,6 @@ catalogsource-development: opm yq
 ##@ Install
 
 install-linters: $(SHELLCHECK) $(YAMLLINT) $(GOLANGCI_LINT) $(MDL) ## Install/verify required linting tools
-	bash common/scripts/install-diffutils.sh
 
 verify-installed-tools: ## Verify if tools are installed
 	@test -x $(OPERATOR_SDK) || { echo >&2 "Required tool: operator-sdk-$(OPERATOR_SDK_VERSION) is not installed in $(LOCALBIN). Run 'make install-all-tools' to install it."; exit 1; }

@@ -1,0 +1,29 @@
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+      - nodes
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - operator.ibm.com
+    resources:
+      - ibmlicensingmetadatas
+      - ibmlicensingdefinitions
+      - ibmlicensingquerysources
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - authentication.k8s.io
+    resources:
+      - tokenreviews
+    verbs:
+      - create
+  - apiGroups:
+      - authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create

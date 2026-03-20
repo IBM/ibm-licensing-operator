@@ -1,0 +1,10 @@
+- nonResourceURLs:
+    - /products
+    - /snapshot
+    - /bundled_products
+    - /health
+    - /status
+    - /services
+    - /workloads
+  verbs:
+    - get
