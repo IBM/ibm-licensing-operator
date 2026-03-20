@@ -167,13 +167,11 @@ func getServerName(instance *operatorv1alpha1.IBMLicensing) string {
 }
 
 func getScheme(instance *operatorv1alpha1.IBMLicensing) *monitoringv1.Scheme {
-	var s monitoringv1.Scheme
-	// monitoringv1.SchemeHTTPS/HTTP constants are "HTTPS"/"HTTP" (uppercase) but the CRD
-	// installed on the cluster only accepts lowercase "https"/"http". Use literals directly.
+	scheme := monitoringv1.Scheme(SchemeHTTP)
+
 	if instance.Spec.HTTPSEnable {
-		s = "https"
-	} else {
-		s = "http"
+		scheme = SchemeHTTPS
 	}
-	return &s
+
+	return &scheme
 }

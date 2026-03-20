@@ -61,6 +61,9 @@ const (
 
 	ActiveCRState   = "ACTIVE"
 	InactiveCRState = "INACTIVE"
+
+	SchemeHTTP  = "http"
+	SchemeHTTPS = "https"
 )
 
 func GetServiceAccountName(instance *operatorv1alpha1.IBMLicensing) string {
