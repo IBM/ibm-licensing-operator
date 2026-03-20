@@ -79,5 +79,6 @@ tags
 .idea
 .go/*
 bin/
+temp/
 .DS_Store
 vendor/

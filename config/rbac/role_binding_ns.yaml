@@ -1,0 +1,111 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ibm-licensing-operator
+  namespace: ibm-licensing
+subjects:
+  - kind: ServiceAccount
+    name: ibm-licensing-operator
+    namespace: ibm-licensing
+roleRef:
+  kind: ClusterRole
+  name: ibm-licensing-operator
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ibm-licensing-operator
+  namespace: ibm-licensing
+subjects:
+  - kind: ServiceAccount
+    name: ibm-licensing-operator
+    namespace: ibm-licensing
+roleRef:
+  kind: Role
+  name: ibm-licensing-operator
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ibm-license-service
+  namespace: ibm-licensing
+subjects:
+  - kind: ServiceAccount
+    name: ibm-license-service
+    namespace: ibm-licensing
+roleRef:
+  kind: Role
+  name: ibm-license-service
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ibm-license-service
+  namespace: ibm-licensing
+subjects:
+  - kind: ServiceAccount
+    name: ibm-license-service
+    namespace: ibm-licensing
+roleRef:
+  kind: ClusterRole
+  name: ibm-license-service
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ibm-license-service-cluster-monitoring-view
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-monitoring-view
+subjects:
+- kind: ServiceAccount
+  name: ibm-license-service
+  namespace: ibm-licensing
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ibm-license-service-restricted
+  namespace: ibm-licensing
+subjects:
+  - kind: ServiceAccount
+    name: ibm-license-service-restricted
+    namespace: ibm-licensing
+roleRef:
+  kind: Role
+  name: ibm-license-service-restricted
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ibm-license-service-restricted
+  namespace: ibm-licensing
+subjects:
+  - kind: ServiceAccount
+    name: ibm-license-service-restricted
+    namespace: ibm-licensing
+roleRef:
+  kind: ClusterRole
+  name: ibm-license-service-restricted
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ibm-licensing-default-reader
+  namespace: ibm-licensing
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ibm-licensing-default-reader
+subjects:
+  - kind: ServiceAccount
+    name: ibm-licensing-default-reader
+    namespace: ibm-licensing

@@ -22,6 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
 	"github.com/IBM/ibm-licensing-operator/version"
 )
 
@@ -60,6 +61,9 @@ const (
 
 	ActiveCRState   = "ACTIVE"
 	InactiveCRState = "INACTIVE"
+
+	SchemeHTTP  = "http"
+	SchemeHTTPS = "https"
 )
 
 func GetServiceAccountName(instance *operatorv1alpha1.IBMLicensing) string {
@@ -81,6 +85,10 @@ func GetServiceURL(instance *operatorv1alpha1.IBMLicensing) string {
 		urlPrefix = "http://"
 	}
 	return urlPrefix + GetResourceName(instance) + "." + instance.Spec.InstanceNamespace + ".svc.cluster.local:" + licensingServicePort.String()
+}
+
+func GetServiceHostname(instance *operatorv1alpha1.IBMLicensing) string {
+	return GetResourceName(instance) + "." + instance.Spec.InstanceNamespace + ".svc.cluster.local"
 }
 
 /*
@@ -116,7 +124,7 @@ func LabelsForMeta(instance *operatorv1alpha1.IBMLicensing) map[string]string {
 		"app.kubernetes.io/component":  LicensingComponentName,
 		"app.kubernetes.io/managed-by": "operator",
 		"app.kubernetes.io/instance":   LicensingReleaseName,
-		"release":                      LicensingReleaseName,
+		res.LicensingReleaseLabelKey:   LicensingReleaseName,
 	})
 }
 
