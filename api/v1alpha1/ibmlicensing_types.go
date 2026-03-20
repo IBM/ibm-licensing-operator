@@ -235,8 +235,6 @@ type IBMLicensingStatus struct {
 	// State field that defines status of the IBMLicensing
 	State string `json:"state,omitempty"`
 	// The status of IBM License Service Pods.
-	// +kubebuilder:validation:Schemaless
-	// +kubebuilder:pruning:PreserveUnknownFields
 	LicensingPods []corev1.PodStatus         `json:"licensingPods,omitempty"`
 	Features      IBMLicensingFeaturesStatus `json:"features,omitempty"`
 }
