@@ -31,7 +31,6 @@ resources:
 - api:
     crdVersion: v1
     namespaced: true
-  controller: true
   domain: ibm.com
   group: operator
   kind: IBMLicensingDefinition
@@ -40,7 +39,6 @@ resources:
 - api:
     crdVersion: v1
     namespaced: true
-  controller: true
   domain: ibm.com
   group: operator
   kind: IBMLicensingQuerySource
