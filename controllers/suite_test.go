@@ -17,6 +17,10 @@
 package controllers
 
 import (
+	"context"
+	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -76,6 +80,64 @@ func TestAPIs(t *testing.T) {
 	RunSpecs(t, "Controller suite", suiteConfig, reporterConfig)
 }
 
+func downloadExternalCRDs() error {
+	externalCRDDir := filepath.Join("..", "config", "crd", "external")
+
+	if err := os.MkdirAll(externalCRDDir, 0755); err != nil {
+		return fmt.Errorf("failed to create external CRD directory: %w", err)
+	}
+
+	crdURLs := map[string]string{
+		"gateway.networking.k8s.io_gatewayclasses.yaml":     "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_gatewayclasses.yaml",
+		"gateway.networking.k8s.io_gateways.yaml":           "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_gateways.yaml",
+		"gateway.networking.k8s.io_httproutes.yaml":         "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml",
+		"gateway.networking.k8s.io_backendtlspolicies.yaml": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_backendtlspolicies.yaml",
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for filename, url := range crdURLs {
+		filePath := filepath.Join(externalCRDDir, filename)
+
+		if _, err := os.Stat(filePath); err == nil {
+			fmt.Printf("CRD %s already exists, skipping download\n", filename)
+			continue
+		}
+
+		fmt.Printf("Downloading CRD: %s\n", filename)
+
+		req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+		if err != nil {
+			return fmt.Errorf("failed to create request for %s: %w", filename, err)
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("failed to download %s: %w", filename, err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("failed to download %s: status %d", filename, resp.StatusCode)
+		}
+
+		out, err := os.Create(filePath)
+		if err != nil {
+			return fmt.Errorf("failed to create file %s: %w", filename, err)
+		}
+		defer out.Close()
+
+		if _, err := io.Copy(out, resp.Body); err != nil {
+			return fmt.Errorf("failed to write file %s: %w", filename, err)
+		}
+
+		fmt.Printf("Successfully downloaded: %s\n", filename)
+	}
+
+	return nil
+}
+
 var _ = BeforeSuite(func() {
 
 	logf.SetLogger(zap.New(func(o *zap.Options) {
@@ -83,6 +145,9 @@ var _ = BeforeSuite(func() {
 		o.TimeEncoder = zapcore.RFC3339TimeEncoder
 		o.DestWriter = GinkgoWriter
 	}))
+
+	By("downloading external CRDs if needed")
+	Expect(downloadExternalCRDs()).ToNot(HaveOccurred())
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{

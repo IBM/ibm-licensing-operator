@@ -82,3 +82,4 @@ bin/
 temp/
 .DS_Store
 vendor/
+config/crd/external/*.yaml
