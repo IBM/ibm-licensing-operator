@@ -172,11 +172,6 @@ func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.H
 	gatewayName := GetGatewayName(instance)
 	serviceName := GetResourceName(instance)
 
-	options := instance.Spec.GatewayOptions
-	if options == nil {
-		options = &operatorv1alpha1.IBMLicensingGatewayOptions{}
-	}
-
 	return &gatewayv1.HTTPRoute{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        routeName,
@@ -222,11 +217,6 @@ func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.H
 }
 
 func GetGatewayConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertData string) *corev1.ConfigMap {
-	options := instance.Spec.GatewayOptions
-	if options == nil {
-		options = &operatorv1alpha1.IBMLicensingGatewayOptions{}
-	}
-
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        GatewayConfigMapName,
@@ -244,11 +234,6 @@ func GetBackEndTLSPolicy(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Bac
 	policyName := GetBackendTLSPolicyName(instance)
 	serviceName := GetLicensingServiceName(instance)
 	hostname := GetServiceHostname(instance)
-
-	options := instance.Spec.GatewayOptions
-	if options == nil {
-		options = &operatorv1alpha1.IBMLicensingGatewayOptions{}
-	}
 
 	return &gatewayv1.BackendTLSPolicy{
 		ObjectMeta: metav1.ObjectMeta{
