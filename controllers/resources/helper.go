@@ -452,12 +452,16 @@ func UpdateCacheClusterExtensions(client c.Reader, logger logr.Logger) error {
 	// Check for Gateway API by attempting to list Gateway resources
 	// If the CRD is not installed, this will return NoMatchError
 	gatewayTestInstance := &gatewayv1.GatewayList{}
-	if err = client.List(context.TODO(), gatewayTestInstance); err == nil || !metaErrors.IsNoMatchError(err) {
+	if err = client.List(context.TODO(), gatewayTestInstance); err == nil {
 		IsGatewayAPI = true
 		logger.Info("Gateway API available in cluster")
 	} else {
 		IsGatewayAPI = false
-		logger.Info("Gateway API CRDs not found in cluster. Gateway routing features will be disabled.")
+		if metaErrors.IsNoMatchError(err) {
+			logger.Info("Gateway API CRDs not found in cluster. Gateway routing features will be disabled.")
+		} else {
+			logger.Error(err, "Unexpected error checking for Gateway API, defaulting to disabled")
+		}
 	}
 
 	backendTLSPolicyTestInstance := &gatewayv1.BackendTLSPolicyList{}

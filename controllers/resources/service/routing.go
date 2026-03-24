@@ -34,8 +34,6 @@ const (
 	kindService             = "Service"
 	kindSecret              = "Secret"
 	kindConfigMap           = "ConfigMap"
-	backendTLSAPIVersion    = "gateway.networking.k8s.io/v1alpha3"
-	backendTLSKind          = "BackendTLSPolicy"
 )
 
 func GetGatewayName(instance *operatorv1alpha1.IBMLicensing) string {
@@ -90,7 +88,7 @@ func newGatewayListener(name string, protocol gatewayv1.ProtocolType, port int32
 		Protocol: protocol,
 		Port:     port,
 		AllowedRoutes: &gatewayv1.AllowedRoutes{
-			Namespaces: &gatewayv1.RouteNamespaces{From: ptr.To(gatewayv1.NamespacesFromAll)},
+			Namespaces: &gatewayv1.RouteNamespaces{From: ptr.To(gatewayv1.NamespacesFromSame)},
 		},
 	}
 	if tlsConfig != nil {
@@ -214,10 +212,6 @@ func GetBackEndTLSPolicy(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Bac
 	hostname := GetServiceHostname(instance)
 
 	return &gatewayv1.BackendTLSPolicy{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: backendTLSAPIVersion,
-			Kind:       backendTLSKind,
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      policyName,
 			Namespace: instance.Spec.InstanceNamespace,
