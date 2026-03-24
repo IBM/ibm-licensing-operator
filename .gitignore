@@ -83,3 +83,4 @@ temp/
 .DS_Store
 vendor/
 config/crd/external/*.yaml
+config/rbac/*_ns.yaml

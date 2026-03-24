@@ -951,7 +951,7 @@ func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IB
 		return r.cleanupGatewayResources(instance)
 	}
 
-	r.checkGatewayClassStatus()
+	r.checkGatewayClassStatus(instance)
 
 	gatewayReconcilers := []reconcileLSFunctionType{
 		r.reconcileGateway,
@@ -967,8 +967,11 @@ func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IB
 	return reconcile.Result{}, nil
 }
 
-func (r *IBMLicensingReconciler) checkGatewayClassStatus() {
+func (r *IBMLicensingReconciler) checkGatewayClassStatus(instance *operatorv1alpha1.IBMLicensing) {
 	gatewayClassName := "ibm-licensing"
+	if instance.Spec.GatewayOptions != nil && instance.Spec.GatewayOptions.GatewayClassName != "" {
+		gatewayClassName = instance.Spec.GatewayOptions.GatewayClassName
+	}
 
 	gatewayClass := &gatewayv1.GatewayClass{}
 	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: gatewayClassName}, gatewayClass)
@@ -1092,7 +1095,7 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 	needsUpdate := false
 	if !res.MapHasAllPairsFromOther(found.GetLabels(), expected.GetLabels()) {
 		needsUpdate = true
-	} else if !apieq.Semantic.DeepEqual(found.GetAnnotations(), expected.GetAnnotations()) {
+	} else if !res.MapHasAllPairsFromOther(found.GetAnnotations(), expected.GetAnnotations()) {
 		needsUpdate = true
 	} else {
 		switch e := expected.(type) {
@@ -1279,6 +1282,9 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 						}
 					}
 				}
+				reqLogger.Error(err, "Failed to create "+resType.String(), "Name", expectedRes.GetName(),
+					"Namespace", expectedRes.GetNamespace())
+				return reconcile.Result{}, err
 			}
 			// Created successfully - return and requeue to wait for token generation
 			reqLogger.Info(resType.String()+" created successfully, waiting for token generation", "Name", expectedRes.GetName(),

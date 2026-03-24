@@ -17,6 +17,8 @@
 package service
 
 import (
+	"maps"
+
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -97,6 +99,25 @@ func newGatewayListener(name string, protocol gatewayv1.ProtocolType, port int32
 	return listener
 }
 
+// mergeGatewayAnnotations merges instance-level Spec.Annotations with Gateway-specific
+// GatewayOptions.Annotations. GatewayOptions.Annotations take precedence on key conflicts.
+func mergeGatewayAnnotations(instance *operatorv1alpha1.IBMLicensing) map[string]string {
+	options := instance.Spec.GatewayOptions
+	if options == nil {
+		options = &operatorv1alpha1.IBMLicensingGatewayOptions{}
+	}
+
+	if len(instance.Spec.Annotations) == 0 && len(options.Annotations) == 0 {
+		return nil
+	}
+
+	merged := make(map[string]string, len(instance.Spec.Annotations)+len(options.Annotations))
+	maps.Copy(merged, instance.Spec.Annotations)
+	maps.Copy(merged, options.Annotations)
+
+	return merged
+}
+
 func GetLicensingGateway(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Gateway {
 	options := instance.Spec.GatewayOptions
 	name := GetGatewayName(instance)
@@ -135,7 +156,8 @@ func GetLicensingGateway(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Gat
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
 			Namespace:   instance.Spec.InstanceNamespace,
-			Annotations: options.Annotations,
+			Labels:      LabelsForMeta(instance),
+			Annotations: mergeGatewayAnnotations(instance),
 		},
 		Spec: gatewayv1.GatewaySpec{
 			GatewayClassName: gatewayv1.ObjectName(className),
@@ -150,10 +172,17 @@ func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.H
 	gatewayName := GetGatewayName(instance)
 	serviceName := GetResourceName(instance)
 
+	options := instance.Spec.GatewayOptions
+	if options == nil {
+		options = &operatorv1alpha1.IBMLicensingGatewayOptions{}
+	}
+
 	return &gatewayv1.HTTPRoute{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      routeName,
-			Namespace: instance.Spec.InstanceNamespace,
+			Name:        routeName,
+			Namespace:   instance.Spec.InstanceNamespace,
+			Labels:      LabelsForMeta(instance),
+			Annotations: mergeGatewayAnnotations(instance),
 		},
 		Spec: gatewayv1.HTTPRouteSpec{
 			CommonRouteSpec: gatewayv1.CommonRouteSpec{
@@ -193,12 +222,17 @@ func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.H
 }
 
 func GetGatewayConfigMap(instance *operatorv1alpha1.IBMLicensing, internalCertData string) *corev1.ConfigMap {
+	options := instance.Spec.GatewayOptions
+	if options == nil {
+		options = &operatorv1alpha1.IBMLicensingGatewayOptions{}
+	}
 
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        GatewayConfigMapName,
 			Namespace:   instance.Spec.InstanceNamespace,
-			Annotations: instance.Spec.Annotations,
+			Labels:      LabelsForMeta(instance),
+			Annotations: mergeGatewayAnnotations(instance),
 		},
 		Data: map[string]string{
 			"ca.crt": internalCertData,
@@ -211,10 +245,17 @@ func GetBackEndTLSPolicy(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Bac
 	serviceName := GetLicensingServiceName(instance)
 	hostname := GetServiceHostname(instance)
 
+	options := instance.Spec.GatewayOptions
+	if options == nil {
+		options = &operatorv1alpha1.IBMLicensingGatewayOptions{}
+	}
+
 	return &gatewayv1.BackendTLSPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      policyName,
-			Namespace: instance.Spec.InstanceNamespace,
+			Name:        policyName,
+			Namespace:   instance.Spec.InstanceNamespace,
+			Labels:      LabelsForMeta(instance),
+			Annotations: mergeGatewayAnnotations(instance),
 		},
 		Spec: gatewayv1.BackendTLSPolicySpec{
 			TargetRefs: []gatewayv1.LocalPolicyTargetReferenceWithSectionName{{
