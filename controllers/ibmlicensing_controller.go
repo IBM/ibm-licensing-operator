@@ -311,7 +311,7 @@ func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList 
 				IBM License Service configuration is stored in the %s Custom Resource, other Custom Resources are ignored.
 				You can safely go to the Custom Resource Definitions view, select IBMLicensings, backup the YAML definitions of ignored Custom Resources,
 				and delete them from the cluster to prevent this error to appear again.
-				These ignored Custom Resources have no effect on the IBM License Service operation. 
+				These ignored Custom Resources have no effect on the IBM License Service operation.
 				%s will be ignored and set as inactive.`, initialInstance.Name, cr.Name))
 			if cr.Status.State != service.InactiveCRState {
 				cr.Status.State = service.InactiveCRState
@@ -968,7 +968,7 @@ func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IB
 }
 
 func (r *IBMLicensingReconciler) checkGatewayClassStatus(instance *operatorv1alpha1.IBMLicensing) {
-	gatewayClassName := "ibm-licensing"
+	gatewayClassName := service.DefaultGatewayClassName
 	if instance.Spec.GatewayOptions != nil && instance.Spec.GatewayOptions.GatewayClassName != "" {
 		gatewayClassName = instance.Spec.GatewayOptions.GatewayClassName
 	}
@@ -1027,7 +1027,7 @@ func (r *IBMLicensingReconciler) cleanupGatewayResources(instance *operatorv1alp
 		return result, err
 	}
 
-	expectedPolicy := service.GetBackEndTLSPolicy(instance)
+	expectedPolicy := service.GetBackendTLSPolicy(instance)
 	foundPolicy := &gatewayv1.BackendTLSPolicy{}
 	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedPolicy, foundPolicy); err != nil || result.Requeue {
 		return result, err
@@ -1076,7 +1076,7 @@ func (r *IBMLicensingReconciler) reconcileGatewayConfigMap(instance *operatorv1a
 }
 func (r *IBMLicensingReconciler) reconcileTLSBackendPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 
-	policy := service.GetBackEndTLSPolicy(instance)
+	policy := service.GetBackendTLSPolicy(instance)
 	foundPolicy := &gatewayv1.BackendTLSPolicy{}
 	return r.reconcileExpectedGatewayResource(instance, policy, foundPolicy)
 }

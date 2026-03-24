@@ -17,7 +17,6 @@
 package v1alpha1
 
 import (
-	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -50,14 +49,6 @@ type IBMLicensingGatewayOptions struct {
 	// +kubebuilder:validation:Maximum=65535
 	// +optional
 	HTTPSPort *int32 `json:"httpsPort,omitempty"`
-}
-
-type IBMLicensingRouteOptions struct {
-
-	// TLS Config
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="TLS Config",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
-	// +optional
-	TLS *routev1.TLSConfig `json:"tls,omitempty"`
 }
 
 // IBMLicensingSpec defines the desired state of IBMLicensing

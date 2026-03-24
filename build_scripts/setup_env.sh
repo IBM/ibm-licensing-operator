@@ -26,7 +26,7 @@ export KIND_VERSION="v0.31.0"
 # Build flags:
 export GOFLAGS="-buildvcs=false"
 
-# Test veriables:
+# Test variables:
 export LICENSING_NAMESPACE="ibm-licensing"
 
 # Re-exporting build pipeline variables:
