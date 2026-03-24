@@ -711,9 +711,9 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					HTTPSEnable:       true,
 					GatewayEnabled:    &gatewayEnabled,
 					Labels: map[string]string{
-						"custom-label":     "custom-value",
-						"environment":      "test",
-						"team":             "platform",
+						"custom-label": "custom-value",
+						"environment":  "test",
+						"team":         "platform",
 					},
 					Container: operatorv1alpha1.Container{
 						ImagePullPolicy: v1.PullAlways,
