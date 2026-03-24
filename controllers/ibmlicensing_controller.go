@@ -1280,29 +1280,6 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 						}
 					}
 				}
-				// Resource exists in the cluster but is missing from the label-filtered cache (upgrade migration).
-				// Fetch it via Reader (bypasses cache) and patch the missing labels so it enters the cache.
-				if readerErr := r.Reader.Get(context.TODO(), namespacedName, foundRes); readerErr == nil {
-					existingLabels := foundRes.GetLabels()
-					if existingLabels == nil {
-						existingLabels = make(map[string]string)
-					}
-					changed := false
-					for k, v := range expectedRes.GetLabels() {
-						if existingLabels[k] != v {
-							existingLabels[k] = v
-							changed = true
-						}
-					}
-					if changed {
-						reqLogger.Info("Adding missing labels to existing "+resType.String()+" (upgrade migration)",
-							"Name", expectedRes.GetName(), "Namespace", expectedRes.GetNamespace())
-						foundRes.SetLabels(existingLabels)
-						if updateErr := r.Client.Update(context.TODO(), foundRes); updateErr != nil {
-							reqLogger.Error(updateErr, "Failed to add labels to existing "+resType.String())
-						}
-					}
-				}
 			}
 			// Created successfully - return and requeue to wait for token generation
 			reqLogger.Info(resType.String()+" created successfully, waiting for token generation", "Name", expectedRes.GetName(),
