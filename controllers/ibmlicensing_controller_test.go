@@ -748,7 +748,7 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					return false
 				}
 				labels := gateway.GetLabels()
-				_, hasAppLabel := labels["app"]
+				_, hasAppLabel := labels["app.kubernetes.io/name"]
 				_, hasReleaseLabel := labels["release"]
 				return hasAppLabel && hasReleaseLabel
 			}, timeout, interval).Should(BeTrue())
