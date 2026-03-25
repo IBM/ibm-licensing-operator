@@ -17,32 +17,23 @@
 
 set -euo pipefail
 
-LOCALBIN="${1:?Usage: $0 <localbin-path>}"
+LOCALBIN="${1:?Usage: $0 <localbin-path> <yamllint-version>}"
+YAMLLINT_VERSION="${2:?Usage: $0 <localbin-path> <yamllint-version>}"
 VENV_DIR="${LOCALBIN}/.venv"
-WRAPPER="${LOCALBIN}/detect-secrets"
+
+if ! [ -x "$(command -v python3)" ]; then
+  echo ">>> Tool not found: python3. Install suitable version and try again."
+  exit 1
+fi
 
 mkdir -p "${LOCALBIN}"
 
-# Create venv if it doesn't exist
 if [ ! -d "${VENV_DIR}" ]; then
   echo ">>> Creating Python virtual environment at ${VENV_DIR}"
   python3 -m venv "${VENV_DIR}"
 fi
 
-# Install or verify detect-secrets inside the venv
-if "${VENV_DIR}/bin/detect-secrets" --version >/dev/null 2>&1; then
-  echo ">>> detect-secrets already installed in venv"
-  "${VENV_DIR}/bin/detect-secrets" --version
-else
-  echo ">>> Installing detect-secrets into ${VENV_DIR}"
-  "${VENV_DIR}/bin/pip" install --upgrade \
-    "git+https://github.com/ibm/detect-secrets.git@master#egg=detect-secrets"
-fi
-
-# Create/update wrapper script in LOCALBIN so detect-secrets is on PATH
-cat > "${WRAPPER}" <<WRAPPER_SCRIPT
-#!/bin/bash
-exec "${VENV_DIR}/bin/detect-secrets" "\$@"
-WRAPPER_SCRIPT
-chmod +x "${WRAPPER}"
-echo ">>> detect-secrets wrapper installed at ${WRAPPER}"
+echo ">>> Installing yamllint [${YAMLLINT_VERSION}]"
+"${VENV_DIR}/bin/pip" install "yamllint==${YAMLLINT_VERSION}"
+chmod +x "${VENV_DIR}/bin/yamllint"
+echo ">>> yamllint ${YAMLLINT_VERSION} installed to ${VENV_DIR}/bin/yamllint"

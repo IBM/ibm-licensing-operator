@@ -1,5 +1,5 @@
 //
-// Copyright 2023 IBM Corporation
+// Copyright 2026 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,23 +14,19 @@
 // limitations under the License.
 //
 
-package service
+package v1beta1
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/controller-runtime/pkg/scheme"
 )
 
-func GetDefaultIBMLicensing(operatorNamespace string) operatorv1alpha1.IBMLicensing {
-	return operatorv1alpha1.IBMLicensing{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "instance",
-		},
-		Spec: operatorv1alpha1.IBMLicensingSpec{
-			Datasource:        "datacollector",
-			HTTPSEnable:       true,
-			InstanceNamespace: operatorNamespace,
-		},
-	}
+var (
+	GroupVersion  = schema.GroupVersion{Group: "marketplace.redhat.com", Version: "v1beta1"}
+	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
+	AddToScheme   = SchemeBuilder.AddToScheme
+)
+
+func init() {
+	SchemeBuilder.Register(&MeterDefinition{}, &MeterDefinitionList{})
 }
