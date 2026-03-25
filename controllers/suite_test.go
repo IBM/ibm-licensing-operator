@@ -69,6 +69,7 @@ var (
 	ocp               bool
 	timeout           = time.Second * 300
 	interval          = time.Second * 5
+	cancelManager     context.CancelFunc
 )
 
 func TestAPIs(t *testing.T) {
@@ -252,14 +253,20 @@ var _ = BeforeSuite(func() {
 		ocp = true
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	cancelManager = cancel
+
 	go func() {
 		defer GinkgoRecover()
-		err = mgr.Start(ctrl.SetupSignalHandler())
+		err = mgr.Start(ctx)
 		Expect(err).ToNot(HaveOccurred())
 	}()
 })
 
 var _ = AfterSuite(func() {
+	By("stopping the manager")
+	cancelManager()
+
 	By("tearing down the test environment")
 	err := testEnv.Stop()
 	Expect(err).ToNot(HaveOccurred())
