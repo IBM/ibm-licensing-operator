@@ -17,6 +17,10 @@
 package controllers
 
 import (
+	"context"
+	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -42,6 +46,8 @@ import (
 
 	meterdefv1beta1 "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
+
 	odlm "github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1"
 
 	operatoribmcomv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
@@ -63,6 +69,7 @@ var (
 	ocp               bool
 	timeout           = time.Second * 300
 	interval          = time.Second * 5
+	cancelManager     context.CancelFunc
 )
 
 func TestAPIs(t *testing.T) {
@@ -74,6 +81,64 @@ func TestAPIs(t *testing.T) {
 	RunSpecs(t, "Controller suite", suiteConfig, reporterConfig)
 }
 
+func downloadExternalCRDs() error {
+	externalCRDDir := filepath.Join("..", "config", "crd", "external")
+
+	if err := os.MkdirAll(externalCRDDir, 0755); err != nil {
+		return fmt.Errorf("failed to create external CRD directory: %w", err)
+	}
+
+	crdURLs := map[string]string{
+		"gateway.networking.k8s.io_gatewayclasses.yaml":     "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_gatewayclasses.yaml",
+		"gateway.networking.k8s.io_gateways.yaml":           "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_gateways.yaml",
+		"gateway.networking.k8s.io_httproutes.yaml":         "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml",
+		"gateway.networking.k8s.io_backendtlspolicies.yaml": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_backendtlspolicies.yaml",
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for filename, url := range crdURLs {
+		filePath := filepath.Join(externalCRDDir, filename)
+
+		if _, err := os.Stat(filePath); err == nil {
+			fmt.Printf("CRD %s already exists, skipping download\n", filename)
+			continue
+		}
+
+		fmt.Printf("Downloading CRD: %s\n", filename)
+
+		req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+		if err != nil {
+			return fmt.Errorf("failed to create request for %s: %w", filename, err)
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("failed to download %s: %w", filename, err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("failed to download %s: status %d", filename, resp.StatusCode)
+		}
+
+		out, err := os.Create(filePath)
+		if err != nil {
+			return fmt.Errorf("failed to create file %s: %w", filename, err)
+		}
+		defer out.Close()
+
+		if _, err := io.Copy(out, resp.Body); err != nil {
+			return fmt.Errorf("failed to write file %s: %w", filename, err)
+		}
+
+		fmt.Printf("Successfully downloaded: %s\n", filename)
+	}
+
+	return nil
+}
+
 var _ = BeforeSuite(func() {
 
 	logf.SetLogger(zap.New(func(o *zap.Options) {
@@ -82,9 +147,15 @@ var _ = BeforeSuite(func() {
 		o.DestWriter = GinkgoWriter
 	}))
 
+	By("downloading external CRDs if needed")
+	Expect(downloadExternalCRDs()).ToNot(HaveOccurred())
+
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{
+			filepath.Join("..", "config", "crd", "bases"),
+			filepath.Join("..", "config", "crd", "external"),
+		},
 	}
 
 	var err error
@@ -120,6 +191,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	err = operatorframeworkv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = gatewayv1.Install(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	operatorNamespace, _ = os.LookupEnv("OPERATOR_NAMESPACE")
@@ -179,14 +253,20 @@ var _ = BeforeSuite(func() {
 		ocp = true
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	cancelManager = cancel
+
 	go func() {
 		defer GinkgoRecover()
-		err = mgr.Start(ctrl.SetupSignalHandler())
+		err = mgr.Start(ctx)
 		Expect(err).ToNot(HaveOccurred())
 	}()
 })
 
 var _ = AfterSuite(func() {
+	By("stopping the manager")
+	cancelManager()
+
 	By("tearing down the test environment")
 	err := testEnv.Stop()
 	Expect(err).ToNot(HaveOccurred())

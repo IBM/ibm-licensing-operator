@@ -27,6 +27,12 @@ echo "Install OLM:"
 kubectl apply --server-side -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.41.0/crds.yaml
 kubectl apply --server-side -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.41.0/olm.yaml
 
+echo "Install Gateway API CRDs:"
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_gatewayclasses.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_gateways.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_backendtlspolicies.yaml
+
 echo "Deploy Operators YAML:"
 kubectl create namespace "${LICENSING_NAMESPACE}"
 n=0; until ((n >= 60)); do kubectl -n "${LICENSING_NAMESPACE}" get serviceaccount default -o name && break; n=$((n + 1)); sleep 60; done; ((n < 60))

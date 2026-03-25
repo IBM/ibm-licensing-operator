@@ -349,6 +349,10 @@ prepare-unit-test:
 	kubectl apply -f monitoring.coreos.com_servicemonitors.yaml
 	curl -O https://raw.githubusercontent.com/IBM/operand-deployment-lifecycle-manager/v1.23.5/bundle/manifests/operator.ibm.com_operandrequests.yaml
 	kubectl apply -f operator.ibm.com_operandrequests.yaml
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_gatewayclasses.yaml
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_gateways.yaml
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.0/config/crd/standard/gateway.networking.k8s.io_backendtlspolicies.yaml
 
 unit-test: prepare-unit-test
 	export USE_EXISTING_CLUSTER=true; \
@@ -359,7 +363,7 @@ unit-test: prepare-unit-test
 	export OCP=${OCP}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
-	go test -v ./controllers/... -coverprofile cover.out
+	go test -v ./controllers/... -coverprofile cover.out -timeout 30m
 
 # Build manager binary
 manager: generate
