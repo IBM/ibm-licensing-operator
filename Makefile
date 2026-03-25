@@ -363,7 +363,7 @@ unit-test: prepare-unit-test
 	export OCP=${OCP}; \
 	export KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true; \
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
-	go test -v ./controllers/... -coverprofile cover.out
+	go test -v ./controllers/... -coverprofile cover.out -timeout 30m
 
 # Build manager binary
 manager: generate
