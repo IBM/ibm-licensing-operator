@@ -1122,11 +1122,6 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 		}
 	}
 	if needsUpdate {
-		// Note: do NOT call attachSpecLabelsAndAnnotationsPrecedingUpdate here.
-		// All gateway resources already use mergeGatewayAnnotations which merges
-		// spec annotations with gateway-specific annotations (gateway taking precedence).
-		// Calling attachSpecLabelsAndAnnotationsPrecedingUpdate would overwrite the
-		// merged annotations with raw spec annotations, breaking gateway precedence.
 		return res.UpdateResource(&reqLogger, r.Client, expected, found)
 	}
 	return reconcile.Result{}, nil
