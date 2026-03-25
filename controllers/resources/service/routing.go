@@ -140,8 +140,9 @@ func GetLicensingGateway(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.Gat
 	tlsConfig := &gatewayv1.ListenerTLSConfig{
 		Mode: ptr.To(gatewayv1.TLSModeTerminate),
 		CertificateRefs: []gatewayv1.SecretObjectReference{{
-			Kind: ptr.To(gatewayv1.Kind(kindSecret)),
-			Name: gatewayv1.ObjectName(tlsSecretName),
+			Group: ptr.To(gatewayv1.Group("")),
+			Kind:  ptr.To(gatewayv1.Kind(kindSecret)),
+			Name:  gatewayv1.ObjectName(tlsSecretName),
 		}},
 	}
 	listeners = append(listeners, newGatewayListener("https", gatewayv1.HTTPSProtocolType, httpsPort, tlsConfig))
@@ -176,7 +177,9 @@ func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.H
 		Spec: gatewayv1.HTTPRouteSpec{
 			CommonRouteSpec: gatewayv1.CommonRouteSpec{
 				ParentRefs: []gatewayv1.ParentReference{{
-					Name: gatewayv1.ObjectName(gatewayName),
+					Group: ptr.To(gatewayv1.Group("gateway.networking.k8s.io")),
+					Kind:  ptr.To(gatewayv1.Kind("Gateway")),
+					Name:  gatewayv1.ObjectName(gatewayName),
 				}},
 			},
 			Rules: []gatewayv1.HTTPRouteRule{{
@@ -199,10 +202,12 @@ func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.H
 				BackendRefs: []gatewayv1.HTTPBackendRef{{
 					BackendRef: gatewayv1.BackendRef{
 						BackendObjectReference: gatewayv1.BackendObjectReference{
-							Kind: ptr.To(gatewayv1.Kind(kindService)),
-							Name: gatewayv1.ObjectName(serviceName),
-							Port: ptr.To(licensingServicePort.IntVal),
+							Group: ptr.To(gatewayv1.Group("")),
+							Kind:  ptr.To(gatewayv1.Kind(kindService)),
+							Name:  gatewayv1.ObjectName(serviceName),
+							Port:  ptr.To(licensingServicePort.IntVal),
 						},
+						Weight: ptr.To(int32(1)),
 					},
 				}},
 			}},
