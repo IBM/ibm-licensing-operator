@@ -1257,7 +1257,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 					// Resource already exists, try to get it again to update cache
 					reqLogger.Info(resType.String()+" already exists, fetching again", "Name", expectedRes.GetName(),
 						"Namespace", expectedRes.GetNamespace())
-					return reconcile.Result{RequeueAfter: time.Second * 2}, nil
+					return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 2}, nil
 				}
 				// Resource exists in the cluster but is missing from the label-filtered cache (upgrade migration).
 				// Fetch it via Reader (bypasses cache) and patch the missing labels so it enters the cache.
@@ -1289,7 +1289,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 			// Created successfully - return and requeue to wait for token generation
 			reqLogger.Info(resType.String()+" created successfully, waiting for token generation", "Name", expectedRes.GetName(),
 				"Namespace", expectedRes.GetNamespace())
-			return reconcile.Result{RequeueAfter: time.Second * 5}, nil
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		} else if metaErrors.IsNoMatchError(err) {
 			reqLogger.Info("CRD for "+resType.String()+" not installed, skipping", "Name", expectedRes.GetName(),
 				"Namespace", expectedRes.GetNamespace())
