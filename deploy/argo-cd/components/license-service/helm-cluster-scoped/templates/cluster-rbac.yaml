@@ -136,16 +136,24 @@ rules:
   - apiGroups:
       - ""
     resources:
-      - namespaces
-    verbs:
-      - get
-  - apiGroups:
-      - ""
-    resources:
       - events
     verbs:
       - create
       - patch
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - gatewayclasses
+    verbs:
+      - get
+      - list
+      - watch
   - apiGroups:
       - operator.ibm.com
     resources:
