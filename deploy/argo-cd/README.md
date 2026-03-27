@@ -2,9 +2,9 @@
 
 Learn how to install IBM Licensing components as Argo CD applications. This procedure guides you through the following steps:
 
-- [Prerequisites](#prerequisites): Preparing for installation.
-- [Configuring](#configuring): Configuring the components to ensure that the Licensing suite is functional.
-- [Installing](#installing): Installation of IBM License Service (ILS) and IBM License Service Reporter.
+- [Prerequisites](#prerequisites): Preparing for the installation.
+- [Configuring](#configuring) (optional): Configuring the components to ensure that the Licensing suite is functional.
+- [Installing](#installing): Installation of IBM License Service and IBM License Service Reporter.
 
 ## Prerequisites
 
@@ -102,6 +102,7 @@ To learn more about the supported configuration options, see the official docume
 The following are some common scenarios with examples on how to resolve the provided sample issues.
 
 **Note:** Apply the following examples to the following sources:
+
 - For License Service, apply the examples to the `helm-cluster-scoped` source that supports full CR configuration.
 - For License Service Reporter, apply the examples to the sources that targets the path with `helm`, not `helm-cluster-scoped`, as
 the cluster-scoped charts only support the `namespace` parameter
@@ -212,6 +213,7 @@ As a result, the `imagePullSecrets` field of the operator and the operand includ
 ## Installing
 
 ### Installing all components
+
 To install all components, perform the following steps.
 
 1. Log in to your cluster, and open the following namespace.
@@ -253,7 +255,7 @@ To install selected components separately, for example to install *IBM License S
     kubectl apply -f<path-to-cloned-repo>/applications/license-service.yaml
     ```
 
-**Note** Remember to `sync` after the applications are applied, or add the `auto-sync` option to your setup.
+**Note:** Remember to `sync` after the applications are applied, or add the `auto-sync` option to your setup.
 
 ### Installing on EKS clusters
 
@@ -268,6 +270,7 @@ You will also need to configure the right roles and permissions so that your Arg
 Installing components separately is recommended, for example, when you want to install *IBM License Service Reporter* on a different cluster.
 
 In such scenario, complete the following steps:
+
 1. Apply `applications/reporter.yaml` to your cluster.
 2. Follow the official *IBM License Service* documentation to prepare the connection secret and CR configuration.
 3. Add the values to `applications/license-service.yaml` to configure the connection.
