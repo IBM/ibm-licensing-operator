@@ -452,7 +452,7 @@ func UpdateCacheClusterExtensions(client c.Reader, logger logr.Logger) error {
 	// Check for Gateway API by attempting to list Gateway resources
 	// If the CRD is not installed, this will return NoMatchError
 	gatewayTestInstance := &gatewayv1.GatewayList{}
-	if err = client.List(context.TODO(), gatewayTestInstance); err == nil {
+	if err = client.List(context.TODO(), gatewayTestInstance, listOpts...); err == nil {
 		IsGatewayAPI = true
 		logger.Info("Gateway API available in cluster")
 	} else {
