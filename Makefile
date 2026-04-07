@@ -509,7 +509,7 @@ catalogsource: opm yq
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
 	docker push ${REGISTRY}/${BUNDLE_IMG}
-	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
+	$(OPM) index add --permissive --mode semver -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
 	docker push ${REGISTRY}/${CATALOG_IMG}
 ifneq (${DEVOPS_STREAM},)
 	docker tag ${REGISTRY}/${CATALOG_IMG} ${REGISTRY}/${DEVOPS_CATALOG_IMG}
@@ -525,7 +525,7 @@ catalogsource-development: opm yq
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
-	$(OPM) index add --permissive  -c ${PODMAN}  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	$(OPM) index add --permissive --mode semver -c ${PODMAN}  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push  ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 
 ############################################################
