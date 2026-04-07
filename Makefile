@@ -502,39 +502,16 @@ scorecard: operator-sdk
 	$(OPERATOR_SDK) scorecard ./bundle -n ${NAMESPACE} -w 120s --service-account scorecard-sa --kubeconfig ${HOME}/.kube/config
 
 catalogsource: opm yq
-	@echo "Build File-Based Catalog for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
+	@echo "Build SQLite CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${REGISTRY}/${IMG}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
 	docker push ${REGISTRY}/${BUNDLE_IMG}
-	@echo "Generating File-Based Catalog (FBC) with separate YAML files..."
-	@mkdir -p $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app
-	@echo "Creating olm.package file..."
-	@echo "---" > $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.package-ibm-licensing-operator-app.yaml
-	@echo "defaultChannel: $(DEFAULT_CHANNEL)" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.package-ibm-licensing-operator-app.yaml
-	@echo "name: ibm-licensing-operator-app" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.package-ibm-licensing-operator-app.yaml
-	@echo "schema: olm.package" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.package-ibm-licensing-operator-app.yaml
-	@echo "Creating olm.channel file..."
-	@echo "---" > $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.channel-$(DEFAULT_CHANNEL).yaml
-	@echo "entries:" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.channel-$(DEFAULT_CHANNEL).yaml
-	@echo "- name: ibm-licensing-operator.v$(CSV_VERSION)" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.channel-$(DEFAULT_CHANNEL).yaml
-	@echo "name: $(DEFAULT_CHANNEL)" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.channel-$(DEFAULT_CHANNEL).yaml
-	@echo "package: ibm-licensing-operator-app" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.channel-$(DEFAULT_CHANNEL).yaml
-	@echo "schema: olm.channel" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.channel-$(DEFAULT_CHANNEL).yaml
-	@echo "Creating olm.bundle file..."
-	$(OPM) render ${REGISTRY}/${BUNDLE_IMG} > $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.bundle-ibm-licensing-operator.v$(CSV_VERSION).yaml
-	@echo "Validating FBC..."
-	$(OPM) validate $(LOCAL_TMP)/fbc-catalog
-	@echo "Building catalog image..."
-	@echo "FROM scratch" > $(LOCAL_TMP)/fbc-catalog/Dockerfile
-	@echo "ADD ibm-licensing-operator-app /configs/ibm-licensing-operator-app" >> $(LOCAL_TMP)/fbc-catalog/Dockerfile
-	@echo "LABEL operators.operatorframework.io.index.configs.v1=/configs" >> $(LOCAL_TMP)/fbc-catalog/Dockerfile
-	cd $(LOCAL_TMP)/fbc-catalog && docker build -t ${REGISTRY}/${CATALOG_IMG} .
+	@echo "Building catalog from official catalog base (preserves defaultChannel)..."
+	$(OPM) index add --container-tool docker --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG} --from-index icr.io/cpopen/ibm-licensing-catalog:latest
 	docker push ${REGISTRY}/${CATALOG_IMG}
-	@rm -rf $(LOCAL_TMP)/fbc-catalog
-	@echo "FBC Catalog built with defaultChannel=${DEFAULT_CHANNEL}"
 ifneq (${DEVOPS_STREAM},)
 	docker tag ${REGISTRY}/${CATALOG_IMG} ${REGISTRY}/${DEVOPS_CATALOG_IMG}
 	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
@@ -542,39 +519,16 @@ endif
 
 # pipeline builds the catalog for you and already makes a multi-arch catalog, for amd64 we build it conditionally for dev purposes
 catalogsource-development: opm yq
-	@echo "Build Development File-Based Catalog for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
+	@echo "Build Development SQLite CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
-	@echo "Generating File-Based Catalog (FBC) with separate YAML files..."
-	@mkdir -p $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app
-	@echo "Creating olm.package file..."
-	@echo "---" > $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.package-ibm-licensing-operator-app.yaml
-	@echo "defaultChannel: $(DEFAULT_CHANNEL)" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.package-ibm-licensing-operator-app.yaml
-	@echo "name: ibm-licensing-operator-app" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.package-ibm-licensing-operator-app.yaml
-	@echo "schema: olm.package" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.package-ibm-licensing-operator-app.yaml
-	@echo "Creating olm.channel file..."
-	@echo "---" > $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.channel-$(DEFAULT_CHANNEL).yaml
-	@echo "entries:" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.channel-$(DEFAULT_CHANNEL).yaml
-	@echo "- name: ibm-licensing-operator.v$(CSV_VERSION)" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.channel-$(DEFAULT_CHANNEL).yaml
-	@echo "name: $(DEFAULT_CHANNEL)" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.channel-$(DEFAULT_CHANNEL).yaml
-	@echo "package: ibm-licensing-operator-app" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.channel-$(DEFAULT_CHANNEL).yaml
-	@echo "schema: olm.channel" >> $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.channel-$(DEFAULT_CHANNEL).yaml
-	@echo "Creating olm.bundle file..."
-	$(OPM) render ${SCRATCH_REGISTRY}/${BUNDLE_IMG} > $(LOCAL_TMP)/fbc-catalog/ibm-licensing-operator-app/olm.bundle-ibm-licensing-operator.v$(CSV_VERSION).yaml
-	@echo "Validating FBC..."
-	$(OPM) validate $(LOCAL_TMP)/fbc-catalog
-	@echo "Building catalog image..."
-	@echo "FROM scratch" > $(LOCAL_TMP)/fbc-catalog/Dockerfile
-	@echo "ADD ibm-licensing-operator-app /configs/ibm-licensing-operator-app" >> $(LOCAL_TMP)/fbc-catalog/Dockerfile
-	@echo "LABEL operators.operatorframework.io.index.configs.v1=/configs" >> $(LOCAL_TMP)/fbc-catalog/Dockerfile
-	cd $(LOCAL_TMP)/fbc-catalog && docker build -t ${SCRATCH_REGISTRY}/${CATALOG_IMG} .
+	@echo "Building catalog from official catalog base (preserves defaultChannel)..."
+	$(OPM) index add --container-tool docker --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG} --from-index icr.io/cpopen/ibm-licensing-catalog:latest
 	docker push ${SCRATCH_REGISTRY}/${CATALOG_IMG}
-	@rm -rf $(LOCAL_TMP)/fbc-catalog
-	@echo "FBC Catalog built with defaultChannel=${DEFAULT_CHANNEL}"
 
 ############################################################
 # Installation section
