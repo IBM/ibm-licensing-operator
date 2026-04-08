@@ -524,10 +524,15 @@ catalogsource-development: opm yq
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
+	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.package.v1" = "ibm-licensing-operator"' ./bundle/metadata/annotations.yaml
+	@echo "Verifying bundle annotations..."
+	@$(YQ) '.annotations' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
-	@echo "Building catalog from official catalog base (preserves defaultChannel)..."
-	$(OPM) index add --container-tool docker --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG} --from-index icr.io/cpopen/ibm-licensing-catalog:latest
+	@echo "Building catalog from scratch (without --from-index)..."
+	$(OPM) index add --container-tool docker --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	@echo "Verifying catalog contents..."
+	@docker run --rm ${SCRATCH_REGISTRY}/${CATALOG_IMG} ls -la /database/ || echo "Warning: Could not verify catalog database"
 	docker push ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 
 ############################################################
