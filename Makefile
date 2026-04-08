@@ -72,6 +72,7 @@ IBM_LICENSING_IMAGE ?= ibm-licensing
 
 CHANNELS=v4.2
 DEFAULT_CHANNEL=v4.2
+PACKAGE="ibm-licensing-operator"
 
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
@@ -175,19 +176,6 @@ GIT_REMOTE_URL = $(shell git config --get remote.origin.url)
 
 BUNDLE_IMG ?= $(IMAGE_BUNDLE_NAME)-$(LOCAL_ARCH):$(VERSION)
 CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
-
-# Identify stream based in current git branch
-DEVOPS_STREAM :=
-ifeq ($(GIT_BRANCH),master)
-	DEVOPS_STREAM="cd"
-	DEFAULT_CHANNEL=v4.0
-else ifeq ($(GIT_BRANCH),release-ltsr)
-	DEVOPS_STREAM="ltsr"
-	DEFAULT_CHANNEL=v3
-else ifeq ($(GIT_BRANCH),release-future)
-	DEVOPS_STREAM="future"
-	DEFAULT_CHANNEL=v4.0
-endif
 
 DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 
@@ -502,15 +490,14 @@ scorecard: operator-sdk
 	$(OPERATOR_SDK) scorecard ./bundle -n ${NAMESPACE} -w 120s --service-account scorecard-sa --kubeconfig ${HOME}/.kube/config
 
 catalogsource: opm yq
-	@echo "Build SQLite CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
+	@echo "Build CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${REGISTRY}/${IMG}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
 	docker push ${REGISTRY}/${BUNDLE_IMG}
-	@echo "Building catalog from official catalog base (preserves defaultChannel)..."
-	$(OPM) index add --container-tool docker --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG} --from-index icr.io/cpopen/ibm-licensing-catalog:latest
+	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
 	docker push ${REGISTRY}/${CATALOG_IMG}
 ifneq (${DEVOPS_STREAM},)
 	docker tag ${REGISTRY}/${CATALOG_IMG} ${REGISTRY}/${DEVOPS_CATALOG_IMG}
@@ -519,12 +506,12 @@ endif
 
 # pipeline builds the catalog for you and already makes a multi-arch catalog, for amd64 we build it conditionally for dev purposes
 catalogsource-development: opm yq
-	@echo "Build Development SQLite CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
+	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
-	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
-	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.package.v1" = "ibm-licensing-operator"' ./bundle/metadata/annotations.yaml
+	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
+	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.package.v1" = "${PACKAGE}' ./bundle/metadata/annotations.yaml
 	@echo "Verifying bundle annotations..."
 	@$(YQ) '.annotations' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
