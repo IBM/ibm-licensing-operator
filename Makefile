@@ -523,7 +523,7 @@ catalogsource-development: opm yq
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
-	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
+	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.package.v1" = "ibm-licensing-operator"' ./bundle/metadata/annotations.yaml
 	@echo "Verifying bundle annotations..."
 	@$(YQ) '.annotations' ./bundle/metadata/annotations.yaml
