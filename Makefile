@@ -72,7 +72,7 @@ IBM_LICENSING_IMAGE ?= ibm-licensing
 
 CHANNELS=v4.2
 DEFAULT_CHANNEL=v4.2
-PACKAGE="ibm-licensing-operator"
+PACKAGE=ibm-licensing-operator
 
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
