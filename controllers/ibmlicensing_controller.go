@@ -1071,7 +1071,7 @@ func operatorAnnotationsMatch(found, expected map[string]string) bool {
 			return false
 		}
 	}
-	
+
 	// Check if values in found annotations match values in expected annotations
 	for k := range found {
 		if isSystemAnnotation(k) {
@@ -1096,9 +1096,7 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 		return reconcile.Result{}, nil
 	}
 	needsUpdate := false
-	if !res.MapHasAllPairsFromOther(found.GetLabels(), expected.GetLabels()) {
-		needsUpdate = true
-	} else if !operatorAnnotationsMatch(found.GetAnnotations(), expected.GetAnnotations()) {
+	if !res.MapHasAllPairsFromOther(found.GetLabels(), expected.GetLabels()) || !operatorAnnotationsMatch(found.GetAnnotations(), expected.GetAnnotations()) {
 		needsUpdate = true
 	} else {
 		switch e := expected.(type) {
@@ -1125,9 +1123,8 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 		}
 	}
 	if needsUpdate {
-		// Only preserve system annotations from the found resource so that
-		// attachExistingAnnotations (called by UpdateResource) does not copy
-		// stale operator-managed annotations back into the expected resource.
+		// Only preserve system annotations from the found resource so that attachExistingAnnotations (called by UpdateResource)
+		// does not copy stale operator-managed annotations back into the expected resource.
 		systemAnnotations := make(map[string]string)
 		for k, v := range found.GetAnnotations() {
 			if isSystemAnnotation(k) {
