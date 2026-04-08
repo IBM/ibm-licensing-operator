@@ -1065,14 +1065,17 @@ operatorAnnotationsMatch checks whether the operator-managed annotations
 System annotations added by Kubernetes are ignored in the comparison.
 */
 func operatorAnnotationsMatch(found, expected map[string]string) bool {
+	// Check if values in expected annotations match values in found annotations
 	for k, v := range expected {
 		if found[k] != v {
 			return false
 		}
 	}
+	
+	// Check if values in found annotations match values in expected annotations
 	for k := range found {
 		if isSystemAnnotation(k) {
-			continue
+			continue // Ignore system annotations
 		}
 		if _, ok := expected[k]; !ok {
 			return false
