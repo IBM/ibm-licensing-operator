@@ -224,10 +224,9 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		return reconcile.Result{}, err
 	}
 
-	// Initialize GatewayOptions if nil, but don't override existing values
+	// Initialize GatewayOptions if nil
 	if instance.Spec.GatewayOptions == nil {
 		instance.Spec.GatewayOptions = &operatorv1alpha1.IBMLicensingGatewayOptions{}
-		// Default: suppress Gateway API logs on OCP (where Route is primary)
 		isOCP := res.IsRouteAPI || res.IsServiceCAAPI
 		instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift = isOCP
 	}
@@ -955,13 +954,10 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 
 func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 
-	// Only skip Gateway if explicitly disabled in spec
 	if !instance.Spec.IsGatewayEnabled() {
 		return r.cleanupGatewayResources(instance)
 	}
 
-	// Always reconcile Gateway resources (check if they exist)
-	// Logging is controlled by EnableGatewayAPIOpenshift flag
 	gatewayReconcilers := []reconcileLSFunctionType{
 		r.reconcileGateway,
 		r.reconcileHTTPRoute,
@@ -1014,7 +1010,7 @@ func (r *IBMLicensingReconciler) reconcileGateway(instance *operatorv1alpha1.IBM
 	if err != nil || result.Requeue {
 		return result, err
 	}
-	if found.GetName() != "" && !instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift {
+	if found.GetName() != "" && (instance.Spec.GatewayOptions == nil || !instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift) {
 		if len(found.Status.Addresses) > 0 {
 			for _, addr := range found.Status.Addresses {
 				if addr.Type != nil && *addr.Type == gatewayv1.HostnameAddressType {
@@ -1276,7 +1272,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		} else if metaErrors.IsNoMatchError(err) {
 			// Log only if not a Gateway resource on OCP (where Gateway API is optional)
-			isOCP := res.IsRouteAPI || res.IsServiceCAAPI
+			isOCP := instance.Spec.GatewayOptions != nil && instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift
 			isGatewayResource := resType.String() == "*v1.Gateway" || resType.String() == "*v1.HTTPRoute" ||
 				resType.String() == "*v1.BackendTLSPolicy"
 
@@ -1292,7 +1288,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	}
 
 	// Log only if not a Gateway resource on OCP
-	isOCP := res.IsRouteAPI || res.IsServiceCAAPI
+	isOCP := instance.Spec.GatewayOptions != nil && instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift
 	isGatewayResource := resType.String() == "*v1.Gateway" || resType.String() == "*v1.HTTPRoute" ||
 		resType.String() == "*v1.BackendTLSPolicy" || resType.String() == "*v1.ConfigMap"
 
