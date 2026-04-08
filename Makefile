@@ -512,14 +512,9 @@ catalogsource-development: opm yq
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.package.v1" = "${PACKAGE}' ./bundle/metadata/annotations.yaml
-	@echo "Verifying bundle annotations..."
-	@$(YQ) '.annotations' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
-	@echo "Building catalog from scratch (without --from-index)..."
-	$(OPM) index add --container-tool docker --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
-	@echo "Verifying catalog contents..."
-	@docker run --rm ${SCRATCH_REGISTRY}/${CATALOG_IMG} ls -la /database/ || echo "Warning: Could not verify catalog database"
+	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 
 ############################################################
