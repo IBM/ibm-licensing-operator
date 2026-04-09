@@ -177,9 +177,10 @@ func GetLicensingHTTPRoute(instance *operatorv1alpha1.IBMLicensing) *gatewayv1.H
 		Spec: gatewayv1.HTTPRouteSpec{
 			CommonRouteSpec: gatewayv1.CommonRouteSpec{
 				ParentRefs: []gatewayv1.ParentReference{{
-					Group: ptr.To(gatewayv1.Group("gateway.networking.k8s.io")),
-					Kind:  ptr.To(gatewayv1.Kind("Gateway")),
-					Name:  gatewayv1.ObjectName(gatewayName),
+					Group:     ptr.To(gatewayv1.Group("gateway.networking.k8s.io")),
+					Kind:      ptr.To(gatewayv1.Kind("Gateway")),
+					Name:      gatewayv1.ObjectName(gatewayName),
+					Namespace: ptr.To(gatewayv1.Namespace(instance.Spec.InstanceNamespace)),
 				}},
 			},
 			Rules: []gatewayv1.HTTPRouteRule{{

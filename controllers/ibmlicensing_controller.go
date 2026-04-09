@@ -144,7 +144,6 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=marketplace.redhat.com,resources=meterdefinitions,verbs=get;list;create;update;watch
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=gateway.networking.k8s.io,resources=gateways;httproutes,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=gateway.networking.k8s.io,resources=backendtlspolicies,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=gatewayclasses,verbs=get;list;watch
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=networking.k8s.io,resources=networkpolicies,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=services;services/finalizers;events;configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods,verbs=get;list;watch;update;patch
@@ -951,8 +950,6 @@ func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IB
 		return r.cleanupGatewayResources(instance)
 	}
 
-	r.checkGatewayClassStatus(instance)
-
 	gatewayReconcilers := []reconcileLSFunctionType{
 		r.reconcileGateway,
 		r.reconcileHTTPRoute,
@@ -965,51 +962,6 @@ func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IB
 		}
 	}
 	return reconcile.Result{}, nil
-}
-
-func (r *IBMLicensingReconciler) checkGatewayClassStatus(instance *operatorv1alpha1.IBMLicensing) {
-	gatewayClassName := service.DefaultGatewayClassName
-	if instance.Spec.GatewayOptions != nil && instance.Spec.GatewayOptions.GatewayClassName != "" {
-		gatewayClassName = instance.Spec.GatewayOptions.GatewayClassName
-	}
-
-	gatewayClass := &gatewayv1.GatewayClass{}
-	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: gatewayClassName}, gatewayClass)
-
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			r.Log.Info("GatewayClass not found.",
-				"gatewayClassName", gatewayClassName,
-				"recommendation", "Install a Gateway controller (e.g., Envoy Gateway) or create a GatewayClass resource, see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
-		}
-		return
-	}
-
-	accepted := false
-	for _, condition := range gatewayClass.Status.Conditions {
-		if condition.Type == "Accepted" {
-			if condition.Status == metav1.ConditionTrue {
-				accepted = true
-				r.Log.Info("GatewayClass is accepted and ready", "gatewayClassName", gatewayClassName)
-			} else {
-				r.Log.Info("GatewayClass exists but is not accepted. Check if the Gateway controller is running. see documentation about needed cluster extensions ibm.biz/LS_gateway_API",
-					"gatewayClassName", gatewayClassName,
-					"status", condition.Status,
-					"reason", condition.Reason,
-					"message", condition.Message,
-					"controller", gatewayClass.Spec.ControllerName)
-			}
-			break
-		}
-	}
-
-	if !accepted && len(gatewayClass.Status.Conditions) == 0 {
-		r.Log.Info("GatewayClass exists but has no status conditions. The Gateway controller may not be running.",
-			"gatewayClassName", gatewayClassName,
-			"controller", gatewayClass.Spec.ControllerName,
-			"recommendation", fmt.Sprintf("Ensure the Gateway controller '%s' is installed and running and see see documentation about needed cluster extensions ibm.biz/LS_gateway_API", gatewayClass.Spec.ControllerName))
-	}
-
 }
 
 func (r *IBMLicensingReconciler) cleanupGatewayResources(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -1045,7 +997,24 @@ func (r *IBMLicensingReconciler) cleanupGatewayResources(instance *operatorv1alp
 func (r *IBMLicensingReconciler) reconcileGateway(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	expectedGateway := service.GetLicensingGateway(instance)
 	found := &gatewayv1.Gateway{}
-	return r.reconcileExpectedGatewayResource(instance, expectedGateway, found)
+	reqLogger := r.Log.WithValues("reconcileGateway", "Entry", "instance.GetName()", instance.GetName())
+	result, err := r.reconcileExpectedGatewayResource(instance, expectedGateway, found)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	if found.GetName() != "" {
+		if len(found.Status.Addresses) > 0 {
+			for _, addr := range found.Status.Addresses {
+				if addr.Type != nil && *addr.Type == gatewayv1.HostnameAddressType {
+					reqLogger.Info("Gateway has assigned address", "hostname", addr.Value, "type", *addr.Type)
+
+				}
+			}
+		} else {
+			reqLogger.Info("Gateway exists but has not assigned address yet - GatewayClass controller may not be running, check documentation: ibm.biz/LS_gateway_API")
+		}
+	}
+	return reconcile.Result{}, nil
 }
 
 func (r *IBMLicensingReconciler) reconcileHTTPRoute(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
