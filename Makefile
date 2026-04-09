@@ -472,6 +472,7 @@ alm-example: yq
 pre-bundle: generate manifests operator-sdk kustomize yq
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
+	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.package.v1" = "ibm-licensing-operator-app"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."com.redhat.openshift.versions" = "v4.12"' ./bundle/metadata/annotations.yaml
 	$(YQ) '.spec.customresourcedefinitions.owned[0]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_definitions.yaml
 	$(YQ) '.spec.customresourcedefinitions.owned[1]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_metadata.yaml
