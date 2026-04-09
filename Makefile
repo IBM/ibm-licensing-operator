@@ -70,7 +70,7 @@ IMAGE_CATALOG_NAME ?= ibm-licensing-operator-catalog
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
 
-CHANNELS=v4.2
+CHANNELS=v3,v4.2
 DEFAULT_CHANNEL=v4.2
 PACKAGE=ibm-licensing-operator-app
 
@@ -183,8 +183,7 @@ ifeq ($(GIT_BRANCH),master)
 	DEVOPS_STREAM="cd"
 else ifeq ($(GIT_BRANCH),release-ltsr)
 	DEVOPS_STREAM="ltsr"
-else ifeq ($(GIT_BRANCH),release-future)
-	DEVOPS_STREAM="future"
+	DEFAULT_CHANNEL=v3
 endif
 
 DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
@@ -470,6 +469,7 @@ alm-example: yq
 pre-bundle: generate manifests operator-sdk kustomize yq
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
+	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.package.v1" = "${PACKAGE}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."com.redhat.openshift.versions" = "v4.12"' ./bundle/metadata/annotations.yaml
 	$(YQ) '.spec.customresourcedefinitions.owned[0]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_definitions.yaml
 	$(YQ) '.spec.customresourcedefinitions.owned[1]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_metadata.yaml
@@ -521,7 +521,6 @@ catalogsource-development: opm yq
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
-	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.package.v1" = "${PACKAGE}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
 	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
