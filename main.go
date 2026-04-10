@@ -144,6 +144,10 @@ func main() {
 		defaultNamespaces[ns] = cache.Config{}
 	}
 
+	// Gateway API resources (Gateway, HTTPRoute, BackendTLSPolicy) are only ever created by the operator
+	// in its own namespace and should only be cached there
+	operatorNamespaceOnly := map[string]cache.Config{operatorNamespace: {}}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
@@ -155,9 +159,12 @@ func main() {
 		Cache: cache.Options{
 			DefaultNamespaces: defaultNamespaces,
 			ByObject: map[client.Object]cache.ByObject{
-				&corev1.Secret{}:     {Label: licensingLabelSelector},
-				&appsv1.Deployment{}: {Label: licensingLabelSelector},
-				&corev1.Pod{}:        {Label: licensingLabelSelector},
+				&corev1.Secret{}:              {Label: licensingLabelSelector},
+				&appsv1.Deployment{}:          {Label: licensingLabelSelector},
+				&corev1.Pod{}:                 {Label: licensingLabelSelector},
+				&gatewayv1.Gateway{}:          {Namespaces: operatorNamespaceOnly},
+				&gatewayv1.HTTPRoute{}:        {Namespaces: operatorNamespaceOnly},
+				&gatewayv1.BackendTLSPolicy{}: {Namespaces: operatorNamespaceOnly},
 			},
 		},
 	})
@@ -211,10 +218,23 @@ func main() {
 		} else {
 			go controllers.DiscoverOperandRequests(&crdLogger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
 
-			logger := ctrl.Log.WithName("operatorgroup-namespaces-watcher")
-			removeStaleNamespacesTaskCtx, cancelRemoveStaleNamespacesTask := context.WithCancel(context.Background())
-			go controllers.RunRemoveStaleNamespacesFromOperatorGroupTask(removeStaleNamespacesTaskCtx, &logger, mgr.GetClient(), mgr.GetAPIReader())
-			routinesToCancel = append(routinesToCancel, cancelRemoveStaleNamespacesTask)
+			// OperatorGroup belongs to OLM (operators.coreos.com/v1). On clusters without OLM installed, skip the stale-namespace cleanup task,
+			// otherwise every run produces a "no matches for kind OperatorGroup" error
+			operatorGroupList := operatorframeworkv1.OperatorGroupList{}
+			operatorGroupCRDExists, err := res.DoesCRDExist(mgr.GetAPIReader(), &operatorGroupList)
+			if err != nil {
+				setupLog.Error(err, "An error occurred while checking for OperatorGroup CRD existence. operatorgroup-namespaces-watcher will not be started")
+			}
+
+			if operatorGroupCRDExists {
+				logger := ctrl.Log.WithName("operatorgroup-namespaces-watcher")
+				removeStaleNamespacesTaskCtx, cancelRemoveStaleNamespacesTask := context.WithCancel(context.Background())
+
+				go controllers.RunRemoveStaleNamespacesFromOperatorGroupTask(removeStaleNamespacesTaskCtx, &logger, mgr.GetClient(), mgr.GetAPIReader())
+				routinesToCancel = append(routinesToCancel, cancelRemoveStaleNamespacesTask)
+			} else {
+				setupLog.Info("OperatorGroup CRD not found in cluster. operatorgroup-namespaces-watcher disabled")
+			}
 		}
 	} else {
 		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
