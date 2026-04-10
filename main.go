@@ -148,7 +148,30 @@ func main() {
 	// in its own namespace and should only be cached there
 	operatorNamespaceOnly := map[string]cache.Config{operatorNamespace: {}}
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	byObject := map[client.Object]cache.ByObject{
+		&corev1.Secret{}:     {Label: licensingLabelSelector},
+		&appsv1.Deployment{}: {Label: licensingLabelSelector},
+		&corev1.Pod{}:        {Label: licensingLabelSelector},
+	}
+
+	restConfig := ctrl.GetConfigOrDie()
+	probeClient, err := client.New(restConfig, client.Options{Scheme: scheme})
+	if err != nil {
+		setupLog.Error(err, "unable to create probe client for CRD discovery")
+		os.Exit(1)
+	}
+	if err := res.UpdateCacheClusterExtensions(probeClient, setupLog); err != nil {
+		setupLog.Error(err, "Error during checking K8s API")
+	}
+	if res.IsGatewayAPI {
+		byObject[&gatewayv1.Gateway{}] = cache.ByObject{Namespaces: operatorNamespaceOnly}
+		byObject[&gatewayv1.HTTPRoute{}] = cache.ByObject{Namespaces: operatorNamespaceOnly}
+	}
+	if res.IsBackendTLSPolicyAPI {
+		byObject[&gatewayv1.BackendTLSPolicy{}] = cache.ByObject{Namespaces: operatorNamespaceOnly}
+	}
+
+	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
 			BindAddress: metricsAddr,
@@ -158,14 +181,7 @@ func main() {
 		LeaderElectionID: "e1f51baf.ibm.com",
 		Cache: cache.Options{
 			DefaultNamespaces: defaultNamespaces,
-			ByObject: map[client.Object]cache.ByObject{
-				&corev1.Secret{}:              {Label: licensingLabelSelector},
-				&appsv1.Deployment{}:          {Label: licensingLabelSelector},
-				&corev1.Pod{}:                 {Label: licensingLabelSelector},
-				&gatewayv1.Gateway{}:          {Namespaces: operatorNamespaceOnly},
-				&gatewayv1.HTTPRoute{}:        {Namespaces: operatorNamespaceOnly},
-				&gatewayv1.BackendTLSPolicy{}: {Namespaces: operatorNamespaceOnly},
-			},
+			ByObject:          byObject,
 		},
 	})
 	if err != nil {
