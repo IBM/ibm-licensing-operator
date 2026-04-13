@@ -322,17 +322,27 @@ If you already have any Licensing components installed, use the `--take-ownershi
 `helm` version `3.17.0`, when running the `install` commands.
 
 
-### Airgap scenario
+### Prerequisites for Airgap scenario
 
-To install components in air gap scenario you need to perform 2 steps:
+During the installtion two types of resources are fetched from the internet:
+- helm charts
+- container images
+Which means that to install in air gap scenario you need to perform 2 steps:
+- download helm charts and store them in your local repository
 - download images and store them in your local image repository
-- download helm charts and store them in your local git repository
 
-1. Download ./deploy/argo-cd from this repository.
+1. First git clone or download this repository (unless you already did it in previous steps).
+for example:
+```bash
+git clone --single-branch --branch latest-4.x git@github.com:IBM/ibm-licensing-operator.git
+```
 
-2. Download helm charts and store them in your local git repository.
+2. Store this repository in your local repo.
+git remote add local-repo  https://github.com/my-company/my-repo.git
+git push local-repo latest-4.x
 
-Open /argo-cd/applications/*component*.yaml, for example let's open license-service.yaml:
+3. Adjust `repoURL` in each and every component in ./argo-cd/applications/*component*.yaml
+For example if you are installing License Service modify license-service.yaml from:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -351,10 +361,7 @@ spec:
       path: deploy/argo-cd/components/license-service/helm-cluster-scoped
 ```
 
-you can see here that we specify path to some external github repository with helm charts:
-https://github.com/IBM/ibm-licensing-operator/tree/latest-4.x
-If you don't have access to internet then you need to git clone this repo and store it on your own.
-After that you need to adjust the file to point to your local repository, for example to:
+to:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -368,36 +375,42 @@ spec:
   destination:
     server: https://kubernetes.default.svc
   sources:
-    - repoURL: "https://github.com/my-company/my-repo" # URL TO REPO (you need to adjust it)
-      targetRevision: "latest-4.x" # NAME OF THE BRANCH (can stay as is if you didn't change name of the branch)
-      path: deploy/argo-cd/components/license-service/helm-cluster-scoped # Path to folder with helm charts (can stay as is if you didn't change structure of the repo)
+    - repoURL: "https://github.com/my-company/my-repo" # Link to your repo
+      targetRevision: "latest-4.x"
+      path: deploy/argo-cd/components/license-service/helm-cluster-scoped
 ```
 
-We have our helm charts hosted locally sic! -> Good Job :)
+After that steps helm charts should be pulled from your local repository.
 
 3. Download images and store them in your local repository.
 
 First we need to pull image of operator and instace if the given component.
 
-For LS run:
-docker pull icr.io/cpopen/ibm-licensing-operator:*version that you want to downlaod*
-docker pull icr.io/cpopen/cpfs/ibm-licensing:*version that you want to downlaod*
+For LS you will need to pull:
+docker pull icr.io/cpopen/ibm-licensing-operator:*version that you want to download*
+docker pull icr.io/cpopen/cpfs/ibm-licensing:*version that you want to download*
 
-If you are not sure what is the newest version you can check that using:
+For LSR:
+docker pull icr.io/cpopen/cpfs/ibm-postgresql:4.2.21
+docker pull icr.io/cpopen/cpfs/ibm-license-service-reporter:4.2.21
+docker pull icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:4.2.21
+docker pull icr.io/cpopen/cpfs/ibm-license-service-reporter-oauth2-proxy:4.2.21
+docker pull icr.io/cpopen/ibm-license-service-reporter-operator:4.2.21
+
+For LS:
+value: icr.io/cpopen/cpfs/ibm-licensing-scanner:4.2.21
+image: icr.io/cpopen/ibm-license-service-scanner-operator:4.2.21
+
+hint: If you are not sure what is the newest version of component then you can check that using:
 helm template ./deploy/argo-cd/components/license-service/helm-cluster-scoped | grep icr.io
 in output you should see something like:
 value: icr.io/cpopen/cpfs/ibm-licensing:4.2.21
 image: icr.io/cpopen/ibm-licensing-operator:4.2.21
-those are the 2 images that you need to pull
-
-For LSR you would run:
-helm template ./deploy/argo-cd/components/reporter/helm | grep icr.io
-And for scanner:
-helm template ./deploy/argo-cd/components/scanner/helm | grep icr.io
 
 
-Now you need to tag the images and push them to you local image repository:
+Now you need to tag those images and push them to you local image repository:
 
+for example for ls operator image you would run:
 docker tag icr.io/cpopen/ibm-licensing-operator:4.2.21 myrepo.com/mynamespace/ibm-licensing-operator:4.2.21
 docker push myrepo.com/mynamespace/ibm-licensing-operator:4.2.21
 
@@ -405,5 +418,5 @@ After that you will need to update image registry configuration following
 https://github.com/IBM/ibm-licensing-operator/blob/master/deploy/argo-cd/README.md#specify-image-registry-and-image-registry-namespace
 for example to:
 imagePullPrefix: myrepo.com
-imageRegistryNamespaceOperator: mynamespace (namespace that you tagged on images that had value:)
-imageRegistryNamespaceOperand: mynamespace (namespace that you tagged on images that had image:)
+imageRegistryNamespaceOperator: mynamespace (namespace that you used on images that contained `operator` in name)
+imageRegistryNamespaceOperand: mynamespace (namespace that you tagged on any other image)
