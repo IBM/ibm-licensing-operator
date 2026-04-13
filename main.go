@@ -162,6 +162,7 @@ func main() {
 	}
 	if err := res.UpdateCacheClusterExtensions(probeClient, setupLog); err != nil {
 		setupLog.Error(err, "Error during checking K8s API")
+		os.Exit(1)
 	}
 	if res.IsGatewayAPI {
 		byObject[&gatewayv1.Gateway{}] = cache.ByObject{Namespaces: operatorNamespaceOnly}
