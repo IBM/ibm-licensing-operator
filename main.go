@@ -139,15 +139,6 @@ func main() {
 
 	licensingLabelSelector, _ := labels.Parse("release in (ibm-licensing-service)")
 
-	defaultNamespaces := make(map[string]cache.Config)
-	for _, ns := range watchNamespaces {
-		defaultNamespaces[ns] = cache.Config{}
-	}
-
-	// Gateway API resources (Gateway, HTTPRoute, BackendTLSPolicy) are only ever created by the operator
-	// in its own namespace and should only be cached there
-	operatorNamespaceOnly := map[string]cache.Config{operatorNamespace: {}}
-
 	byObject := map[client.Object]cache.ByObject{
 		&corev1.Secret{}:     {Label: licensingLabelSelector},
 		&appsv1.Deployment{}: {Label: licensingLabelSelector},
@@ -164,12 +155,22 @@ func main() {
 		setupLog.Error(err, "Error during checking K8s API")
 		os.Exit(1)
 	}
+
+	// Gateway API resources (Gateway, HTTPRoute, BackendTLSPolicy) are only ever created by the operator
+	// in its own namespace and should only be cached there
+	operatorNamespaceOnly := map[string]cache.Config{operatorNamespace: {}}
+
 	if res.IsGatewayAPI {
 		byObject[&gatewayv1.Gateway{}] = cache.ByObject{Namespaces: operatorNamespaceOnly}
 		byObject[&gatewayv1.HTTPRoute{}] = cache.ByObject{Namespaces: operatorNamespaceOnly}
 	}
 	if res.IsBackendTLSPolicyAPI {
 		byObject[&gatewayv1.BackendTLSPolicy{}] = cache.ByObject{Namespaces: operatorNamespaceOnly}
+	}
+
+	defaultNamespaces := make(map[string]cache.Config)
+	for _, ns := range watchNamespaces {
+		defaultNamespaces[ns] = cache.Config{}
 	}
 
 	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
