@@ -260,7 +260,7 @@ To install selected components separately, for example to install *IBM License S
 ### Installing on EKS clusters
 
 You must register your cluster and modify the `server` field of your `Application`, because the default local cluster
-destination is not supported. Follow official [AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/argocd-register-clusters.html) to
+destination is not supported. Follow official [AWS documentation](<https://docs.aws.amazon.com/eks/latest/userguide/argocd-register-clusters.html>) to
 register your cluster.
 
 You will also need to configure the right roles and permissions so that your ArgoCD instance can sync the application.
