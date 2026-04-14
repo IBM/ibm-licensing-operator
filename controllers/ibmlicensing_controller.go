@@ -22,6 +22,7 @@ import (
 	"reflect"
 	goruntime "runtime"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -1024,7 +1025,6 @@ func (r *IBMLicensingReconciler) reconcileHTTPRoute(instance *operatorv1alpha1.I
 }
 
 func (r *IBMLicensingReconciler) reconcileGatewayConfigMap(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-
 	sourceConfigMapName := "ibm-licensing-upload-config"
 	sourceConfigMap := &corev1.ConfigMap{}
 	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: sourceConfigMapName, Namespace: instance.Spec.InstanceNamespace}, sourceConfigMap); err != nil {
@@ -1043,11 +1043,45 @@ func (r *IBMLicensingReconciler) reconcileGatewayConfigMap(instance *operatorv1a
 	return r.reconcileExpectedGatewayResource(instance, expectedConfigMap, foundConfigMap)
 
 }
-func (r *IBMLicensingReconciler) reconcileTLSBackendPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 
+func (r *IBMLicensingReconciler) reconcileTLSBackendPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	policy := service.GetBackendTLSPolicy(instance)
 	foundPolicy := &gatewayv1.BackendTLSPolicy{}
 	return r.reconcileExpectedGatewayResource(instance, policy, foundPolicy)
+}
+
+/*
+isSystemAnnotation returns true for annotations managed by Kubernetes or
+other infrastructure controllers (e.g. deployment.kubernetes.io/revision)
+that should be preserved during resource updates.
+*/
+func isSystemAnnotation(key string) bool {
+	return strings.Contains(key, "kubernetes.io/") || strings.Contains(key, "k8s.io/")
+}
+
+/*
+operatorAnnotationsMatch checks whether the operator-managed annotations
+(i.e. non-system annotations) on the found resource match the expected ones.
+System annotations added by Kubernetes are ignored in the comparison.
+*/
+func operatorAnnotationsMatch(found, expected map[string]string) bool {
+	// Check if values in expected annotations match values in found annotations
+	for k, v := range expected {
+		if found[k] != v {
+			return false
+		}
+	}
+
+	// Check if values in found annotations match values in expected annotations
+	for k := range found {
+		if isSystemAnnotation(k) {
+			continue // Ignore system annotations
+		}
+		if _, ok := expected[k]; !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *operatorv1alpha1.IBMLicensing, expected client.Object, found client.Object) (reconcile.Result, error) {
@@ -1062,9 +1096,7 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 		return reconcile.Result{}, nil
 	}
 	needsUpdate := false
-	if !res.MapHasAllPairsFromOther(found.GetLabels(), expected.GetLabels()) {
-		needsUpdate = true
-	} else if !res.MapHasAllPairsFromOther(found.GetAnnotations(), expected.GetAnnotations()) {
+	if !res.MapHasAllPairsFromOther(found.GetLabels(), expected.GetLabels()) || !operatorAnnotationsMatch(found.GetAnnotations(), expected.GetAnnotations()) {
 		needsUpdate = true
 	} else {
 		switch e := expected.(type) {
@@ -1091,6 +1123,15 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 		}
 	}
 	if needsUpdate {
+		// Only preserve system annotations from the found resource so that attachExistingAnnotations (called by UpdateResource)
+		// does not copy stale operator-managed annotations back into the expected resource.
+		systemAnnotations := make(map[string]string)
+		for k, v := range found.GetAnnotations() {
+			if isSystemAnnotation(k) {
+				systemAnnotations[k] = v
+			}
+		}
+		found.SetAnnotations(systemAnnotations)
 		return res.UpdateResource(&reqLogger, r.Client, expected, found)
 	}
 	return reconcile.Result{}, nil
