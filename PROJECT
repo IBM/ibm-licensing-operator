@@ -1,27 +1,47 @@
 domain: ibm.com
 layout:
-- go.kubebuilder.io/v2
-plugins:
-  go.operator-sdk.io/v2-alpha: {}
+- go.kubebuilder.io/v4
 projectName: ibm-licensing-operator
 repo: github.com/IBM/ibm-licensing-operator
 resources:
-- controller: true
+- api:
+    crdVersion: v1
+    namespaced: false
+  controller: true
+  domain: ibm.com
   group: operator
   kind: IBMLicensing
+  path: github.com/IBM/ibm-licensing-operator/api/v1alpha1
   version: v1alpha1
 - controller: true
   domain: ibm.com
+  external: true
   group: operator
   kind: OperandRequest
+  path: github.com/IBM/operand-deployment-lifecycle-manager/api/v1alpha1
   version: v1alpha1
-- group: operator
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: ibm.com
+  group: operator
   kind: IBMLicensingMetadata
+  path: github.com/IBM/ibm-licensing-operator/api/v1alpha1
   version: v1alpha1
-- group: operator
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: ibm.com
+  group: operator
   kind: IBMLicensingDefinition
+  path: github.com/IBM/ibm-licensing-operator/api/v1
   version: v1
-- group: operator
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: ibm.com
+  group: operator
   kind: IBMLicensingQuerySource
+  path: github.com/IBM/ibm-licensing-operator/api/v1
   version: v1
 version: "3"

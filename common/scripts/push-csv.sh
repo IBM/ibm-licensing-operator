@@ -20,9 +20,9 @@ QUAY_NAMESPACE=${QUAY_NAMESPACE:-opencloudio}
 QUAY_REPOSITORY=${QUAY_REPOSITORY:-ibm-licensing-operator-app}
 BUNDLE_DIR=${BUNDLE_DIR:-deploy/olm-catalog/ibm-licensing-operator}
 
-[[ "X$QUAY_USERNAME" == "X" ]] && read -rp "Enter username quay.io: " QUAY_USERNAME
-[[ "X$QUAY_PASSWORD" == "X" ]] && read -rsp "Enter password quay.io: " QUAY_PASSWORD && echo
-[[ "X$RELEASE" == "X" ]] && read -rp "Enter Version/Release of operator: " RELEASE
+[[ "$QUAY_USERNAME" == "" ]] && read -rp "Enter username quay.io: " QUAY_USERNAME
+[[ "$QUAY_PASSWORD" == "" ]] && read -rsp "Enter password quay.io: " QUAY_PASSWORD && echo
+[[ "$RELEASE" == "" ]] && read -rp "Enter Version/Release of operator: " RELEASE
 
 # Fetch authentication token used to push to Quay.io
 AUTH_TOKEN=$(curl -sH "Content-Type: application/json" -XPOST https://quay.io/cnr/api/v1/users/login -d '

@@ -7,16 +7,16 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - namespaces
-  verbs:
-  - get
-- apiGroups:
-  - ""
-  resources:
   - events
   verbs:
   - create
   - patch
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
 - apiGroups:
   - operator.ibm.com
   resources:
@@ -75,19 +75,6 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - configmaps
-  - secrets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
   - namespaces
   - serviceaccounts
   verbs:
@@ -117,11 +104,11 @@ rules:
   - update
   - watch
 - apiGroups:
-  - extensions
-  - networking.k8s.io
+  - gateway.networking.k8s.io
   resources:
-  - ingresses
-  - networkpolicies
+  - backendtlspolicies
+  - gateways
+  - httproutes
   verbs:
   - create
   - delete
@@ -149,6 +136,18 @@ rules:
   - delete
   - get
   - list
+  - update
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
   - update
   - watch
 - apiGroups:
