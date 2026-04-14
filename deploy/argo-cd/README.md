@@ -322,7 +322,7 @@ If you already have any Licensing components installed, use the `--take-ownershi
 `helm` version `3.17.0`, when running the `install` commands.
 
 
-### Prerequisites for Airgap scenario
+### Prerequisites for air-gap scenario
 
 During the installtion two types of resources are fetched from the internet:
 - helm charts
@@ -332,13 +332,14 @@ Which means that to install in air gap scenario you need to perform 2 steps:
 - download images and store them in your local image repository
 
 1. First git clone or download this repository (unless you already did it in previous steps).
-for example:
 ```bash
 git clone --single-branch --branch latest-4.x git@github.com:IBM/ibm-licensing-operator.git
 ```
 
 2. Store this repository in your local repo.
-git remote add local-repo  https://github.com/my-company/my-repo.git
+
+e.g:
+git remote add local-repo  https://github.com/my-company/my-repo.git git@github.com:my-company/my-repo.git
 git push local-repo latest-4.x
 
 3. Adjust `repoURL` in each and every component in ./argo-cd/applications/*component*.yaml
@@ -375,40 +376,44 @@ spec:
   destination:
     server: https://kubernetes.default.svc
   sources:
-    - repoURL: "https://github.com/my-company/my-repo" # Link to your repo
+    - repoURL: "https://github.com/my-company/my-repo" # Link to your repo (https://github.ibm.com/Norbert-Koziana/LS_AIR_GAP)
       targetRevision: "latest-4.x"
       path: deploy/argo-cd/components/license-service/helm-cluster-scoped
 ```
 
-After that steps helm charts should be pulled from your local repository.
+After that steps, during installation helm charts should be pulled from your local repository.
 
 3. Download images and store them in your local repository.
 
-First we need to pull image of operator and instace if the given component.
+First we need to pull images. But what images?
 
-For LS you will need to pull:
-docker pull icr.io/cpopen/ibm-licensing-operator:*version that you want to download*
-docker pull icr.io/cpopen/cpfs/ibm-licensing:*version that you want to download*
+For LS you will need:
+icr.io/cpopen/ibm-licensing-operator:*version that you want to download*
+icr.io/cpopen/cpfs/ibm-licensing:*version that you want to download*
 
 For LSR:
-docker pull icr.io/cpopen/cpfs/ibm-postgresql:4.2.21
-docker pull icr.io/cpopen/cpfs/ibm-license-service-reporter:4.2.21
-docker pull icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:4.2.21
-docker pull icr.io/cpopen/cpfs/ibm-license-service-reporter-oauth2-proxy:4.2.21
-docker pull icr.io/cpopen/ibm-license-service-reporter-operator:4.2.21
+icr.io/cpopen/cpfs/ibm-postgresql:4.2.21
+icr.io/cpopen/cpfs/ibm-license-service-reporter:4.2.21
+icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:4.2.21
+icr.io/cpopen/cpfs/ibm-license-service-reporter-oauth2-proxy:4.2.21
+icr.io/cpopen/ibm-license-service-reporter-operator:4.2.21
 
 For LS:
-value: icr.io/cpopen/cpfs/ibm-licensing-scanner:4.2.21
-image: icr.io/cpopen/ibm-license-service-scanner-operator:4.2.21
+icr.io/cpopen/cpfs/ibm-licensing-scanner:4.2.21
+icr.io/cpopen/ibm-license-service-scanner-operator:4.2.21
 
-hint: If you are not sure what is the newest version of component then you can check that using:
+hint: You can also get the list of images that you need to pull using this command:
 helm template ./deploy/argo-cd/components/license-service/helm-cluster-scoped | grep icr.io
 in output you should see something like:
 value: icr.io/cpopen/cpfs/ibm-licensing:4.2.21
 image: icr.io/cpopen/ibm-licensing-operator:4.2.21
 
+for LSS and LSR you need to run the command against standard helm charts (non cluster scoped)
+helm template ./deploy/argo-cd/components/reporter/helm | grep icr.io
+helm template ./deploy/argo-cd/components/scanner/helm | grep icr.io
 
-Now you need to tag those images and push them to you local image repository:
+Now you need to pull, tag those images and push them to you local image repository:
+(this is described in https://www.ibm.com/docs/en/cloud-paks/foundational-services/4.x_cd?topic=ilsfpcr-installing-license-service-without-operator-lifecycle-manager-olm-1#ariaid-title4 from section 2b to 2d)
 
 for example for ls operator image you would run:
 docker tag icr.io/cpopen/ibm-licensing-operator:4.2.21 myrepo.com/mynamespace/ibm-licensing-operator:4.2.21
