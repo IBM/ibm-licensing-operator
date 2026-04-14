@@ -24,10 +24,9 @@ import (
 	"sort"
 	"time"
 
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 	routev1 "github.com/openshift/api/route/v1"
-	rhmp "github.com/redhat-marketplace/redhat-marketplace-operator/v2/apis/marketplace/v1beta1"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -43,6 +42,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
+
+	rhmp "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
+
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
 	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
@@ -51,7 +54,7 @@ import (
 type reconcileLSFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
 
 func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := res.UpdateCacheClusterExtensions(mgr.GetAPIReader()); err != nil {
+	if err := res.UpdateCacheClusterExtensions(mgr.GetAPIReader(), r.Log); err != nil {
 		r.Log.Error(err, "Error during checking K8s API")
 	}
 
@@ -64,12 +67,23 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{})
 
+	if res.IsGatewayAPI {
+		watcher = watcher.
+			Owns(&gatewayv1.Gateway{}).
+			Owns(&gatewayv1.HTTPRoute{})
+	}
+
+	if res.IsBackendTLSPolicyAPI {
+		watcher = watcher.
+			Owns(&gatewayv1.BackendTLSPolicy{})
+	}
+
 	return watcher.Complete(r)
 }
 
 func (r *IBMLicensingReconciler) createDefaultInstanceAfterCheck() error {
 	reqLogger := r.Log.WithValues("action", "Default IBMLicensing instance creation")
-	ibmLicensing := service.GetDefaultIBMLicensing()
+	ibmLicensing := service.GetDefaultIBMLicensing(r.OperatorNamespace)
 	err := r.Client.Create(context.TODO(), &ibmLicensing)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		reqLogger.Error(err, "Failure.")
@@ -128,7 +142,9 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;watch;list;delete;update
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=route.openshift.io,resources=routes;routes/custom-host,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=marketplace.redhat.com,resources=meterdefinitions,verbs=get;list;create;update;watch
-// +kubebuilder:rbac:namespace=ibm-licensing,groups=networking.k8s.io;extensions,resources=ingresses;networkpolicies,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=gateway.networking.k8s.io,resources=gateways;httproutes,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=gateway.networking.k8s.io,resources=backendtlspolicies,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:namespace=ibm-licensing,groups=networking.k8s.io,resources=networkpolicies,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=services;services/finalizers;events;configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods,verbs=get;list;watch;update;patch
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=namespaces;serviceaccounts,verbs=get;list;watch
@@ -143,7 +159,7 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 	reqLogger.Info("Reconciling IBMLicensing")
 	goruntime.GC()
 
-	if err := res.UpdateCacheClusterExtensions(r.Reader); err != nil {
+	if err := res.UpdateCacheClusterExtensions(r.Reader, reqLogger); err != nil {
 		reqLogger.Error(err, "Error during checking K8s API")
 	}
 
@@ -207,6 +223,12 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 	if err != nil {
 		return reconcile.Result{}, err
 	}
+
+	// Validate Software Central configuration
+	if instance.Spec.IsSoftwareCentralEnabled() && instance.Spec.SoftwareCentral.EntitlementKeySecret == "" {
+		return reconcile.Result{}, fmt.Errorf("spec.softwareCentral.entitlementKeySecret must be set when Software Central integration is enabled")
+	}
+
 	r.controllerStatus(instance)
 
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
@@ -224,13 +246,13 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		r.reconcileDefaultReaderToken,
 		r.reconcileServiceAccountToken,
 		r.reconcileServices,
-		r.reconcileIngress,
 		r.reconcileRouteWithoutCertificates,
 		r.reconcileCertificateSecrets,
 		r.reconcileRouteWithCertificates,
 		r.reconcileConfigMaps,
 		r.reconcileDeployment,
 		r.reconcileNetworkPolicy,
+		r.reconcileExposure,
 		r.reconcileRHMPServiceMonitor,
 		r.reconcileAlertingServiceMonitor,
 		r.reconcileMeterDefinition,
@@ -288,7 +310,7 @@ func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList 
 				IBM License Service configuration is stored in the %s Custom Resource, other Custom Resources are ignored.
 				You can safely go to the Custom Resource Definitions view, select IBMLicensings, backup the YAML definitions of ignored Custom Resources,
 				and delete them from the cluster to prevent this error to appear again.
-				These ignored Custom Resources have no effect on the IBM License Service operation. 
+				These ignored Custom Resources have no effect on the IBM License Service operation.
 				%s will be ignored and set as inactive.`, initialInstance.Name, cr.Name))
 			if cr.Status.State != service.InactiveCRState {
 				cr.Status.State = service.InactiveCRState
@@ -590,14 +612,16 @@ func (r *IBMLicensingReconciler) reconcileConfigMaps(instance *operatorv1alpha1.
 	internalCertificate := &corev1.Secret{}
 	certificateNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
 
-	if err := r.Client.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
-		// Generate certificate only when route/ingress is enabled
-		if instance.Spec.IsRouteEnabled() || instance.Spec.IsIngressEnabled() {
+	// Use Reader (bypasses label-filtered cache) because on OCP the internal cert is created by
+	// ServiceCA and does not carry the "release=ibm-licensing-service" label required by ByObject cache.
+	if err := r.Reader.Get(context.TODO(), certificateNamespacedName, internalCertificate); err != nil {
+		// Generate certificate only when route/gateway is enabled
+		if instance.Spec.IsRouteEnabled() || instance.Spec.IsGatewayEnabled() {
 			r.Log.WithValues("cert name", certificateNamespacedName).Info("certificate secret not existing. Generating self signed certificate")
 			return reconcile.Result{Requeue: true}, err
 		}
 
-		// Skip verification of certificates when route/ingress is disabled
+		// Skip verification of certificates when route/gateway is disabled
 		return reconcile.Result{}, nil
 	}
 
@@ -740,7 +764,16 @@ func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.
 		return reconcileResult, err
 	}
 
-	shouldUpdate := res.ShouldUpdateDeployment(
+	replicasMismatch := foundDeployment.Spec.Replicas == nil ||
+		expectedDeployment.Spec.Replicas == nil ||
+		*foundDeployment.Spec.Replicas != *expectedDeployment.Spec.Replicas
+	if replicasMismatch {
+		reqLogger.Info("Deployment has wrong replica count",
+			"found", foundDeployment.Spec.Replicas,
+			"expected", expectedDeployment.Spec.Replicas)
+	}
+
+	shouldUpdate := replicasMismatch || res.ShouldUpdateDeployment(
 		&reqLogger,
 		&expectedDeployment.Spec.Template,
 		&foundDeployment.Spec.Template,
@@ -813,15 +846,19 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 		}
 
 		externalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: externalCertName}
-		if err := r.Client.Get(context.TODO(), externalNamespacedName, &externalCertSecret); err != nil {
+		// Use Reader (bypasses label-filtered cache) because custom certs are user-provided and
+		// do not carry the "release=ibm-licensing-service" label required by ByObject cache.
+		if err := r.Reader.Get(context.TODO(), externalNamespacedName, &externalCertSecret); err != nil {
 			r.Log.Error(err, "Cannot retrieve external certificate from secret")
 			return reconcile.Result{Requeue: true}, nil
 		}
 
 		internalCertSecret := corev1.Secret{}
 		internalNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.LicenseServiceInternalCertName}
-		if err := r.Client.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
-			r.Log.Error(err, "Cannot retrieve external certificate from secret")
+		// Use Reader (bypasses label-filtered cache) because on OCP the internal cert is created by
+		// ServiceCA and does not carry the "release=ibm-licensing-service" label required by ByObject cache.
+		if err := r.Reader.Get(context.TODO(), internalNamespacedName, &internalCertSecret); err != nil {
+			r.Log.Error(err, "Cannot retrieve internal certificate from secret")
 			return reconcile.Result{Requeue: true}, nil
 		}
 
@@ -908,47 +945,154 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 	return reconcile.Result{}, nil
 }
 
-func (r *IBMLicensingReconciler) reconcileIngress(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	expectedIngress := service.GetLicensingIngress(instance)
-	foundIngress := &networkingv1.Ingress{}
+func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	if !instance.Spec.IsGatewayEnabled() {
+		return r.cleanupGatewayResources(instance)
+	}
 
-	if instance.Spec.IsIngressEnabled() {
-		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedIngress, foundIngress)
-		if err != nil || reconcileResult.Requeue {
-			return reconcileResult, err
+	gatewayReconcilers := []reconcileLSFunctionType{
+		r.reconcileGateway,
+		r.reconcileHTTPRoute,
+		r.reconcileGatewayConfigMap,
+		r.reconcileTLSBackendPolicy,
+	}
+	for _, reconciler := range gatewayReconcilers {
+		if result, err := reconciler(instance); err != nil || result.Requeue {
+			return result, err
 		}
-		possibleUpdateNeeded := true
-		reqLogger := r.Log.WithValues("reconcileIngress", "Entry", "instance.GetName()", instance.GetName())
-		if foundIngress.ObjectMeta.Name != expectedIngress.ObjectMeta.Name {
-			reqLogger.Info("Names not equal", "old", foundIngress.ObjectMeta.Name, "new", expectedIngress.ObjectMeta.Name)
-		} else if !res.MapHasAllPairsFromOther(foundIngress.ObjectMeta.Labels, expectedIngress.ObjectMeta.Labels) {
-			reqLogger.Info("Labels not equal",
-				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Labels),
-				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Labels))
-		} else if !apieq.Semantic.DeepEqual(foundIngress.ObjectMeta.Annotations, expectedIngress.ObjectMeta.Annotations) {
-			reqLogger.Info("Annotations not equal",
-				"old", fmt.Sprintf("%v", foundIngress.ObjectMeta.Annotations),
-				"new", fmt.Sprintf("%v", expectedIngress.ObjectMeta.Annotations))
-		} else if !apieq.Semantic.DeepEqual(foundIngress.Spec, expectedIngress.Spec) {
-			reqLogger.Info("Specs not equal",
-				"old", fmt.Sprintf("%v", foundIngress.Spec),
-				"new", fmt.Sprintf("%v", expectedIngress.Spec))
+	}
+	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicensingReconciler) cleanupGatewayResources(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	r.Log.Info("Gateway is disabled, cleaning up Gateway resources if they exist")
+
+	expectedGateway := service.GetLicensingGateway(instance)
+	foundGateway := &gatewayv1.Gateway{}
+	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedGateway, foundGateway); err != nil || result.Requeue {
+		return result, err
+	}
+
+	expectedHTTPRoute := service.GetLicensingHTTPRoute(instance)
+	foundHTTPRoute := &gatewayv1.HTTPRoute{}
+	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedHTTPRoute, foundHTTPRoute); err != nil || result.Requeue {
+		return result, err
+	}
+
+	expectedPolicy := service.GetBackendTLSPolicy(instance)
+	foundPolicy := &gatewayv1.BackendTLSPolicy{}
+	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedPolicy, foundPolicy); err != nil || result.Requeue {
+		return result, err
+	}
+
+	expectedConfigMap := service.GetGatewayConfigMap(instance, "")
+	foundConfigMap := &corev1.ConfigMap{}
+	if result, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedConfigMap, foundConfigMap); err != nil || result.Requeue {
+		return result, err
+	}
+
+	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicensingReconciler) reconcileGateway(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	expectedGateway := service.GetLicensingGateway(instance)
+	found := &gatewayv1.Gateway{}
+	reqLogger := r.Log.WithValues("reconcileGateway", "Entry", "instance.GetName()", instance.GetName())
+	result, err := r.reconcileExpectedGatewayResource(instance, expectedGateway, found)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	if found.GetName() != "" {
+		if len(found.Status.Addresses) > 0 {
+			for _, addr := range found.Status.Addresses {
+				if addr.Type != nil && *addr.Type == gatewayv1.HostnameAddressType {
+					reqLogger.Info("Gateway has assigned address", "hostname", addr.Value, "type", *addr.Type)
+
+				}
+			}
 		} else {
-			possibleUpdateNeeded = false
+			reqLogger.Info("Gateway exists but has not assigned address yet - GatewayClass controller may not be running, check documentation: ibm.biz/LS_gateway_API")
 		}
-		if possibleUpdateNeeded {
-			r.attachSpecLabelsAndAnnotationsPrecedingUpdate(instance, expectedIngress)
-			return res.UpdateResource(&reqLogger, r.Client, expectedIngress, foundIngress)
-		}
-		return r.attachSpecLabelsAndAnnotations(instance, foundIngress, &reqLogger)
+	}
+	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicensingReconciler) reconcileHTTPRoute(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	expectedHTTPRoute := service.GetLicensingHTTPRoute(instance)
+	found := &gatewayv1.HTTPRoute{}
+	return r.reconcileExpectedGatewayResource(instance, expectedHTTPRoute, found)
+}
+
+func (r *IBMLicensingReconciler) reconcileGatewayConfigMap(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+
+	sourceConfigMapName := "ibm-licensing-upload-config"
+	sourceConfigMap := &corev1.ConfigMap{}
+	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: sourceConfigMapName, Namespace: instance.Spec.InstanceNamespace}, sourceConfigMap); err != nil {
+		r.Log.Error(err, "Cannot copy certificate from config map", "configmap", sourceConfigMapName)
+		return reconcile.Result{Requeue: true, RequeueAfter: 15 * time.Second}, err
 	}
 
-	r.Log.Info("Ingress is disabled, deleting current ingress if exists")
-	reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedIngress, foundIngress)
-	if err != nil || reconcileResult.Requeue {
-		return reconcileResult, err
+	cert, exists := sourceConfigMap.Data["crt.pem"]
+	if !exists {
+		r.Log.Error(nil, "crt.pem not found in source ConfigMap", "configmap", sourceConfigMapName)
+		return reconcile.Result{Requeue: true, RequeueAfter: 15 * time.Second}, fmt.Errorf("crt.pem not found in ConfigMap %s", sourceConfigMapName)
 	}
 
+	expectedConfigMap := service.GetGatewayConfigMap(instance, cert)
+	foundConfigMap := &corev1.ConfigMap{}
+	return r.reconcileExpectedGatewayResource(instance, expectedConfigMap, foundConfigMap)
+
+}
+func (r *IBMLicensingReconciler) reconcileTLSBackendPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+
+	policy := service.GetBackendTLSPolicy(instance)
+	foundPolicy := &gatewayv1.BackendTLSPolicy{}
+	return r.reconcileExpectedGatewayResource(instance, policy, foundPolicy)
+}
+
+func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *operatorv1alpha1.IBMLicensing, expected client.Object, found client.Object) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcileGateway", "Entry", "instance.GetName()", instance.GetName())
+	result, err := r.reconcileResourceNamespacedExistence(instance, expected, found)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	// handling not installed CRD
+	if found.GetName() == "" {
+		reqLogger.Info("Resource not found (CRD likely not installed), skipping update check see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
+		return reconcile.Result{}, nil
+	}
+	needsUpdate := false
+	if !res.MapHasAllPairsFromOther(found.GetLabels(), expected.GetLabels()) {
+		needsUpdate = true
+	} else if !res.MapHasAllPairsFromOther(found.GetAnnotations(), expected.GetAnnotations()) {
+		needsUpdate = true
+	} else {
+		switch e := expected.(type) {
+		case *gatewayv1.Gateway:
+			f := found.(*gatewayv1.Gateway)
+			if !apieq.Semantic.DeepEqual(e.Spec, f.Spec) {
+				needsUpdate = true
+			}
+		case *gatewayv1.HTTPRoute:
+			f := found.(*gatewayv1.HTTPRoute)
+			if !apieq.Semantic.DeepEqual(e.Spec, f.Spec) {
+				needsUpdate = true
+			}
+		case *gatewayv1.BackendTLSPolicy:
+			f := found.(*gatewayv1.BackendTLSPolicy)
+			if !apieq.Semantic.DeepEqual(e.Spec, f.Spec) {
+				needsUpdate = true
+			}
+		case *corev1.ConfigMap:
+			f := found.(*corev1.ConfigMap)
+			if !apieq.Semantic.DeepEqual(e.Data, f.Data) {
+				needsUpdate = true
+			}
+		}
+	}
+	if needsUpdate {
+		return res.UpdateResource(&reqLogger, r.Client, expected, found)
+	}
 	return reconcile.Result{}, nil
 }
 
@@ -1069,22 +1213,55 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 	}
 
 	// foundRes already initialized before and passed via parameter
-	err = r.Client.Get(context.TODO(), namespacedName, foundRes)
+	// Use Reader to bypass cache and read directly from API server to avoid cache inconsistencies
+	err = r.Reader.Get(context.TODO(), namespacedName, foundRes)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			reqLogger.Info(resType.String()+" does not exist, trying creating new one", "Name", expectedRes.GetName(),
 				"Namespace", expectedRes.GetNamespace())
 			err = r.Client.Create(context.TODO(), expectedRes)
 			if err != nil {
-				if !apierrors.IsAlreadyExists(err) {
-					reqLogger.Error(err, "Failed to create new "+resType.String(), "Name", expectedRes.GetName(),
+				if apierrors.IsAlreadyExists(err) {
+					// Resource already exists, try to get it again to update cache
+					reqLogger.Info(resType.String()+" already exists, fetching again", "Name", expectedRes.GetName(),
 						"Namespace", expectedRes.GetNamespace())
-					return reconcile.Result{}, err
+					return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 2}, nil
 				}
+				// Resource exists in the cluster but is missing from the label-filtered cache (upgrade migration).
+				// Fetch it via Reader (bypasses cache) and patch the missing labels so it enters the cache.
+				if readerErr := r.Reader.Get(context.TODO(), namespacedName, foundRes); readerErr == nil {
+					existingLabels := foundRes.GetLabels()
+					if existingLabels == nil {
+						existingLabels = make(map[string]string)
+					}
+					changed := false
+					for k, v := range expectedRes.GetLabels() {
+						if existingLabels[k] != v {
+							existingLabels[k] = v
+							changed = true
+						}
+					}
+					if changed {
+						reqLogger.Info("Adding missing labels to existing "+resType.String()+" (upgrade migration)",
+							"Name", expectedRes.GetName(), "Namespace", expectedRes.GetNamespace())
+						foundRes.SetLabels(existingLabels)
+						if updateErr := r.Client.Update(context.TODO(), foundRes); updateErr != nil {
+							reqLogger.Error(updateErr, "Failed to add labels to existing "+resType.String())
+						}
+					}
+				}
+				reqLogger.Error(err, "Failed to create "+resType.String(), "Name", expectedRes.GetName(),
+					"Namespace", expectedRes.GetNamespace())
+				return reconcile.Result{}, err
 			}
-			// Created successfully, or already exists - return and requeue
-			time.Sleep(time.Second * 5)
-			return reconcile.Result{Requeue: true, RequeueAfter: time.Second}, nil
+			// Created successfully - return and requeue to wait for token generation
+			reqLogger.Info(resType.String()+" created successfully, waiting for token generation", "Name", expectedRes.GetName(),
+				"Namespace", expectedRes.GetNamespace())
+			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
+		} else if metaErrors.IsNoMatchError(err) {
+			reqLogger.Info("CRD for "+resType.String()+" not installed, skipping", "Name", expectedRes.GetName(),
+				"Namespace", expectedRes.GetNamespace())
+			return reconcile.Result{}, nil
 		}
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())
@@ -1176,7 +1353,9 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operatorv1alpha1.IBMLicensing, secretNsName types.NamespacedName, hostname []string, rolloutPods bool) (reconcile.Result, error) {
 	certSecret := &corev1.Secret{}
 
-	if err := r.Client.Get(context.TODO(), secretNsName, certSecret); err != nil {
+	// Use Reader (bypasses label-filtered cache) so that pre-existing cert secrets
+	// without the "release=ibm-licensing-service" label are visible (e.g. after upgrade).
+	if err := r.Reader.Get(context.TODO(), secretNsName, certSecret); err != nil {
 		r.Log.WithValues("cert name", secretNsName).Info("certificate secret not existing. Generating self signed certificate")
 
 		secret, err := r.getSelfSignedCertWithOwnerReference(instance, secretNsName, hostname)
@@ -1252,6 +1431,20 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 		}
 
 		return result, nil
+	}
+
+	// Ensure the release label is present so the secret is visible to the label-filtered cache.
+	// Pre-upgrade secrets may be missing this label; patch it once without regenerating the cert.
+	certLabels := certSecret.GetLabels()
+	if certLabels == nil {
+		certLabels = make(map[string]string)
+	}
+	if certLabels[res.LicensingReleaseLabelKey] != res.LicensingReleaseLabelValue {
+		certLabels[res.LicensingReleaseLabelKey] = res.LicensingReleaseLabelValue
+		certSecret.SetLabels(certLabels)
+		if updateErr := r.Client.Update(context.TODO(), certSecret); updateErr != nil {
+			reqLogger.Error(updateErr, "Failed to add release label to cert secret")
+		}
 	}
 
 	result, err := r.attachSpecLabelsAndAnnotations(instance, certSecret, &reqLogger)

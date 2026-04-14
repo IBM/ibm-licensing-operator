@@ -1,0 +1,119 @@
+version: '2'
+
+tasks:
+  code-checks:
+    include:
+      - dind
+    steps:
+      - name: checks-setup
+        when: 'false'
+      - name: detect-secrets
+        when: 'true'
+        include:
+          - docker-socket
+          - dind
+      - name: compliance-checks
+        when: 'false'
+      - name: peer-review
+        when: 'false'
+      - name: static-scan
+        when: 'false'
+  code-build:
+    displayName: Build images
+    include:
+      - dind
+      - docker-socket
+    steps:
+      - name: setup
+        when: 'false'
+      - name: unit-test
+        image: icr.io/continuous-delivery/base-images/base:v1.19.0
+        displayName: Run tests
+        runtimeClassName: medium
+        onError: 'stopAndFail'
+        env:
+          ARCH: amd64
+        script: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          cd "$WORKSPACE/$(load_repo app-repo path)"
+
+          source ./build_scripts/setup_env.sh
+          source ./build_scripts/install_dependencies.sh
+          source ./build_scripts/run_tests.sh
+
+          # Archive logs:
+          mkdir -p "$WORKSPACE/test-results"
+          cp ./*.txt "$WORKSPACE/test-results/" 2>/dev/null || true
+          cp ./cover.out "$WORKSPACE/test-results/" 2>/dev/null || true
+
+          set_env "STAGE_UNIT_TEST_STATUS" "success"
+          collect-evidence --asset-type "repo" --asset-key "app-repo" --status "success" --tool-type "misc" --evidence-type "com.ibm.unit_tests"
+      - name: build-artifact
+        displayName: Build and publish multiarch image
+        include:
+          - dind
+          - docker-socket
+        image: icr.io/continuous-delivery/base-images/base:v1.19.0
+        runtimeClassName: medium
+        onError: 'stopAndFail'
+        script: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          cd "$WORKSPACE/$(load_repo app-repo path)"
+
+          source ./build_scripts/setup_env.sh
+          source ./build_scripts/install_dependencies.sh
+
+          echo "=========================================="
+          echo "Building amd64 image"
+          echo "=========================================="
+          ARCH=amd64 make build-push-image
+          
+          echo "=========================================="
+          echo "Building ppc64le image"
+          echo "=========================================="
+          ARCH=ppc64le make build-push-image
+          
+          echo "=========================================="
+          echo "Building s390x image"
+          echo "=========================================="
+          ARCH=s390x make build-push-image
+          
+          echo "=========================================="
+          echo "Creating multiarch manifest"
+          echo "=========================================="
+          make multiarch-image-latest
+          make multiarch-image
+
+          echo "=========================================="
+          echo "Creating catalog image"
+          echo "=========================================="
+          ARCH=amd64 make catalogsource
+          
+          echo "=========================================="
+          echo "All builds completed successfully"
+          echo "=========================================="
+      - name: sign-artifact
+        when: 'false'
+      - name: scan-artifact
+        when: 'false'
+  deploy-checks:
+    include:
+      - dind
+    steps:
+      - name: deploy
+        when: 'false'
+      - name: dynamic-scan
+        when: 'false'
+      - name: acceptance-test
+        when: 'false'
+  deploy-release:
+    steps:
+      - name: run-stage
+        when: 'false'
+finally:
+  code-ci-finish:
+    steps:
+      - name: run-stage
+        when: 'false'

@@ -18,10 +18,10 @@ package controllers
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"github.com/go-logr/logr"
-	"k8s.io/utils/strings/slices"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2023 IBM Corporation
+# Copyright 2026 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +15,19 @@
 # limitations under the License.
 #
 
+set -euo pipefail
+
 echo ">>> Installing Operator SDK"
 
 TARGET_OS=$1
 LOCAL_ARCH=$2
 OPERATOR_SDK_VERSION=$3
+INSTALL_PATH=$4
 
-# Download binary
-curl -LO https://github.com/operator-framework/operator-sdk/releases/download/"${OPERATOR_SDK_VERSION}"/operator-sdk_"${TARGET_OS}"_"${LOCAL_ARCH}"
-# Install binary
-chmod +x operator-sdk_"${TARGET_OS}"_"${LOCAL_ARCH}" && mkdir -p /usr/local/bin/ && cp operator-sdk_"${TARGET_OS}"_"${LOCAL_ARCH}" /usr/local/bin/operator-sdk && rm operator-sdk_"${TARGET_OS}"_"${LOCAL_ARCH}"
+mkdir -p "$(dirname "${INSTALL_PATH}")"
+# Download binary directly to the target path
+curl -sSfL \
+  "https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk_${TARGET_OS}_${LOCAL_ARCH}" \
+  -o "${INSTALL_PATH}"
+chmod +x "${INSTALL_PATH}"
+echo ">>> operator-sdk ${OPERATOR_SDK_VERSION} installed to ${INSTALL_PATH}"

@@ -136,16 +136,16 @@ rules:
   - apiGroups:
       - ""
     resources:
-      - namespaces
-    verbs:
-      - get
-  - apiGroups:
-      - ""
-    resources:
       - events
     verbs:
       - create
       - patch
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
   - apiGroups:
       - operator.ibm.com
     resources:
