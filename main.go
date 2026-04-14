@@ -139,12 +139,41 @@ func main() {
 
 	licensingLabelSelector, _ := labels.Parse("release in (ibm-licensing-service)")
 
+	byObject := map[client.Object]cache.ByObject{
+		&corev1.Secret{}:     {Label: licensingLabelSelector},
+		&appsv1.Deployment{}: {Label: licensingLabelSelector},
+		&corev1.Pod{}:        {Label: licensingLabelSelector},
+	}
+
+	restConfig := ctrl.GetConfigOrDie()
+	probeClient, err := client.New(restConfig, client.Options{Scheme: scheme})
+	if err != nil {
+		setupLog.Error(err, "unable to create probe client for CRD discovery")
+		os.Exit(1)
+	}
+	if err := res.UpdateCacheClusterExtensions(probeClient, setupLog); err != nil {
+		setupLog.Error(err, "Error during checking K8s API")
+		os.Exit(1)
+	}
+
+	// Gateway API resources (Gateway, HTTPRoute, BackendTLSPolicy) are only ever created by the operator
+	// in its own namespace and should only be cached there
+	operatorNamespaceOnly := map[string]cache.Config{operatorNamespace: {}}
+
+	if res.IsGatewayAPI {
+		byObject[&gatewayv1.Gateway{}] = cache.ByObject{Namespaces: operatorNamespaceOnly}
+		byObject[&gatewayv1.HTTPRoute{}] = cache.ByObject{Namespaces: operatorNamespaceOnly}
+	}
+	if res.IsBackendTLSPolicyAPI {
+		byObject[&gatewayv1.BackendTLSPolicy{}] = cache.ByObject{Namespaces: operatorNamespaceOnly}
+	}
+
 	defaultNamespaces := make(map[string]cache.Config)
 	for _, ns := range watchNamespaces {
 		defaultNamespaces[ns] = cache.Config{}
 	}
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
 			BindAddress: metricsAddr,
@@ -154,11 +183,7 @@ func main() {
 		LeaderElectionID: "e1f51baf.ibm.com",
 		Cache: cache.Options{
 			DefaultNamespaces: defaultNamespaces,
-			ByObject: map[client.Object]cache.ByObject{
-				&corev1.Secret{}:     {Label: licensingLabelSelector},
-				&appsv1.Deployment{}: {Label: licensingLabelSelector},
-				&corev1.Pod{}:        {Label: licensingLabelSelector},
-			},
+			ByObject:          byObject,
 		},
 	})
 	if err != nil {
@@ -211,10 +236,23 @@ func main() {
 		} else {
 			go controllers.DiscoverOperandRequests(&crdLogger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
 
-			logger := ctrl.Log.WithName("operatorgroup-namespaces-watcher")
-			removeStaleNamespacesTaskCtx, cancelRemoveStaleNamespacesTask := context.WithCancel(context.Background())
-			go controllers.RunRemoveStaleNamespacesFromOperatorGroupTask(removeStaleNamespacesTaskCtx, &logger, mgr.GetClient(), mgr.GetAPIReader())
-			routinesToCancel = append(routinesToCancel, cancelRemoveStaleNamespacesTask)
+			// OperatorGroup belongs to OLM (operators.coreos.com/v1). On clusters without OLM installed, skip the stale-namespace cleanup task,
+			// otherwise every run produces a "no matches for kind OperatorGroup" error
+			operatorGroupList := operatorframeworkv1.OperatorGroupList{}
+			operatorGroupCRDExists, err := res.DoesCRDExist(mgr.GetAPIReader(), &operatorGroupList)
+			if err != nil {
+				setupLog.Error(err, "An error occurred while checking for OperatorGroup CRD existence. operatorgroup-namespaces-watcher will not be started")
+			}
+
+			if operatorGroupCRDExists {
+				logger := ctrl.Log.WithName("operatorgroup-namespaces-watcher")
+				removeStaleNamespacesTaskCtx, cancelRemoveStaleNamespacesTask := context.WithCancel(context.Background())
+
+				go controllers.RunRemoveStaleNamespacesFromOperatorGroupTask(removeStaleNamespacesTaskCtx, &logger, mgr.GetClient(), mgr.GetAPIReader())
+				routinesToCancel = append(routinesToCancel, cancelRemoveStaleNamespacesTask)
+			} else {
+				setupLog.Info("OperatorGroup CRD not found in cluster. operatorgroup-namespaces-watcher disabled")
+			}
 		}
 	} else {
 		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
