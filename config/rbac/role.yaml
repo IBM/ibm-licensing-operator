@@ -18,14 +18,6 @@ rules:
   verbs:
   - get
 - apiGroups:
-  - gateway.networking.k8s.io
-  resources:
-  - gatewayclasses
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
   - operator.ibm.com
   resources:
   - ibmlicensings
