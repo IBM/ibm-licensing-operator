@@ -459,6 +459,14 @@ spec:
               verbs:
                 - get
             - apiGroups:
+                - gateway.networking.k8s.io
+              resources:
+                - gatewayclasses
+              verbs:
+                - get
+                - list
+                - watch
+            - apiGroups:
                 - operator.ibm.com
               resources:
                 - ibmlicensings
@@ -885,6 +893,7 @@ spec:
     - email: talk2sam@us.ibm.com
       name: talk2sam
   maturity: alpha
+  minKubeVersion: 1.26.0
   provider:
     name: IBM
   version: 4.2.21
