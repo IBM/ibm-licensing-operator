@@ -225,6 +225,13 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		return reconcile.Result{}, err
 	}
 
+	// Initialize GatewayOptions if nil
+	if instance.Spec.GatewayOptions == nil {
+		instance.Spec.GatewayOptions = &operatorv1alpha1.IBMLicensingGatewayOptions{}
+		isOCP := res.IsRouteAPI || res.IsServiceCAAPI
+		instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift = isOCP
+	}
+
 	// Validate Software Central configuration
 	if instance.Spec.IsSoftwareCentralEnabled() && instance.Spec.SoftwareCentral.EntitlementKeySecret == "" {
 		return reconcile.Result{}, fmt.Errorf("spec.softwareCentral.entitlementKeySecret must be set when Software Central integration is enabled")
@@ -947,6 +954,7 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 }
 
 func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+
 	if !instance.Spec.IsGatewayEnabled() {
 		return r.cleanupGatewayResources(instance)
 	}
@@ -1003,7 +1011,7 @@ func (r *IBMLicensingReconciler) reconcileGateway(instance *operatorv1alpha1.IBM
 	if err != nil || result.Requeue {
 		return result, err
 	}
-	if found.GetName() != "" {
+	if found.GetName() != "" && !isGatewayAPIEnabledOnOpenShift(instance) {
 		if len(found.Status.Addresses) > 0 {
 			for _, addr := range found.Status.Addresses {
 				if addr.Type != nil && *addr.Type == gatewayv1.HostnameAddressType {
@@ -1059,6 +1067,10 @@ func isSystemAnnotation(key string) bool {
 	return strings.Contains(key, "kubernetes.io/") || strings.Contains(key, "k8s.io/")
 }
 
+func isGatewayAPIEnabledOnOpenShift(instance *operatorv1alpha1.IBMLicensing) bool {
+	return instance.Spec.GatewayOptions != nil && instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift
+}
+
 /*
 operatorAnnotationsMatch checks whether the operator-managed annotations
 (i.e. non-system annotations) on the found resource match the expected ones.
@@ -1092,7 +1104,11 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 	}
 	// handling not installed CRD
 	if found.GetName() == "" {
-		reqLogger.Info("Resource not found (CRD likely not installed), skipping update check see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
+		shouldLog := !isGatewayAPIEnabledOnOpenShift(instance)
+
+		if shouldLog {
+			reqLogger.Info("Resource not found (CRD likely not installed), skipping update check see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
+		}
 		return reconcile.Result{}, nil
 	}
 	needsUpdate := false
@@ -1300,15 +1316,30 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 				"Namespace", expectedRes.GetNamespace())
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		} else if metaErrors.IsNoMatchError(err) {
-			reqLogger.Info("CRD for "+resType.String()+" not installed, skipping", "Name", expectedRes.GetName(),
-				"Namespace", expectedRes.GetNamespace())
+			// Log only if not a Gateway resource on OCP (where Gateway API is optional)
+			isOCP := isGatewayAPIEnabledOnOpenShift(instance)
+			isGatewayResource := resType.String() == "*v1.Gateway" || resType.String() == "*v1.HTTPRoute" ||
+				resType.String() == "*v1.BackendTLSPolicy"
+
+			if !isOCP || !isGatewayResource {
+				reqLogger.Info("CRD for "+resType.String()+" not installed, skipping", "Name", expectedRes.GetName(),
+					"Namespace", expectedRes.GetNamespace())
+			}
 			return reconcile.Result{}, nil
 		}
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())
 		return reconcile.Result{}, err
 	}
-	reqLogger.Info(resType.String() + " exists!")
+
+	// Log only if not a Gateway resource on OCP
+	isOCP := isGatewayAPIEnabledOnOpenShift(instance)
+	isGatewayResource := resType.String() == "*v1.Gateway" || resType.String() == "*v1.HTTPRoute" ||
+		resType.String() == "*v1.BackendTLSPolicy" || resType.String() == "*v1.ConfigMap"
+
+	if !isOCP || !isGatewayResource {
+		reqLogger.Info(resType.String() + " exists!")
+	}
 	return reconcile.Result{}, nil
 }
 

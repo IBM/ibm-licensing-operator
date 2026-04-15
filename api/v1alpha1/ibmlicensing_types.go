@@ -49,6 +49,12 @@ type IBMLicensingGatewayOptions struct {
 	// +kubebuilder:validation:Maximum=65535
 	// +optional
 	HTTPSPort *int32 `json:"httpsPort,omitempty"`
+
+	// Switch for enabling Gateway API on Openshift. Default is false.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Enable Gateway API on Openshift",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +kubebuilder:default=false
+	// +optional
+	EnableGatewayAPIOpenshift bool `json:"enableGatewayAPIOpenshift,omitempty"`
 }
 
 // IBMLicensingSpec defines the desired state of IBMLicensing
