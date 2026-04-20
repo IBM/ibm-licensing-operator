@@ -63,6 +63,13 @@ tasks:
           echo "Creating catalog image for development"
           echo "=========================================="
           make catalogsource-development
+
+          if [ "$GIT_BRANCH" = "ILS-2085-Add-development-helm-charts-build" ]; then
+              echo "=========================================="
+              echo "Building development helm charts"
+              echo "=========================================="
+              make build/helm-develop-all
+          fi
           
           echo "=========================================="
           echo "All builds completed successfully"
