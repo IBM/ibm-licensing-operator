@@ -225,11 +225,15 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		return reconcile.Result{}, err
 	}
 
-	// Initialize GatewayOptions if nil
 	if instance.Spec.GatewayOptions == nil {
 		instance.Spec.GatewayOptions = &operatorv1alpha1.IBMLicensingGatewayOptions{}
-		isOCP := res.IsRouteAPI || res.IsServiceCAAPI
-		instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift = isOCP
+		isOCPCluster := res.IsRouteAPI || res.IsServiceCAAPI
+		instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift = isOCPCluster
+	} else {
+		isOCPCluster := res.IsRouteAPI || res.IsServiceCAAPI
+		if !isOCPCluster && instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift {
+			reqLogger.Info("Warning: enableGatewayAPIOpenshift is set to true on non-OpenShift cluster. This flag is ignored on Kubernetes clusters where Gateway API logging is always enabled.")
+		}
 	}
 
 	// Validate Software Central configuration
