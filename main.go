@@ -234,7 +234,7 @@ func main() {
 		if isNssActive {
 			setupLog.Info("Namespace Scope ConfigMap detected. operandrequest-discovery disabled")
 		} else {
-			// On clusters without OLM installed, skip both boperandrequest-discovery and the stale-namespace cleanup task, 
+			// On clusters without OLM installed, skip both operandrequest-discovery and the stale-namespace cleanup task, 
 			// otherwise every run produces a "no matches for kind OperatorGroup" error
 			operatorGroupList := operatorframeworkv1.OperatorGroupList{}
 			operatorGroupCRDExists, err := res.DoesCRDExist(mgr.GetAPIReader(), &operatorGroupList)
