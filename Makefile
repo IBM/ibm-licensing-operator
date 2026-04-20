@@ -677,6 +677,76 @@ endif
 
 .PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl helm install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard
 
+.PHONY: generate-yaml-argo-cd
+generate-yaml-argo-cd: kustomize yq
+	@mkdir -p argo-cd && $(KUSTOMIZE) build config/manifests > argo-cd/tmp.yaml
+
+	# Split the resources into separate YAML files
+	@(echo "---" && $(YQ) 'select(.kind == "ClusterRole" or .kind == "ClusterRoleBinding")' argo-cd/tmp.yaml) > argo-cd/cluster-rbac.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "IBMLicensing")' argo-cd/tmp.yaml) > argo-cd/cr.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "CustomResourceDefinition")' argo-cd/tmp.yaml) > argo-cd/crd.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "Deployment")' argo-cd/tmp.yaml) > argo-cd/deployment.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "Role" or .kind == "RoleBinding")' argo-cd/tmp.yaml) > argo-cd/rbac.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "ServiceAccount")' argo-cd/tmp.yaml) > argo-cd/serviceaccounts.yaml
+
+	# Add missing namespaces
+	@$(YQ) -i 'select(.kind == "ClusterRoleBinding").subjects[0].namespace = "sed-me"' argo-cd/cluster-rbac.yaml
+	@$(YQ) -i 'select(.kind == "RoleBinding").subjects[0].namespace = "sed-me"' argo-cd/rbac.yaml
+
+	# Remove redundant data
+	@$(YQ) -i 'del(.metadata.namespace)' argo-cd/cluster-rbac.yaml
+
+	# Prepare resources for templating with helm
+	@$(YQ) -i 'del(.spec)' argo-cd/cr.yaml
+	@$(YQ) -i '.metadata.annotations.sed-deployment-annotations-top = "sed-me" \
+	| .metadata.labels.sed-deployment-labels-top = "sed-me" \
+	| .spec.template.metadata.annotations.sed-deployment-annotations-bottom = "sed-me" \
+	| .spec.template.metadata.labels.sed-deployment-labels-bottom = "sed-me" \
+	| .spec.template.spec.containers[0].env[1].valueFrom = "sed-me"' argo-cd/deployment.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/cluster-rbac.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/cr.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/crd.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/deployment.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/rbac.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/serviceaccounts.yaml
+
+	# Add extra fields, for example argo-cd sync waves
+	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-options" = "ServerSideApply=true"' argo-cd/cr.yaml
+	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "-1"' argo-cd/crd.yaml
+	# This sync wave is crucial because the deployment must be created after the CR, to avoid a situation when ArgoCD
+	# starts creating the CR at the same time as the operator does it (patch isn't applied and a name conflict happens)
+	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "1"' argo-cd/deployment.yaml
+
+	# Replace all component-id labels to template them with helm
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/cluster-rbac.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/cr.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/crd.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/rbac.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/serviceaccounts.yaml
+
+	# Replace all namespaces to template them with helm
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/cluster-rbac.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/rbac.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/serviceaccounts.yaml
+
+	# Replace all registry occurrences to template them with helm
+	@sed -i '' "s/icr.io/{{ .Values.global.imagePullPrefix }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/cpopen\/cpfs/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/cpopen/{{ .Values.ibmLicensing.imageRegistryNamespaceOperator }}/g" argo-cd/deployment.yaml
+
+	# Replace extra fields (in addition to the namespaces) to template them with helm
+	@cat ./common/makefile-generate/yaml-cr-spec-part >> argo-cd/cr.yaml
+	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.ibmLicensing.operator).annotations) }}\n      {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.ibmLicensing.operator).labels) }}\n      {{- toYaml .Values.ibmLicensing.operator.labels | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.ibmLicensing.operator).annotations) }}\n          {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 8 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/sed-deployment-labels-bottom: sed-me/{{- if ((.Values.ibmLicensing.operator).labels) }}\n          {{- toYaml .Values.ibmLicensing.operator.labels | nindent 8 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.ibmLicensing.watchNamespace }}/g" argo-cd/deployment.yaml
+	@cat ./common/makefile-generate/yaml-deployment-pull-secrets-part >> argo-cd/deployment.yaml
+
+	@rm argo-cd/tmp.yaml
+
 ## Development Helm charts
 ## those helm charts are only used for our testing, production helm charts are builded and published by CI/CD team
 
@@ -748,73 +818,3 @@ build/helm-develop-chart:
 		$(YQ) \
 		$(CHART_DESTINATION) \
 		$$ARTIFACTORY_TOKEN
-
-.PHONY: generate-yaml-argo-cd
-generate-yaml-argo-cd: kustomize yq
-	@mkdir -p argo-cd && $(KUSTOMIZE) build config/manifests > argo-cd/tmp.yaml
-
-	# Split the resources into separate YAML files
-	@(echo "---" && $(YQ) 'select(.kind == "ClusterRole" or .kind == "ClusterRoleBinding")' argo-cd/tmp.yaml) > argo-cd/cluster-rbac.yaml
-	@(echo "---" && $(YQ) 'select(.kind == "IBMLicensing")' argo-cd/tmp.yaml) > argo-cd/cr.yaml
-	@(echo "---" && $(YQ) 'select(.kind == "CustomResourceDefinition")' argo-cd/tmp.yaml) > argo-cd/crd.yaml
-	@(echo "---" && $(YQ) 'select(.kind == "Deployment")' argo-cd/tmp.yaml) > argo-cd/deployment.yaml
-	@(echo "---" && $(YQ) 'select(.kind == "Role" or .kind == "RoleBinding")' argo-cd/tmp.yaml) > argo-cd/rbac.yaml
-	@(echo "---" && $(YQ) 'select(.kind == "ServiceAccount")' argo-cd/tmp.yaml) > argo-cd/serviceaccounts.yaml
-
-	# Add missing namespaces
-	@$(YQ) -i 'select(.kind == "ClusterRoleBinding").subjects[0].namespace = "sed-me"' argo-cd/cluster-rbac.yaml
-	@$(YQ) -i 'select(.kind == "RoleBinding").subjects[0].namespace = "sed-me"' argo-cd/rbac.yaml
-
-	# Remove redundant data
-	@$(YQ) -i 'del(.metadata.namespace)' argo-cd/cluster-rbac.yaml
-
-	# Prepare resources for templating with helm
-	@$(YQ) -i 'del(.spec)' argo-cd/cr.yaml
-	@$(YQ) -i '.metadata.annotations.sed-deployment-annotations-top = "sed-me" \
-	| .metadata.labels.sed-deployment-labels-top = "sed-me" \
-	| .spec.template.metadata.annotations.sed-deployment-annotations-bottom = "sed-me" \
-	| .spec.template.metadata.labels.sed-deployment-labels-bottom = "sed-me" \
-	| .spec.template.spec.containers[0].env[1].valueFrom = "sed-me"' argo-cd/deployment.yaml
-	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/cluster-rbac.yaml
-	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/cr.yaml
-	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/crd.yaml
-	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/deployment.yaml
-	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/rbac.yaml
-	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/serviceaccounts.yaml
-
-	# Add extra fields, for example argo-cd sync waves
-	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-options" = "ServerSideApply=true"' argo-cd/cr.yaml
-	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "-1"' argo-cd/crd.yaml
-	# This sync wave is crucial because the deployment must be created after the CR, to avoid a situation when ArgoCD
-	# starts creating the CR at the same time as the operator does it (patch isn't applied and a name conflict happens)
-	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "1"' argo-cd/deployment.yaml
-
-	# Replace all component-id labels to template them with helm
-	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/cluster-rbac.yaml
-	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/cr.yaml
-	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/crd.yaml
-	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/rbac.yaml
-	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/serviceaccounts.yaml
-
-	# Replace all namespaces to template them with helm
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/cluster-rbac.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/rbac.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/serviceaccounts.yaml
-
-	# Replace all registry occurrences to template them with helm
-	@sed -i '' "s/icr.io/{{ .Values.global.imagePullPrefix }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/cpopen\/cpfs/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/cpopen/{{ .Values.ibmLicensing.imageRegistryNamespaceOperator }}/g" argo-cd/deployment.yaml
-
-	# Replace extra fields (in addition to the namespaces) to template them with helm
-	@cat ./common/makefile-generate/yaml-cr-spec-part >> argo-cd/cr.yaml
-	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.ibmLicensing.operator).annotations) }}\n      {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.ibmLicensing.operator).labels) }}\n      {{- toYaml .Values.ibmLicensing.operator.labels | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.ibmLicensing.operator).annotations) }}\n          {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 8 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-labels-bottom: sed-me/{{- if ((.Values.ibmLicensing.operator).labels) }}\n          {{- toYaml .Values.ibmLicensing.operator.labels | nindent 8 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.ibmLicensing.watchNamespace }}/g" argo-cd/deployment.yaml
-	@cat ./common/makefile-generate/yaml-deployment-pull-secrets-part >> argo-cd/deployment.yaml
-
-	@rm argo-cd/tmp.yaml
