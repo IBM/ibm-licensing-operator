@@ -683,33 +683,129 @@ endif
 CHART_DESTINATION ?= https://na.artifactory.swg-devops.com/artifactory/hyc-cloud-private-scratch-helm-local/ibm-licensing
 CHART_NAME_CLUSTER_SCOPED ?= ibm-licensing-cluster-scoped-$(CSV_VERSION).tgz
 
-.PHONY: build/helm-develop
-build/helm-develop: helm yq
-	echo "Generating developer helm charts..."
-	@# Safety check: abort if helm-develop directory already exists
-	@if [ -d ./helm-develop ]; then \
-		echo "Error: helm-develop directory already exists. Please remove it before running this target."; \
+.PHONY: build/helm-develop-all
+build/helm-develop-all: build/helm-develop-ls build/helm-develop-lsr build/helm-develop-lsr-cluster-scoped build/helm-develop-lss build/helm-develop-lss-cluster-scoped ## Build all development helm charts
+
+.PHONY: build/helm-develop-ls
+build/helm-develop-ls: helm yq ## Build IBM License Service development helm chart (cluster-scoped)
+	@# Safety check: abort if helm-develop-ls directory already exists
+	@if [ -d ./helm-develop-ls ]; then \
+		echo "Error: helm-develop-ls directory already exists. Please remove it before running this target."; \
 		exit 1; \
 	fi
 	
-	# Copy helm directory to helm-develop to avoid modifying original files
-	cp -r ./deploy/argo-cd/components/license-service/helm-cluster-scoped ./helm-develop
+	# Copy helm directory to helm-develop-ls to avoid modifying original files
+	cp -r ./deploy/argo-cd/components/license-service/helm-cluster-scoped ./helm-develop-ls
 	
 	# Set correct images for development
 	tmp_file=$$(mktemp); \
-	sed 's|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g' ./helm-develop/templates/deployment.yaml > "$$tmp_file"; \
-	mv "$$tmp_file" ./helm-develop/templates/deployment.yaml
-	$(YQ) -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' ./helm-develop/values.yaml
-	$(YQ) -i '.ibmLicensing.imageRegistryNamespaceOperator = "hyc-cloud-private-scratch-docker-local/ibmcom"' ./helm-develop/values.yaml
-	$(YQ) -i '.ibmLicensing.imageRegistryNamespaceOperand = "hyc-cloud-private-scratch-docker-local/ibmcom"' ./helm-develop/values.yaml
+	sed 's|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g' ./helm-develop-ls/templates/deployment.yaml > "$$tmp_file"; \
+	mv "$$tmp_file" ./helm-develop-ls/templates/deployment.yaml
+	$(YQ) -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' ./helm-develop-ls/values.yaml
+	$(YQ) -i '.ibmLicensing.imageRegistryNamespaceOperator = "hyc-cloud-private-scratch-docker-local/ibmcom"' ./helm-develop-ls/values.yaml
+	$(YQ) -i '.ibmLicensing.imageRegistryNamespaceOperand = "hyc-cloud-private-scratch-docker-local/ibmcom"' ./helm-develop-ls/values.yaml
 	
 	# Generate helm package
-	$(HELM) package ./helm-develop
+	$(HELM) package ./helm-develop-ls
 
 	# Publish helm charts
-# 	curl -s -w "\n" -H "X-JFrog-Art-Api: $$ARTIFACTORY_TOKEN" -T "$(CHART_NAME_CLUSTER_SCOPED)" "$(CHART_DESTINATION)/ibm-licensing-cluster-scoped-develop.tgz"
+	curl -s -w "\n" -H "X-JFrog-Art-Api: $$ARTIFACTORY_TOKEN" -T "ibm-licensing-cluster-scoped-$(CSV_VERSION).tgz" "$(CHART_DESTINATION)/ibm-licensing-cluster-scoped-develop.tgz"
+
+.PHONY: build/helm-develop-lsr
+build/helm-develop-lsr: helm yq ## Build IBM License Service Reporter development helm chart (namespace-scoped)
+	@# Safety check: abort if helm-develop-lsr directory already exists
+	@if [ -d ./helm-develop-lsr ]; then \
+		echo "Error: helm-develop-lsr directory already exists. Please remove it before running this target."; \
+		exit 1; \
+	fi
 	
-	echo "Developer helm charts generated and published successfully"
+	# Copy helm directory to helm-develop-lsr to avoid modifying original files
+	cp -r ./deploy/argo-cd/components/reporter/helm ./helm-develop-lsr
+	
+	# Set correct images for development
+	tmp_file=$$(mktemp); \
+	sed 's|ibm-license-service-reporter-ui:$(CSV_VERSION)|ibm-license-service-reporter-ui:$(GIT_BRANCH)|g; s|ibm-license-service-reporter:$(CSV_VERSION)|ibm-license-service-reporter:$(GIT_BRANCH)|g' ./helm-develop-lsr/templates/deployment.yaml > "$$tmp_file"; \
+	mv "$$tmp_file" ./helm-develop-lsr/templates/deployment.yaml
+	$(YQ) -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' ./helm-develop-lsr/values.yaml
+	$(YQ) -i '.reporter.imageRegistryNamespace = "hyc-cloud-private-scratch-docker-local/ibmcom"' ./helm-develop-lsr/values.yaml
+	
+	# Generate helm package
+	$(HELM) package ./helm-develop-lsr
+
+	# Publish helm charts
+	curl -s -w "\n" -H "X-JFrog-Art-Api: $$ARTIFACTORY_TOKEN" -T "ibm-license-service-reporter-$(CSV_VERSION).tgz" "$(CHART_DESTINATION)/ibm-license-service-reporter-develop.tgz"
+
+.PHONY: build/helm-develop-lsr-cluster-scoped
+build/helm-develop-lsr-cluster-scoped: helm yq ## Build IBM License Service Reporter development helm chart (cluster-scoped)
+	@# Safety check: abort if helm-develop-lsr-cluster-scoped directory already exists
+	@if [ -d ./helm-develop-lsr-cluster-scoped ]; then \
+		echo "Error: helm-develop-lsr-cluster-scoped directory already exists. Please remove it before running this target."; \
+		exit 1; \
+	fi
+	
+	# Copy helm directory to helm-develop-lsr-cluster-scoped to avoid modifying original files
+	cp -r ./deploy/argo-cd/components/reporter/helm-cluster-scoped ./helm-develop-lsr-cluster-scoped
+	
+	# Set correct images for development
+	tmp_file=$$(mktemp); \
+	sed 's|ibm-license-service-reporter-ui:$(CSV_VERSION)|ibm-license-service-reporter-ui:$(GIT_BRANCH)|g; s|ibm-license-service-reporter:$(CSV_VERSION)|ibm-license-service-reporter:$(GIT_BRANCH)|g' ./helm-develop-lsr-cluster-scoped/templates/deployment.yaml > "$$tmp_file"; \
+	mv "$$tmp_file" ./helm-develop-lsr-cluster-scoped/templates/deployment.yaml
+	$(YQ) -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' ./helm-develop-lsr-cluster-scoped/values.yaml
+	$(YQ) -i '.reporter.imageRegistryNamespace = "hyc-cloud-private-scratch-docker-local/ibmcom"' ./helm-develop-lsr-cluster-scoped/values.yaml
+	
+	# Generate helm package
+	$(HELM) package ./helm-develop-lsr-cluster-scoped
+
+	# Publish helm charts
+	curl -s -w "\n" -H "X-JFrog-Art-Api: $$ARTIFACTORY_TOKEN" -T "ibm-license-service-reporter-cluster-scoped-$(CSV_VERSION).tgz" "$(CHART_DESTINATION)/ibm-license-service-reporter-cluster-scoped-develop.tgz"
+
+.PHONY: build/helm-develop-lss
+build/helm-develop-lss: helm yq ## Build IBM License Service Scanner development helm chart (namespace-scoped)
+	@# Safety check: abort if helm-develop-lss directory already exists
+	@if [ -d ./helm-develop-lss ]; then \
+		echo "Error: helm-develop-lss directory already exists. Please remove it before running this target."; \
+		exit 1; \
+	fi
+	
+	# Copy helm directory to helm-develop-lss to avoid modifying original files
+	cp -r ./deploy/argo-cd/components/scanner/helm ./helm-develop-lss
+	
+	# Set correct images for development
+	tmp_file=$$(mktemp); \
+	sed 's|ibm-license-service-scanner:$(CSV_VERSION)|ibm-license-service-scanner:$(GIT_BRANCH)|g' ./helm-develop-lss/templates/deployment.yaml > "$$tmp_file"; \
+	mv "$$tmp_file" ./helm-develop-lss/templates/deployment.yaml
+	$(YQ) -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' ./helm-develop-lss/values.yaml
+	$(YQ) -i '.scanner.imageRegistryNamespace = "hyc-cloud-private-scratch-docker-local/ibmcom"' ./helm-develop-lss/values.yaml
+	
+	# Generate helm package
+	$(HELM) package ./helm-develop-lss
+
+	# Publish helm charts
+	curl -s -w "\n" -H "X-JFrog-Art-Api: $$ARTIFACTORY_TOKEN" -T "ibm-license-service-scanner-$(CSV_VERSION).tgz" "$(CHART_DESTINATION)/ibm-license-service-scanner-develop.tgz"
+
+.PHONY: build/helm-develop-lss-cluster-scoped
+build/helm-develop-lss-cluster-scoped: helm yq ## Build IBM License Service Scanner development helm chart (cluster-scoped)
+	@# Safety check: abort if helm-develop-lss-cluster-scoped directory already exists
+	@if [ -d ./helm-develop-lss-cluster-scoped ]; then \
+		echo "Error: helm-develop-lss-cluster-scoped directory already exists. Please remove it before running this target."; \
+		exit 1; \
+	fi
+	
+	# Copy helm directory to helm-develop-lss-cluster-scoped to avoid modifying original files
+	cp -r ./deploy/argo-cd/components/scanner/helm-cluster-scoped ./helm-develop-lss-cluster-scoped
+	
+	# Set correct images for development
+	tmp_file=$$(mktemp); \
+	sed 's|ibm-license-service-scanner:$(CSV_VERSION)|ibm-license-service-scanner:$(GIT_BRANCH)|g' ./helm-develop-lss-cluster-scoped/templates/deployment.yaml > "$$tmp_file"; \
+	mv "$$tmp_file" ./helm-develop-lss-cluster-scoped/templates/deployment.yaml
+	$(YQ) -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' ./helm-develop-lss-cluster-scoped/values.yaml
+	$(YQ) -i '.scanner.imageRegistryNamespace = "hyc-cloud-private-scratch-docker-local/ibmcom"' ./helm-develop-lss-cluster-scoped/values.yaml
+	
+	# Generate helm package
+	$(HELM) package ./helm-develop-lss-cluster-scoped
+
+	# Publish helm charts
+	curl -s -w "\n" -H "X-JFrog-Art-Api: $$ARTIFACTORY_TOKEN" -T "ibm-license-service-scanner-cluster-scoped-$(CSV_VERSION).tgz" "$(CHART_DESTINATION)/ibm-license-service-scanner-cluster-scoped-develop.tgz"
 
 .PHONY: generate-yaml-argo-cd
 generate-yaml-argo-cd: kustomize yq
