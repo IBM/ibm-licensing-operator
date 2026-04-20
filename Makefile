@@ -30,6 +30,7 @@ GOIMPORTS_VERSION ?= v0.43.0
 SHELLCHECK_VERSION ?= v0.11.0
 YAMLLINT_VERSION ?= 1.37.1
 MDL_VERSION      ?= 0.15.0
+HELM_VERSION     ?= v4.1.4
 
 # Local bin directory for all project tools (gitignored)
 LOCALBIN := $(PWD)/bin
@@ -50,6 +51,7 @@ DETECT_SECRETS := $(LOCALBIN)/detect-secrets
 SHELLCHECK     := $(LOCALBIN)/shellcheck
 YAMLLINT       := $(LOCALBIN)/.venv/bin/yamllint
 MDL            := $(LOCALBIN)/mdl
+HELM           := $(LOCALBIN)/helm
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -659,13 +661,58 @@ $(MDL): $(LOCALBIN)
 	@test -x $(MDL) && echo "mdl already installed" || \
 		( echo "Installing mdl $(MDL_VERSION)..." && bash common/scripts/install-mdl.sh $(LOCALBIN) $(MDL_VERSION) )
 
+.PHONY: helm
+helm: $(HELM) ## Install helm if not present in LOCALBIN
+
+$(HELM): $(LOCALBIN)
+	@test -x $(HELM) && [ "$$($(HELM) version --template='{{.Version}}')" = "$(HELM_VERSION)" ] && echo "helm $(HELM_VERSION) already installed" || \
+		( echo "Installing helm $(HELM_VERSION)..." && \
+		  bash common/scripts/install-helm.sh $(LOCALBIN) $(HELM_VERSION) $(TARGET_OS) $(LOCAL_ARCH) )
+
 ifeq (, $(shell which podman))
 PODMAN=docker
 else
 PODMAN=podman
 endif
 
-.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard
+.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl helm install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard
+
+## Development Helm charts
+## those helm charts are only used for our testing, production helm charts are builded and published by CI/CD team
+
+CHART_DESTINATION ?= https://na.artifactory.swg-devops.com/artifactory/hyc-cloud-private-scratch-helm-local/ibm-licensing
+CHART_NAME_CLUSTER_SCOPED ?= ibm-licensing-cluster-scoped-$(CSV_VERSION).tgz
+CHART_NAME ?= ibm-licensing-$(CSV_VERSION).tgz
+
+.PHONY: build/helm-develop
+build/helm-develop: helm yq
+	echo "Generating developer helm charts..."
+	@# Safety check: abort if helm-develop directory already exists
+	@if [ -d ./helm-develop ]; then \
+		echo "Error: helm-develop directory already exists. Please remove it before running this target."; \
+		exit 1; \
+	fi
+	
+	# Copy helm directory to helm-develop to avoid modifying original files
+	cp -r ./deploy/argo-cd/components/license-service/helm-cluster-scoped ./helm-develop
+	
+	# Set correct images for development
+	tmp_file=$$(mktemp); \
+	sed 's|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g' ./helm-develop/templates/deployment.yaml > "$$tmp_file"; \
+	mv "$$tmp_file" ./helm-develop/templates/deployment.yaml
+	$(YQ) -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' ./helm-develop/values.yaml
+	$(YQ) -i '.ibmLicensing.imageRegistryNamespaceOperator = "hyc-cloud-private-scratch-docker-local/ibmcom"' ./helm-develop/values.yaml
+	$(YQ) -i '.ibmLicensing.imageRegistryNamespaceOperand = "hyc-cloud-private-scratch-docker-local/ibmcom"' ./helm-develop/values.yaml
+	
+	# Generate helm package
+	$(HELM) package ./deploy/argo-cd/components/license-service/helm-cluster-scoped
+	$(HELM) package ./helm-develop
+
+	# Publish helm charts
+# 	curl -s -w "\n" -H "X-JFrog-Art-Api: $$ARTIFACTORY_TOKEN" -T "$(CHART_NAME_CLUSTER_SCOPED)" "$(CHART_DESTINATION)/ibm-licensing-cluster-scoped-develop.tgz"
+# 	curl -s -w "\n" -H "X-JFrog-Art-Api: $$ARTIFACTORY_TOKEN" -T "$(CHART_NAME)" "$(CHART_DESTINATION)/ibm-licensing-develop.tgz"
+	
+	echo "Developer helm charts generated and published successfully"
 
 .PHONY: generate-yaml-argo-cd
 generate-yaml-argo-cd: kustomize yq

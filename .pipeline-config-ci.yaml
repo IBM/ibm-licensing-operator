@@ -90,6 +90,13 @@ tasks:
           echo "Creating catalog image"
           echo "=========================================="
           ARCH=amd64 make catalogsource
+
+          if [ "$GIT_BRANCH" = "develop" ]; then
+              echo "=========================================="
+              echo "Building development helm charts"
+              echo "=========================================="
+              make build/helm-develop
+          fi
           
           echo "=========================================="
           echo "All builds completed successfully"
