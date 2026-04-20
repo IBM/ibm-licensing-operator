@@ -680,7 +680,10 @@ endif
 ## Development Helm charts
 ## those helm charts are only used for our testing, production helm charts are builded and published by CI/CD team
 
-CHART_DESTINATION ?= https://na.artifactory.swg-devops.com/artifactory/hyc-cloud-private-scratch-helm-local/ibm-licensing
+CHART_DESTINATION_BASE ?= https://na.artifactory.swg-devops.com/artifactory/hyc-cloud-private-scratch-helm-local
+CHART_DESTINATION_LS ?= $(CHART_DESTINATION_BASE)/ibm-licensing
+CHART_DESTINATION_LSR ?= $(CHART_DESTINATION_BASE)/ibm-license-service-reporter
+CHART_DESTINATION_LSS ?= $(CHART_DESTINATION_BASE)/ibm-license-service-scanner
 
 .PHONY: build/helm-develop-all
 build/helm-develop-all: build/helm-develop-ls build/helm-develop-lsr build/helm-develop-lss ## Build all development helm charts
@@ -692,7 +695,8 @@ build/helm-develop-ls: helm yq ## Build IBM License Service development helm cha
 		SOURCE_DIR=deploy/argo-cd/components/license-service/helm-cluster-scoped \
 		IMAGE_SED_PATTERN="s|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g" \
 		YQ_KEY_PREFIX=ibmLicensing \
-		CHART_NAME=ibm-licensing-cluster-scoped
+		CHART_NAME=ibm-licensing-cluster-scoped \
+		CHART_DESTINATION=$(CHART_DESTINATION_LS)
 
 .PHONY: build/helm-develop-lsr
 build/helm-develop-lsr: helm yq ## Build IBM License Service Reporter development helm charts (namespace-scoped and cluster-scoped)
@@ -701,13 +705,15 @@ build/helm-develop-lsr: helm yq ## Build IBM License Service Reporter developmen
 		SOURCE_DIR=deploy/argo-cd/components/reporter/helm \
 		IMAGE_SED_PATTERN="s|ibm-postgresql:$(CSV_VERSION)|ibm-postgresql:$(GIT_BRANCH)|g; s|ibm-license-service-reporter:$(CSV_VERSION)|ibm-license-service-reporter:$(GIT_BRANCH)|g; s|ibm-license-service-reporter-ui:$(CSV_VERSION)|ibm-license-service-reporter-ui:$(GIT_BRANCH)|g; s|ibm-license-service-reporter-oauth2-proxy:$(CSV_VERSION)|ibm-license-service-reporter-oauth2-proxy:$(GIT_BRANCH)|g; s|ibm-license-service-reporter-operator:$(CSV_VERSION)|ibm-license-service-reporter-operator:$(GIT_BRANCH)|g" \
 		YQ_KEY_PREFIX=ibmLicenseServiceReporter \
-		CHART_NAME=ibm-license-service-reporter
+		CHART_NAME=ibm-license-service-reporter \
+		CHART_DESTINATION=$(CHART_DESTINATION_LSR)
 	@$(MAKE) build/helm-develop-chart \
 		TARGET_DIR=helm-develop-lsr-cluster-scoped \
 		SOURCE_DIR=deploy/argo-cd/components/reporter/helm-cluster-scoped \
 		IMAGE_SED_PATTERN="" \
 		YQ_KEY_PREFIX="" \
-		CHART_NAME=ibm-license-service-reporter-cluster-scoped
+		CHART_NAME=ibm-license-service-reporter-cluster-scoped \
+		CHART_DESTINATION=$(CHART_DESTINATION_LSR)
 
 .PHONY: build/helm-develop-lss
 build/helm-develop-lss: helm yq ## Build IBM License Service Scanner development helm charts (namespace-scoped and cluster-scoped)
@@ -716,13 +722,15 @@ build/helm-develop-lss: helm yq ## Build IBM License Service Scanner development
 		SOURCE_DIR=deploy/argo-cd/components/scanner/helm \
 		IMAGE_SED_PATTERN="s|ibm-license-service-scanner:$(CSV_VERSION)|ibm-license-service-scanner:$(GIT_BRANCH)|g" \
 		YQ_KEY_PREFIX=ibmLicenseServiceScanner \
-		CHART_NAME=ibm-license-service-scanner
+		CHART_NAME=ibm-license-service-scanner \
+		CHART_DESTINATION=$(CHART_DESTINATION_LSS)
 	@$(MAKE) build/helm-develop-chart \
 		TARGET_DIR=helm-develop-lss-cluster-scoped \
 		SOURCE_DIR=deploy/argo-cd/components/scanner/helm-cluster-scoped \
 		IMAGE_SED_PATTERN="" \
 		YQ_KEY_PREFIX="" \
-		CHART_NAME=ibm-license-service-scanner-cluster-scoped
+		CHART_NAME=ibm-license-service-scanner-cluster-scoped \
+		CHART_DESTINATION=$(CHART_DESTINATION_LSS)
 
 # Helper target to build a single helm development chart
 # Usage: make build/helm-develop-chart TARGET_DIR=... SOURCE_DIR=... IMAGE_SED_PATTERN=... YQ_KEY_PREFIX=... CHART_NAME=...

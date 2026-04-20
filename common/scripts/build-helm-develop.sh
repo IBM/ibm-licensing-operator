@@ -64,3 +64,7 @@ echo "Successfully built ${CHART_NAME}-${CSV_VERSION}.tgz"
 echo "Publishing helm chart to ${CHART_DESTINATION}..."
 # curl -s -w "\n" -H "X-JFrog-Art-Api: ${ARTIFACTORY_TOKEN}" -T "${CHART_NAME}-${CSV_VERSION}.tgz" "${CHART_DESTINATION}/${CHART_NAME}-develop.tgz"
 echo "Chart published successfully"
+
+# Cleanup temporary directory
+rm -rf "./${TARGET_DIR}"
+echo "Cleaned up temporary directory: ${TARGET_DIR}"
