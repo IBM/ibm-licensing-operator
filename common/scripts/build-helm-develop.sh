@@ -15,19 +15,19 @@
 # limitations under the License.
 
 # Script to build helm development charts
-# Usage: build-helm-develop.sh <target-dir> <source-dir> <image-sed-pattern> <yq-namespace-key> <chart-name> <csv-version> <git-branch> <helm-bin> <yq-bin> <chart-destination> <artifactory-token>
+# Usage: build-helm-develop.sh <target-dir> <source-dir> <image-sed-pattern> <yq-key-prefix> <chart-name> <csv-version> <git-branch> <helm-bin> <yq-bin> <chart-destination> <artifactory-token>
 
 set -e
 
 TARGET_DIR=$1                # Target directory name for the generated helm chart
 SOURCE_DIR=$2                # Source helm chart directory path
 IMAGE_SED_PATTERN=$3         # Sed pattern to replace image tags (empty string "" to skip)
-YQ_NAMESPACE_KEY=$4          # YQ key path for setting image registry namespace
+YQ_KEY_PREFIX=$4             # YQ key prefix for setting image registry namespace (e.g., "ibmLicensing", empty to skip)
 CHART_NAME=$5                # Name of the chart for the output .tgz file
 CSV_VERSION=$6               # Current CSV version
 GIT_BRANCH=$7                # Git branch name to use for development images
-HELM_BIN=$8                  # Path to helm binary
-YQ_BIN=$9                    # Path to yq binary
+HELM=$8                      # Path to helm binary
+YQ=$9                        # Path to yq binary
 CHART_DESTINATION=${10}      # Artifactory destination URL
 ARTIFACTORY_TOKEN=${11}      # Artifactory API token
 
@@ -47,20 +47,20 @@ if [ -n "${IMAGE_SED_PATTERN}" ]; then
     tmp_file=$(mktemp)
     sed "${IMAGE_SED_PATTERN}" "./${TARGET_DIR}/templates/deployment.yaml" > "${tmp_file}"
     mv "${tmp_file}" "./${TARGET_DIR}/templates/deployment.yaml"
-fi
 
-# Update values.yaml with development registry settings
-"${YQ_BIN}" -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' "./${TARGET_DIR}/values.yaml"
-"${YQ_BIN}" -i ".${YQ_NAMESPACE_KEY} = \"hyc-cloud-private-scratch-docker-local/ibmcom\"" "./${TARGET_DIR}/values.yaml"
+    # Update values.yaml with development registry settings
+    "${YQ}" -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' "./${TARGET_DIR}/values.yaml"
+    
+    # Set image registry namespace for both operator and operand
+    "${YQ}" -i ".${YQ_KEY_PREFIX}.imageRegistryNamespaceOperator = \"hyc-cloud-private-scratch-docker-local/ibmcom\"" "./${TARGET_DIR}/values.yaml"
+    "${YQ}" -i ".${YQ_KEY_PREFIX}.imageRegistryNamespaceOperand = \"hyc-cloud-private-scratch-docker-local/ibmcom\"" "./${TARGET_DIR}/values.yaml"
+fi
 
 # Generate helm package
-"${HELM_BIN}" package "./${TARGET_DIR}"
-
+"${HELM}" package "./${TARGET_DIR}"
 echo "Successfully built ${CHART_NAME}-${CSV_VERSION}.tgz"
 
-# Publish helm charts
-if [ -n "${CHART_DESTINATION}" ] && [ -n "${ARTIFACTORY_TOKEN}" ]; then
-    echo "Publishing helm chart to ${CHART_DESTINATION}..."
-    curl -s -w "\n" -H "X-JFrog-Art-Api: ${ARTIFACTORY_TOKEN}" -T "${CHART_NAME}-${CSV_VERSION}.tgz" "${CHART_DESTINATION}/${CHART_NAME}-develop.tgz"
-    echo "Chart published successfully"
-fi
+# Publish helm chart
+echo "Publishing helm chart to ${CHART_DESTINATION}..."
+# curl -s -w "\n" -H "X-JFrog-Art-Api: ${ARTIFACTORY_TOKEN}" -T "${CHART_NAME}-${CSV_VERSION}.tgz" "${CHART_DESTINATION}/${CHART_NAME}-develop.tgz"
+echo "Chart published successfully"

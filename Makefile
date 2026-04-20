@@ -681,79 +681,59 @@ endif
 ## those helm charts are only used for our testing, production helm charts are builded and published by CI/CD team
 
 CHART_DESTINATION ?= https://na.artifactory.swg-devops.com/artifactory/hyc-cloud-private-scratch-helm-local/ibm-licensing
-CHART_NAME_CLUSTER_SCOPED ?= ibm-licensing-cluster-scoped-$(CSV_VERSION).tgz
 
 .PHONY: build/helm-develop-all
-build/helm-develop-all: build/helm-develop-ls build/helm-develop-lsr build/helm-develop-lsr-cluster-scoped build/helm-develop-lss build/helm-develop-lss-cluster-scoped ## Build all development helm charts
+build/helm-develop-all: build/helm-develop-ls build/helm-develop-lsr build/helm-develop-lss ## Build all development helm charts
 
 .PHONY: build/helm-develop-ls
 build/helm-develop-ls: helm yq ## Build IBM License Service development helm chart (cluster-scoped)
-	@bash common/scripts/build-helm-develop.sh \
-		helm-develop-ls \
-		deploy/argo-cd/components/license-service/helm-cluster-scoped \
-		"s|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g" \
-		"ibmLicensing.imageRegistryNamespaceOperator = \"hyc-cloud-private-scratch-docker-local/ibmcom\" | .ibmLicensing.imageRegistryNamespaceOperand" \
-		ibm-licensing-cluster-scoped \
-		$(CSV_VERSION) \
-		$(GIT_BRANCH) \
-		$(HELM) \
-		$(YQ) \
-		$(CHART_DESTINATION) \
-		$$ARTIFACTORY_TOKEN
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-ls \
+		SOURCE_DIR=deploy/argo-cd/components/license-service/helm-cluster-scoped \
+		IMAGE_SED_PATTERN="s|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g" \
+		YQ_KEY_PREFIX=ibmLicensing \
+		CHART_NAME=ibm-licensing-cluster-scoped
 
 .PHONY: build/helm-develop-lsr
-build/helm-develop-lsr: helm yq ## Build IBM License Service Reporter development helm chart (namespace-scoped)
-	@bash common/scripts/build-helm-develop.sh \
-		helm-develop-lsr \
-		deploy/argo-cd/components/reporter/helm \
-		"s|ibm-license-service-reporter-ui:$(CSV_VERSION)|ibm-license-service-reporter-ui:$(GIT_BRANCH)|g; s|ibm-license-service-reporter:$(CSV_VERSION)|ibm-license-service-reporter:$(GIT_BRANCH)|g" \
-		reporter.imageRegistryNamespace \
-		ibm-license-service-reporter \
-		$(CSV_VERSION) \
-		$(GIT_BRANCH) \
-		$(HELM) \
-		$(YQ) \
-		$(CHART_DESTINATION) \
-		$$ARTIFACTORY_TOKEN
-
-.PHONY: build/helm-develop-lsr-cluster-scoped
-build/helm-develop-lsr-cluster-scoped: helm yq ## Build IBM License Service Reporter development helm chart (cluster-scoped)
-	@bash common/scripts/build-helm-develop.sh \
-		helm-develop-lsr-cluster-scoped \
-		deploy/argo-cd/components/reporter/helm-cluster-scoped \
-		"" \
-		reporter.imageRegistryNamespace \
-		ibm-license-service-reporter-cluster-scoped \
-		$(CSV_VERSION) \
-		$(GIT_BRANCH) \
-		$(HELM) \
-		$(YQ) \
-		$(CHART_DESTINATION) \
-		$$ARTIFACTORY_TOKEN
+build/helm-develop-lsr: helm yq ## Build IBM License Service Reporter development helm charts (namespace-scoped and cluster-scoped)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-lsr \
+		SOURCE_DIR=deploy/argo-cd/components/reporter/helm \
+		IMAGE_SED_PATTERN="s|ibm-postgresql:$(CSV_VERSION)|ibm-postgresql:$(GIT_BRANCH)|g; s|ibm-license-service-reporter:$(CSV_VERSION)|ibm-license-service-reporter:$(GIT_BRANCH)|g; s|ibm-license-service-reporter-ui:$(CSV_VERSION)|ibm-license-service-reporter-ui:$(GIT_BRANCH)|g; s|ibm-license-service-reporter-oauth2-proxy:$(CSV_VERSION)|ibm-license-service-reporter-oauth2-proxy:$(GIT_BRANCH)|g; s|ibm-license-service-reporter-operator:$(CSV_VERSION)|ibm-license-service-reporter-operator:$(GIT_BRANCH)|g" \
+		YQ_KEY_PREFIX=ibmLicenseServiceReporter \
+		CHART_NAME=ibm-license-service-reporter
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-lsr-cluster-scoped \
+		SOURCE_DIR=deploy/argo-cd/components/reporter/helm-cluster-scoped \
+		IMAGE_SED_PATTERN="" \
+		YQ_KEY_PREFIX="" \
+		CHART_NAME=ibm-license-service-reporter-cluster-scoped
 
 .PHONY: build/helm-develop-lss
-build/helm-develop-lss: helm yq ## Build IBM License Service Scanner development helm chart (namespace-scoped)
-	@bash common/scripts/build-helm-develop.sh \
-		helm-develop-lss \
-		deploy/argo-cd/components/scanner/helm \
-		"s|ibm-license-service-scanner:$(CSV_VERSION)|ibm-license-service-scanner:$(GIT_BRANCH)|g" \
-		scanner.imageRegistryNamespace \
-		ibm-license-service-scanner \
-		$(CSV_VERSION) \
-		$(GIT_BRANCH) \
-		$(HELM) \
-		$(YQ) \
-		$(CHART_DESTINATION) \
-		$$ARTIFACTORY_TOKEN
+build/helm-develop-lss: helm yq ## Build IBM License Service Scanner development helm charts (namespace-scoped and cluster-scoped)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-lss \
+		SOURCE_DIR=deploy/argo-cd/components/scanner/helm \
+		IMAGE_SED_PATTERN="s|ibm-license-service-scanner:$(CSV_VERSION)|ibm-license-service-scanner:$(GIT_BRANCH)|g" \
+		YQ_KEY_PREFIX=ibmLicenseServiceScanner \
+		CHART_NAME=ibm-license-service-scanner
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-lss-cluster-scoped \
+		SOURCE_DIR=deploy/argo-cd/components/scanner/helm-cluster-scoped \
+		IMAGE_SED_PATTERN="" \
+		YQ_KEY_PREFIX="" \
+		CHART_NAME=ibm-license-service-scanner-cluster-scoped
 
-.PHONY: build/helm-develop-lss-cluster-scoped
-build/helm-develop-lss-cluster-scoped: helm yq ## Build IBM License Service Scanner development helm chart (cluster-scoped)
+# Helper target to build a single helm development chart
+# Usage: make build/helm-develop-chart TARGET_DIR=... SOURCE_DIR=... IMAGE_SED_PATTERN=... YQ_KEY_PREFIX=... CHART_NAME=...
+.PHONY: build/helm-develop-chart
+build/helm-develop-chart:
 	@bash common/scripts/build-helm-develop.sh \
-		helm-develop-lss-cluster-scoped \
-		deploy/argo-cd/components/scanner/helm-cluster-scoped \
-		"" \
-		scanner.imageRegistryNamespace \
-		ibm-license-service-scanner-cluster-scoped \
+		$(TARGET_DIR) \
+		$(SOURCE_DIR) \
+		"$(IMAGE_SED_PATTERN)" \
+		"$(YQ_KEY_PREFIX)" \
+		$(CHART_NAME) \
 		$(CSV_VERSION) \
 		$(GIT_BRANCH) \
 		$(HELM) \
