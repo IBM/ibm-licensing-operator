@@ -682,7 +682,6 @@ endif
 
 CHART_DESTINATION ?= https://na.artifactory.swg-devops.com/artifactory/hyc-cloud-private-scratch-helm-local/ibm-licensing
 CHART_NAME_CLUSTER_SCOPED ?= ibm-licensing-cluster-scoped-$(CSV_VERSION).tgz
-CHART_NAME ?= ibm-licensing-$(CSV_VERSION).tgz
 
 .PHONY: build/helm-develop
 build/helm-develop: helm yq
@@ -705,12 +704,10 @@ build/helm-develop: helm yq
 	$(YQ) -i '.ibmLicensing.imageRegistryNamespaceOperand = "hyc-cloud-private-scratch-docker-local/ibmcom"' ./helm-develop/values.yaml
 	
 	# Generate helm package
-	$(HELM) package ./deploy/argo-cd/components/license-service/helm-cluster-scoped
 	$(HELM) package ./helm-develop
 
 	# Publish helm charts
 # 	curl -s -w "\n" -H "X-JFrog-Art-Api: $$ARTIFACTORY_TOKEN" -T "$(CHART_NAME_CLUSTER_SCOPED)" "$(CHART_DESTINATION)/ibm-licensing-cluster-scoped-develop.tgz"
-# 	curl -s -w "\n" -H "X-JFrog-Art-Api: $$ARTIFACTORY_TOKEN" -T "$(CHART_NAME)" "$(CHART_DESTINATION)/ibm-licensing-develop.tgz"
 	
 	echo "Developer helm charts generated and published successfully"
 
