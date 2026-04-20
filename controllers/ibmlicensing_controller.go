@@ -1011,7 +1011,7 @@ func (r *IBMLicensingReconciler) reconcileGateway(instance *operatorv1alpha1.IBM
 	if err != nil || result.Requeue {
 		return result, err
 	}
-	if found.GetName() != "" && !isGatewayAPIEnabledOnOpenShift(instance) {
+	if found.GetName() != "" && !res.IsRouteAPI && !res.IsServiceCAAPI {
 		if len(found.Status.Addresses) > 0 {
 			for _, addr := range found.Status.Addresses {
 				if addr.Type != nil && *addr.Type == gatewayv1.HostnameAddressType {
@@ -1067,8 +1067,29 @@ func isSystemAnnotation(key string) bool {
 	return strings.Contains(key, "kubernetes.io/") || strings.Contains(key, "k8s.io/")
 }
 
-func isGatewayAPIEnabledOnOpenShift(instance *operatorv1alpha1.IBMLicensing) bool {
-	return instance.Spec.GatewayOptions != nil && instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift
+func isGatewayResource(resType reflect.Type) bool {
+	return resType == reflect.TypeOf(&gatewayv1.Gateway{}) ||
+		resType == reflect.TypeOf(&gatewayv1.HTTPRoute{}) ||
+		resType == reflect.TypeOf(&gatewayv1.BackendTLSPolicy{}) ||
+		resType == reflect.TypeOf(&corev1.ConfigMap{})
+}
+
+func shouldLogGatewayResourceStatus(instance *operatorv1alpha1.IBMLicensing, resType reflect.Type) bool {
+	isOCPCluster := res.IsRouteAPI || res.IsServiceCAAPI
+	isGatewayRes := isGatewayResource(resType)
+
+	if !isGatewayRes {
+		return true
+	}
+
+	if !isOCPCluster {
+		return true
+	}
+
+	gatewayAPIEnabled := instance.Spec.GatewayOptions != nil &&
+		instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift
+
+	return gatewayAPIEnabled
 }
 
 /*
@@ -1104,11 +1125,11 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 	}
 	// handling not installed CRD
 	if found.GetName() == "" {
-		shouldLog := !isGatewayAPIEnabledOnOpenShift(instance)
-
-		if shouldLog {
+		isNonOCPCluster := !res.IsRouteAPI && !res.IsServiceCAAPI
+		if isNonOCPCluster {
 			reqLogger.Info("Resource not found (CRD likely not installed), skipping update check see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
 		}
+
 		return reconcile.Result{}, nil
 	}
 	needsUpdate := false
@@ -1316,12 +1337,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 				"Namespace", expectedRes.GetNamespace())
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		} else if metaErrors.IsNoMatchError(err) {
-			// Log only if not a Gateway resource on OCP (where Gateway API is optional)
-			isOCP := isGatewayAPIEnabledOnOpenShift(instance)
-			isGatewayResource := resType.String() == "*v1.Gateway" || resType.String() == "*v1.HTTPRoute" ||
-				resType.String() == "*v1.BackendTLSPolicy"
-
-			if !isOCP || !isGatewayResource {
+			if shouldLogGatewayResourceStatus(instance, resType) {
 				reqLogger.Info("CRD for "+resType.String()+" not installed, skipping", "Name", expectedRes.GetName(),
 					"Namespace", expectedRes.GetNamespace())
 			}
@@ -1332,12 +1348,7 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 		return reconcile.Result{}, err
 	}
 
-	// Log only if not a Gateway resource on OCP
-	isOCP := isGatewayAPIEnabledOnOpenShift(instance)
-	isGatewayResource := resType.String() == "*v1.Gateway" || resType.String() == "*v1.HTTPRoute" ||
-		resType.String() == "*v1.BackendTLSPolicy" || resType.String() == "*v1.ConfigMap"
-
-	if !isOCP || !isGatewayResource {
+	if shouldLogGatewayResourceStatus(instance, resType) {
 		reqLogger.Info(resType.String() + " exists!")
 	}
 	return reconcile.Result{}, nil
