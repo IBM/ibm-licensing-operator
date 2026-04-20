@@ -225,6 +225,17 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		return reconcile.Result{}, err
 	}
 
+	if instance.Spec.GatewayOptions == nil {
+		instance.Spec.GatewayOptions = &operatorv1alpha1.IBMLicensingGatewayOptions{}
+		isOCPCluster := res.IsRouteAPI || res.IsServiceCAAPI
+		instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift = isOCPCluster
+	} else {
+		isOCPCluster := res.IsRouteAPI || res.IsServiceCAAPI
+		if !isOCPCluster && instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift {
+			reqLogger.Info("Warning: enableGatewayAPIOpenshift is set to true on non-OpenShift cluster. This flag is ignored on Kubernetes clusters where Gateway API logging is always enabled.")
+		}
+	}
+
 	// Validate Software Central configuration
 	if instance.Spec.IsSoftwareCentralEnabled() && instance.Spec.SoftwareCentral.EntitlementKeySecret == "" {
 		return reconcile.Result{}, fmt.Errorf("spec.softwareCentral.entitlementKeySecret must be set when Software Central integration is enabled")
@@ -947,6 +958,7 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 }
 
 func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+
 	if !instance.Spec.IsGatewayEnabled() {
 		return r.cleanupGatewayResources(instance)
 	}
@@ -1003,7 +1015,7 @@ func (r *IBMLicensingReconciler) reconcileGateway(instance *operatorv1alpha1.IBM
 	if err != nil || result.Requeue {
 		return result, err
 	}
-	if found.GetName() != "" {
+	if found.GetName() != "" && !res.IsRouteAPI && !res.IsServiceCAAPI {
 		if len(found.Status.Addresses) > 0 {
 			for _, addr := range found.Status.Addresses {
 				if addr.Type != nil && *addr.Type == gatewayv1.HostnameAddressType {
@@ -1059,6 +1071,31 @@ func isSystemAnnotation(key string) bool {
 	return strings.Contains(key, "kubernetes.io/") || strings.Contains(key, "k8s.io/")
 }
 
+func isGatewayResource(resType reflect.Type) bool {
+	return resType == reflect.TypeOf(&gatewayv1.Gateway{}) ||
+		resType == reflect.TypeOf(&gatewayv1.HTTPRoute{}) ||
+		resType == reflect.TypeOf(&gatewayv1.BackendTLSPolicy{}) ||
+		resType == reflect.TypeOf(&corev1.ConfigMap{})
+}
+
+func shouldLogGatewayResourceStatus(instance *operatorv1alpha1.IBMLicensing, resType reflect.Type) bool {
+	isOCPCluster := res.IsRouteAPI || res.IsServiceCAAPI
+	isGatewayRes := isGatewayResource(resType)
+
+	if !isGatewayRes {
+		return true
+	}
+
+	if !isOCPCluster {
+		return true
+	}
+
+	gatewayAPIEnabled := instance.Spec.GatewayOptions != nil &&
+		instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift
+
+	return gatewayAPIEnabled
+}
+
 /*
 operatorAnnotationsMatch checks whether the operator-managed annotations
 (i.e. non-system annotations) on the found resource match the expected ones.
@@ -1092,7 +1129,11 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 	}
 	// handling not installed CRD
 	if found.GetName() == "" {
-		reqLogger.Info("Resource not found (CRD likely not installed), skipping update check see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
+		isNonOCPCluster := !res.IsRouteAPI && !res.IsServiceCAAPI
+		if isNonOCPCluster {
+			reqLogger.Info("Resource not found (CRD likely not installed), skipping update check see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
+		}
+
 		return reconcile.Result{}, nil
 	}
 	needsUpdate := false
@@ -1300,15 +1341,20 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 				"Namespace", expectedRes.GetNamespace())
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		} else if metaErrors.IsNoMatchError(err) {
-			reqLogger.Info("CRD for "+resType.String()+" not installed, skipping", "Name", expectedRes.GetName(),
-				"Namespace", expectedRes.GetNamespace())
+			if shouldLogGatewayResourceStatus(instance, resType) {
+				reqLogger.Info("CRD for "+resType.String()+" not installed, skipping", "Name", expectedRes.GetName(),
+					"Namespace", expectedRes.GetNamespace())
+			}
 			return reconcile.Result{}, nil
 		}
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())
 		return reconcile.Result{}, err
 	}
-	reqLogger.Info(resType.String() + " exists!")
+
+	if shouldLogGatewayResourceStatus(instance, resType) {
+		reqLogger.Info(resType.String() + " exists!")
+	}
 	return reconcile.Result{}, nil
 }
 

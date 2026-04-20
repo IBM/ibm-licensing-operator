@@ -81,7 +81,7 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.21
-    createdAt: "2026-04-07T14:10:43Z"
+    createdAt: "2026-04-20T11:20:12Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
@@ -269,6 +269,11 @@ spec:
             path: gatewayOptions.annotations
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:text
+          - description: Switch for enabling Gateway API on Openshift. Default is false.
+            displayName: Enable Gateway API on Openshift
+            path: gatewayOptions.enableGatewayAPIOpenshift
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
           - description: GatewayClassName defines gateway class name option to be passed to the gateway spec field. Default is ibm-licensing.
             displayName: GatewayClassName
             path: gatewayOptions.gatewayClassName
@@ -453,14 +458,6 @@ spec:
                 - namespaces
               verbs:
                 - get
-            - apiGroups:
-                - gateway.networking.k8s.io
-              resources:
-                - gatewayclasses
-              verbs:
-                - get
-                - list
-                - watch
             - apiGroups:
                 - operator.ibm.com
               resources:

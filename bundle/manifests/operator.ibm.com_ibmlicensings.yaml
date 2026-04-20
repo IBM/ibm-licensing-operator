@@ -154,6 +154,11 @@ spec:
                     description: Additional annotations that should include f.e. gateway
                       class if using not default gateway controller
                     type: object
+                  enableGatewayAPIOpenshift:
+                    default: false
+                    description: Switch for enabling Gateway API on Openshift. Default
+                      is false.
+                    type: boolean
                   gatewayClassName:
                     default: ibm-licensing
                     description: GatewayClassName defines gateway class name option
