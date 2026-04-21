@@ -37,7 +37,7 @@ if [ -d "./${TARGET_DIR}" ]; then
     exit 1
 fi
 
-echo "Building helm development chart: ${TARGET_DIR}"
+echo "Building helm development chart ${CHART_NAME}-${CSV_VERSION}.tgz"
 
 # Copy helm directory to target to avoid modifying original files
 cp -r "./${SOURCE_DIR}" "./${TARGET_DIR}"
@@ -61,10 +61,8 @@ fi
 echo "Successfully built ${CHART_NAME}-${CSV_VERSION}.tgz"
 
 # Publish helm chart
-echo "Publishing helm chart to ${CHART_DESTINATION}..."
 # curl -s -w "\n" -H "X-JFrog-Art-Api: ${ARTIFACTORY_TOKEN}" -T "${CHART_NAME}-${CSV_VERSION}.tgz" "${CHART_DESTINATION}/${CHART_NAME}-develop.tgz"
 echo "Chart published successfully"
 
 # Cleanup temporary directory
 rm -rf "./${TARGET_DIR}"
-echo "Cleaned up temporary directory: ${TARGET_DIR}"
