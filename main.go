@@ -234,24 +234,24 @@ func main() {
 		if isNssActive {
 			setupLog.Info("Namespace Scope ConfigMap detected. operandrequest-discovery disabled")
 		} else {
-			go controllers.DiscoverOperandRequests(&crdLogger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
-
-			// OperatorGroup belongs to OLM (operators.coreos.com/v1). On clusters without OLM installed, skip the stale-namespace cleanup task,
+			// On clusters without OLM installed, skip both operandrequest-discovery and the stale-namespace cleanup task, 
 			// otherwise every run produces a "no matches for kind OperatorGroup" error
 			operatorGroupList := operatorframeworkv1.OperatorGroupList{}
 			operatorGroupCRDExists, err := res.DoesCRDExist(mgr.GetAPIReader(), &operatorGroupList)
 			if err != nil {
-				setupLog.Error(err, "An error occurred while checking for OperatorGroup CRD existence. operatorgroup-namespaces-watcher will not be started")
+				setupLog.Error(err, "An error occurred while checking for OperatorGroup CRD existence. operandrequest-discovery and operatorgroup-namespaces-watcher will not be started")
 			}
 
 			if operatorGroupCRDExists {
+				go controllers.DiscoverOperandRequests(&crdLogger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
+
 				logger := ctrl.Log.WithName("operatorgroup-namespaces-watcher")
 				removeStaleNamespacesTaskCtx, cancelRemoveStaleNamespacesTask := context.WithCancel(context.Background())
 
 				go controllers.RunRemoveStaleNamespacesFromOperatorGroupTask(removeStaleNamespacesTaskCtx, &logger, mgr.GetClient(), mgr.GetAPIReader())
 				routinesToCancel = append(routinesToCancel, cancelRemoveStaleNamespacesTask)
 			} else {
-				setupLog.Info("OperatorGroup CRD not found in cluster. operatorgroup-namespaces-watcher disabled")
+				setupLog.Info("OperatorGroup CRD not found in cluster. operandrequest-discovery and operatorgroup-namespaces-watcher disabled")
 			}
 		}
 	} else {
