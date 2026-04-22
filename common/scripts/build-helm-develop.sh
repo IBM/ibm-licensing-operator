@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # Script to build helm development charts
-# Usage: build-helm-develop.sh <target-dir> <source-dir> <image-sed-pattern> <yq-key-prefix> <chart-name> <csv-version> <git-branch> <helm-bin> <yq-bin> <chart-destination> <artifactory-token>
+# Usage: build-helm-develop.sh <target-dir> <source-dir> <image-sed-pattern> <values-component-prefix> <chart-name> <csv-version> <git-branch> <helm-bin> <yq-bin> <chart-destination> <artifactory-token>
 
 set -e
 
