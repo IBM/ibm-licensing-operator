@@ -790,7 +790,7 @@ build/helm-develop-lss: helm yq ## Build IBM License Service Scanner development
 	@$(MAKE) build/helm-develop-chart \
 		TARGET_DIR=helm-develop-lss \
 		SOURCE_DIR=deploy/argo-cd/components/scanner/helm \
-		IMAGE_SED_PATTERN="s|ibm-license-service-scanner:$(CSV_VERSION)|ibm-license-service-scanner:$(GIT_BRANCH)|g" \
+		IMAGE_SED_PATTERN="s|ibm-license-service-scanner-operator:$(CSV_VERSION)|ibm-license-service-scanner-operator:$(GIT_BRANCH)|g; s|ibm-licensing-scanner:$(CSV_VERSION)|ibm-licensing-scanner:$(GIT_BRANCH)|g" \
 		VALUES_COMPONENT_PREFIX=ibmLicenseServiceScanner \
 		CHART_NAME=ibm-license-service-scanner \
 		CHART_DESTINATION=$(CHART_DESTINATION_LSS)
