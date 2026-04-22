@@ -39,13 +39,6 @@ tasks:
           set_env "STAGE_UNIT_TEST_STATUS" "success"
           collect-evidence --asset-type "repo" --asset-key "app-repo" --status "success" --tool-type "misc" --evidence-type "com.ibm.unit_tests"
 
-          if [ "$GIT_BRANCH" = "ILS-2085-Add-development-helm-charts-build" ]; then
-              echo "=========================================="
-              echo "Building development helm charts"
-              echo "=========================================="
-              make build/helm-develop-all
-          fi
-
           echo "=========================================="
           echo "Building amd64 image"
           echo "=========================================="

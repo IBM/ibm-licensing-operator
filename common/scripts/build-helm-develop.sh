@@ -25,7 +25,7 @@ IMAGE_SED_PATTERN=$3         # Sed pattern to replace image tags (empty string "
 VALUES_COMPONENT_PREFIX=$4   # Prefix (from values.yaml) used for setting image registry namespace (e.g., "ibmLicensing", empty to skip)
 CHART_NAME=$5                # Name of the chart for the output .tgz file
 CSV_VERSION=$6               # Current CSV version
-GIT_BRANCH=$7                # Git branch name to use for development images
+GIT_BRANCH=$7                # Git branch name used when setting correct images
 HELM=$8                      # Path to helm binary
 YQ=$9                        # Path to yq binary
 CHART_DESTINATION=${10}      # Artifactory destination URL
@@ -42,16 +42,17 @@ echo "Building helm development chart ${CHART_NAME}-${CSV_VERSION}.tgz"
 # Copy helm directory to target to avoid modifying original files
 cp -r "./${SOURCE_DIR}" "./${TARGET_DIR}"
 
-# Set correct images for development (only if sed pattern is provided)
+# Set correct images (only if sed pattern is provided)
 if [ -n "${IMAGE_SED_PATTERN}" ]; then
+    # Use sed to override image tag with correct git branch name
     tmp_file=$(mktemp)
     sed "${IMAGE_SED_PATTERN}" "./${TARGET_DIR}/templates/deployment.yaml" > "${tmp_file}"
     mv "${tmp_file}" "./${TARGET_DIR}/templates/deployment.yaml"
 
-    # Update values.yaml with development registry settings
+    # Update values.yaml to change image pull prefix
     "${YQ}" -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' "./${TARGET_DIR}/values.yaml"
     
-    # Set image registry namespace for both operator and operand
+    # Update values.yaml to change image registry namespace
     "${YQ}" -i ".${VALUES_COMPONENT_PREFIX}.imageRegistryNamespaceOperator = \"hyc-cloud-private-scratch-docker-local/ibmcom\"" "./${TARGET_DIR}/values.yaml"
     "${YQ}" -i ".${VALUES_COMPONENT_PREFIX}.imageRegistryNamespaceOperand = \"hyc-cloud-private-scratch-docker-local/ibmcom\"" "./${TARGET_DIR}/values.yaml"
 fi
