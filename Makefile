@@ -189,6 +189,25 @@ endif
 
 DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 
+# Images published by each build flow. Used by print-published-images* targets
+# so pipelines can print a single summary at the end instead of hunting through logs.
+ALL_ARCHS := amd64 ppc64le s390x
+
+# PR (development) flow: per-arch operator images + multiarch manifest + bundle + catalog
+PUBLISHED_OPERATOR_IMAGES_DEV   := $(foreach arch,$(ALL_ARCHS),$(SCRATCH_REGISTRY)/$(IMG)-$(arch):$(VERSION))
+PUBLISHED_OPERATOR_MANIFEST_DEV := $(SCRATCH_REGISTRY)/$(IMG):$(VERSION) $(SCRATCH_REGISTRY)/$(IMG):$(GIT_BRANCH)
+PUBLISHED_BUNDLE_IMAGE_DEV      := $(SCRATCH_REGISTRY)/$(BUNDLE_IMG)
+PUBLISHED_CATALOG_IMAGE_DEV     := $(SCRATCH_REGISTRY)/$(CATALOG_IMG)
+
+# CI flow: per-arch operator images + multiarch manifest (+ :latest) + bundle + catalog (+ devops catalog on master/release-ltsr)
+PUBLISHED_OPERATOR_IMAGES_CI    := $(foreach arch,$(ALL_ARCHS),$(REGISTRY)/$(IMG)-$(arch):$(VERSION))
+PUBLISHED_OPERATOR_MANIFEST_CI  := $(REGISTRY)/$(IMG):latest $(REGISTRY)/$(IMG):$(MANIFEST_VERSION)
+PUBLISHED_BUNDLE_IMAGE_CI       := $(REGISTRY)/$(BUNDLE_IMG)
+PUBLISHED_CATALOG_IMAGE_CI      := $(REGISTRY)/$(CATALOG_IMG)
+ifneq ($(DEVOPS_STREAM),)
+PUBLISHED_CATALOG_IMAGE_CI      += $(REGISTRY)/$(DEVOPS_CATALOG_IMG)
+endif
+
 $(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
 
 ifeq ($(BUILD_LOCALLY),0)
@@ -527,6 +546,38 @@ catalogsource-development: opm yq
 	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	docker push ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 
+##@ Published images summary
+
+.PHONY: print-published-images-development
+print-published-images-development: ## Print summary of all images pushed by the PR (development) build flow
+	@echo "=========================================="
+	@echo "Published images (development)"
+	@echo "=========================================="
+	@echo "Operator (per-arch):"
+	@for img in $(PUBLISHED_OPERATOR_IMAGES_DEV); do echo "  $$img"; done
+	@echo "Operator (multiarch manifest):"
+	@for img in $(PUBLISHED_OPERATOR_MANIFEST_DEV); do echo "  $$img"; done
+	@echo "Bundle:"
+	@echo "  $(PUBLISHED_BUNDLE_IMAGE_DEV)"
+	@echo "Catalog:"
+	@echo "  $(PUBLISHED_CATALOG_IMAGE_DEV)"
+	@echo "=========================================="
+
+.PHONY: print-published-images
+print-published-images: ## Print summary of all images pushed by the CI build flow
+	@echo "=========================================="
+	@echo "Published images (CI)"
+	@echo "=========================================="
+	@echo "Operator (per-arch):"
+	@for img in $(PUBLISHED_OPERATOR_IMAGES_CI); do echo "  $$img"; done
+	@echo "Operator (multiarch manifest):"
+	@for img in $(PUBLISHED_OPERATOR_MANIFEST_CI); do echo "  $$img"; done
+	@echo "Bundle:"
+	@echo "  $(PUBLISHED_BUNDLE_IMAGE_CI)"
+	@echo "Catalog:"
+	@for img in $(PUBLISHED_CATALOG_IMAGE_CI); do echo "  $$img"; done
+	@echo "=========================================="
+
 ############################################################
 # Installation section
 ############################################################
@@ -665,7 +716,7 @@ else
 PODMAN=podman
 endif
 
-.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard
+.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard print-published-images print-published-images-development
 
 .PHONY: generate-yaml-argo-cd
 generate-yaml-argo-cd: kustomize yq
