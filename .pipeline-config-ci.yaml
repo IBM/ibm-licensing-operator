@@ -90,10 +90,12 @@ tasks:
           echo "Creating catalog image"
           echo "=========================================="
           ARCH=amd64 make catalogsource
-          
+
           echo "=========================================="
           echo "All builds completed successfully"
           echo "=========================================="
+
+          ARCH=amd64 make print-published-images
       - name: sign-artifact
         when: 'false'
       - name: scan-artifact
