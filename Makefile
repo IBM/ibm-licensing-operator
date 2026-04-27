@@ -748,7 +748,7 @@ generate-yaml-argo-cd: kustomize yq
 	@rm argo-cd/tmp.yaml
 
 ## Development Helm charts
-## those helm charts are only used for our testing, production helm charts are builded and published by CI/CD team
+## those helm charts are only used for our testing, production helm charts are built and published by CI/CD team
 
 CHART_DESTINATION_BASE ?= https://na.artifactory.swg-devops.com/artifactory/hyc-cloud-private-scratch-helm-local
 CHART_DESTINATION_LS ?= $(CHART_DESTINATION_BASE)/ibm-licensing
