@@ -346,11 +346,10 @@ To install License Service or License Service Reporter as Argo CD applications i
     ```bash
     docker pull icr.io/cpopen/ibm-licensing-operator:4.2.21
     docker tag icr.io/cpopen/ibm-licensing-operator:4.2.21 custom_repo.com/custom_namespace/ibm-licensing-operator:4.2.21
-    docker push mczustom_repo.com/custom_namespace/ibm-licensing-operator:4.2.21
+    docker push custom_repo.com/custom_namespace/ibm-licensing-operator:4.2.21
     ```
 
-8. Update the image registry configuration. For more information, see xxx.
-https://github.com/IBM/ibm-licensing-operator/blob/master/deploy/argo-cd/README.md#specify-image-registry-and-image-registry-namespace
+8. Update the image registry configuration. For more information, see [Specifying image registry and image registry namespace](#specifying-image-registry-and-image-registry-namespace).
 
     For example:
 
