@@ -40,7 +40,11 @@ Perform the following steps to provision and configure a cluster for IBM Licensi
 
 ### 2. Apply prerequisites
 
-You can apply prerequisites in multiple ways. It is recommended for the cluster administrators to review and apply the required modifications manually. However, it can also be automated.
+You can apply prerequisites in multiple ways. It is recommended for the cluster administrators to review and apply the required modifications manually. However, it can also be automated. To apply teh prerequisites, first clone or download this repository.
+
+    ```bash
+    git clone --single-branch --branch latest-4.x git@github.com:IBM/ibm-licensing-operator.git
+    ```
 
 #### Apply the .yaml files
 
