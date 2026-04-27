@@ -56,3 +56,4 @@ ${CONTAINER_CLI} manifest create "${IMAGE_REPO}"/"${IMAGE_NAME}":latest \
 # push latest multi-arch manifest
 echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:latest..."
 ${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":latest
+echo "manifest|${IMAGE_REPO}/${IMAGE_NAME}:latest" >> "${PUBLISHED_IMAGES_FILE:-.published-images.txt}"

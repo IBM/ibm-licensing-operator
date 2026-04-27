@@ -189,24 +189,16 @@ endif
 
 DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 
-# Images published by each build flow. Used by print-published-images* targets
-# so pipelines can print a single summary at the end instead of hunting through logs.
-ALL_ARCHS := amd64 ppc64le s390x
+# Pushed images recorder as temp file
+PUBLISHED_IMAGES_FILE ?= .published-images.txt
+export PUBLISHED_IMAGES_FILE
 
-# PR (development) flow: per-arch operator images + multiarch manifest + bundle + catalog
-PUBLISHED_OPERATOR_IMAGES_DEV   := $(foreach arch,$(ALL_ARCHS),$(SCRATCH_REGISTRY)/$(IMG)-$(arch):$(VERSION))
-PUBLISHED_OPERATOR_MANIFEST_DEV := $(SCRATCH_REGISTRY)/$(IMG):$(VERSION) $(SCRATCH_REGISTRY)/$(IMG):$(GIT_BRANCH)
-PUBLISHED_BUNDLE_IMAGE_DEV      := $(SCRATCH_REGISTRY)/$(BUNDLE_IMG)
-PUBLISHED_CATALOG_IMAGE_DEV     := $(SCRATCH_REGISTRY)/$(CATALOG_IMG)
-
-# CI flow: per-arch operator images + multiarch manifest (+ :latest) + bundle + catalog (+ devops catalog on master/release-ltsr)
-PUBLISHED_OPERATOR_IMAGES_CI    := $(foreach arch,$(ALL_ARCHS),$(REGISTRY)/$(IMG)-$(arch):$(VERSION))
-PUBLISHED_OPERATOR_MANIFEST_CI  := $(REGISTRY)/$(IMG):latest $(REGISTRY)/$(IMG):$(MANIFEST_VERSION)
-PUBLISHED_BUNDLE_IMAGE_CI       := $(REGISTRY)/$(BUNDLE_IMG)
-PUBLISHED_CATALOG_IMAGE_CI      := $(REGISTRY)/$(CATALOG_IMG)
-ifneq ($(DEVOPS_STREAM),)
-PUBLISHED_CATALOG_IMAGE_CI      += $(REGISTRY)/$(DEVOPS_CATALOG_IMG)
-endif
+# Push an image and record it under a kind label. Lines are "kind|image-ref".
+# Usage: $(call push_and_record,<kind>,<image-ref>)
+define push_and_record
+	docker push $(2)
+	@echo "$(1)|$(2)" >> $(PUBLISHED_IMAGES_FILE)
+endef
 
 $(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
 
@@ -287,7 +279,7 @@ build-image: $(CONFIG_DOCKER_TARGET) build
 
 push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
+	$(call push_and_record,operator,$(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION))
 
 build-push-image-development: build-image-development push-image-development ## Build, push image
 
@@ -298,7 +290,7 @@ build-image-development: $(CONFIG_DOCKER_TARGET) build ## Create a docker image 
 
 push-image-development: $(CONFIG_DOCKER_TARGET) build-image-development ## Push previously created image to scratch registry
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker push $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
+	$(call push_and_record,operator,$(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION))
 
 ##@ SHA Digest section
 
@@ -526,12 +518,12 @@ catalogsource: opm yq
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
-	docker push ${REGISTRY}/${BUNDLE_IMG}
+	$(call push_and_record,bundle,${REGISTRY}/${BUNDLE_IMG})
 	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
-	docker push ${REGISTRY}/${CATALOG_IMG}
+	$(call push_and_record,catalog,${REGISTRY}/${CATALOG_IMG})
 ifneq (${DEVOPS_STREAM},)
 	docker tag ${REGISTRY}/${CATALOG_IMG} ${REGISTRY}/${DEVOPS_CATALOG_IMG}
-	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
+	$(call push_and_record,catalog,${REGISTRY}/${DEVOPS_CATALOG_IMG})
 endif
 
 # pipeline builds the catalog for you and already makes a multi-arch catalog, for amd64 we build it conditionally for dev purposes
@@ -542,41 +534,43 @@ catalogsource-development: opm yq
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
-	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
+	$(call push_and_record,bundle,${SCRATCH_REGISTRY}/${BUNDLE_IMG})
 	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
-	docker push ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG})
 
 ##@ Published images summary
 
-.PHONY: print-published-images-development
-print-published-images-development: ## Print summary of all images pushed by the PR (development) build flow
-	@echo "=========================================="
-	@echo "Published images (development)"
-	@echo "=========================================="
-	@echo "Operator (per-arch):"
-	@for img in $(PUBLISHED_OPERATOR_IMAGES_DEV); do echo "  $$img"; done
-	@echo "Operator (multiarch manifest):"
-	@for img in $(PUBLISHED_OPERATOR_MANIFEST_DEV); do echo "  $$img"; done
-	@echo "Bundle:"
-	@echo "  $(PUBLISHED_BUNDLE_IMAGE_DEV)"
-	@echo "Catalog:"
-	@echo "  $(PUBLISHED_CATALOG_IMAGE_DEV)"
-	@echo "=========================================="
-
+# Reads $(PUBLISHED_IMAGES_FILE), groups entries by kind, prints them. Each line
+# in the file is "kind|image-ref"; kinds the print step understands get a named
+# section, anything else is collected under "Other:" so nothing is silently
+# dropped.
 .PHONY: print-published-images
-print-published-images: ## Print summary of all images pushed by the CI build flow
-	@echo "=========================================="
-	@echo "Published images (CI)"
-	@echo "=========================================="
-	@echo "Operator (per-arch):"
-	@for img in $(PUBLISHED_OPERATOR_IMAGES_CI); do echo "  $$img"; done
-	@echo "Operator (multiarch manifest):"
-	@for img in $(PUBLISHED_OPERATOR_MANIFEST_CI); do echo "  $$img"; done
-	@echo "Bundle:"
-	@echo "  $(PUBLISHED_BUNDLE_IMAGE_CI)"
-	@echo "Catalog:"
-	@for img in $(PUBLISHED_CATALOG_IMAGE_CI); do echo "  $$img"; done
-	@echo "=========================================="
+print-published-images: ## Print summary of all images recorded in $(PUBLISHED_IMAGES_FILE)
+	@if [ ! -s $(PUBLISHED_IMAGES_FILE) ]; then \
+		echo "No images recorded in $(PUBLISHED_IMAGES_FILE)"; \
+		exit 0; \
+	fi; \
+	echo "\n\n=========================================="; \
+	echo "Published images"; \
+	echo "=========================================="; \
+	for entry in "operator:Operator (per-arch)" "manifest:Operator (multiarch manifest)" "bundle:Bundle" "catalog:Catalog"; do \
+		kind=$${entry%%:*}; \
+		label=$${entry#*:}; \
+		matches=$$(grep "^$$kind|" $(PUBLISHED_IMAGES_FILE) | cut -d'|' -f2-); \
+		if [ -n "$$matches" ]; then \
+			echo "$$label:"; \
+			echo "$$matches" | sed 's/^/  /'; \
+		fi; \
+	done; \
+	other=$$(grep -vE '^(operator|manifest|bundle|catalog)\|' $(PUBLISHED_IMAGES_FILE) | cut -d'|' -f2-); \
+	if [ -n "$$other" ]; then \
+		echo "Other:"; \
+		echo "$$other" | sed 's/^/  /'; \
+	fi; \
+	echo "=========================================="
+
+.PHONY: print-published-images-development
+print-published-images-development: print-published-images ## Alias kept for pipeline compatibility
 
 ############################################################
 # Installation section

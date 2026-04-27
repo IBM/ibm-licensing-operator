@@ -39,6 +39,8 @@ tasks:
           set_env "STAGE_UNIT_TEST_STATUS" "success"
           collect-evidence --asset-type "repo" --asset-key "app-repo" --status "success" --tool-type "misc" --evidence-type "com.ibm.unit_tests"
 
+          : > .published-images.txt
+
           echo "=========================================="
           echo "Building amd64 image"
           echo "=========================================="

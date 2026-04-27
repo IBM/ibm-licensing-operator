@@ -65,6 +65,8 @@ tasks:
           source ./build_scripts/setup_env.sh
           source ./build_scripts/install_dependencies.sh
 
+          : > .published-images.txt
+
           echo "=========================================="
           echo "Building amd64 image"
           echo "=========================================="
