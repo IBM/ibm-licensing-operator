@@ -550,7 +550,8 @@ print-published-images: ## Print summary of all images recorded in $(PUBLISHED_I
 		echo "No images recorded in $(PUBLISHED_IMAGES_FILE)"; \
 		exit 0; \
 	fi; \
-	echo "\n\n=========================================="; \
+	echo ""
+	echo "=========================================="; \
 	echo "Published images"; \
 	echo "=========================================="; \
 	for entry in "operator:Operator (per-arch)" "manifest:Operator (multiarch manifest)" "bundle:Bundle" "catalog:Catalog"; do \
