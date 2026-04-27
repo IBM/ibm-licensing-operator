@@ -550,7 +550,7 @@ print-published-images: ## Print summary of all images recorded in $(PUBLISHED_I
 		echo "No images recorded in $(PUBLISHED_IMAGES_FILE)"; \
 		exit 0; \
 	fi; \
-	echo ""
+	echo ""; \
 	echo "=========================================="; \
 	echo "Published images"; \
 	echo "=========================================="; \
