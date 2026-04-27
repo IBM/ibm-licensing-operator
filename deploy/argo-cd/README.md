@@ -51,7 +51,7 @@ You can apply prerequisites in multiple ways. It is recommended for the cluster 
 Log in to the cluster and run the following command on the `prerequisites` directory to apply prerequisites for the IBM Licensing components.
 
 ```shell
-kubectl apply -f <path-to-cloned-repo>/prerequisites --recursive
+kubectl apply -f <path-to-cloned-repo>/deploy/argo-cd/prerequisites --recursive
 ```
 
 **Note:** Some values, such as namespaces or annotations, might need adjustment depending on your desired results.
@@ -224,7 +224,7 @@ To install License Service or License Service Reporter as Argo CD applications i
 1. Clone or download this repository.
 
     ```bash
-    git clone --single-branch --branch latest-4.x git@github.com:IBM/ibm-licensing-operator.git
+    git clone --single-branch --branch latest-4.x https://github.com/IBM/ibm-licensing-operator.git
     ```
 
 2. Store this repository in your local repository.
@@ -340,8 +340,7 @@ To install License Service or License Service Reporter as Argo CD applications i
     docker tag icr.io/cpopen/ibm-licensing-operator:<version> <docker_registry>/ibm-licensing-operator:<version>
     docker push <docker_registry>/ibm-licensing-operator:<version>
 
-    docker tag icr.io/cpopen/cpfs/ibm-licensing:$<version> 
-    <docker_registry>/ibm-licensing:<version>
+    docker tag icr.io/cpopen/cpfs/ibm-licensing:<version> <docker_registry>/ibm-licensing:<version>
     docker push <docker_registry>/ibm-licensing:<version>
     ```
 
@@ -382,7 +381,7 @@ To install all components, perform the following steps.
 2. Run the following command.
 
     ```shell
-    kubectl apply -f <path-to-cloned-repo>/applications
+    kubectl apply -f <path-to-cloned-repo>/deploy/argo-cd/applications
     ```
 
 **Note** Remember to `sync` after the applications are applied, or add the `auto-sync` option to your setup.
@@ -400,13 +399,13 @@ To install selected components separately, for example to install *IBM License S
 - For EKS, by default `argocd`
 
   ```shell
-  kubectl project shift-gitops
+  kubectl config set-context --current --namespace=openshift-gitops
   ```
 
 2. Run the following command.
 
     ```shell
-    kubectl apply -f<path-to-cloned-repo>/applications/license-service.yaml
+    kubectl apply -f<path-to-cloned-repo>/deploy/argo-cd/applications/license-service.yaml
     ```
 
 **Note:** Remember to `sync` after the applications are applied, or add the `auto-sync` option to your setup.
