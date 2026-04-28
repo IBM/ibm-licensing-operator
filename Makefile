@@ -562,8 +562,6 @@ print-published-images: ## Print summary of all images recorded in $(PUBLISHED_I
 	fi; \
 	echo "=========================================="
 
-.PHONY: print-published-images-development
-print-published-images-development: print-published-images ## Alias kept for pipeline compatibility
 
 ############################################################
 # Installation section
@@ -703,7 +701,7 @@ else
 PODMAN=podman
 endif
 
-.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard print-published-images print-published-images-development
+.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard print-published-images
 
 .PHONY: generate-yaml-argo-cd
 generate-yaml-argo-cd: kustomize yq
