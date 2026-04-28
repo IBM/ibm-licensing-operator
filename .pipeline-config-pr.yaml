@@ -70,7 +70,7 @@ tasks:
           echo "All builds completed successfully"
           echo "=========================================="
 
-          make print-published-images-development
+          make print-published-images
       - name: compliance-checks
         when: 'false'
 finally:
