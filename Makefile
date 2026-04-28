@@ -193,8 +193,6 @@ DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 PUBLISHED_IMAGES_FILE ?= .published-images.txt
 export PUBLISHED_IMAGES_FILE
 
-# Push an image and record it under a kind label. Lines are "kind|image-ref".
-# Usage: $(call push_and_record,<kind>,<image-ref>)
 define push_and_record
 	docker push $(2)
 	@echo "$(1)|$(2)" >> $(PUBLISHED_IMAGES_FILE)
@@ -538,12 +536,6 @@ catalogsource-development: opm yq
 	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
 	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG})
 
-##@ Published images summary
-
-# Reads $(PUBLISHED_IMAGES_FILE), groups entries by kind, prints them. Each line
-# in the file is "kind|image-ref"; kinds the print step understands get a named
-# section, anything else is collected under "Other:" so nothing is silently
-# dropped.
 .PHONY: print-published-images
 print-published-images: ## Print summary of all images recorded in $(PUBLISHED_IMAGES_FILE)
 	@if [ ! -s $(PUBLISHED_IMAGES_FILE) ]; then \
