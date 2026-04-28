@@ -3,7 +3,8 @@
 Learn how to install IBM Licensing components as Argo CD applications. This procedure guides you through the following steps:
 
 - [Prerequisites](#prerequisites): Preparing for the installation.
-- [Configuring](#configuring) (optional): Configuring the components to ensure that the Licensing suite is functional.
+- [(Optional) Configuring](#configuring): Configuring the components to ensure that the Licensing suite is functional.
+- [(Optional) Downloading](#downloading-helm-charts-and-images-for-air-gapped-environments): Downloading Helm charts and images for air-gapped environments.
 - [Installing](#installing): Installation of IBM License Service and IBM License Service Reporter.
 
 ## Prerequisites
@@ -39,14 +40,18 @@ Perform the following steps to provision and configure a cluster for IBM Licensi
 
 ### 2. Apply prerequisites
 
-You can apply prerequisites in multiple ways. It is recommended for the cluster administrators to review and apply the required modifications manually. However, it can also be automated.
+You can apply prerequisites in multiple ways. It is recommended for the cluster administrators to review and apply the required modifications manually. However, it can also be automated. To apply teh prerequisites, first clone or download this repository.
+
+    ```bash
+    git clone --single-branch --branch latest-4.x https://github.com/IBM/ibm-licensing-operator.git
+    ```
 
 #### Apply the .yaml files
 
 Log in to the cluster and run the following command on the `prerequisites` directory to apply prerequisites for the IBM Licensing components.
 
 ```shell
-kubectl apply -f <path-to-cloned-repo>/prerequisites --recursive
+kubectl apply -f <path-to-cloned-repo>/deploy/argo-cd/prerequisites --recursive
 ```
 
 **Note:** Some values, such as namespaces or annotations, might need adjustment depending on your desired results.
@@ -60,7 +65,7 @@ annotating the required resources with the `PreSync` phase.
 
 ## Configuring
 
-### Configuring by adjusting yaml files
+### Configuring by adjusting .yaml files
 
 It is recommended to adjust the `Application` .yaml files to configure the `helm` charts of the components. For more
 information, see the [Argo CD user guide](https://argo-cd.readthedocs.io/en/latest/user-guide/helm/) on `helm`.
@@ -211,6 +216,153 @@ As a result, the `imagePullSecrets` field of the operator and the operand includ
 
 </details>
 
+## Downloading Helm charts and images for air-gapped environments
+
+To install License Service or License Service Reporter as Argo CD applications in an air-gapped environment, you need download Helm charts and container images and store them in your local repository.
+
+
+1. Clone or download this repository.
+
+    ```bash
+    git clone --single-branch --branch latest-4.x https://github.com/IBM/ibm-licensing-operator.git
+    ```
+
+2. Store this repository in your local repository.
+
+    ```bash
+    git remote add local-repo <custom_repository>
+    git push local-repo latest-4.x
+    ```
+
+3. Adjust `repoURL` in the .yaml file for every component in ./argo-cd/applications/*component*.yaml
+
+    For example, if you are installing License Service, modify the `license-service.yaml` file.
+
+    **Before**
+
+    ```yaml
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: ibm-license-service
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      destination:
+        server: https://kubernetes.default.svc
+      sources:
+        - repoURL: "https://github.com/IBM/ibm-licensing-operator"
+          targetRevision: "latest-4.x"
+          path: deploy/argo-cd/components/license-service/helm-cluster-scoped
+    ```
+
+    **After**
+
+    ```yaml
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: ibm-license-service
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      destination:
+        server: https://kubernetes.default.svc
+      sources:
+        - repoURL: "https://github.com/custom-company/custom-repo" # Link to your custom repository
+          targetRevision: "latest-4.x"
+          path: deploy/argo-cd/components/license-service/helm-cluster-scoped
+    ```
+
+    As a result, Helm charts will be pulled from your local repository during the installation.
+
+4. Download container images and store them in your local repository.
+
+    - For License Service, download the following images.
+
+        ```
+        icr.io/cpopen/ibm-licensing-operator:<version>
+        icr.io/cpopen/cpfs/ibm-licensing:<version>
+        ```
+
+    - For License Service Reporter, download the following images.
+
+        ```
+        icr.io/cpopen/cpfs/ibm-postgresql:<version>
+        icr.io/cpopen/cpfs/ibm-license-service-reporter:<version>
+        icr.io/cpopen/cpfs/ibm-license-service-reporter-ui:<version>
+        icr.io/cpopen/cpfs/ibm-license-service-reporter-oauth2-proxy:<version>
+        icr.io/cpopen/ibm-license-service-reporter-operator:<version>
+        ```
+
+    <details>
+    <summary>Tip: You can run the following command to get the list of the required images.</summary>
+
+    ```bash
+    helm template ./deploy/argo-cd/components/license-service/helm-cluster-scoped | grep icr.io
+    ```
+
+    The output of the command will contain similar information:
+
+    ```
+    value: icr.io/cpopen/cpfs/ibm-licensing:4.2.21
+    image: icr.io/cpopen/ibm-licensing-operator:4.2.21
+    ```
+
+    For License Service Reporter, run the command against the standard Helm charts, not the cluster-scoped charts.
+
+
+    ```bash
+    helm template ./deploy/argo-cd/components/reporter/helm | grep icr.io
+    helm template ./deploy/argo-cd/components/scanner/helm | grep icr.io
+    ```
+
+    </details>
+
+5. To pull the required images, run the following command.
+
+    ```bash
+    docker pull icr.io/cpopen/ibm-licensing-operator:<version>
+    docker pull icr.io/cpopen/cpfs/ibm-licensing:<version>
+    ```
+
+6. Before you push the images to your private registry, ensure that you are logged in. Use the following command.
+
+    ```bash
+    docker login <docker_registry>
+    ```
+
+7. Tag the images with your registry prefix and push with the following commands.
+
+    ```bash
+    docker tag icr.io/cpopen/ibm-licensing-operator:<version> <docker_registry>/ibm-licensing-operator:<version>
+    docker push <docker_registry>/ibm-licensing-operator:<version>
+
+    docker tag icr.io/cpopen/cpfs/ibm-licensing:<version> <docker_registry>/ibm-licensing:<version>
+    docker push <docker_registry>/ibm-licensing:<version>
+    ```
+
+    For example, for the License Service image version 4.2.21, run the following commands.
+
+    ```bash
+    docker pull icr.io/cpopen/ibm-licensing-operator:4.2.21
+    docker tag icr.io/cpopen/ibm-licensing-operator:4.2.21 custom_repo.com/custom_namespace/ibm-licensing-operator:4.2.21
+    docker push custom_repo.com/custom_namespace/ibm-licensing-operator:4.2.21
+    ```
+
+8. Update the image registry configuration. For more information, see [Specifying image registry and image registry namespace](#specifying-image-registry-and-image-registry-namespace).
+
+    For example:
+
+    ```bash 
+    imagePullPrefix: custm_repo.com
+    imageRegistryNamespaceOperator: operator_custom_namespace #namespace that you used on images that contained `operator` in name
+    imageRegistryNamespaceOperand: operand_custom_namespace #namespace that you tagged on any other image
+    ```
+
+
 ## Installing
 
 ### Installing all components
@@ -223,13 +375,13 @@ To install all components, perform the following steps.
 - For EKS, by default `argocd`
 
   ```shell
-  kubectl project shift-gitops
+  kubectl config set-context --current --namespace=openshift-gitops
   ```
 
 2. Run the following command.
 
     ```shell
-    kubectl apply -f <path-to-cloned-repo>/applications
+    kubectl apply -f <path-to-cloned-repo>/deploy/argo-cd/applications
     ```
 
 **Note** Remember to `sync` after the applications are applied, or add the `auto-sync` option to your setup.
@@ -247,13 +399,13 @@ To install selected components separately, for example to install *IBM License S
 - For EKS, by default `argocd`
 
   ```shell
-  kubectl project shift-gitops
+  kubectl config set-context --current --namespace=openshift-gitops
   ```
 
 2. Run the following command.
 
     ```shell
-    kubectl apply -f<path-to-cloned-repo>/applications/license-service.yaml
+    kubectl apply -f<path-to-cloned-repo>/deploy/argo-cd/applications/license-service.yaml
     ```
 
 **Note:** Remember to `sync` after the applications are applied, or add the `auto-sync` option to your setup.
@@ -284,18 +436,18 @@ Helm installation support is in its alpha stage. To install the Licensing compon
 
 - IBM License Service:
 
-**Note:** License Service supports only cluster-scoped installation and only has a `helm-cluster-scoped` chart.
+  **Note:** License Service supports only cluster-scoped installation and only has a `helm-cluster-scoped` chart.
 
-```commandline
-helm install license-service ./components/license-service/helm-cluster-scoped
-```
+  ```commandline
+  helm install license-service ./components/license-service/helm-cluster-scoped
+  ```
 
 - IBM License Service Reporter:
 
-```commandline
-helm install reporter-cluster-scoped ./components/reporter/helm-cluster-scoped
-helm install reporter ./components/reporter/helm
-```
+  ```commandline
+  helm install reporter-cluster-scoped ./components/reporter/helm-cluster-scoped
+  helm install reporter ./components/reporter/helm
+  ```
 
 Commands such as `helm upgrade` should be functional. However, due to the alpha stage of the development, they can
 result in an unexpected state. Therefore, it is recommended to perform installation on a clean-state cluster.
