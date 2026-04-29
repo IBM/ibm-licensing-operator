@@ -86,3 +86,6 @@ config/crd/external/*.yaml
 config/rbac/*_ns.yaml
 marketplace.redhat.com_meterdefinitions.yaml
 .published-images.txt
+
+# Development helm charts
+ibm-*.tgz
