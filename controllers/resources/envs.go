@@ -34,6 +34,10 @@ func GetWatchNamespace() (string, error) {
 	if !found {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
+	if ns == "" {
+		return "", fmt.Errorf("%s is empty - cluster-wide mode requires proper OLM configuration",
+			watchNamespaceEnvVar)
+	}
 
 	return ns, nil
 }
