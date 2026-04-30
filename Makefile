@@ -80,6 +80,9 @@ PACKAGE=ibm-licensing-operator-app
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 
+# Sanitized branch name safe to use as a docker tag (matches sanitization in common/scripts/multiarch_image.sh)
+GIT_BRANCH_TAG=$(shell echo "$(GIT_BRANCH)" | sed 's/[^[:alnum:]._-]/-/g')
+
 # Identify tags created on current branch
 BRANCH_TAGS=$(shell git tag --merged ${GIT_BRANCH})
 
@@ -280,6 +283,11 @@ build-image: $(CONFIG_DOCKER_TARGET) build
 push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	$(call push_and_record,operator,$(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION))
+ifeq ($(LOCAL_ARCH),amd64)
+	@echo "Tagging the $(IMAGE_NAME)-$(LOCAL_ARCH) image with branch name $(GIT_BRANCH_TAG)..."
+	docker tag $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(GIT_BRANCH_TAG)
+	$(call push_and_record,operator,$(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(GIT_BRANCH_TAG))
+endif
 
 build-push-image-development: build-image-development push-image-development ## Build, push image
 
@@ -291,6 +299,11 @@ build-image-development: $(CONFIG_DOCKER_TARGET) build ## Create a docker image 
 push-image-development: $(CONFIG_DOCKER_TARGET) build-image-development ## Push previously created image to scratch registry
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	$(call push_and_record,operator,$(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION))
+ifeq ($(LOCAL_ARCH),amd64)
+	@echo "Tagging the $(IMAGE_NAME)-$(LOCAL_ARCH) image with branch name $(GIT_BRANCH_TAG)..."
+	docker tag $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(GIT_BRANCH_TAG)
+	$(call push_and_record,operator,$(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(GIT_BRANCH_TAG))
+endif
 
 ##@ SHA Digest section
 
