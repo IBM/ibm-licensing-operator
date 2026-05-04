@@ -73,7 +73,7 @@ IMAGE_CATALOG_NAME ?= ibm-licensing-operator-catalog
 IBM_LICENSING_IMAGE ?= ibm-licensing
 
 # Operator channels and package configuration
-CHANNELS=v3,v4.2
+CHANNELS=v4.2
 DEFAULT_CHANNEL=v4.2
 PACKAGE=ibm-licensing-operator-app
 
