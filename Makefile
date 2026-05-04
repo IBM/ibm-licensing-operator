@@ -30,6 +30,7 @@ GOIMPORTS_VERSION ?= v0.43.0
 SHELLCHECK_VERSION ?= v0.11.0
 YAMLLINT_VERSION ?= 1.37.1
 MDL_VERSION      ?= 0.15.0
+HELM_VERSION     ?= v4.1.4
 
 # Local bin directory for all project tools (gitignored)
 LOCALBIN := $(PWD)/bin
@@ -50,6 +51,7 @@ DETECT_SECRETS := $(LOCALBIN)/detect-secrets
 SHELLCHECK     := $(LOCALBIN)/shellcheck
 YAMLLINT       := $(LOCALBIN)/.venv/bin/yamllint
 MDL            := $(LOCALBIN)/mdl
+HELM           := $(LOCALBIN)/helm
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -189,7 +191,7 @@ endif
 
 DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 
-$(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
+$(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(GIT_COMMIT)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
 
 ifeq ($(BUILD_LOCALLY),0)
     ifneq ("$(realpath $(DEST))", "$(realpath $(PWD))")
@@ -659,13 +661,21 @@ $(MDL): $(LOCALBIN)
 	@test -x $(MDL) && echo "mdl already installed" || \
 		( echo "Installing mdl $(MDL_VERSION)..." && bash common/scripts/install-mdl.sh $(LOCALBIN) $(MDL_VERSION) )
 
+.PHONY: helm
+helm: $(HELM) ## Install helm if not present in LOCALBIN
+
+$(HELM): $(LOCALBIN)
+	@test -x $(HELM) && [ "$$($(HELM) version --template='{{.Version}}')" = "$(HELM_VERSION)" ] && echo "helm $(HELM_VERSION) already installed" || \
+		( echo "Installing helm $(HELM_VERSION)..." && \
+		  bash common/scripts/install-helm.sh $(LOCALBIN) $(HELM_VERSION) $(TARGET_OS) $(LOCAL_ARCH) )
+
 ifeq (, $(shell which podman))
 PODMAN=docker
 else
 PODMAN=podman
 endif
 
-.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard
+.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl helm install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard
 
 .PHONY: generate-yaml-argo-cd
 generate-yaml-argo-cd: kustomize yq
@@ -736,3 +746,75 @@ generate-yaml-argo-cd: kustomize yq
 	@cat ./common/makefile-generate/yaml-deployment-pull-secrets-part >> argo-cd/deployment.yaml
 
 	@rm argo-cd/tmp.yaml
+
+## Development Helm charts
+## those helm charts are only used for our testing, production helm charts are built and published by CI/CD team
+
+CHART_DESTINATION_BASE ?= https://na.artifactory.swg-devops.com/artifactory/hyc-cloud-private-scratch-helm-local
+CHART_DESTINATION_LS ?= $(CHART_DESTINATION_BASE)/ibm-licensing
+CHART_DESTINATION_LSR ?= $(CHART_DESTINATION_BASE)/ibm-license-service-reporter
+CHART_DESTINATION_LSS ?= $(CHART_DESTINATION_BASE)/ibm-license-service-scanner
+
+.PHONY: build/helm-develop-all
+build/helm-develop-all: build/helm-develop-ls build/helm-develop-lsr build/helm-develop-lss ## Build all development helm charts
+
+.PHONY: build/helm-develop-ls
+build/helm-develop-ls: helm yq ## Build IBM License Service development helm chart (cluster-scoped)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-ls \
+		SOURCE_DIR=deploy/argo-cd/components/license-service/helm-cluster-scoped \
+		IMAGE_SED_PATTERN="s|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g" \
+		VALUES_COMPONENT_PREFIX=ibmLicensing \
+		CHART_NAME=ibm-licensing-cluster-scoped \
+		CHART_DESTINATION=$(CHART_DESTINATION_LS)
+
+.PHONY: build/helm-develop-lsr
+build/helm-develop-lsr: helm yq ## Build IBM License Service Reporter development helm charts (namespace-scoped and cluster-scoped)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-lsr \
+		SOURCE_DIR=deploy/argo-cd/components/reporter/helm \
+		IMAGE_SED_PATTERN="s|ibm-postgresql:$(CSV_VERSION)|ibm-postgresql:$(GIT_BRANCH)|g; s|ibm-license-service-reporter:$(CSV_VERSION)|ibm-license-service-reporter:$(GIT_BRANCH)|g; s|ibm-license-service-reporter-ui:$(CSV_VERSION)|ibm-license-service-reporter-ui:$(GIT_BRANCH)|g; s|ibm-license-service-reporter-oauth2-proxy:$(CSV_VERSION)|ibm-license-service-reporter-oauth2-proxy:$(GIT_BRANCH)|g; s|ibm-license-service-reporter-operator:$(CSV_VERSION)|ibm-license-service-reporter-operator:$(GIT_BRANCH)|g" \
+		VALUES_COMPONENT_PREFIX=ibmLicenseServiceReporter \
+		CHART_NAME=ibm-license-service-reporter \
+		CHART_DESTINATION=$(CHART_DESTINATION_LSR)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-lsr-cluster-scoped \
+		SOURCE_DIR=deploy/argo-cd/components/reporter/helm-cluster-scoped \
+		IMAGE_SED_PATTERN="" \
+		VALUES_COMPONENT_PREFIX="" \
+		CHART_NAME=ibm-license-service-reporter-cluster-scoped \
+		CHART_DESTINATION=$(CHART_DESTINATION_LSR)
+
+.PHONY: build/helm-develop-lss
+build/helm-develop-lss: helm yq ## Build IBM License Service Scanner development helm charts (namespace-scoped and cluster-scoped)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-lss \
+		SOURCE_DIR=deploy/argo-cd/components/scanner/helm \
+		IMAGE_SED_PATTERN="s|ibm-license-service-scanner-operator:$(CSV_VERSION)|ibm-license-service-scanner-operator:$(GIT_BRANCH)|g; s|ibm-licensing-scanner:$(CSV_VERSION)|ibm-licensing-scanner:$(GIT_BRANCH)|g" \
+		VALUES_COMPONENT_PREFIX=ibmLicenseServiceScanner \
+		CHART_NAME=ibm-license-service-scanner \
+		CHART_DESTINATION=$(CHART_DESTINATION_LSS)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-lss-cluster-scoped \
+		SOURCE_DIR=deploy/argo-cd/components/scanner/helm-cluster-scoped \
+		IMAGE_SED_PATTERN="" \
+		VALUES_COMPONENT_PREFIX="" \
+		CHART_NAME=ibm-license-service-scanner-cluster-scoped \
+		CHART_DESTINATION=$(CHART_DESTINATION_LSS)
+
+# Helper target to build a single helm development chart
+# Usage: make build/helm-develop-chart TARGET_DIR=... SOURCE_DIR=... IMAGE_SED_PATTERN=... VALUES_COMPONENT_PREFIX=... CHART_NAME=...
+.PHONY: build/helm-develop-chart
+build/helm-develop-chart:
+	@bash common/scripts/build-helm-develop.sh \
+		$(TARGET_DIR) \
+		$(SOURCE_DIR) \
+		"$(IMAGE_SED_PATTERN)" \
+		"$(VALUES_COMPONENT_PREFIX)" \
+		$(CHART_NAME) \
+		$(CSV_VERSION) \
+		$(GIT_BRANCH) \
+		$(HELM) \
+		$(YQ) \
+		$(CHART_DESTINATION) \
+		$$ARTIFACTORY_TOKEN
