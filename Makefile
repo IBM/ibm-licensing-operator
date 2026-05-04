@@ -72,6 +72,9 @@ IMAGE_CATALOG_NAME ?= ibm-licensing-operator-catalog
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
 
+# Operand images for development
+OPERAND_IMAGE_DEV ?= $(SCRATCH_REGISTRY)/ibm-licensing
+
 # Operator channels and package configuration
 CHANNELS=v4.2
 DEFAULT_CHANNEL=v4.2
@@ -79,6 +82,13 @@ PACKAGE=ibm-licensing-operator-app
 
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+
+# Operand image tag - use branch name only for main, otherwise use develop as fallback
+ifeq ($(GIT_BRANCH),main)
+    OPERAND_IMAGE_TAG_DEV := main
+else
+    OPERAND_IMAGE_TAG_DEV := develop
+endif
 
 # Identify tags created on current branch
 BRANCH_TAGS=$(shell git tag --merged ${GIT_BRANCH})
@@ -521,7 +531,9 @@ endif
 catalogsource-development: opm yq
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${OPERAND_IMAGE_DEV}:${OPERAND_IMAGE_TAG_DEV}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.spec.relatedImages[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.spec.relatedImages[1].image = "${OPERAND_IMAGE_DEV}:${OPERAND_IMAGE_TAG_DEV}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
