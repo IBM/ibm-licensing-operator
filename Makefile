@@ -83,6 +83,9 @@ PACKAGE=ibm-licensing-operator-app
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 
+# Sanitized branch name safe to use as a docker tag (matches sanitization in common/scripts/multiarch_image.sh)
+GIT_BRANCH_TAG=$(shell echo "$(GIT_BRANCH)" | sed 's/[^[:alnum:]._-]/-/g')
+
 # Operand image tag - use branch name only for main, otherwise use develop as fallback
 ifeq ($(GIT_BRANCH),main)
     OPERAND_IMAGE_TAG_DEV := main
