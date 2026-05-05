@@ -201,6 +201,15 @@ endif
 
 DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 
+# Pushed images recorder as temp file
+PUBLISHED_IMAGES_FILE ?= .published-images.txt
+export PUBLISHED_IMAGES_FILE
+
+define push_and_record
+	docker push $(2)
+	@echo "$(1)|$(2)" >> $(PUBLISHED_IMAGES_FILE)
+endef
+
 $(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(GIT_COMMIT)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
 
 ifeq ($(BUILD_LOCALLY),0)
@@ -280,7 +289,12 @@ build-image: $(CONFIG_DOCKER_TARGET) build
 
 push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
+	$(call push_and_record,operator,$(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION))
+ifeq ($(LOCAL_ARCH),amd64)
+	@echo "Tagging the $(IMAGE_NAME)-$(LOCAL_ARCH) image with branch name $(GIT_BRANCH_TAG)..."
+	docker tag $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(GIT_BRANCH_TAG)
+	$(call push_and_record,operator,$(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(GIT_BRANCH_TAG))
+endif
 
 build-push-image-development: build-image-development push-image-development ## Build, push image
 
@@ -291,7 +305,12 @@ build-image-development: $(CONFIG_DOCKER_TARGET) build ## Create a docker image 
 
 push-image-development: $(CONFIG_DOCKER_TARGET) build-image-development ## Push previously created image to scratch registry
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker push $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
+	$(call push_and_record,operator,$(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION))
+ifeq ($(LOCAL_ARCH),amd64)
+	@echo "Tagging the $(IMAGE_NAME)-$(LOCAL_ARCH) image with branch name $(GIT_BRANCH_TAG)..."
+	docker tag $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(GIT_BRANCH_TAG)
+	$(call push_and_record,operator,$(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(GIT_BRANCH_TAG))
+endif
 
 ##@ SHA Digest section
 
@@ -519,12 +538,12 @@ catalogsource: opm yq
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
-	docker push ${REGISTRY}/${BUNDLE_IMG}
+	$(call push_and_record,bundle,${REGISTRY}/${BUNDLE_IMG})
 	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
-	docker push ${REGISTRY}/${CATALOG_IMG}
+	$(call push_and_record,catalog,${REGISTRY}/${CATALOG_IMG})
 ifneq (${DEVOPS_STREAM},)
 	docker tag ${REGISTRY}/${CATALOG_IMG} ${REGISTRY}/${DEVOPS_CATALOG_IMG}
-	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
+	$(call push_and_record,catalog,${REGISTRY}/${DEVOPS_CATALOG_IMG})
 endif
 
 # pipeline builds the catalog for you and already makes a multi-arch catalog, for amd64 we build it conditionally for dev purposes
@@ -537,9 +556,36 @@ catalogsource-development: opm yq
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
-	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
+	$(call push_and_record,bundle,${SCRATCH_REGISTRY}/${BUNDLE_IMG})
 	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
-	docker push ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG})
+
+.PHONY: print-published-images
+print-published-images: ## Print summary of all images recorded in $(PUBLISHED_IMAGES_FILE)
+	@if [ ! -s $(PUBLISHED_IMAGES_FILE) ]; then \
+		echo "No images recorded in $(PUBLISHED_IMAGES_FILE)"; \
+		exit 0; \
+	fi; \
+	echo ""; \
+	echo "=========================================="; \
+	echo "Published images"; \
+	echo "=========================================="; \
+	for entry in "operator:Operator (per-arch)" "manifest:Operator (multiarch manifest)" "bundle:Bundle" "catalog:Catalog"; do \
+		kind=$${entry%%:*}; \
+		label=$${entry#*:}; \
+		matches=$$(grep "^$$kind|" $(PUBLISHED_IMAGES_FILE) | cut -d'|' -f2-); \
+		if [ -n "$$matches" ]; then \
+			echo "$$label:"; \
+			echo "$$matches" | sed 's/^/  /'; \
+		fi; \
+	done; \
+	other=$$(grep -vE '^(operator|manifest|bundle|catalog)\|' $(PUBLISHED_IMAGES_FILE) | cut -d'|' -f2-); \
+	if [ -n "$$other" ]; then \
+		echo "Other:"; \
+		echo "$$other" | sed 's/^/  /'; \
+	fi; \
+	echo "=========================================="
+
 
 ############################################################
 # Installation section
@@ -687,7 +733,7 @@ else
 PODMAN=podman
 endif
 
-.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl helm install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard
+.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard print-published-images
 
 .PHONY: generate-yaml-argo-cd
 generate-yaml-argo-cd: kustomize yq
