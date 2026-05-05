@@ -65,6 +65,8 @@ tasks:
           source ./build_scripts/setup_env.sh
           source ./build_scripts/install_dependencies.sh
 
+          : > .published-images.txt
+
           echo "=========================================="
           echo "Building amd64 image"
           echo "=========================================="
@@ -101,6 +103,8 @@ tasks:
           echo "=========================================="
           echo "All builds completed successfully"
           echo "=========================================="
+
+          ARCH=amd64 make print-published-images
       - name: sign-artifact
         when: 'false'
       - name: scan-artifact
