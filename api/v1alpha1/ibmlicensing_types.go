@@ -100,6 +100,12 @@ type IBMLicensingSpec struct {
 	// +optional
 	RouteEnabled *bool `json:"routeEnabled,omitempty"`
 
+	// Should RBAC resources (ServiceAccounts, Roles, RoleBindings) be created for operand
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Create RBAC",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +kubebuilder:default=true
+	// +optional
+	CreateRBAC *bool `json:"createRBAC,omitempty"`
+
 	// Is Red Hat Marketplace enabled
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="RHMP Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional

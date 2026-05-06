@@ -40,7 +40,11 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 		}
 	}
 
-	serviceAccount := GetServiceAccountName(instance)
+	var serviceAccount string
+	if ShouldCreateRBAC(instance) {
+		serviceAccount = GetServiceAccountName(instance)
+	}
+
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        GetResourceName(instance),

@@ -1,3 +1,4 @@
+{{- if .Values.ibmLicensing.createRBAC}}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -271,3 +272,4 @@ subjects:
   - kind: ServiceAccount
     name: ibm-licensing-operator
     namespace: {{ .Values.ibmLicensing.namespace }}
+{{- end}}

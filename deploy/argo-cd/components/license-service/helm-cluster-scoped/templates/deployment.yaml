@@ -100,7 +100,9 @@ spec:
             runAsNonRoot: true
             seccompProfile:
               type: RuntimeDefault
+      {{- if .Values.ibmLicensing.createRBAC }}
       serviceAccountName: ibm-licensing-operator
+      {{- end }}
       {{ if .Values.global.imagePullSecret }}
       imagePullSecrets:
         - name: {{ .Values.global.imagePullSecret }}
