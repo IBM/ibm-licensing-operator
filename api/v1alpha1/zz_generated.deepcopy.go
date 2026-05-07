@@ -455,6 +455,11 @@ func (in *IBMLicensingSpec) DeepCopyInto(out *IBMLicensingSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.NodeCpuCappingEnabled != nil {
+		in, out := &in.NodeCpuCappingEnabled, &out.NodeCpuCappingEnabled
+		*out = new(bool)
+		**out = **in
+	}
 	if in.ChargebackRetentionPeriod != nil {
 		in, out := &in.ChargebackRetentionPeriod, &out.ChargebackRetentionPeriod
 		*out = new(int)

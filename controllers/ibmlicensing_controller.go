@@ -31,6 +31,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	apieq "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metaErrors "k8s.io/apimachinery/pkg/api/meta"
@@ -153,6 +154,13 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get
+// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=clusterroles;clusterrolebindings,verbs=get;list;watch;create;update;patch;delete
+
+// Allow the operator to create/manage the operand-facing ClusterRole granting node access without
+// holding node permissions itself: escalate bypasses RBAC privilege-escalation prevention on
+// ClusterRole rules, bind allows creating ClusterRoleBindings that reference such roles.
+// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=clusterroles,verbs=escalate;bind
+// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=clusterrolebindings,verbs=bind
 
 func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Request) (reconcile.Result, error) {
 
@@ -262,6 +270,7 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		r.reconcileCertificateSecrets,
 		r.reconcileRouteWithCertificates,
 		r.reconcileConfigMaps,
+		r.reconcileNodeAccessRBAC,
 		r.reconcileDeployment,
 		r.reconcileNetworkPolicy,
 		r.reconcileExposure,
@@ -1363,6 +1372,88 @@ func (r *IBMLicensingReconciler) reconcileNamespacedResourceWhichShouldNotExist(
 
 	namespacedName := types.NamespacedName{Name: expectedRes.GetName(), Namespace: expectedRes.GetNamespace()}
 	return r.reconcileResourceWhichShouldNotExist(instance, expectedRes, foundRes, namespacedName)
+}
+
+// reconcileNodeAccessRBAC creates or removes the cluster-scoped ClusterRole and
+// ClusterRoleBinding granting the operand access to the Node API. The lifecycle
+// is gated on spec.NodeCpuCappingEnabled (default true).
+//
+// Owner references are not set: cluster-scoped resources cannot be GC'd from a
+// namespaced owner. The CR is cluster-scoped and singleton in practice, so the
+// resources persist after CR deletion until operator uninstall (consistent with
+// the prior static-RBAC behavior).
+func (r *IBMLicensingReconciler) reconcileNodeAccessRBAC(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcileNodeAccessRBAC", "Entry", "instance.GetName()", instance.GetName())
+
+	expectedRole := service.GetExpectedNodeClusterRole(instance)
+	expectedBinding := service.GetExpectedNodeClusterRoleBinding(instance)
+
+	if !instance.Spec.IsNodeCpuCappingEnabled() {
+		// Disabled: ensure neither resource exists.
+		foundBinding := &rbacv1.ClusterRoleBinding{}
+		if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: expectedBinding.Name}, foundBinding); err == nil {
+			if result, err := res.DeleteResource(&reqLogger, r.Client, foundBinding); err != nil || result.Requeue {
+				return result, err
+			}
+		} else if !apierrors.IsNotFound(err) {
+			return reconcile.Result{}, err
+		}
+		foundRole := &rbacv1.ClusterRole{}
+		if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: expectedRole.Name}, foundRole); err == nil {
+			return res.DeleteResource(&reqLogger, r.Client, foundRole)
+		} else if !apierrors.IsNotFound(err) {
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{}, nil
+	}
+
+	if result, err := r.reconcileClusterRole(instance, expectedRole); err != nil || result.Requeue {
+		return result, err
+	}
+	return r.reconcileClusterRoleBinding(instance, expectedBinding)
+}
+
+func (r *IBMLicensingReconciler) reconcileClusterRole(instance *operatorv1alpha1.IBMLicensing, expected *rbacv1.ClusterRole) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("ClusterRole", expected.Name, "instance.GetName()", instance.GetName())
+	found := &rbacv1.ClusterRole{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: expected.Name}, found)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			reqLogger.Info("Creating ClusterRole")
+			if createErr := r.Client.Create(context.TODO(), expected); createErr != nil && !apierrors.IsAlreadyExists(createErr) {
+				reqLogger.Error(createErr, "Failed to create ClusterRole")
+				return reconcile.Result{}, createErr
+			}
+			return reconcile.Result{}, nil
+		}
+		return reconcile.Result{}, err
+	}
+	if !reflect.DeepEqual(found.Rules, expected.Rules) {
+		return res.UpdateResource(&reqLogger, r.Client, expected, found)
+	}
+	return reconcile.Result{}, nil
+}
+
+func (r *IBMLicensingReconciler) reconcileClusterRoleBinding(instance *operatorv1alpha1.IBMLicensing, expected *rbacv1.ClusterRoleBinding) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("ClusterRoleBinding", expected.Name, "instance.GetName()", instance.GetName())
+	found := &rbacv1.ClusterRoleBinding{}
+	err := r.Client.Get(context.TODO(), types.NamespacedName{Name: expected.Name}, found)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			reqLogger.Info("Creating ClusterRoleBinding")
+			if createErr := r.Client.Create(context.TODO(), expected); createErr != nil && !apierrors.IsAlreadyExists(createErr) {
+				reqLogger.Error(createErr, "Failed to create ClusterRoleBinding")
+				return reconcile.Result{}, createErr
+			}
+			return reconcile.Result{}, nil
+		}
+		return reconcile.Result{}, err
+	}
+	// RoleRef is immutable; only reconcile subjects.
+	if !reflect.DeepEqual(found.Subjects, expected.Subjects) || !reflect.DeepEqual(found.RoleRef, expected.RoleRef) {
+		return res.UpdateResource(&reqLogger, r.Client, expected, found)
+	}
+	return reconcile.Result{}, nil
 }
 
 func (r *IBMLicensingReconciler) reconcileResourceWhichShouldNotExist(

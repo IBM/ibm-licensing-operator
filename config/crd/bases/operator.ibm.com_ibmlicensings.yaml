@@ -241,6 +241,12 @@ spec:
                 - INFO
                 - VERBOSE
                 type: string
+              nodeCpuCappingEnabled:
+                default: true
+                description: |-
+                  Enables node CPU capping. When false, the operand will not access the node
+                  API and no RBAC granting node access will be created. Default true.
+                type: boolean
               resources:
                 description: ResourceRequirements describes the compute resource requirements.
                 properties:

@@ -8,7 +8,6 @@ rules:
     resources:
       - pods
       - namespaces
-      - nodes
     verbs:
       - get
       - list
@@ -97,7 +96,6 @@ rules:
       - ""
     resources:
       - namespaces
-      - nodes
     verbs:
       - get
       - list
