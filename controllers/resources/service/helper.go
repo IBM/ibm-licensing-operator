@@ -73,10 +73,6 @@ func GetServiceAccountName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingServiceAccount
 }
 
-func ShouldCreateRBAC(instance *operatorv1alpha1.IBMLicensing) bool {
-	return instance.Spec.CreateRBAC == nil || *instance.Spec.CreateRBAC
-}
-
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
 }
