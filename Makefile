@@ -30,6 +30,7 @@ GOIMPORTS_VERSION ?= v0.43.0
 SHELLCHECK_VERSION ?= v0.11.0
 YAMLLINT_VERSION ?= 1.37.1
 MDL_VERSION      ?= 0.15.0
+HELM_VERSION     ?= v4.1.4
 
 # Local bin directory for all project tools (gitignored)
 LOCALBIN := $(PWD)/bin
@@ -50,6 +51,7 @@ DETECT_SECRETS := $(LOCALBIN)/detect-secrets
 SHELLCHECK     := $(LOCALBIN)/shellcheck
 YAMLLINT       := $(LOCALBIN)/.venv/bin/yamllint
 MDL            := $(LOCALBIN)/mdl
+HELM           := $(LOCALBIN)/helm
 
 # This repo is build locally for dev/test by default;
 # Override this variable in CI env.
@@ -70,11 +72,26 @@ IMAGE_CATALOG_NAME ?= ibm-licensing-operator-catalog
 
 IBM_LICENSING_IMAGE ?= ibm-licensing
 
+# Operand images for development
+OPERAND_IMAGE_DEV ?= $(SCRATCH_REGISTRY)/ibm-licensing
+
+# Operator channels and package configuration
 CHANNELS=v4.2
 DEFAULT_CHANNEL=v4.2
+PACKAGE=ibm-licensing-operator-app
 
 # Identify default channel based on tag of parent branch
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+
+# Sanitized branch name safe to use as a docker tag (matches sanitization in common/scripts/multiarch_image.sh)
+GIT_BRANCH_TAG=$(shell echo "$(GIT_BRANCH)" | sed 's/[^[:alnum:]._-]/-/g')
+
+# Operand image tag - use branch name only for main, otherwise use develop as fallback
+ifeq ($(GIT_BRANCH),main)
+    OPERAND_IMAGE_TAG_DEV := main
+else
+    OPERAND_IMAGE_TAG_DEV := develop
+endif
 
 # Identify tags created on current branch
 BRANCH_TAGS=$(shell git tag --merged ${GIT_BRANCH})
@@ -180,18 +197,23 @@ CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
 DEVOPS_STREAM :=
 ifeq ($(GIT_BRANCH),master)
 	DEVOPS_STREAM="cd"
-	DEFAULT_CHANNEL=v4.0
 else ifeq ($(GIT_BRANCH),release-ltsr)
 	DEVOPS_STREAM="ltsr"
 	DEFAULT_CHANNEL=v3
-else ifeq ($(GIT_BRANCH),release-future)
-	DEVOPS_STREAM="future"
-	DEFAULT_CHANNEL=v4.0
 endif
 
 DEVOPS_CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(DEVOPS_STREAM)
 
-$(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(IMAGE_VERSION)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
+# Pushed images recorder as temp file
+PUBLISHED_IMAGES_FILE ?= .published-images.txt
+export PUBLISHED_IMAGES_FILE
+
+define push_and_record
+	docker push $(2)
+	@echo "$(1)|$(2)" >> $(PUBLISHED_IMAGES_FILE)
+endef
+
+$(eval DOCKER_BUILD_OPTS := --build-arg "IMAGE_NAME=$(IMAGE_NAME)" --build-arg "IMAGE_DISPLAY_NAME=$(IMAGE_DISPLAY_NAME)" --build-arg "IMAGE_MAINTAINER=$(IMAGE_MAINTAINER)" --build-arg "IMAGE_VENDOR=$(IMAGE_VENDOR)" --build-arg "IMAGE_VERSION=$(GIT_COMMIT)" --build-arg "VERSION=$(CSV_VERSION)" --build-arg "IMAGE_RELEASE=$(IMAGE_RELEASE)"  --build-arg "IMAGE_BUILDDATE=$(IMAGE_BUILDDATE)" --build-arg "IMAGE_DESCRIPTION=$(IMAGE_DESCRIPTION)" --build-arg "IMAGE_SUMMARY=$(IMAGE_SUMMARY)" --build-arg "IMAGE_OPENSHIFT_TAGS=$(IMAGE_OPENSHIFT_TAGS)" --build-arg "VCS_REF=$(VCS_REF)" --build-arg "IMAGE_NAME_ARCH=$(IMAGE_NAME)-$(LOCAL_ARCH)")
 
 ifeq ($(BUILD_LOCALLY),0)
     ifneq ("$(realpath $(DEST))", "$(realpath $(PWD))")
@@ -270,7 +292,12 @@ build-image: $(CONFIG_DOCKER_TARGET) build
 
 push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
+	$(call push_and_record,operator,$(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION))
+ifeq ($(LOCAL_ARCH),amd64)
+	@echo "Tagging the $(IMAGE_NAME)-$(LOCAL_ARCH) image with branch name $(GIT_BRANCH_TAG)..."
+	docker tag $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(GIT_BRANCH_TAG)
+	$(call push_and_record,operator,$(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(GIT_BRANCH_TAG))
+endif
 
 build-push-image-development: build-image-development push-image-development ## Build, push image
 
@@ -281,7 +308,12 @@ build-image-development: $(CONFIG_DOCKER_TARGET) build ## Create a docker image 
 
 push-image-development: $(CONFIG_DOCKER_TARGET) build-image-development ## Push previously created image to scratch registry
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
-	@docker push $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
+	$(call push_and_record,operator,$(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION))
+ifeq ($(LOCAL_ARCH),amd64)
+	@echo "Tagging the $(IMAGE_NAME)-$(LOCAL_ARCH) image with branch name $(GIT_BRANCH_TAG)..."
+	docker tag $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(GIT_BRANCH_TAG)
+	$(call push_and_record,operator,$(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(GIT_BRANCH_TAG))
+endif
 
 ##@ SHA Digest section
 
@@ -472,6 +504,7 @@ alm-example: yq
 pre-bundle: generate manifests operator-sdk kustomize yq
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
+	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.package.v1" = "${PACKAGE}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."com.redhat.openshift.versions" = "v4.12"' ./bundle/metadata/annotations.yaml
 	$(YQ) '.spec.customresourcedefinitions.owned[0]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_definitions.yaml
 	$(YQ) '.spec.customresourcedefinitions.owned[1]' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml > yq_tmp_metadata.yaml
@@ -508,25 +541,54 @@ catalogsource: opm yq
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${REGISTRY}/${BUNDLE_IMG} .
-	docker push ${REGISTRY}/${BUNDLE_IMG}
+	$(call push_and_record,bundle,${REGISTRY}/${BUNDLE_IMG})
 	$(OPM) index add --permissive -c ${PODMAN} --bundles ${REGISTRY}/${BUNDLE_IMG} --tag ${REGISTRY}/${CATALOG_IMG}
-	docker push ${REGISTRY}/${CATALOG_IMG}
+	$(call push_and_record,catalog,${REGISTRY}/${CATALOG_IMG})
 ifneq (${DEVOPS_STREAM},)
 	docker tag ${REGISTRY}/${CATALOG_IMG} ${REGISTRY}/${DEVOPS_CATALOG_IMG}
-	docker push ${REGISTRY}/${DEVOPS_CATALOG_IMG}
+	$(call push_and_record,catalog,${REGISTRY}/${DEVOPS_CATALOG_IMG})
 endif
 
 # pipeline builds the catalog for you and already makes a multi-arch catalog, for amd64 we build it conditionally for dev purposes
 catalogsource-development: opm yq
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.spec.relatedImages[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.spec.relatedImages[1].image = "${OPERAND_IMAGE_DEV}:${OPERAND_IMAGE_TAG_DEV}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${OPERAND_IMAGE_DEV}:${OPERAND_IMAGE_TAG_DEV}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
-	docker push ${SCRATCH_REGISTRY}/${BUNDLE_IMG}
-	$(OPM) index add --permissive  -c ${PODMAN}  --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
-	docker push  ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	$(call push_and_record,bundle,${SCRATCH_REGISTRY}/${BUNDLE_IMG})
+	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
+	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG})
+
+.PHONY: print-published-images
+print-published-images: ## Print summary of all images recorded in $(PUBLISHED_IMAGES_FILE)
+	@if [ ! -s $(PUBLISHED_IMAGES_FILE) ]; then \
+		echo "No images recorded in $(PUBLISHED_IMAGES_FILE)"; \
+		exit 0; \
+	fi; \
+	echo ""; \
+	echo "=========================================="; \
+	echo "Published images"; \
+	echo "=========================================="; \
+	for entry in "operator:Operator (per-arch)" "manifest:Operator (multiarch manifest)" "bundle:Bundle" "catalog:Catalog"; do \
+		kind=$${entry%%:*}; \
+		label=$${entry#*:}; \
+		matches=$$(grep "^$$kind|" $(PUBLISHED_IMAGES_FILE) | cut -d'|' -f2-); \
+		if [ -n "$$matches" ]; then \
+			echo "$$label:"; \
+			echo "$$matches" | sed 's/^/  /'; \
+		fi; \
+	done; \
+	other=$$(grep -vE '^(operator|manifest|bundle|catalog)\|' $(PUBLISHED_IMAGES_FILE) | cut -d'|' -f2-); \
+	if [ -n "$$other" ]; then \
+		echo "Other:"; \
+		echo "$$other" | sed 's/^/  /'; \
+	fi; \
+	echo "=========================================="
+
 
 ############################################################
 # Installation section
@@ -660,13 +722,21 @@ $(MDL): $(LOCALBIN)
 	@test -x $(MDL) && echo "mdl already installed" || \
 		( echo "Installing mdl $(MDL_VERSION)..." && bash common/scripts/install-mdl.sh $(LOCALBIN) $(MDL_VERSION) )
 
+.PHONY: helm
+helm: $(HELM) ## Install helm if not present in LOCALBIN
+
+$(HELM): $(LOCALBIN)
+	@test -x $(HELM) && [ "$$($(HELM) version --template='{{.Version}}')" = "$(HELM_VERSION)" ] && echo "helm $(HELM_VERSION) already installed" || \
+		( echo "Installing helm $(HELM_VERSION)..." && \
+		  bash common/scripts/install-helm.sh $(LOCALBIN) $(HELM_VERSION) $(TARGET_OS) $(LOCAL_ARCH) )
+
 ifeq (, $(shell which podman))
 PODMAN=docker
 else
 PODMAN=podman
 endif
 
-.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard
+.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard print-published-images
 
 .PHONY: generate-yaml-argo-cd
 generate-yaml-argo-cd: kustomize yq
@@ -737,3 +807,75 @@ generate-yaml-argo-cd: kustomize yq
 	@cat ./common/makefile-generate/yaml-deployment-pull-secrets-part >> argo-cd/deployment.yaml
 
 	@rm argo-cd/tmp.yaml
+
+## Development Helm charts
+## those helm charts are only used for our testing, production helm charts are built and published by CI/CD team
+
+CHART_DESTINATION_BASE ?= https://na.artifactory.swg-devops.com/artifactory/hyc-cloud-private-scratch-helm-local
+CHART_DESTINATION_LS ?= $(CHART_DESTINATION_BASE)/ibm-licensing
+CHART_DESTINATION_LSR ?= $(CHART_DESTINATION_BASE)/ibm-license-service-reporter
+CHART_DESTINATION_LSS ?= $(CHART_DESTINATION_BASE)/ibm-license-service-scanner
+
+.PHONY: build/helm-develop-all
+build/helm-develop-all: build/helm-develop-ls build/helm-develop-lsr build/helm-develop-lss ## Build all development helm charts
+
+.PHONY: build/helm-develop-ls
+build/helm-develop-ls: helm yq ## Build IBM License Service development helm chart (cluster-scoped)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-ls \
+		SOURCE_DIR=deploy/argo-cd/components/license-service/helm-cluster-scoped \
+		IMAGE_SED_PATTERN="s|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g" \
+		VALUES_COMPONENT_PREFIX=ibmLicensing \
+		CHART_NAME=ibm-licensing-cluster-scoped \
+		CHART_DESTINATION=$(CHART_DESTINATION_LS)
+
+.PHONY: build/helm-develop-lsr
+build/helm-develop-lsr: helm yq ## Build IBM License Service Reporter development helm charts (namespace-scoped and cluster-scoped)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-lsr \
+		SOURCE_DIR=deploy/argo-cd/components/reporter/helm \
+		IMAGE_SED_PATTERN="s|ibm-postgresql:$(CSV_VERSION)|ibm-postgresql:$(GIT_BRANCH)|g; s|ibm-license-service-reporter:$(CSV_VERSION)|ibm-license-service-reporter:$(GIT_BRANCH)|g; s|ibm-license-service-reporter-ui:$(CSV_VERSION)|ibm-license-service-reporter-ui:$(GIT_BRANCH)|g; s|ibm-license-service-reporter-oauth2-proxy:$(CSV_VERSION)|ibm-license-service-reporter-oauth2-proxy:$(GIT_BRANCH)|g; s|ibm-license-service-reporter-operator:$(CSV_VERSION)|ibm-license-service-reporter-operator:$(GIT_BRANCH)|g" \
+		VALUES_COMPONENT_PREFIX=ibmLicenseServiceReporter \
+		CHART_NAME=ibm-license-service-reporter \
+		CHART_DESTINATION=$(CHART_DESTINATION_LSR)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-lsr-cluster-scoped \
+		SOURCE_DIR=deploy/argo-cd/components/reporter/helm-cluster-scoped \
+		IMAGE_SED_PATTERN="" \
+		VALUES_COMPONENT_PREFIX="" \
+		CHART_NAME=ibm-license-service-reporter-cluster-scoped \
+		CHART_DESTINATION=$(CHART_DESTINATION_LSR)
+
+.PHONY: build/helm-develop-lss
+build/helm-develop-lss: helm yq ## Build IBM License Service Scanner development helm charts (namespace-scoped and cluster-scoped)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-lss \
+		SOURCE_DIR=deploy/argo-cd/components/scanner/helm \
+		IMAGE_SED_PATTERN="s|ibm-license-service-scanner-operator:$(CSV_VERSION)|ibm-license-service-scanner-operator:$(GIT_BRANCH)|g; s|ibm-licensing-scanner:$(CSV_VERSION)|ibm-licensing-scanner:$(GIT_BRANCH)|g" \
+		VALUES_COMPONENT_PREFIX=ibmLicenseServiceScanner \
+		CHART_NAME=ibm-license-service-scanner \
+		CHART_DESTINATION=$(CHART_DESTINATION_LSS)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-lss-cluster-scoped \
+		SOURCE_DIR=deploy/argo-cd/components/scanner/helm-cluster-scoped \
+		IMAGE_SED_PATTERN="" \
+		VALUES_COMPONENT_PREFIX="" \
+		CHART_NAME=ibm-license-service-scanner-cluster-scoped \
+		CHART_DESTINATION=$(CHART_DESTINATION_LSS)
+
+# Helper target to build a single helm development chart
+# Usage: make build/helm-develop-chart TARGET_DIR=... SOURCE_DIR=... IMAGE_SED_PATTERN=... VALUES_COMPONENT_PREFIX=... CHART_NAME=...
+.PHONY: build/helm-develop-chart
+build/helm-develop-chart:
+	@bash common/scripts/build-helm-develop.sh \
+		$(TARGET_DIR) \
+		$(SOURCE_DIR) \
+		"$(IMAGE_SED_PATTERN)" \
+		"$(VALUES_COMPONENT_PREFIX)" \
+		$(CHART_NAME) \
+		$(CSV_VERSION) \
+		$(GIT_BRANCH) \
+		$(HELM) \
+		$(YQ) \
+		$(CHART_DESTINATION) \
+		$$ARTIFACTORY_TOKEN
