@@ -53,4 +53,4 @@ subjects:
     name: ibm-licensing-operator
     namespace: {{ .Values.ibmLicensing.namespace }}
 ---
-{{- end}}
+{{- end }}

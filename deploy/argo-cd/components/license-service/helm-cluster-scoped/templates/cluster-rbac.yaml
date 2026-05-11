@@ -269,4 +269,4 @@ subjects:
   - kind: ServiceAccount
     name: ibm-license-service
     namespace: {{ .Values.ibmLicensing.namespace }}
-{{- end}}
+{{- end }}
