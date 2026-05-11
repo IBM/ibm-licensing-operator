@@ -22,6 +22,7 @@ import (
 	"reflect"
 	goruntime "runtime"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -222,6 +223,17 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		res.IsAlertingEnabledByDefault, r.OperatorNamespace)
 	if err != nil {
 		return reconcile.Result{}, err
+	}
+
+	if instance.Spec.GatewayOptions == nil {
+		instance.Spec.GatewayOptions = &operatorv1alpha1.IBMLicensingGatewayOptions{}
+		isOCPCluster := res.IsRouteAPI || res.IsServiceCAAPI
+		instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift = isOCPCluster
+	} else {
+		isOCPCluster := res.IsRouteAPI || res.IsServiceCAAPI
+		if !isOCPCluster && instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift {
+			reqLogger.Info("Warning: enableGatewayAPIOpenshift is set to true on non-OpenShift cluster. This flag is ignored on Kubernetes clusters where Gateway API logging is always enabled.")
+		}
 	}
 
 	// Validate Software Central configuration
@@ -946,6 +958,7 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 }
 
 func (r *IBMLicensingReconciler) reconcileExposure(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
+
 	if !instance.Spec.IsGatewayEnabled() {
 		return r.cleanupGatewayResources(instance)
 	}
@@ -1002,7 +1015,7 @@ func (r *IBMLicensingReconciler) reconcileGateway(instance *operatorv1alpha1.IBM
 	if err != nil || result.Requeue {
 		return result, err
 	}
-	if found.GetName() != "" {
+	if found.GetName() != "" && !res.IsRouteAPI && !res.IsServiceCAAPI {
 		if len(found.Status.Addresses) > 0 {
 			for _, addr := range found.Status.Addresses {
 				if addr.Type != nil && *addr.Type == gatewayv1.HostnameAddressType {
@@ -1024,7 +1037,6 @@ func (r *IBMLicensingReconciler) reconcileHTTPRoute(instance *operatorv1alpha1.I
 }
 
 func (r *IBMLicensingReconciler) reconcileGatewayConfigMap(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-
 	sourceConfigMapName := "ibm-licensing-upload-config"
 	sourceConfigMap := &corev1.ConfigMap{}
 	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: sourceConfigMapName, Namespace: instance.Spec.InstanceNamespace}, sourceConfigMap); err != nil {
@@ -1043,11 +1055,70 @@ func (r *IBMLicensingReconciler) reconcileGatewayConfigMap(instance *operatorv1a
 	return r.reconcileExpectedGatewayResource(instance, expectedConfigMap, foundConfigMap)
 
 }
-func (r *IBMLicensingReconciler) reconcileTLSBackendPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 
+func (r *IBMLicensingReconciler) reconcileTLSBackendPolicy(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	policy := service.GetBackendTLSPolicy(instance)
 	foundPolicy := &gatewayv1.BackendTLSPolicy{}
 	return r.reconcileExpectedGatewayResource(instance, policy, foundPolicy)
+}
+
+/*
+isSystemAnnotation returns true for annotations managed by Kubernetes or
+other infrastructure controllers (e.g. deployment.kubernetes.io/revision)
+that should be preserved during resource updates.
+*/
+func isSystemAnnotation(key string) bool {
+	return strings.Contains(key, "kubernetes.io/") || strings.Contains(key, "k8s.io/")
+}
+
+func isGatewayResource(resType reflect.Type) bool {
+	return resType == reflect.TypeOf(&gatewayv1.Gateway{}) ||
+		resType == reflect.TypeOf(&gatewayv1.HTTPRoute{}) ||
+		resType == reflect.TypeOf(&gatewayv1.BackendTLSPolicy{}) ||
+		resType == reflect.TypeOf(&corev1.ConfigMap{})
+}
+
+func shouldLogGatewayResourceStatus(instance *operatorv1alpha1.IBMLicensing, resType reflect.Type) bool {
+	isOCPCluster := res.IsRouteAPI || res.IsServiceCAAPI
+	isGatewayRes := isGatewayResource(resType)
+
+	if !isGatewayRes {
+		return true
+	}
+
+	if !isOCPCluster {
+		return true
+	}
+
+	gatewayAPIEnabled := instance.Spec.GatewayOptions != nil &&
+		instance.Spec.GatewayOptions.EnableGatewayAPIOpenshift
+
+	return gatewayAPIEnabled
+}
+
+/*
+operatorAnnotationsMatch checks whether the operator-managed annotations
+(i.e. non-system annotations) on the found resource match the expected ones.
+System annotations added by Kubernetes are ignored in the comparison.
+*/
+func operatorAnnotationsMatch(found, expected map[string]string) bool {
+	// Check if values in expected annotations match values in found annotations
+	for k, v := range expected {
+		if found[k] != v {
+			return false
+		}
+	}
+
+	// Check if values in found annotations match values in expected annotations
+	for k := range found {
+		if isSystemAnnotation(k) {
+			continue // Ignore system annotations
+		}
+		if _, ok := expected[k]; !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *operatorv1alpha1.IBMLicensing, expected client.Object, found client.Object) (reconcile.Result, error) {
@@ -1058,13 +1129,15 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 	}
 	// handling not installed CRD
 	if found.GetName() == "" {
-		reqLogger.Info("Resource not found (CRD likely not installed), skipping update check see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
+		isNonOCPCluster := !res.IsRouteAPI && !res.IsServiceCAAPI
+		if isNonOCPCluster {
+			reqLogger.Info("Resource not found (CRD likely not installed), skipping update check see documentation about needed cluster extensions ibm.biz/LS_gateway_API")
+		}
+
 		return reconcile.Result{}, nil
 	}
 	needsUpdate := false
-	if !res.MapHasAllPairsFromOther(found.GetLabels(), expected.GetLabels()) {
-		needsUpdate = true
-	} else if !res.MapHasAllPairsFromOther(found.GetAnnotations(), expected.GetAnnotations()) {
+	if !res.MapHasAllPairsFromOther(found.GetLabels(), expected.GetLabels()) || !operatorAnnotationsMatch(found.GetAnnotations(), expected.GetAnnotations()) {
 		needsUpdate = true
 	} else {
 		switch e := expected.(type) {
@@ -1091,6 +1164,15 @@ func (r *IBMLicensingReconciler) reconcileExpectedGatewayResource(instance *oper
 		}
 	}
 	if needsUpdate {
+		// Only preserve system annotations from the found resource so that attachExistingAnnotations (called by UpdateResource)
+		// does not copy stale operator-managed annotations back into the expected resource.
+		systemAnnotations := make(map[string]string)
+		for k, v := range found.GetAnnotations() {
+			if isSystemAnnotation(k) {
+				systemAnnotations[k] = v
+			}
+		}
+		found.SetAnnotations(systemAnnotations)
 		return res.UpdateResource(&reqLogger, r.Client, expected, found)
 	}
 	return reconcile.Result{}, nil
@@ -1259,15 +1341,20 @@ func (r *IBMLicensingReconciler) reconcileResourceExistence(
 				"Namespace", expectedRes.GetNamespace())
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
 		} else if metaErrors.IsNoMatchError(err) {
-			reqLogger.Info("CRD for "+resType.String()+" not installed, skipping", "Name", expectedRes.GetName(),
-				"Namespace", expectedRes.GetNamespace())
+			if shouldLogGatewayResourceStatus(instance, resType) {
+				reqLogger.Info("CRD for "+resType.String()+" not installed, skipping", "Name", expectedRes.GetName(),
+					"Namespace", expectedRes.GetNamespace())
+			}
 			return reconcile.Result{}, nil
 		}
 		reqLogger.Error(err, "Failed to get "+resType.String(), "Name", expectedRes.GetName(),
 			"Namespace", expectedRes.GetNamespace())
 		return reconcile.Result{}, err
 	}
-	reqLogger.Info(resType.String() + " exists!")
+
+	if shouldLogGatewayResourceStatus(instance, resType) {
+		reqLogger.Info(resType.String() + " exists!")
+	}
 	return reconcile.Result{}, nil
 }
 
