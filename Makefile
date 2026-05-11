@@ -191,7 +191,8 @@ IMAGE_BUILDDATE=$(BUILD_DATE)
 GIT_REMOTE_URL = $(shell git config --get remote.origin.url)
 
 BUNDLE_IMG ?= $(IMAGE_BUNDLE_NAME)-$(LOCAL_ARCH):$(VERSION)
-CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
+CATALOG_IMG_BASE ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH)
+CATALOG_IMG ?= $(CATALOG_IMG_BASE):$(VERSION)
 
 # Identify stream based in current git branch
 DEVOPS_STREAM :=
@@ -560,10 +561,10 @@ catalogsource-development: opm yq
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 	$(call push_and_record,bundle,${SCRATCH_REGISTRY}/${BUNDLE_IMG})
-	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}:${GIT_COMMIT}
-	docker tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}:${GIT_COMMIT} ${SCRATCH_REGISTRY}/${CATALOG_IMG}:${GIT_BRANCH_TAG}
-	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG}:${GIT_COMMIT})
-	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG}:${GIT_BRANCH_TAG})
+	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG_BASE}:${GIT_COMMIT}
+	docker tag ${SCRATCH_REGISTRY}/${CATALOG_IMG_BASE}:${GIT_COMMIT} ${SCRATCH_REGISTRY}/${CATALOG_IMG_BASE}:${GIT_BRANCH_TAG}
+	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG_BASE}:${GIT_COMMIT})
+	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG_BASE}:${GIT_BRANCH_TAG})
 
 
 .PHONY: print-published-images
