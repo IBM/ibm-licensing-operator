@@ -560,8 +560,11 @@ catalogsource-development: opm yq
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 	$(call push_and_record,bundle,${SCRATCH_REGISTRY}/${BUNDLE_IMG})
-	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
-	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG})
+	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}:${GIT_COMMIT}
+	docker tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}:${GIT_COMMIT} ${SCRATCH_REGISTRY}/${CATALOG_IMG}:${GIT_BRANCH_TAG}
+	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG}:${GIT_COMMIT})
+	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG}:${GIT_BRANCH_TAG})
+
 
 .PHONY: print-published-images
 print-published-images: ## Print summary of all images recorded in $(PUBLISHED_IMAGES_FILE)
