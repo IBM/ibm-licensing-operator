@@ -58,6 +58,7 @@ ${CONTAINER_CLI} manifest create "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VER
 # push multi-arch manifest
 echo "Pushing the multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${MANIFEST_VERSION}..."
 ${CONTAINER_CLI} manifest push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}"
+echo "manifest|${IMAGE_REPO}/${IMAGE_NAME}:${MANIFEST_VERSION}" >> "${PUBLISHED_IMAGES_FILE:-.published-images.txt}"
 
 if [ -n "$ADDITIONAL_TAG" ]
 then
@@ -66,4 +67,5 @@ then
   echo "Tagging multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${ADDITIONAL_TAG} with branch name..."
   ${CONTAINER_CLI} tag "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}" "${IMAGE_REPO}"/"${IMAGE_NAME}":"${ADDITIONAL_TAG}"
   ${CONTAINER_CLI} push "${IMAGE_REPO}"/"${IMAGE_NAME}":"${ADDITIONAL_TAG}"
+  echo "manifest|${IMAGE_REPO}/${IMAGE_NAME}:${ADDITIONAL_TAG}" >> "${PUBLISHED_IMAGES_FILE:-.published-images.txt}"
 fi
