@@ -55,7 +55,7 @@ import (
 type reconcileLSFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
 
 func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := res.UpdateCacheClusterExtensions(mgr.GetAPIReader(), r.Log); err != nil {
+	if err := res.UpdateCacheClusterExtensions(mgr.GetAPIReader(), mgr.GetRESTMapper(), r.Log); err != nil {
 		r.Log.Error(err, "Error during checking K8s API")
 	}
 
@@ -149,7 +149,6 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=services;services/finalizers;events;configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods,verbs=get;list;watch;update;patch
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=namespaces;serviceaccounts,verbs=get;list;watch
-// +kubebuilder:rbac:groups=operator.openshift.io,resources=servicecas,verbs=list
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get
@@ -160,7 +159,7 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 	reqLogger.Info("Reconciling IBMLicensing")
 	goruntime.GC()
 
-	if err := res.UpdateCacheClusterExtensions(r.Reader, reqLogger); err != nil {
+	if err := res.UpdateCacheClusterExtensions(r.Reader, r.Client.RESTMapper(), reqLogger); err != nil {
 		reqLogger.Error(err, "Error during checking K8s API")
 	}
 

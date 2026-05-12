@@ -14,10 +14,18 @@ rules:
     resources:
       - pods
       - namespaces
+    verbs:
+      - get
+      - list
+  {{- if .Values.nodeCapping.enabled }}
+  - apiGroups:
+      - ""
+    resources:
       - nodes
     verbs:
       - get
       - list
+  {{- end }}
   - apiGroups:
       - apps
     resources:
@@ -76,10 +84,18 @@ rules:
       - ""
     resources:
       - namespaces
+    verbs:
+      - get
+      - list
+  {{- if .Values.nodeCapping.enabled }}
+  - apiGroups:
+      - ""
+    resources:
       - nodes
     verbs:
       - get
       - list
+  {{- end }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -172,12 +188,6 @@ rules:
       - patch
       - update
       - watch
-  - apiGroups:
-      - operator.openshift.io
-    resources:
-      - servicecas
-    verbs:
-      - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

@@ -33,7 +33,6 @@ import (
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 
 	"github.com/go-logr/logr"
-	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 
@@ -43,9 +42,10 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	apieq "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metaErrors "k8s.io/apimachinery/pkg/api/meta"
+	meta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	c "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -362,7 +362,7 @@ func DeleteResource(reqLogger *logr.Logger, client c.Client, foundResource Resou
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			(*reqLogger).Info("Could not delete "+resTypeString+", as it was already deleted", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
-		} else if metaErrors.IsNoMatchError(err) {
+		} else if meta.IsNoMatchError(err) {
 			(*reqLogger).Info("CRD for "+resTypeString+" not installed, skipping delete", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
 			return reconcile.Result{}, nil
 		} else {
@@ -410,7 +410,7 @@ echo "$(date): All required secrets exist"
 	return script
 }
 
-func UpdateCacheClusterExtensions(client c.Reader, logger logr.Logger) error {
+func UpdateCacheClusterExtensions(client c.Reader, mapper meta.RESTMapper, logger logr.Logger) error {
 	namespace, err := GetOperatorNamespace()
 	if err != nil {
 		return errors.New("OPERATOR_NAMESPACE env not found")
@@ -434,8 +434,7 @@ func UpdateCacheClusterExtensions(client c.Reader, logger logr.Logger) error {
 		IsRouteAPI = false
 	}
 
-	serviceCAInstance := &servicecav1.ServiceCAList{}
-	if err := client.List(context.TODO(), serviceCAInstance, listOpts...); err == nil {
+	if _, err := mapper.RESTMapping(schema.GroupKind{Group: "operator.openshift.io", Kind: "ServiceCA"}); err == nil {
 		IsServiceCAAPI = true
 		IsAlertingEnabledByDefault = true
 	} else {
@@ -460,7 +459,7 @@ func UpdateCacheClusterExtensions(client c.Reader, logger logr.Logger) error {
 		}
 	} else {
 		IsGatewayAPI = false
-		if metaErrors.IsNoMatchError(err) {
+		if meta.IsNoMatchError(err) {
 			if !IsRouteAPI && !IsServiceCAAPI {
 				logger.Info("Gateway API CRDs not found in cluster. Gateway routing features will be disabled.")
 			}
@@ -473,7 +472,7 @@ func UpdateCacheClusterExtensions(client c.Reader, logger logr.Logger) error {
 	if err := client.List(context.TODO(), backendTLSPolicyTestInstance, listOpts...); err == nil {
 		IsBackendTLSPolicyAPI = true
 	} else {
-		if metaErrors.IsNoMatchError(err) {
+		if meta.IsNoMatchError(err) {
 			IsBackendTLSPolicyAPI = false
 		} else {
 			// Assume available for non-NoMatch errors

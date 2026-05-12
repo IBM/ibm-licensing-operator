@@ -151,7 +151,7 @@ func main() {
 		setupLog.Error(err, "unable to create probe client for CRD discovery")
 		os.Exit(1)
 	}
-	if err := res.UpdateCacheClusterExtensions(probeClient, setupLog); err != nil {
+	if err := res.UpdateCacheClusterExtensions(probeClient, probeClient.RESTMapper(), setupLog); err != nil {
 		setupLog.Error(err, "Error during checking K8s API")
 		os.Exit(1)
 	}

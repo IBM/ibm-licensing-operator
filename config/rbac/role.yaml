@@ -43,12 +43,6 @@ rules:
   - patch
   - update
   - watch
-- apiGroups:
-  - operator.openshift.io
-  resources:
-  - servicecas
-  verbs:
-  - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

@@ -3,6 +3,9 @@ global:
   imagePullSecret: ibm-entitlement-key
   licenseAccept: true
 
+nodeCapping:
+  enabled: true
+
 ibmLicensing:
   namespace: ibm-licensing
   watchNamespace: ibm-licensing
