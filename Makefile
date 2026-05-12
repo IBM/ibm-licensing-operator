@@ -81,7 +81,8 @@ DEFAULT_CHANNEL=v4.2
 PACKAGE=ibm-licensing-operator-app
 
 # Identify default channel based on tag of parent branch
-GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+# Use environment variable if set (from CI/CD), otherwise use git command
+GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 
 # Sanitized branch name safe to use as a docker tag (matches sanitization in common/scripts/multiarch_image.sh)
 GIT_BRANCH_TAG=$(shell echo "$(GIT_BRANCH)" | sed 's/[^[:alnum:]._-]/-/g')
@@ -308,12 +309,6 @@ build-image-development: $(CONFIG_DOCKER_TARGET) build ## Create a docker image 
 	@docker build --platform linux/$(LOCAL_ARCH) -t $(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION) $(DOCKER_BUILD_OPTS) -f Dockerfile .
 
 push-image-development: $(CONFIG_DOCKER_TARGET) build-image-development ## Push previously created image to scratch registry
-	@echo "=========================================="
-	@echo "DEBUG: push-image-development"
-	@echo "DEBUG: GIT_BRANCH = $(GIT_BRANCH)"
-	@echo "DEBUG: GIT_BRANCH_TAG = $(GIT_BRANCH_TAG)"
-	@echo "DEBUG: LOCAL_ARCH = $(LOCAL_ARCH)"
-	@echo "=========================================="
 	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_ARCH)..."
 	$(call push_and_record,operator,$(SCRATCH_REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION))
 ifeq ($(LOCAL_ARCH),amd64)
@@ -338,13 +333,6 @@ multiarch-image-latest: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image_latest.sh $(REGISTRY) $(IMAGE_NAME) $(VERSION)
 
 multiarch-image-development: $(CONFIG_DOCKER_TARGET)
-	@echo "=========================================="
-	@echo "DEBUG: multiarch-image-development"
-	@echo "DEBUG: GIT_BRANCH = $(GIT_BRANCH)"
-	@echo "DEBUG: GIT_BRANCH_TAG = $(GIT_BRANCH_TAG)"
-	@echo "DEBUG: VERSION = $(VERSION)"
-	@echo "DEBUG: Calling multiarch_image.sh with ADDITIONAL_TAG = ${GIT_BRANCH}"
-	@echo "=========================================="
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(SCRATCH_REGISTRY) $(IMAGE_NAME) $(VERSION) ${VERSION} ${GIT_BRANCH}
 
 csv: ## Push CSV package to the catalog
