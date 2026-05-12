@@ -6,6 +6,9 @@ global:
 nodeCapping:
   enabled: true
 
+defaultReader:
+  enabled: true
+
 ibmLicensing:
   namespace: ibm-licensing
   watchNamespace: ibm-licensing

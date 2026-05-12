@@ -7,30 +7,9 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - events
-  verbs:
-  - create
-  - patch
-- apiGroups:
-  - ""
-  resources:
   - namespaces
   verbs:
   - get
-- apiGroups:
-  - operator.ibm.com
-  resources:
-  - ibmlicensings
-  - ibmlicensings/finalizers
-  - ibmlicensings/status
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
 - apiGroups:
   - operator.ibm.com
   resources:
@@ -43,6 +22,12 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

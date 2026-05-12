@@ -29,6 +29,7 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	authorizationv1 "k8s.io/api/authorization/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	apieq "k8s.io/apimachinery/pkg/api/equality"
@@ -149,9 +150,8 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=services;services/finalizers;events;configmaps;secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=pods,verbs=get;list;watch;update;patch
 // +kubebuilder:rbac:namespace=ibm-licensing,groups="",resources=namespaces;serviceaccounts,verbs=get;list;watch
-// +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get
+// +kubebuilder:rbac:groups=authorization.k8s.io,resources=subjectaccessreviews,verbs=create
 
 func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Request) (reconcile.Result, error) {
 
@@ -1433,7 +1433,33 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 	if instance.Spec.IsNamespaceScopeEnabled() {
 		r.Log.Info("Namespace scope restriction is enabled")
 	}
+	if instance.Spec.IsNodeCpuCappingEnabled() {
+		r.checkNodeCappingRBAC(instance)
+	}
+}
 
+// checkNodeCappingRBAC warns when node CPU capping is enabled in the CR but the operand SA
+// lacks nodes:list access, indicating the Helm chart was not deployed with nodeCapping.enabled=true.
+func (r *IBMLicensingReconciler) checkNodeCappingRBAC(instance *operatorv1alpha1.IBMLicensing) {
+	sar := &authorizationv1.SubjectAccessReview{
+		Spec: authorizationv1.SubjectAccessReviewSpec{
+			User: fmt.Sprintf("system:serviceaccount:%s:ibm-license-service", r.OperatorNamespace),
+			ResourceAttributes: &authorizationv1.ResourceAttributes{
+				Verb:     "list",
+				Resource: "nodes",
+			},
+		},
+	}
+	if err := r.Client.Create(context.TODO(), sar); err != nil {
+		r.Log.Error(err, "Unable to check node capping RBAC via SubjectAccessReview")
+		return
+	}
+	if !sar.Status.Allowed {
+		r.Log.Info("Node CPU capping is enabled in CR but ibm-license-service SA cannot list nodes; deploy Helm chart with nodeCapping.enabled=true")
+		r.Recorder.Event(instance, "Warning", "NodeCappingRBACMissing",
+			"nodeCpuCappingEnabled=true but the ibm-license-service ServiceAccount cannot list nodes. "+
+				"Deploy or upgrade the Helm chart with nodeCapping.enabled=true to grant the required RBAC.")
+	}
 }
 
 func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operatorv1alpha1.IBMLicensing, secretNsName types.NamespacedName, hostname []string, rolloutPods bool) (reconcile.Result, error) {
