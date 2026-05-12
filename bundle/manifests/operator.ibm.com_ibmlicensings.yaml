@@ -248,8 +248,9 @@ spec:
               nodeCpuCappingEnabled:
                 default: true
                 description: |-
-                  Enables node CPU capping. When false, the operand will not access the node
-                  API and no RBAC granting node access will be created. Default true.
+                  Enables node CPU capping. When false, the operand will skip calls to the
+                  Kubernetes node API; node-capping is not applied and metrics may exceed
+                  real node capacity. Default true.
                 type: boolean
               resources:
                 description: ResourceRequirements describes the compute resource requirements.

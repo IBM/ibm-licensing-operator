@@ -407,6 +407,10 @@ spec:
                         type: string
                       description: Additional annotations that should include f.e. gateway class if using not default gateway controller
                       type: object
+                    enableGatewayAPIOpenshift:
+                      default: false
+                      description: Switch for enabling Gateway API on Openshift. Default is false.
+                      type: boolean
                     gatewayClassName:
                       default: ibm-licensing
                       description: GatewayClassName defines gateway class name option to be passed to the gateway spec field. Default is ibm-licensing.
@@ -478,6 +482,13 @@ spec:
                     - INFO
                     - VERBOSE
                   type: string
+                nodeCpuCappingEnabled:
+                  default: true
+                  description: |-
+                    Enables node CPU capping. When false, the operand will skip calls to the
+                    Kubernetes node API; node-capping is not applied and metrics may exceed
+                    real node capacity. Default true.
+                  type: boolean
                 resources:
                   description: ResourceRequirements describes the compute resource requirements.
                   properties:

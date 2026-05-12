@@ -14,6 +14,7 @@ rules:
     resources:
       - pods
       - namespaces
+      - nodes
     verbs:
       - get
       - list
@@ -75,6 +76,7 @@ rules:
       - ""
     resources:
       - namespaces
+      - nodes
     verbs:
       - get
       - list
@@ -176,19 +178,6 @@ rules:
       - servicecas
     verbs:
       - list
-  - apiGroups:
-      - rbac.authorization.k8s.io
-    resources:
-      - clusterroles
-      - clusterrolebindings
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
