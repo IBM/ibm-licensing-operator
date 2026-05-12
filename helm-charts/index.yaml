@@ -8,10 +8,17 @@ entries:
       charts.openshift.io/sources: https://github.com/IBM/ibm-licensing-operator
     apiVersion: v2
     appVersion: 0.0.0
-    created: "2026-05-12T11:32:32.520487+02:00"
+    created: "2026-05-12T11:40:19.397393+02:00"
     description: A Helm chart for License Service migration from OLM-based deployment
-      to Helm-based deployment
-    digest: fb249b6c88886a71e682a24f7e7cb6c8483329585ae12629db214c8e506e5b3a
+      to Helm-based deployment You can use License Service to retrieve license usage
+      data from your cluster and create a licensing snapshot. License Service collects
+      and measures the license usage of your IBM® products at the cluster level. You
+      can retrieve this data upon request for monitoring and compliance. You can also
+      retrieve an audit snapshot of the data that is audit evidence. License Service
+      is required for monitoring and measuring license usage of the IBM Cloud Paks®
+      and IBM® stand-alone containerized software in accord with the pricing rule
+      for containerized environments. Manual license measurements are not allowed.
+    digest: 772b7948fed904b231ae1a32b679304ec3d8496a714761b984c9f3c4c349f3d6
     home: https://ibm.biz/license-service
     icon: https://www.ibm.com/brand/experience-guides/developer/b1db1ae501d522a1a4b49613fe07c9f1/01_8-bar-positive.svg
     keywords:
@@ -30,4 +37,4 @@ entries:
     urls:
     - https://raw.githubusercontent.com/IBM/ibm-licensing-operator/ILS-2171-ADD-MISSING-METADATA-AND-DESCRIPTION/helm-charts/ibm-licensing-migration-0.0.0.tgz
     version: 0.0.0
-generated: "2026-05-12T11:32:32.519893+02:00"
+generated: "2026-05-12T11:40:19.396925+02:00"

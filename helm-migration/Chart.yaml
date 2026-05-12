@@ -1,6 +1,7 @@
 apiVersion: v2
 name: ibm-licensing-migration
-description: A Helm chart for License Service migration from OLM-based deployment to Helm-based deployment
+description: "A Helm chart for License Service migration from OLM-based deployment to Helm-based deployment You can use License Service to retrieve license usage data from your cluster and create a licensing snapshot.
+ License Service collects and measures the license usage of your IBM® products at the cluster level. You can retrieve this data upon request for monitoring and compliance. You can also retrieve an audit snapshot of the data that is audit evidence. License Service is required for monitoring and measuring license usage of the IBM Cloud Paks® and IBM® stand-alone containerized software in accord with the pricing rule for containerized environments. Manual license measurements are not allowed."
 type: application
 version: 0.0.0
 appVersion: "0.0.0"
