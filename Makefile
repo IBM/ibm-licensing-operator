@@ -80,10 +80,6 @@ CHANNELS=v4.2
 DEFAULT_CHANNEL=v4.2
 PACKAGE=ibm-licensing-operator-app
 
-# Identify default channel based on tag of parent branch
-# Use environment variable if set (from CI/CD), otherwise use git command
-GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
-
 # Sanitized branch name safe to use as a docker tag (matches sanitization in common/scripts/multiarch_image.sh)
 GIT_BRANCH_TAG=$(shell echo "$(GIT_BRANCH)" | sed 's/[^[:alnum:]._-]/-/g')
 
@@ -185,7 +181,6 @@ IMAGE_SUMMARY=$(IMAGE_DESCRIPTION)
 IMAGE_OPENSHIFT_TAGS=licensing
 $(eval WORKING_CHANGES := $(shell git status --porcelain))
 $(eval BUILD_DATE := $(shell date +%Y/%m/%d@%H:%M:%S))
-$(eval GIT_COMMIT := $(shell git rev-parse --short HEAD))
 $(eval VCS_REF := $(GIT_COMMIT))
 IMAGE_RELEASE=$(VCS_REF)
 IMAGE_BUILDDATE=$(BUILD_DATE)
