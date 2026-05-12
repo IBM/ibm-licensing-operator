@@ -12,5 +12,4 @@ ibmLicensing:
     version: 4.2.21
     datasource: datacollector
     httpsEnable: true
-    createRBAC: false
-
+    
