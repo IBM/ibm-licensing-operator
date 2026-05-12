@@ -279,8 +279,7 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:checkbox
       - description: |-
-          Enables node CPU capping. When false, the operand will skip calls to the
-          Kubernetes node API; node-capping is not applied and metrics may exceed
+          Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
           real node capacity. Default true.
         displayName: Node CPU Capping Enabled
         path: nodeCpuCappingEnabled
