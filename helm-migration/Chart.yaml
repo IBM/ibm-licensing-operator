@@ -4,3 +4,23 @@ description: A Helm chart for License Service migration from OLM-based deploymen
 type: application
 version: 0.0.0
 appVersion: "0.0.0"
+icon: https://www.ibm.com/brand/experience-guides/developer/b1db1ae501d522a1a4b49613fe07c9f1/01_8-bar-positive.svg
+home: https://ibm.biz/license-service
+sources:
+  - https://github.com/IBM/ibm-licensing-operator
+maintainers:
+  - name: IBM
+
+annotations:
+  charts.openshift.io/provider: IBM
+  charts.openshift.io/name: ibm-licensing-migration
+  charts.openshift.io/sources: https://github.com/IBM/ibm-licensing-operator
+  charts.openshift.io/source-url: https://github.com/IBM/ibm-licensing-operator
+
+keywords:
+  - ibm
+  - licensing
+  - compliance
+  - audit
+  - migration
+  - cloudpak
