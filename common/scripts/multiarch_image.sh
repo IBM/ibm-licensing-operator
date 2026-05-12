@@ -27,6 +27,14 @@ VERSION=${3-"$(git describe --exact-match 2> /dev/null || git describe --match="
 MANIFEST_VERSION=${4}
 ADDITIONAL_TAG=${5}
 
+echo "=========================================="
+echo "DEBUG: multiarch_image.sh script"
+echo "DEBUG: IMAGE_REPO = ${IMAGE_REPO}"
+echo "DEBUG: IMAGE_NAME = ${IMAGE_NAME}"
+echo "DEBUG: VERSION = ${VERSION}"
+echo "DEBUG: MANIFEST_VERSION = ${MANIFEST_VERSION}"
+echo "DEBUG: ADDITIONAL_TAG (raw) = ${ADDITIONAL_TAG}"
+
 MAX_PULLING_RETRY=${MAX_PULLING_RETRY-10}
 RETRY_INTERVAL=${RETRY_INTERVAL-10}
 # support other container tools, e.g. podman
@@ -62,7 +70,10 @@ echo "manifest|${IMAGE_REPO}/${IMAGE_NAME}:${MANIFEST_VERSION}" >> "${PUBLISHED_
 
 if [ -n "$ADDITIONAL_TAG" ]
 then
+  echo "DEBUG: ADDITIONAL_TAG before sanitization = ${ADDITIONAL_TAG}"
   ADDITIONAL_TAG="${ADDITIONAL_TAG//[^[:alnum:]\.\_\-]/-}"
+  echo "DEBUG: ADDITIONAL_TAG after sanitization = ${ADDITIONAL_TAG}"
+  echo "=========================================="
   ${CONTAINER_CLI} pull "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}"
   echo "Tagging multi-arch image manifest for ${IMAGE_REPO}/${IMAGE_NAME}:${ADDITIONAL_TAG} with branch name..."
   ${CONTAINER_CLI} tag "${IMAGE_REPO}"/"${IMAGE_NAME}":"${MANIFEST_VERSION}" "${IMAGE_REPO}"/"${IMAGE_NAME}":"${ADDITIONAL_TAG}"

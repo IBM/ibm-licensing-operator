@@ -34,8 +34,20 @@ ARTIFACTORY_USERNAME="$(get_env ARTIFACTORY_USERNAME)"
 export ARTIFACTORY_USERNAME
 ARTIFACTORY_TOKEN="$(get_env ARTIFACTORY_TOKEN)"
 export ARTIFACTORY_TOKEN
+
+echo "=========================================="
+echo "DEBUG: GIT_BRANCH detection in setup_env.sh"
+echo "=========================================="
+echo "DEBUG: git-branch from pipeline: $(get_env git-branch 2>/dev/null || echo 'NOT SET')"
+echo "DEBUG: source-branch from pipeline: $(get_env source-branch 2>/dev/null || echo 'NOT SET')"
+echo "DEBUG: GIT_BRANCH from git command: $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'NOT SET')"
+
 GIT_BRANCH="$(get_env git-branch)"
 export GIT_BRANCH
+
+echo "DEBUG: Final GIT_BRANCH value: ${GIT_BRANCH}"
+echo "=========================================="
+
 GIT_COMMIT="$(get_env git-commit)"
 export GIT_COMMIT
 DOCKER_REGISTRY="$(get_env DOCKER_REGISTRY)"
