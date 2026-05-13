@@ -1,56 +1,41 @@
 apiVersion: v1
 entries:
-  ibm-licensing-migration:
+  ibm-usage-metering:
   - annotations:
       artifacthub.io/readme: |
-        **Important:**
-        - If you are using the IBM Licensing Operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For the link to your IBM Cloud Pak documentation, see [IBM Cloud Paks that use Common Services](https://ibm.biz/BdyGwb).
-        - If you are using a stand-alone IBM Container Software, you can use the IBM Licensing Operator directly. For more information, see [ibm-licensing-operator for stand-alone IBM Containerized Software](https://ibm.biz/BdyGwh).
-
-        **IBM Licensing Operator overview**
-
-        IBM Licensing Operator installs License Service. You can use License Service to collect information about license usage of IBM Containerized products and IBM Cloud Paks per cluster. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
-
-        **Supported platforms**
-
-        Red Hat OpenShift Container Platform 4.10 or newer installed on Linux x86_64, Linux on Power (ppc64le), Linux on IBM Z and LinuxONE.
-
-        **Prerequisites**
-
-        Prerequisites depend on the integration of the License Service with an IBM Cloud Pak or IBM Containerized Software. For more information, see the applicable IBM Cloud Pak documentation or [ibm-licensing-operator for stand-alone IBM Containerized Software](https://ibm.biz/BdyGwh).
-      charts.openshift.io/name: ibm-licensing-migration
+        file://README.md
+      charts.openshift.io/name: ibm-usage-metering
       charts.openshift.io/provider: IBM
-      charts.openshift.io/source-url: https://github.com/IBM/ibm-licensing-operator
-      charts.openshift.io/sources: https://github.com/IBM/ibm-licensing-operator
+      charts.openshift.io/source-url: https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
+      charts.openshift.io/sources: https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
     apiVersion: v2
-    appVersion: 0.0.1
-    created: "2026-05-13T10:17:14.557774+02:00"
-    description: A Helm chart for License Service migration from OLM-based deployment
-      to Helm-based deployment You can use License Service to retrieve license usage
-      data from your cluster and create a licensing snapshot. License Service collects
-      and measures the license usage of your IBM® products at the cluster level. You
-      can retrieve this data upon request for monitoring and compliance. You can also
-      retrieve an audit snapshot of the data that is audit evidence. License Service
-      is required for monitoring and measuring license usage of the IBM Cloud Paks®
-      and IBM® stand-alone containerized software in accord with the pricing rule
-      for containerized environments. Manual license measurements are not allowed.
-    digest: 56bc94680a5249b303479da7dd55a2875d31527bbc95c3644bc3859ddb369588
-    home: https://ibm.biz/license-service
+    appVersion: 1.0.5
+    created: "2026-05-13T10:56:44.646832+02:00"
+    description: 'A Helm chart for IBM Usage Metering installation. IBM products can
+      integrate with Usage Metering Service (UMS) that is used to capture two types
+      of product usage metrics: contractual metrics for compliance purposes, and adoption
+      metrics for various scenarios related to usage analysis. UMS is intended to
+      allow products capture business value metrics for the purpose of creating compliance
+      evidence for the auditing purposes and visualizing metric usage in reporting
+      tools.'
+    digest: 1548e27ff05712bae036759a669d903c751637cf9a31192d71af84d404243471
+    home: https://ibm.biz/usage_metering_service
     icon: https://www.ibm.com/brand/experience-guides/developer/b1db1ae501d522a1a4b49613fe07c9f1/01_8-bar-positive.svg
     keywords:
     - ibm
-    - licensing
-    - compliance
-    - audit
-    - migration
+    - metering
+    - usage
+    - monitoring
+    - chargeback
+    - showback
     - cloudpak
     maintainers:
     - name: IBM
-    name: ibm-licensing-migration
+    name: ibm-usage-metering
     sources:
-    - https://github.com/IBM/ibm-licensing-operator
+    - https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
     type: application
     urls:
-    - https://raw.githubusercontent.com/IBM/ibm-licensing-operator/testhelmow/helm-charts/ibm-licensing-migration-0.0.1.tgz
-    version: 0.0.1
-generated: "2026-05-13T10:17:14.55717+02:00"
+    - https://raw.githubusercontent.com/IBM/ibm-licensing-operator/testhelm/helm-charts/ibm-usage-metering-1.0.5.tgz
+    version: 1.0.5
+generated: "2026-05-13T10:56:44.646317+02:00"
