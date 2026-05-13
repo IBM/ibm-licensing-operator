@@ -80,9 +80,6 @@ CHANNELS=v4.2
 DEFAULT_CHANNEL=v4.2
 PACKAGE=ibm-licensing-operator-app
 
-# Identify default channel based on tag of parent branch
-GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
-
 # Sanitized branch name safe to use as a docker tag (matches sanitization in common/scripts/multiarch_image.sh)
 GIT_BRANCH_TAG=$(shell echo "$(GIT_BRANCH)" | sed 's/[^[:alnum:]._-]/-/g')
 
@@ -184,14 +181,14 @@ IMAGE_SUMMARY=$(IMAGE_DESCRIPTION)
 IMAGE_OPENSHIFT_TAGS=licensing
 $(eval WORKING_CHANGES := $(shell git status --porcelain))
 $(eval BUILD_DATE := $(shell date +%Y/%m/%d@%H:%M:%S))
-$(eval GIT_COMMIT := $(shell git rev-parse --short HEAD))
-$(eval VCS_REF := $(GIT_COMMIT))
+VCS_REF ?= $(GIT_COMMIT)
 IMAGE_RELEASE=$(VCS_REF)
 IMAGE_BUILDDATE=$(BUILD_DATE)
 GIT_REMOTE_URL = $(shell git config --get remote.origin.url)
 
 BUNDLE_IMG ?= $(IMAGE_BUNDLE_NAME)-$(LOCAL_ARCH):$(VERSION)
-CATALOG_IMG ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH):$(VERSION)
+CATALOG_IMG_BASE ?= $(IMAGE_CATALOG_NAME)-$(LOCAL_ARCH)
+CATALOG_IMG ?= $(CATALOG_IMG_BASE):$(VERSION)
 
 # Identify stream based in current git branch
 DEVOPS_STREAM :=
@@ -552,16 +549,19 @@ endif
 # pipeline builds the catalog for you and already makes a multi-arch catalog, for amd64 we build it conditionally for dev purposes
 catalogsource-development: opm yq
 	@echo "Build Development CatalogSource for $(LOCAL_ARCH)...- ${BUNDLE_IMG} - ${CATALOG_IMG}"
-	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
-	$(YQ) -i '.spec.relatedImages[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH_TAG}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
+	$(YQ) -i '.spec.relatedImages[0].image = "${SCRATCH_REGISTRY}/${IMG}:${GIT_BRANCH_TAG}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.spec.relatedImages[1].image = "${OPERAND_IMAGE_DEV}:${OPERAND_IMAGE_TAG_DEV}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.spec.install.spec.deployments[0].spec.template.spec.containers[0].env[0].value = "${OPERAND_IMAGE_DEV}:${OPERAND_IMAGE_TAG_DEV}"' ./bundle/manifests/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channels.v1" =  "${CHANNELS}"' ./bundle/metadata/annotations.yaml
 	$(YQ) -i '.annotations."operators.operatorframework.io.bundle.channel.default.v1" =  "${DEFAULT_CHANNEL}"' ./bundle/metadata/annotations.yaml
 	docker build -f bundle.Dockerfile -t ${SCRATCH_REGISTRY}/${BUNDLE_IMG} .
 	$(call push_and_record,bundle,${SCRATCH_REGISTRY}/${BUNDLE_IMG})
-	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG}
-	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG})
+	$(OPM) index add -c ${PODMAN} --bundles ${SCRATCH_REGISTRY}/${BUNDLE_IMG} --tag ${SCRATCH_REGISTRY}/${CATALOG_IMG_BASE}:${GIT_COMMIT}
+	docker tag ${SCRATCH_REGISTRY}/${CATALOG_IMG_BASE}:${GIT_COMMIT} ${SCRATCH_REGISTRY}/${CATALOG_IMG_BASE}:${GIT_BRANCH_TAG}
+	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG_BASE}:${GIT_COMMIT})
+	$(call push_and_record,catalog,${SCRATCH_REGISTRY}/${CATALOG_IMG_BASE}:${GIT_BRANCH_TAG})
+
 
 .PHONY: print-published-images
 print-published-images: ## Print summary of all images recorded in $(PUBLISHED_IMAGES_FILE)
