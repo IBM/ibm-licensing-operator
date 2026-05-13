@@ -17,6 +17,49 @@ annotations:
   charts.openshift.io/name: ibm-licensing-migration
   charts.openshift.io/sources: https://github.com/IBM/ibm-licensing-operator
   charts.openshift.io/source-url: https://github.com/IBM/ibm-licensing-operator
+  artifacthub.io/readme: |
+    # IBM Licensing Migration Chart
+    
+    ## Overview
+    
+    A Helm chart for **License Service migration** from OLM-based deployment to Helm-based deployment.
+    
+    You can use License Service to retrieve license usage data from your cluster and create a licensing snapshot.
+    
+    ## Features
+    
+    - **License Collection**: Collects and measures the license usage of your IBM® products at the cluster level
+    - **Monitoring & Compliance**: Retrieve data upon request for monitoring and compliance purposes
+    - **Audit Snapshots**: Create audit evidence snapshots of licensing data
+    - **Required for IBM Cloud Paks®**: Essential for monitoring and measuring license usage in containerized environments
+    
+    ## Migration Process
+    
+    This chart facilitates the migration by removing the following OLM resources:
+    - Subscriptions
+    - CSVs (ClusterServiceVersions)
+    - OperatorGroups
+    - Roles, RoleBindings, ServiceAccounts
+    
+    ## Installation
+    
+    ```bash
+    # Step 1: Run migration job to remove OLM resources
+    helm install ibm-licensing ./helm-migration --namespace ibm-licensing --take-ownership
+    
+    # Step 2: Install License Service using Helm charts
+    helm upgrade ibm-licensing ./deploy/argo-cd/components/license-service/helm-cluster-scoped \
+      --namespace ibm-licensing --take-ownership
+    ```
+    
+    ## Important Notes
+    
+    ⚠️ **Manual license measurements are not allowed** - License Service is required for monitoring and measuring license usage of IBM Cloud Paks® and IBM® stand-alone containerized software in accordance with the pricing rule for containerized environments.
+    
+    ## Resources
+    
+    - [Documentation](https://ibm.biz/license-service)
+    - [GitHub Repository](https://github.com/IBM/ibm-licensing-operator)
 
 keywords:
   - ibm
