@@ -795,17 +795,17 @@ generate-yaml-argo-cd: kustomize yq
 	@cat ./common/makefile-generate/yaml-deployment-pull-secrets-part >> argo-cd/deployment.yaml
 
 	# Wrap RBAC resources with conditional createRBAC check
-	@echo '{{- if ne (lower (.Values.ibmLicensing.spec.createRBAC | toString)) "false" }}' | cat - argo-cd/rbac.yaml > argo-cd/rbac.yaml.tmp
+	@echo '{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}' | cat - argo-cd/rbac.yaml > argo-cd/rbac.yaml.tmp
 	@echo '{{- end }}' >> argo-cd/rbac.yaml.tmp
 	@mv argo-cd/rbac.yaml.tmp argo-cd/rbac.yaml
 
 	# Wrap cluster RBAC resources with conditional createRBAC check
-	@echo '{{- if ne (lower (.Values.ibmLicensing.spec.createRBAC | toString)) "false" }}' | cat - argo-cd/cluster-rbac.yaml > argo-cd/cluster-rbac.yaml.tmp
+	@echo '{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}' | cat - argo-cd/cluster-rbac.yaml > argo-cd/cluster-rbac.yaml.tmp
 	@echo '{{- end }}' >> argo-cd/cluster-rbac.yaml.tmp
 	@mv argo-cd/cluster-rbac.yaml.tmp argo-cd/cluster-rbac.yaml
 
 	# Wrap ServiceAccount resources with conditional createRBAC check
-	@echo '{{- if ne (lower (.Values.ibmLicensing.spec.createRBAC | toString)) "false" }}' | cat - argo-cd/serviceaccounts.yaml > argo-cd/serviceaccounts.yaml.tmp
+	@echo '{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}' | cat - argo-cd/serviceaccounts.yaml > argo-cd/serviceaccounts.yaml.tmp
 	@echo '{{- end }}' >> argo-cd/serviceaccounts.yaml.tmp
 	@mv argo-cd/serviceaccounts.yaml.tmp argo-cd/serviceaccounts.yaml
 
