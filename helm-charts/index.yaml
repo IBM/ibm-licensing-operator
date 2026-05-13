@@ -10,7 +10,7 @@ entries:
       charts.openshift.io/sources: https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
     apiVersion: v2
     appVersion: 1.0.5
-    created: "2026-05-13T10:56:44.646832+02:00"
+    created: "2026-05-13T10:58:36.219146+02:00"
     description: 'A Helm chart for IBM Usage Metering installation. IBM products can
       integrate with Usage Metering Service (UMS) that is used to capture two types
       of product usage metrics: contractual metrics for compliance purposes, and adoption
@@ -36,6 +36,6 @@ entries:
     - https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
     type: application
     urls:
-    - https://raw.githubusercontent.com/IBM/ibm-licensing-operator/testhelm/helm-charts/ibm-usage-metering-1.0.5.tgz
+    - https://raw.githubusercontent.com/IBM/ibm-licensing-operator/testhelmow/helm-charts/ibm-usage-metering-1.0.5.tgz
     version: 1.0.5
-generated: "2026-05-13T10:56:44.646317+02:00"
+generated: "2026-05-13T10:58:36.218591+02:00"
