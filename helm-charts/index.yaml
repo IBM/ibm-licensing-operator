@@ -24,7 +24,7 @@ entries:
       charts.openshift.io/sources: https://github.com/IBM/ibm-licensing-operator
     apiVersion: v2
     appVersion: 0.0.0
-    created: "2026-05-13T10:07:20.802692+02:00"
+    created: "2026-05-13T10:10:12.926291+02:00"
     description: A Helm chart for License Service migration from OLM-based deployment
       to Helm-based deployment You can use License Service to retrieve license usage
       data from your cluster and create a licensing snapshot. License Service collects
@@ -53,4 +53,4 @@ entries:
     urls:
     - https://raw.githubusercontent.com/IBM/ibm-licensing-operator/testhelmow/helm-charts/ibm-licensing-migration-0.0.0.tgz
     version: 0.0.0
-generated: "2026-05-13T10:07:20.802251+02:00"
+generated: "2026-05-13T10:10:12.925401+02:00"
