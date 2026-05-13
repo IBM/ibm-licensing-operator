@@ -3,55 +3,28 @@ entries:
   ibm-licensing-migration:
   - annotations:
       artifacthub.io/readme: |
-        # IBM Licensing Migration Chart
+        **Important:**
+        - If you are using the IBM Licensing Operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For the link to your IBM Cloud Pak documentation, see [IBM Cloud Paks that use Common Services](https://ibm.biz/BdyGwb).
+        - If you are using a stand-alone IBM Container Software, you can use the IBM Licensing Operator directly. For more information, see [ibm-licensing-operator for stand-alone IBM Containerized Software](https://ibm.biz/BdyGwh).
 
-        ## Overview
+        **IBM Licensing Operator overview**
 
-        A Helm chart for **License Service migration** from OLM-based deployment to Helm-based deployment.
+        IBM Licensing Operator installs License Service. You can use License Service to collect information about license usage of IBM Containerized products and IBM Cloud Paks per cluster. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
 
-        You can use License Service to retrieve license usage data from your cluster and create a licensing snapshot.
+        **Supported platforms**
 
-        ## Features
+        Red Hat OpenShift Container Platform 4.10 or newer installed on Linux x86_64, Linux on Power (ppc64le), Linux on IBM Z and LinuxONE.
 
-        - **License Collection**: Collects and measures the license usage of your IBM® products at the cluster level
-        - **Monitoring & Compliance**: Retrieve data upon request for monitoring and compliance purposes
-        - **Audit Snapshots**: Create audit evidence snapshots of licensing data
-        - **Required for IBM Cloud Paks®**: Essential for monitoring and measuring license usage in containerized environments
+        **Prerequisites**
 
-        ## Migration Process
-
-        This chart facilitates the migration by removing the following OLM resources:
-        - Subscriptions
-        - CSVs (ClusterServiceVersions)
-        - OperatorGroups
-        - Roles, RoleBindings, ServiceAccounts
-
-        ## Installation
-
-        ```bash
-        # Step 1: Run migration job to remove OLM resources
-        helm install ibm-licensing ./helm-migration --namespace ibm-licensing --take-ownership
-
-        # Step 2: Install License Service using Helm charts
-        helm upgrade ibm-licensing ./deploy/argo-cd/components/license-service/helm-cluster-scoped \
-          --namespace ibm-licensing --take-ownership
-        ```
-
-        ## Important Notes
-
-        ⚠️ **Manual license measurements are not allowed** - License Service is required for monitoring and measuring license usage of IBM Cloud Paks® and IBM® stand-alone containerized software in accordance with the pricing rule for containerized environments.
-
-        ## Resources
-
-        - [Documentation](https://ibm.biz/license-service)
-        - [GitHub Repository](https://github.com/IBM/ibm-licensing-operator)
+        Prerequisites depend on the integration of the License Service with an IBM Cloud Pak or IBM Containerized Software. For more information, see the applicable IBM Cloud Pak documentation or [ibm-licensing-operator for stand-alone IBM Containerized Software](https://ibm.biz/BdyGwh).
       charts.openshift.io/name: ibm-licensing-migration
       charts.openshift.io/provider: IBM
       charts.openshift.io/source-url: https://github.com/IBM/ibm-licensing-operator
       charts.openshift.io/sources: https://github.com/IBM/ibm-licensing-operator
     apiVersion: v2
     appVersion: 0.0.0
-    created: "2026-05-13T09:51:54.434178+02:00"
+    created: "2026-05-13T10:03:02.180413+02:00"
     description: A Helm chart for License Service migration from OLM-based deployment
       to Helm-based deployment You can use License Service to retrieve license usage
       data from your cluster and create a licensing snapshot. License Service collects
@@ -61,7 +34,7 @@ entries:
       is required for monitoring and measuring license usage of the IBM Cloud Paks®
       and IBM® stand-alone containerized software in accord with the pricing rule
       for containerized environments. Manual license measurements are not allowed.
-    digest: ba73cd7385985d286f80d56a0f3ab387e046b632ccf9023c35d6293638c958c2
+    digest: 58e890c76d3c80be133f7ddeb70ae5a0415b4417c2642041435a315376015e3f
     home: https://ibm.biz/license-service
     icon: https://www.ibm.com/brand/experience-guides/developer/b1db1ae501d522a1a4b49613fe07c9f1/01_8-bar-positive.svg
     keywords:
@@ -80,4 +53,4 @@ entries:
     urls:
     - https://raw.githubusercontent.com/IBM/ibm-licensing-operator/testhelmow/helm-charts/ibm-licensing-migration-0.0.0.tgz
     version: 0.0.0
-generated: "2026-05-13T09:51:54.433889+02:00"
+generated: "2026-05-13T10:03:02.179939+02:00"
