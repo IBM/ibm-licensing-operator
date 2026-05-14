@@ -4,7 +4,6 @@ description: "A Helm chart for License Service. You can use License Service to r
  License Service collects and measures the license usage of your IBM® products at the cluster level. You can retrieve this data upon request for monitoring and compliance. You can also retrieve an audit snapshot of the data that is audit evidence. License Service is required for monitoring and measuring license usage of the IBM Cloud Paks® and IBM® stand-alone containerized software in accord with the pricing rule for containerized environments. Manual license measurements are not allowed."
 type: application
 version: 4.2.23
-appVersion: "4.2.23"
 icon: https://www.ibm.com/brand/experience-guides/developer/b1db1ae501d522a1a4b49613fe07c9f1/01_8-bar-positive.svg
 home: https://ibm.biz/license-service
 sources:
