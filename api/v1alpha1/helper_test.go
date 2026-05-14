@@ -1,5 +1,5 @@
 //
-// Copyright 2023 IBM Corporation
+// Copyright 2026 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"k8s.io/utils/ptr"
 )
 
 func TestIsNodeCpuCappingEnabledNil(t *testing.T) {
@@ -30,13 +29,13 @@ func TestIsNodeCpuCappingEnabledNil(t *testing.T) {
 }
 
 func TestIsNodeCpuCappingEnabledExplicitTrue(t *testing.T) {
-	spec := &IBMLicensingSpec{NodeCpuCappingEnabled: ptr.To(true)}
+	spec := &IBMLicensingSpec{NodeCpuCappingEnabled: new(true)}
 	assert.True(t, spec.IsNodeCpuCappingEnabled(),
 		"NodeCpuCappingEnabled=true should return true.")
 }
 
 func TestIsNodeCpuCappingEnabledExplicitFalse(t *testing.T) {
-	spec := &IBMLicensingSpec{NodeCpuCappingEnabled: ptr.To(false)}
+	spec := &IBMLicensingSpec{NodeCpuCappingEnabled: new(false)}
 	assert.False(t, spec.IsNodeCpuCappingEnabled(),
 		"NodeCpuCappingEnabled=false should return false.")
 }
