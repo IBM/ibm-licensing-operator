@@ -1,5 +1,46 @@
 apiVersion: v2
 name: ibm-licensing-cluster-scoped
-description: A Helm chart for IBM License Service installation
+description: "A Helm chart for License Service. You can use License Service to retrieve license usage data from your cluster and create a licensing snapshot.
+ License Service collects and measures the license usage of your IBM® products at the cluster level. You can retrieve this data upon request for monitoring and compliance. You can also retrieve an audit snapshot of the data that is audit evidence. License Service is required for monitoring and measuring license usage of the IBM Cloud Paks® and IBM® stand-alone containerized software in accord with the pricing rule for containerized environments. Manual license measurements are not allowed."
 type: application
 version: 4.2.23
+appVersion: "4.2.23"
+icon: https://www.ibm.com/brand/experience-guides/developer/b1db1ae501d522a1a4b49613fe07c9f1/01_8-bar-positive.svg
+home: https://ibm.biz/license-service
+sources:
+  - https://github.com/IBM/ibm-licensing-operator
+maintainers:
+  - name: IBM
+
+annotations:
+  charts.openshift.io/provider: IBM
+  charts.openshift.io/name: ibm-licensing-cluster-scoped
+  charts.openshift.io/sources: https://github.com/IBM/ibm-licensing-operator
+  charts.openshift.io/source-url: https://github.com/IBM/ibm-licensing-operator
+  artifacthub.io/readme: |
+    # IBM License Service Helm Chart
+    
+    **Important:**
+    - If you are using the IBM Licensing Operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For the link to your IBM Cloud Pak documentation, see [IBM Cloud Paks that use Common Services](https://ibm.biz/BdyGwb).
+    - If you are using a stand-alone IBM Container Software, you can use the IBM Licensing Operator directly. For more information, see [ibm-licensing-operator for stand-alone IBM Containerized Software](https://ibm.biz/BdyGwh).
+    
+    **IBM Licensing Operator overview**
+    
+    IBM Licensing Operator installs License Service. You can use License Service to collect information about license usage of IBM Containerized products and IBM Cloud Paks per cluster. You can retrieve license usage data through a dedicated API call and generate an audit snapshot on demand.
+    
+    **Supported platforms**
+    
+    Red Hat OpenShift Container Platform 4.10 or newer installed on Linux x86_64, Linux on Power (ppc64le), Linux on IBM Z and LinuxONE.
+    
+    **Prerequisites**
+    
+    Prerequisites depend on the integration of the License Service with an IBM Cloud Pak or IBM Containerized Software. For more information, see the applicable IBM Cloud Pak documentation or [ibm-licensing-operator for stand-alone IBM Containerized Software](https://ibm.biz/BdyGwh).
+
+keywords:
+  - ibm
+  - licensing
+  - compliance
+  - audit
+  - cloudpak
+
+
