@@ -1,0 +1,40 @@
+apiVersion: v1
+entries:
+  ibm-usage-metering-cluster-scoped:
+  - annotations:
+      artifacthub.io/readme: |
+        file://README.md
+      charts.openshift.io/name: ibm-usage-metering-cluster-scoped
+      charts.openshift.io/provider: IBM
+      charts.openshift.io/source-url: https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
+      charts.openshift.io/sources: https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
+    apiVersion: v2
+    appVersion: 1.0.6
+    created: "2026-05-14T08:57:21.839921+02:00"
+    description: A Helm chart for IBM Usage Metering cluster-scoped resources installation.
+      This chart installs cluster-wide resources (CRDs, ClusterRoles, ClusterRoleBindings)
+      required by IBM Usage Metering Service (UMS). Must be installed before the main
+      ibm-usage-metering chart.
+    digest: 0f5c1040a2d44d65066666cd15e45e7b932596352660d89107865b2be9f0ec47
+    home: https://ibm.biz/usage_metering_service
+    icon: https://www.ibm.com/brand/experience-guides/developer/b1db1ae501d522a1a4b49613fe07c9f1/01_8-bar-positive.svg
+    keywords:
+    - ibm
+    - metering
+    - usage
+    - monitoring
+    - chargeback
+    - showback
+    - cloudpak
+    - cluster-scoped
+    - crds
+    maintainers:
+    - name: IBM
+    name: ibm-usage-metering-cluster-scoped
+    sources:
+    - https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
+    type: application
+    urls:
+    - https://raw.githubusercontent.com/IBM/ibm-licensing-operator/testhelmow/helm-charts-cluster-scoped/ibm-usage-metering-cluster-scoped-1.0.6.tgz
+    version: 1.0.6
+generated: "2026-05-14T08:57:21.838111+02:00"

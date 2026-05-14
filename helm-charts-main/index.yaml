@@ -1,0 +1,41 @@
+apiVersion: v1
+entries:
+  ibm-usage-metering:
+  - annotations:
+      artifacthub.io/readme: |
+        file://README.md
+      charts.openshift.io/name: ibm-usage-metering
+      charts.openshift.io/provider: IBM
+      charts.openshift.io/source-url: https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
+      charts.openshift.io/sources: https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
+    apiVersion: v2
+    appVersion: 1.0.6
+    created: "2026-05-14T08:57:29.315879+02:00"
+    description: 'A Helm chart for IBM Usage Metering installation. IBM products can
+      integrate with Usage Metering Service (UMS) that is used to capture two types
+      of product usage metrics: contractual metrics for compliance purposes, and adoption
+      metrics for various scenarios related to usage analysis. UMS is intended to
+      allow products capture business value metrics for the purpose of creating compliance
+      evidence for the auditing purposes and visualizing metric usage in reporting
+      tools.'
+    digest: c07de776a2c2f707ab8edd3255ff2d72b9bf22c52aae65f82ffcc8d786e5bb46
+    home: https://ibm.biz/usage_metering_service
+    icon: https://www.ibm.com/brand/experience-guides/developer/b1db1ae501d522a1a4b49613fe07c9f1/01_8-bar-positive.svg
+    keywords:
+    - ibm
+    - metering
+    - usage
+    - monitoring
+    - chargeback
+    - showback
+    - cloudpak
+    maintainers:
+    - name: IBM
+    name: ibm-usage-metering
+    sources:
+    - https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
+    type: application
+    urls:
+    - https://raw.githubusercontent.com/IBM/ibm-licensing-operator/testhelmow/helm-charts-main/ibm-usage-metering-1.0.6.tgz
+    version: 1.0.6
+generated: "2026-05-14T08:57:29.31524+02:00"

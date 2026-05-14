@@ -1,0 +1,39 @@
+apiVersion: v1
+entries:
+  ibm-usage-metering-migration:
+  - annotations:
+      artifacthub.io/readme: |
+        file://README.md
+      charts.openshift.io/name: ibm-usage-metering-migration
+      charts.openshift.io/provider: IBM
+      charts.openshift.io/source-url: https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
+      charts.openshift.io/sources: https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
+    apiVersion: v2
+    appVersion: 0.0.106
+    created: "2026-05-14T08:57:47.794153+02:00"
+    description: A Helm chart for migrating IBM Usage Metering Service from OLM-based
+      deployment to Helm-based deployment. This chart runs a migration job that removes
+      OLM resources (Subscriptions, CSVs, Operator Deployment, Roles, RoleBindings,
+      ServiceAccounts) to prepare for Helm installation.
+    digest: 552c490278e59d4e0bbb4ef4d24b21e73163985204136e108bab3599cab93caa
+    home: https://ibm.biz/usage_metering_service
+    icon: https://www.ibm.com/brand/experience-guides/developer/b1db1ae501d522a1a4b49613fe07c9f1/01_8-bar-positive.svg
+    keywords:
+    - ibm
+    - metering
+    - usage
+    - monitoring
+    - migration
+    - olm
+    - helm
+    - cloudpak
+    maintainers:
+    - name: IBM
+    name: ibm-usage-metering-migration
+    sources:
+    - https://github.ibm.com/cloud-license-reporter/ibm-usage-metering-operator
+    type: application
+    urls:
+    - https://raw.githubusercontent.com/IBM/ibm-licensing-operator/testhelmow/helm-charts-migration/ibm-usage-metering-migration-0.0.106.tgz
+    version: 0.0.106
+generated: "2026-05-14T08:57:47.793884+02:00"
