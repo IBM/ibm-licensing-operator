@@ -1,3 +1,4 @@
+{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -52,3 +53,4 @@ subjects:
     name: ibm-licensing-operator
     namespace: {{ .Values.ibmLicensing.namespace }}
 ---
+{{- end }}
