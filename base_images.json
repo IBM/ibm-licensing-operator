@@ -29,7 +29,7 @@
     "destStage": "edge",
     "destNamespace": "build-images",
     "destImage": "ubi9-micro",
-    "tag": "9.7-1773894938",
+    "tag": "9.7-1778461406",
     "updatePackages": []
   },
   {
