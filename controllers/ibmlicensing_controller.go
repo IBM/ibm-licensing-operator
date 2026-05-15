@@ -1434,6 +1434,14 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 	if instance.Spec.IsNamespaceScopeEnabled() {
 		r.Log.Info("Namespace scope restriction is enabled")
 	}
+	if !instance.Spec.IsNamespaceDiscoveryEnabled() {
+		if len(instance.Spec.GetDiscoveryNamespaces()) == 0 {
+			r.Log.Info("namespaceDiscovery.enabled is false but namespaceDiscovery.namespaces " +
+				"is empty; ignoring the switch and keeping cluster-wide namespace discovery enabled")
+		} else {
+			r.Log.Info("Namespace discovery is disabled; operand restricted to the configured namespace list")
+		}
+	}
 
 }
 

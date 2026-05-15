@@ -381,6 +381,26 @@ spec:
                         operand (TokenReview + SubjectAccessReview). When nil, defaults to true
                         to preserve existing behavior.
                       type: boolean
+                    namespaceDiscovery:
+                      description: |-
+                        Controls cluster-wide namespace discovery on the operand. When discovery is
+                        disabled, the operand monitors only the explicit namespace list.
+                      properties:
+                        enabled:
+                          description: |-
+                            Enables cluster-wide namespace discovery on the operand. When true or
+                            nil, the operand discovers and monitors every namespace on the cluster
+                            (today's behavior). When false, the operand monitors only the namespaces
+                            listed in Namespaces and issues no cluster-wide list calls.
+                          type: boolean
+                        namespaces:
+                          description: |-
+                            Explicit list of namespaces the operand should monitor. Takes effect only
+                            when Enabled is false. Ignored (with an info log) when discovery is on.
+                          items:
+                            type: string
+                          type: array
+                      type: object
                     nssConfigMap:
                       description: Special terms, must be granted by IBM Pricing.
                       type: string

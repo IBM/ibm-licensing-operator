@@ -61,6 +61,11 @@ type Features struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
 	NamespaceScopeDenialLimit int `json:"nssDenialLimit,omitempty"`
+
+	// Controls cluster-wide namespace discovery on the operand. When discovery is
+	// disabled, the operand monitors only the explicit namespace list.
+	// +optional
+	NamespaceDiscovery *features.NamespaceDiscovery `json:"namespaceDiscovery,omitempty"`
 }
 
 func (spec *IBMLicensingSpec) HaveFeatures() bool {
@@ -76,6 +81,26 @@ func (spec *IBMLicensingSpec) IsKubeRBACAuthEnabled() bool {
 		return true
 	}
 	return *spec.Features.KubeRBACAuthEnabled
+}
+
+// IsNamespaceDiscoveryEnabled reports whether the operand should discover and
+// monitor all namespaces cluster-wide. Defaults to true when the features
+// block, the namespaceDiscovery block, or its enabled pointer is absent.
+func (spec *IBMLicensingSpec) IsNamespaceDiscoveryEnabled() bool {
+	if !spec.HaveFeatures() || spec.Features.NamespaceDiscovery == nil ||
+		spec.Features.NamespaceDiscovery.Enabled == nil {
+		return true
+	}
+	return *spec.Features.NamespaceDiscovery.Enabled
+}
+
+// GetDiscoveryNamespaces returns the explicit namespace list configured on the
+// CR, or nil when none is set.
+func (spec *IBMLicensingSpec) GetDiscoveryNamespaces() []string {
+	if !spec.HaveFeatures() || spec.Features.NamespaceDiscovery == nil {
+		return nil
+	}
+	return spec.Features.NamespaceDiscovery.Namespaces
 }
 
 func (spec *IBMLicensingSpec) IsCustomNamespaceScopeConfigMap() bool {
