@@ -375,6 +375,12 @@ spec:
                       required:
                         - threadsPerCore
                       type: object
+                    kubeRBACAuthEnabled:
+                      description: |-
+                        Enables the bearer-token / Kubernetes RBAC authentication path on the
+                        operand (TokenReview + SubjectAccessReview). When nil, defaults to true
+                        to preserve existing behavior.
+                      type: boolean
                     nssConfigMap:
                       description: Special terms, must be granted by IBM Pricing.
                       type: string

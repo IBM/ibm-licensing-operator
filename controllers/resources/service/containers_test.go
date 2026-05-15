@@ -218,6 +218,57 @@ func TestGetLicensingEnvironmentVariablesNodeCpuCappingExplicitFalse(t *testing.
 		"NodeCpuCappingEnabled=false, NODE_CPU_CAPPING_ENABLED=false should be added to Licensing pod.")
 }
 
+func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledFeatureNil(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"}),
+		"Features is nil, KUBE_RBAC_AUTH_ENABLED should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledPointerNil(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features:          &operatorv1alpha1.Features{},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"}),
+		"KubeRBACAuthEnabled pointer is nil, KUBE_RBAC_AUTH_ENABLED should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitTrue(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features: &operatorv1alpha1.Features{
+			KubeRBACAuthEnabled: ptr.To(true),
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"}),
+		"KubeRBACAuthEnabled=true, KUBE_RBAC_AUTH_ENABLED should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitFalse(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features: &operatorv1alpha1.Features{
+			KubeRBACAuthEnabled: ptr.To(false),
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"}),
+		"KubeRBACAuthEnabled=false, KUBE_RBAC_AUTH_ENABLED=false should be added to Licensing pod.")
+}
+
 func Contains[T comparable](s []T, e T) bool {
 	for _, v := range s {
 		if v == e {
