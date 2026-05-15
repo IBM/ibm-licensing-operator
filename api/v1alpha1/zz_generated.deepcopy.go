@@ -86,6 +86,11 @@ func (in *Features) DeepCopyInto(out *Features) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.KubeRBACAuthEnabled != nil {
+		in, out := &in.KubeRBACAuthEnabled, &out.KubeRBACAuthEnabled
+		*out = new(bool)
+		**out = **in
+	}
 	if in.CustomNamespaceScopeConfigMap != nil {
 		in, out := &in.CustomNamespaceScopeConfigMap, &out.CustomNamespaceScopeConfigMap
 		*out = new(string)

@@ -46,6 +46,12 @@ type Features struct {
 	// +optional
 	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
 
+	// Enables the bearer-token / Kubernetes RBAC authentication path on the
+	// operand (TokenReview + SubjectAccessReview). When nil, defaults to true
+	// to preserve existing behavior.
+	// +optional
+	KubeRBACAuthEnabled *bool `json:"kubeRBACAuthEnabled,omitempty"`
+
 	// Special terms, must be granted by IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Custom namespaces Config Map",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
@@ -63,6 +69,13 @@ func (spec *IBMLicensingSpec) HaveFeatures() bool {
 
 func (spec *IBMLicensingSpec) IsNamespaceScopeEnabled() bool {
 	return spec.HaveFeatures() && spec.Features.NamespaceScopeEnabled != nil && *spec.Features.NamespaceScopeEnabled
+}
+
+func (spec *IBMLicensingSpec) IsKubeRBACAuthEnabled() bool {
+	if !spec.HaveFeatures() || spec.Features.KubeRBACAuthEnabled == nil {
+		return true
+	}
+	return *spec.Features.KubeRBACAuthEnabled
 }
 
 func (spec *IBMLicensingSpec) IsCustomNamespaceScopeConfigMap() bool {
