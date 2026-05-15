@@ -656,6 +656,8 @@ spec:
                             fieldPath: spec.serviceAccountName
                       - name: CRD_RECONCILE_INTERVAL
                         value: "300"
+                      - name: OPERANDREQUESTS_ENABLED
+                        value: "true"
                     image: icr.io/cpopen/ibm-licensing-operator:4.2.23
                     imagePullPolicy: IfNotPresent
                     name: ibm-licensing-operator

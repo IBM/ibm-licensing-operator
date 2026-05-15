@@ -24,6 +24,66 @@ import (
 	"time"
 )
 
+func TestIsOperandRequestsEnabled(t *testing.T) {
+	envVar := "OPERANDREQUESTS_ENABLED"
+
+	t.Logf("Given the need to read %s environment variable", envVar)
+	{
+		t.Log("\tTest 0:\tWhen env var is not set")
+		{
+			os.Unsetenv(envVar)
+			result := IsOperandRequestsEnabled()
+			if result {
+				t.Logf("\t%s\tShould return true when env var is unset", SUCCESS)
+			} else {
+				t.Errorf("\t%s\tShould return true when env var is unset", FAIL)
+			}
+		}
+
+		t.Log("\tTest 1:\tWhen env var is set to false")
+		{
+			if err := os.Setenv(envVar, "false"); err != nil {
+				t.Fatalf("Could not set %s env var: %v", envVar, err)
+			}
+			result := IsOperandRequestsEnabled()
+			if !result {
+				t.Logf("\t%s\tShould return false when env var is false", SUCCESS)
+			} else {
+				t.Errorf("\t%s\tShould return false when env var is false", FAIL)
+			}
+			os.Unsetenv(envVar)
+		}
+
+		t.Log("\tTest 2:\tWhen env var is set to true")
+		{
+			if err := os.Setenv(envVar, "true"); err != nil {
+				t.Fatalf("Could not set %s env var: %v", envVar, err)
+			}
+			result := IsOperandRequestsEnabled()
+			if result {
+				t.Logf("\t%s\tShould return true when env var is true", SUCCESS)
+			} else {
+				t.Errorf("\t%s\tShould return true when env var is true", FAIL)
+			}
+			os.Unsetenv(envVar)
+		}
+
+		t.Log("\tTest 3:\tWhen env var has invalid format")
+		{
+			if err := os.Setenv(envVar, "garbage"); err != nil {
+				t.Fatalf("Could not set %s env var: %v", envVar, err)
+			}
+			result := IsOperandRequestsEnabled()
+			if result {
+				t.Logf("\t%s\tShould return true when env var is unparseable", SUCCESS)
+			} else {
+				t.Errorf("\t%s\tShould return true when env var is unparseable", FAIL)
+			}
+			os.Unsetenv(envVar)
+		}
+	}
+}
+
 func TestGetReconcileInterval(t *testing.T) {
 	envVar := "CRD_RECONCILE_INTERVAL"
 
