@@ -375,6 +375,12 @@ spec:
                       required:
                         - threadsPerCore
                       type: object
+                    kubeRBACAuthEnabled:
+                      description: |-
+                        Enables the bearer-token / Kubernetes RBAC authentication path on the
+                        operand (TokenReview + SubjectAccessReview). When nil, defaults to true
+                        to preserve existing behavior.
+                      type: boolean
                     nssConfigMap:
                       description: Special terms, must be granted by IBM Pricing.
                       type: string
@@ -482,6 +488,12 @@ spec:
                     - INFO
                     - VERBOSE
                   type: string
+                nodeCpuCappingEnabled:
+                  default: true
+                  description: |-
+                    Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
+                    real node capacity. Default true.
+                  type: boolean
                 resources:
                   description: ResourceRequirements describes the compute resource requirements.
                   properties:

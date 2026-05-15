@@ -193,6 +193,11 @@ func (spec *IBMLicensingSpec) IsChargebackEnabled() bool {
 	return spec.ChargebackEnabled != nil && *spec.ChargebackEnabled
 }
 
+func (spec *IBMLicensingSpec) IsNodeCpuCappingEnabled() bool {
+	// Default true: nil treated as enabled.
+	return spec.NodeCpuCappingEnabled == nil || *spec.NodeCpuCappingEnabled
+}
+
 func (container *Container) initResourcesIfNil() {
 	if container.Resources.Limits == nil {
 		container.Resources.Limits = corev1.ResourceList{}

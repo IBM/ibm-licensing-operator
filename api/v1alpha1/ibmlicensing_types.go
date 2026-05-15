@@ -115,6 +115,13 @@ type IBMLicensingSpec struct {
 	// +optional
 	ChargebackEnabled *bool `json:"chargebackEnabled,omitempty"`
 
+	// Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
+	// real node capacity. Default true.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Node CPU Capping Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +kubebuilder:default=true
+	// +optional
+	NodeCpuCappingEnabled *bool `json:"nodeCpuCappingEnabled,omitempty"`
+
 	// Chargeback data retention period in days. Default value is 62 days.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Retention Period in days",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
 	// +optional

@@ -52,6 +52,10 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Name:  "ENABLE_INSTANA_METRIC_COLLECTION",
 			Value: strconv.FormatBool(spec.EnableInstanaMetricCollection),
 		},
+		{
+			Name:  "NODE_CPU_CAPPING_ENABLED",
+			Value: strconv.FormatBool(spec.IsNodeCpuCappingEnabled()),
+		},
 	}
 	if spec.IsDebug() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
@@ -143,6 +147,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 	if !spec.IsURLBasedAuthEnabled() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "URL_AUTH_ENABLED",
+			Value: "false",
+		})
+	}
+	if !spec.IsKubeRBACAuthEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "KUBE_RBAC_AUTH_ENABLED",
 			Value: "false",
 		})
 	}
