@@ -208,13 +208,22 @@ func main() {
 		os.Exit(1)
 	}
 
+	operandRequestsEnabled := res.IsOperandRequestsEnabled()
+
 	operandRequestList := odlm.OperandRequestList{}
-	opreqControllerEnabled, err := res.DoesCRDExist(mgr.GetAPIReader(), &operandRequestList)
-	if err != nil {
-		setupLog.Error(err, "An error occurred while checking for CRD existence. OperandRequest controller will not be started")
+	opreqControllerEnabled := false
+	if operandRequestsEnabled {
+		opreqControllerEnabled, err = res.DoesCRDExist(mgr.GetAPIReader(), &operandRequestList)
+		if err != nil {
+			setupLog.Error(err, "An error occurred while checking for CRD existence. OperandRequest controller will not be started")
+		}
 	}
 
-	if opreqControllerEnabled {
+	switch {
+	case !operandRequestsEnabled:
+		setupLog.Info("OperandRequest support is disabled (OPERANDREQUESTS_ENABLED=false). " +
+			"OperandRequest controller, discovery and the OperatorGroup cleaner will not be started.")
+	case opreqControllerEnabled:
 		if err = (&controllers.OperandRequestReconciler{
 			Client:            mgr.GetClient(),
 			Reader:            mgr.GetAPIReader(),
@@ -254,7 +263,7 @@ func main() {
 				setupLog.Info("OperatorGroup CRD not found in cluster. operandrequest-discovery and operatorgroup-namespaces-watcher disabled")
 			}
 		}
-	} else {
+	default:
 		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
 		// Set custom time duration for CRD watcher (in seconds)
 		reconcileInterval, err := res.GetCrdReconcileInterval()

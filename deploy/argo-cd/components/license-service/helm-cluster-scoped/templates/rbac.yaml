@@ -191,6 +191,7 @@ rules:
       - get
       - list
       - watch
+  {{- if eq (include "ibm-licensing.operandRequestsEnabled" .) "true" }}
   - apiGroups:
       - operators.coreos.com
     resources:
@@ -201,6 +202,7 @@ rules:
       - patch
       - update
       - watch
+  {{- end }}
   - apiGroups:
       - route.openshift.io
     resources:

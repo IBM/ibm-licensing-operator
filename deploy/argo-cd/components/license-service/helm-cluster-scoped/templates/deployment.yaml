@@ -78,6 +78,8 @@ spec:
                   fieldPath: spec.serviceAccountName
             - name: CRD_RECONCILE_INTERVAL
               value: "300"
+            - name: OPERANDREQUESTS_ENABLED
+              value: {{ include "ibm-licensing.operandRequestsEnabled" . | quote }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperator }}/ibm-licensing-operator:4.2.23
           imagePullPolicy: IfNotPresent
           name: ibm-licensing-operator

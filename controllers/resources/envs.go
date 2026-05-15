@@ -63,6 +63,21 @@ func GetOperatorNamespace() (string, error) {
 	return ns, nil
 }
 
+// IsOperandRequestsEnabled reports whether the operator should run the OperandRequest controller,
+// OperandRequest discovery and the OperatorGroup cleaner. Controlled by OPERANDREQUESTS_ENABLED.
+// Defaults to true when unset or unparseable so existing deployments keep today's behavior.
+func IsOperandRequestsEnabled() bool {
+	env, found := os.LookupEnv("OPERANDREQUESTS_ENABLED")
+	if !found {
+		return true
+	}
+	enabled, err := strconv.ParseBool(env)
+	if err != nil {
+		return true
+	}
+	return enabled
+}
+
 // GetCrdReconcileInterval returns time duration in seconds for requested CRD watching. Defaults to 300s.
 func GetCrdReconcileInterval() (time.Duration, error) {
 	crdReconcileEnvVar := "CRD_RECONCILE_INTERVAL"
