@@ -81,7 +81,7 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.23
-    createdAt: "2026-05-14T07:27:54Z"
+    createdAt: "2026-05-15T12:42:13Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
@@ -314,13 +314,6 @@ spec:
             path: license.accept
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:checkbox
-          - description: |-
-              Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
-              real node capacity. Default true.
-            displayName: Node CPU Capping Enabled
-            path: nodeCpuCappingEnabled
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
           - description: Is Red Hat Marketplace enabled
             displayName: RHMP Enabled
             path: rhmpEnabled
