@@ -183,6 +183,41 @@ func TestGetSoftwareCentralFrequencyDefaultValue(t *testing.T) {
 
 }
 
+func TestGetLicensingEnvironmentVariablesNodeCpuCappingDefault(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "NODE_CPU_CAPPING_ENABLED", Value: "true"}),
+		"NodeCpuCappingEnabled omitted in CR, NODE_CPU_CAPPING_ENABLED=true should be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesNodeCpuCappingExplicitTrue(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace:     "namespace",
+		Datasource:            "datacollector",
+		NodeCpuCappingEnabled: ptr.To(true),
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "NODE_CPU_CAPPING_ENABLED", Value: "true"}),
+		"NodeCpuCappingEnabled=true, NODE_CPU_CAPPING_ENABLED=true should be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesNodeCpuCappingExplicitFalse(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace:     "namespace",
+		Datasource:            "datacollector",
+		NodeCpuCappingEnabled: ptr.To(false),
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "NODE_CPU_CAPPING_ENABLED", Value: "false"}),
+		"NodeCpuCappingEnabled=false, NODE_CPU_CAPPING_ENABLED=false should be added to Licensing pod.")
+}
+
 func Contains[T comparable](s []T, e T) bool {
 	for _, v := range s {
 		if v == e {

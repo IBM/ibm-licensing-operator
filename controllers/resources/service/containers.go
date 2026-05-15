@@ -52,6 +52,10 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Name:  "ENABLE_INSTANA_METRIC_COLLECTION",
 			Value: strconv.FormatBool(spec.EnableInstanaMetricCollection),
 		},
+		{
+			Name:  "NODE_CPU_CAPPING_ENABLED",
+			Value: strconv.FormatBool(spec.IsNodeCpuCappingEnabled()),
+		},
 	}
 	if spec.IsDebug() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
