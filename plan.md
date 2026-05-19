@@ -163,9 +163,105 @@ ibmLicensing:
     datasource: "datacollector"
 ```
 
-### Phase 5: Templatize Extracted Resources
+### Phase 5: Analyze and Handle Secrets
 
-#### 5.1 Script: `scripts/templatize-resources.sh`
+#### 5.1 Identify Secret Types
+
+**Purpose**: Analyze extracted secrets to determine which ones require special handling in the Helm chart.
+
+**Secret types to handle**:
+
+1. **TLS Secrets**:
+   - Certificate and key pairs for HTTPS/TLS connections
+   - Used for secure communication with License Service
+   - Must be created before Helm installation or generated during installation
+
+2. **Token Secrets**:
+   - Random authentication tokens
+   - API access tokens
+   - Must be generated securely and persist across upgrades
+
+#### 5.2 Helm Chart Strategies for Secrets
+
+**Strategy 1: TLS Secret Handling**
+
+Option A - Use existing TLS secret:
+```yaml
+# values.yaml
+tls:
+  enabled: true
+  secretName: "ibm-licensing-tls"  # Reference to pre-existing secret
+```
+
+Option B - Generate TLS certificate during installation:
+```yaml
+# values.yaml
+tls:
+  enabled: true
+  generate: true  # Auto-generate self-signed certificate
+  secretName: "ibm-licensing-tls"
+```
+
+Implementation in template:
+```yaml
+{{- if and .Values.tls.enabled .Values.tls.generate }}
+{{- if not (lookup "v1" "Secret" .Release.Namespace .Values.tls.secretName) }}
+# Generate self-signed certificate using Helm's genSelfSignedCert function
+{{- $cert := genSelfSignedCert .Values.tls.commonName nil nil 365 }}
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/tls
+metadata:
+  name: {{ .Values.tls.secretName }}
+data:
+  tls.crt: {{ $cert.Cert | b64enc }}
+  tls.key: {{ $cert.Key | b64enc }}
+{{- end }}
+{{- end }}
+```
+
+**Strategy 2: Token Secret Handling**
+
+Use Helm's `lookup` function to preserve existing tokens on upgrades:
+```yaml
+{{- $secret := lookup "v1" "Secret" .Release.Namespace "ibm-licensing-token" }}
+{{- $token := "" }}
+{{- if $secret }}
+  {{- $token = index $secret.data "token" | b64dec }}
+{{- else }}
+  {{- $token = randAlphaNum 32 }}
+{{- end }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ibm-licensing-token
+type: Opaque
+data:
+  token: {{ $token | b64enc }}
+```
+
+This approach:
+- Generates a random token on first installation
+- Preserves the existing token on upgrades
+- Ensures token consistency across Helm operations
+
+**Strategy 3: External Secret References**
+
+For production environments, allow referencing externally managed secrets:
+```yaml
+# values.yaml
+secrets:
+  tls:
+    create: false  # Don't create, use existing
+    secretName: "my-existing-tls-secret"
+  token:
+    create: false  # Don't create, use existing
+    secretName: "my-existing-token-secret"
+```
+
+### Phase 6: Templatize Extracted Resources
+
+#### 6.1 Script: `scripts/templatize-resources.sh`
 
 **Purpose**: Convert extracted static YAML files into Helm templates with proper templating.
 
@@ -176,7 +272,7 @@ ibmLicensing:
 3. **Add conditional blocks**: For platform-specific resources (e.g., OpenShift Routes)
 4. **Template environment variables**: Use values from values.yaml
 
-#### 5.2 Templatization Process
+#### 6.2 Templatization Process
 
 The script will perform these transformations on extracted resources:
 - Replace hardcoded namespaces with Helm template variables
@@ -185,7 +281,7 @@ The script will perform these transformations on extracted resources:
 - Template resource limits and requests
 - Template environment variables
 
-### Phase 6: Complete Automation Script
+### Phase 7: Complete Automation Script
 
 #### Script: `scripts/generate-helm-no-operator.sh`
 
@@ -195,8 +291,9 @@ The script will perform these transformations on extracted resources:
 2. Wait for the operator to auto-create the IBMLicensing instance
 3. Wait for all resources to be ready
 4. Extract all resources from the cluster using label selector
-5. Templatize resources for the new Helm chart
-6. Cleanup (optional)
+5. Analyze secrets and implement proper handling strategies
+6. Templatize resources for the new Helm chart
+7. Cleanup (optional)
 
 **Output**:
 - `helm-no-operator/` - Complete Helm chart ready to use (includes both namespace and cluster-scoped resources)
@@ -208,5 +305,8 @@ The script will perform these transformations on extracted resources:
 
 1. ✅ Script successfully installs LS operator and creates instance
 2. ✅ All resources are correctly extracted using label selector
-3. ✅ Generated Helm chart deploys successfully
-4. ✅ Deployed LS functions identically to operator-managed version
+3. ✅ Secrets are properly handled (TLS and token secrets)
+4. ✅ TLS secrets can be auto-generated or referenced externally
+5. ✅ Token secrets are generated once and preserved on upgrades
+6. ✅ Generated Helm chart deploys successfully
+7. ✅ Deployed LS functions identically to operator-managed version
