@@ -39,8 +39,17 @@ This label will be used to identify and extract all operator-managed resources.
 The script will use the existing Helm charts from `deploy/argo-cd/components/license-service/helm-cluster-scoped/`
 
 **Installation**:
-- Install using Helm with license acceptance
-- Wait for deployment to be ready
+The installation requires running the same helm template command twice to ensure all resources are properly created:
+
+```bash
+helm template ibm-licensing-cluster-scoped deploy/argo-cd/components/license-service/helm-cluster-scoped/ | kubectl apply -f -
+helm template ibm-licensing-cluster-scoped deploy/argo-cd/components/license-service/helm-cluster-scoped/ | kubectl apply -f -
+```
+
+**Why run twice?**
+- First run: Creates CRDs and initial resources
+- Second run: Ensures all dependent resources are properly created after CRDs are established
+- Wait for deployment to be ready after both runs
 
 **What happens**:
 1. Helm installs the IBM Licensing Operator
