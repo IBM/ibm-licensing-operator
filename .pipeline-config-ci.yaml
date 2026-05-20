@@ -60,6 +60,7 @@ tasks:
         script: |
           #!/usr/bin/env bash
           set -euo pipefail
+          set -x
           cd "$WORKSPACE/$(load_repo app-repo path)"
 
           source ./build_scripts/setup_env.sh
@@ -67,37 +68,67 @@ tasks:
 
           : > .published-images.txt
 
-          echo "=========================================="
-          echo "Building amd64 image"
-          echo "=========================================="
-          ARCH=amd64 make build-push-image
-          
-          echo "=========================================="
-          echo "Building ppc64le image"
-          echo "=========================================="
-          ARCH=ppc64le make build-push-image
-          
-          echo "=========================================="
-          echo "Building s390x image"
-          echo "=========================================="
-          ARCH=s390x make build-push-image
-          
-          echo "=========================================="
-          echo "Creating multiarch manifest"
-          echo "=========================================="
-          make multiarch-image-latest
-          make multiarch-image
+          if [ "$GIT_BRANCH" = "master" ]; then
+            echo "=========================================="
+            echo "Building amd64 image"
+            echo "=========================================="
+            ARCH=amd64 make build-push-image
+            
+            echo "=========================================="
+            echo "Building ppc64le image"
+            echo "=========================================="
+            ARCH=ppc64le make build-push-image
+            
+            echo "=========================================="
+            echo "Building s390x image"
+            echo "=========================================="
+            ARCH=s390x make build-push-image
+            
+            echo "=========================================="
+            echo "Creating multiarch manifest"
+            echo "=========================================="
+            make multiarch-image-latest
+            make multiarch-image
 
-          echo "=========================================="
-          echo "Creating catalog image"
-          echo "=========================================="
-          ARCH=amd64 make catalogsource
+            echo"=========================================="
+            echo "Creating catalog image"
+            echo "=========================================="
+            ARCH=amd64 make catalogsource
 
-          if [ "$GIT_BRANCH" = "develop" ]; then
-              echo "=========================================="
-              echo "Building development helm charts"
-              echo "=========================================="
-              make build/helm-develop-all
+            echo "=========================================="
+            echo "Building development helm charts"
+            echo "=========================================="
+            make build/helm-develop-all
+          else
+            echo "=========================================="
+            echo "Building amd64 image"
+            echo "=========================================="
+            ARCH=amd64 make build-push-image-development
+            
+            echo "=========================================="
+            echo "Building ppc64le image"
+            echo "=========================================="
+            ARCH=ppc64le make build-push-image-development
+            
+            echo "=========================================="
+            echo "Building s390x image"
+            echo "=========================================="
+            ARCH=s390x make build-push-image-development
+            
+            echo "=========================================="
+            echo "Creating multiarch manifest"
+            echo "=========================================="
+            make multiarch-image-development
+
+            echo"=========================================="
+            echo "Creating catalog image"
+            echo "=========================================="
+            ARCH=amd64 make catalogsource-dev
+
+            echo "=========================================="
+            echo "Building development helm charts"
+            echo "=========================================="
+            make build/helm-develop-all
           fi
           
           echo "=========================================="
