@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 	goruntime "runtime"
 	"sort"
@@ -42,6 +43,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/yaml"
 
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 
@@ -523,6 +525,12 @@ func (r *IBMLicensingReconciler) reconcileAPISecretToken(instance *operatorv1alp
 			RequeueAfter: time.Minute,
 		}, err
 	}
+
+	// Save expected secret to file for debugging
+	if err := r.saveResourceToFile(expectedSecret, "secret", expectedSecret.Name, reqLogger); err != nil {
+		reqLogger.Error(err, "Failed to save secret YAML to file (non-critical)")
+	}
+
 	foundSecret := &corev1.Secret{}
 
 	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
@@ -609,6 +617,12 @@ func (r *IBMLicensingReconciler) reconcileUploadToken(instance *operatorv1alpha1
 			RequeueAfter: time.Minute,
 		}, err
 	}
+
+	// Save expected secret to file for debugging
+	if err := r.saveResourceToFile(expectedSecret, "secret", expectedSecret.Name, reqLogger); err != nil {
+		reqLogger.Error(err, "Failed to save secret YAML to file (non-critical)")
+	}
+
 	foundSecret := &corev1.Secret{}
 	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
 	if err != nil || result.Requeue {
@@ -677,6 +691,11 @@ func (r *IBMLicensingReconciler) reconcileServices(instance *operatorv1alpha1.IB
 	expected, notExpected := service.GetServices(instance)
 	found := &corev1.Service{}
 	for _, es := range expected {
+		// Save expected service to file for debugging
+		if err := r.saveResourceToFile(es, "service", es.Name, reqLogger); err != nil {
+			reqLogger.Error(err, "Failed to save service YAML to file (non-critical)")
+		}
+
 		result, err = r.reconcileResourceNamespacedExistence(instance, es, found)
 		if err != nil || result.Requeue {
 			return result, err
@@ -769,6 +788,11 @@ func (r *IBMLicensingReconciler) reconcileNetworkPolicy(instance *operatorv1alph
 func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
 	expectedDeployment := service.GetLicensingDeployment(instance)
+
+	// Save expected deployment to file for debugging
+	if err := r.saveResourceToFile(expectedDeployment, "deployment", expectedDeployment.Name, reqLogger); err != nil {
+		reqLogger.Error(err, "Failed to save deployment YAML to file (non-critical)")
+	}
 
 	foundDeployment := &appsv1.Deployment{}
 	reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedDeployment, foundDeployment)
@@ -930,14 +954,19 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 
 func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
+		reqLogger := r.Log.WithValues("reconcileRoute", "Entry", "instance.GetName()", instance.GetName())
 		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
+
+		// Save expected route to file for debugging
+		if err := r.saveResourceToFile(expectedRoute, "route", expectedRoute.Name, reqLogger); err != nil {
+			reqLogger.Error(err, "Failed to save route YAML to file (non-critical)")
+		}
+
 		foundRoute := &routev1.Route{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
 		}
-		reqLogger := r.Log.WithValues("reconcileRoute", "Entry", "instance.GetName()", instance.GetName())
-
 		if !res.CompareRoutes(reqLogger, expectedRoute, foundRoute) {
 			//route tls cannot be updated, that is why we delete and create
 			reconcileResult, err = res.DeleteResource(&reqLogger, r.Client, foundRoute)
@@ -1438,6 +1467,7 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 }
 
 func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operatorv1alpha1.IBMLicensing, secretNsName types.NamespacedName, hostname []string, rolloutPods bool) (reconcile.Result, error) {
+	reqLogger := r.Log.WithValues("reconcileCertificate", "Entry", "instance.GetName()", instance.GetName())
 	certSecret := &corev1.Secret{}
 
 	// Use Reader (bypasses label-filtered cache) so that pre-existing cert secrets
@@ -1449,6 +1479,11 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 		if err != nil {
 			r.Log.Error(err, "Error generating self signed certificate")
 			return reconcile.Result{Requeue: true}, err
+		}
+
+		// Save expected certificate secret to file for debugging
+		if err := r.saveResourceToFile(secret, "secret-cert", secret.Name, reqLogger); err != nil {
+			reqLogger.Error(err, "Failed to save certificate secret YAML to file (non-critical)")
 		}
 
 		if err := r.Client.Create(context.TODO(), secret); err != nil {
@@ -1471,7 +1506,6 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 	}
 	// checking certificate
 	cert, err := res.ParseCertificate(certSecret.Data["tls.crt"])
-	reqLogger := r.Log.WithValues("reconcileCertificate", "Entry", "instance.GetName()", instance.GetName())
 
 	regenerateCertificate := false
 
@@ -1497,9 +1531,14 @@ func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operat
 		if err != nil {
 			r.Log.Error(err, "Error creating self signed certificate")
 			return reconcile.Result{Requeue: true}, err
-
 		}
+
 		r.attachSpecLabelsAndAnnotationsPrecedingUpdate(instance, secret)
+
+		// Save expected certificate secret to file for debugging
+		if err := r.saveResourceToFile(secret, "secret-cert", secret.Name, reqLogger); err != nil {
+			reqLogger.Error(err, "Failed to save certificate secret YAML to file (non-critical)")
+		}
 		result, err2 := res.UpdateResource(&reqLogger, r.Client, secret, certSecret)
 		if err2 != nil {
 			return result, err
@@ -1565,4 +1604,59 @@ func (r *IBMLicensingReconciler) handleLicenseNotAccepted(instance *operatorv1al
 	fmt.Printf("%s ERROR "+operatorv1alpha1.LicenseNotAcceptedMessage+"\n", timestamp)
 	// Publish an event with error message
 	r.Recorder.Event(instance, "Warning", "LicenseNotAccepted", operatorv1alpha1.LicenseNotAcceptedMessage)
+}
+
+func (r *IBMLicensingReconciler) saveResourceToFile(resource interface{}, resourceType string, resourceName string, logger logr.Logger) error {
+	// Check if SAVE_RESOURCES environment variable is set to "true" (case-insensitive)
+	saveResources := strings.ToLower(os.Getenv("SAVE_RESOURCES"))
+	if saveResources != "true" {
+		return nil
+	}
+
+	// Get GVK (GroupVersionKind) from the resource
+	var apiVersion, kind string
+	if runtimeObj, ok := resource.(runtime.Object); ok {
+		gvks, _, err := r.Scheme.ObjectKinds(runtimeObj)
+		if err == nil && len(gvks) > 0 {
+			gvk := gvks[0]
+			if gvk.Group == "" {
+				apiVersion = gvk.Version
+			} else {
+				apiVersion = gvk.Group + "/" + gvk.Version
+			}
+			kind = gvk.Kind
+		}
+	}
+
+	// Convert resource to YAML
+	yamlBytes, err := yaml.Marshal(resource)
+	if err != nil {
+		return fmt.Errorf("failed to marshal %s to YAML: %w", resourceType, err)
+	}
+
+	// Prepend apiVersion and kind if we have them
+	var finalYAML string
+	if apiVersion != "" && kind != "" {
+		finalYAML = fmt.Sprintf("apiVersion: %s\nkind: %s\n%s", apiVersion, kind, string(yamlBytes))
+	} else {
+		finalYAML = string(yamlBytes)
+	}
+
+	// Create output directory
+	outputDir := "./resources/golang"
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	// Generate filename based on resource type and name
+	filename := fmt.Sprintf("%s-%s.yaml", resourceType, resourceName)
+	outputPath := fmt.Sprintf("%s/%s", outputDir, filename)
+
+	// Write to file
+	if err := os.WriteFile(outputPath, []byte(finalYAML), 0644); err != nil {
+		return fmt.Errorf("failed to write %s YAML to file: %w", resourceType, err)
+	}
+
+	logger.Info("Saved expected resource YAML", "type", resourceType, "path", outputPath)
+	return nil
 }
