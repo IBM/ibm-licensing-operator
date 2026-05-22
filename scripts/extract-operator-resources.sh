@@ -10,28 +10,7 @@ set -e -o pipefail
 NAMESPACE="${NAMESPACE:-ibm-licensing}"
 HELM_CHART_PATH="deploy/argo-cd/components/license-service/helm-cluster-scoped"
 OUTPUT_DIR="resources"
-# Label selector for License Service resources created by the operator
-LABEL_SELECTOR="app.kubernetes.io/instance=ibm-licensing-service"
 TIMEOUT=300  # 5 minutes timeout for resource readiness
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Logging functions
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
 
 # Check prerequisites
 check_prerequisites() {
@@ -44,6 +23,12 @@ check_prerequisites() {
     
     if ! command -v helm &> /dev/null; then
         log_error "helm is not installed"
+        exit 1
+    fi
+    
+    if ! kubectl neat --help &> /dev/null; then
+        log_error "kubectl neat plugin is not installed"
+        log_error "Install it with: kubectl krew install neat"
         exit 1
     fi
     
@@ -92,121 +77,110 @@ install_licensing_helm() {
 
 # Wait for deployment to be ready
 wait_for_resources() {
-    log_info "Waiting for operator deployment to be ready..."
+    log_info "Waiting for License Service deployment ibm-licensing-service-instance..."
     
-    # Wait for operator deployment
+    # Wait for License Service deployment (operator will create it)
     if ! kubectl wait --for=condition=available --timeout="${TIMEOUT}s" \
-        deployment -n "${NAMESPACE}" -l app.kubernetes.io/name=ibm-licensing-operator 2>/dev/null; then
-        log_warn "Operator deployment not found or not ready yet, continuing..."
+        deployment/ibm-licensing-service-instance -n "${NAMESPACE}" 2>/dev/null; then
+        log_error "License Service deployment not ready after ${TIMEOUT}s timeout"
+        exit 1
     fi
     
-    # Wait a bit more for the operator to reconcile and create operand resources
-    log_info "Waiting for operator to reconcile and create operand resources..."
-    sleep 30
-    
-    # Wait for License Service deployment using label selector
-    log_info "Waiting for License Service deployment with label ${LABEL_SELECTOR}..."
-    local retries=0
-    local max_retries=10
-    
-    while [ $retries -lt $max_retries ]; do
-        if kubectl get deployment -n "${NAMESPACE}" -l "${LABEL_SELECTOR}" 2>/dev/null | grep -q "ibm-licensing-service"; then
-            log_info "License Service deployment found, waiting for it to be ready..."
-            if kubectl wait --for=condition=available --timeout="${TIMEOUT}s" \
-                deployment -n "${NAMESPACE}" -l "${LABEL_SELECTOR}" 2>/dev/null; then
-                log_info "License Service deployment is ready"
-                break
-            fi
-        fi
-        
-        retries=$((retries + 1))
-        log_info "Waiting for License Service deployment... (attempt $retries/$max_retries)"
-        sleep 15
-    done
-    
-    if [ $retries -eq $max_retries ]; then
-        log_warn "License Service deployment not ready after ${max_retries} attempts, but continuing with extraction..."
-    fi
+    log_info "License Service deployment is ready"
 }
 
-# Clean up runtime fields from YAML
+# Clean up runtime and default fields from YAML using kubectl neat
 cleanup_resource() {
     local input_file="$1"
     local output_file="$2"
     
-    # Use yq if available, otherwise use kubectl
-    if command -v yq &> /dev/null; then
-        yq eval 'del(.metadata.uid, 
-                     .metadata.resourceVersion, 
-                     .metadata.generation, 
-                     .metadata.creationTimestamp, 
-                     .metadata.selfLink, 
-                     .metadata.managedFields,
-                     .metadata.ownerReferences,
-                     .status)' "${input_file}" > "${output_file}"
-    else
-        # Fallback to kubectl with manual cleanup
-        kubectl create --dry-run=client -f "${input_file}" -o yaml > "${output_file}" 2>/dev/null || cp "${input_file}" "${output_file}"
-    fi
+    kubectl neat -f "${input_file}" > "${output_file}"
 }
 
 # Extract namespace-scoped resources created by the operator
+# Only extracts required resources as specified in required_resources.md
 extract_namespace_resources() {
-    log_info "Extracting namespace-scoped resources from ${NAMESPACE}..."
-    log_info "Using label selector: ${LABEL_SELECTOR}"
+    log_info "Extracting required namespace-scoped resources from ${NAMESPACE}..."
     
-    mkdir -p "${OUTPUT_DIR}/namespace"
+    mkdir -p "${OUTPUT_DIR}/cluster"
     
-    # Resource types to extract
-    local resource_types=(
-        "deployment"
-        "service"
-        "serviceaccount"
-        "role"
-        "rolebinding"
-        "configmap"
-        "secret"
-        "route"
-        "servicemonitor"
-        "ingress"
+    # Define required resources by type and name (from required_resources.md)
+    # Format: "resource_type:resource_name"
+    local required_resources=(
+        # Core Components
+        "deployment:ibm-licensing-service-instance"
+        "service:ibm-licensing-service-instance"
+        "route:ibm-licensing-service-instance"
+        
+        # Secrets (required for deployment)
+        "secret:ibm-license-service-cert"
+        "secret:ibm-licensing-token"
+        "secret:ibm-licensing-upload-token"
     )
     
-    for resource_type in "${resource_types[@]}"; do
-        log_info "Extracting ${resource_type}s with label ${LABEL_SELECTOR}..."
-        
-        # Get all resources of this type with the label selector
-        local resources
-        resources=$(kubectl get "${resource_type}" -n "${NAMESPACE}" \
-            -l "${LABEL_SELECTOR}" -o name 2>/dev/null || echo "")
-        
-        if [ -z "${resources}" ]; then
-            log_info "No ${resource_type}s found with label ${LABEL_SELECTOR}"
+    log_info "Extracting ${#required_resources[@]} required resources..."
+    
+    for resource_spec in "${required_resources[@]}"; do
+        # Skip comments
+        if [[ "${resource_spec}" =~ ^[[:space:]]*# ]]; then
             continue
         fi
         
-        # Extract each resource
-        while IFS= read -r resource; do
-            if [ -n "${resource}" ]; then
-                local resource_name
-                resource_name=$(echo "${resource}" | cut -d'/' -f2)
-                local output_file="${OUTPUT_DIR}/namespace/${resource_type}-${resource_name}.yaml"
-                
-                log_info "Extracting ${resource}..."
-                kubectl get "${resource}" -n "${NAMESPACE}" -o yaml > "${output_file}.tmp"
-                cleanup_resource "${output_file}.tmp" "${output_file}"
-                rm -f "${output_file}.tmp"
-                
-                log_info "Saved to ${output_file}"
-            fi
-        done <<< "${resources}"
+        # Parse resource type and name
+        local resource_type
+        local resource_name
+        resource_type=$(echo "${resource_spec}" | cut -d':' -f1)
+        resource_name=$(echo "${resource_spec}" | cut -d':' -f2)
+        
+        log_info "Extracting ${resource_type}/${resource_name}..."
+        
+        # Check if resource exists
+        if ! kubectl get "${resource_type}" "${resource_name}" -n "${NAMESPACE}" &>/dev/null; then
+            log_warn "${resource_type}/${resource_name} not found, skipping..."
+            continue
+        fi
+        
+        # Extract the resource and clean it up with kubectl neat
+        local output_file="${OUTPUT_DIR}/cluster/${resource_type}-${resource_name}.yaml"
+        kubectl get "${resource_type}" "${resource_name}" -n "${NAMESPACE}" -o yaml | kubectl neat > "${output_file}"
+        
+        log_info "Saved to ${output_file}"
     done
     
     log_info ""
-    log_info "Note: ConfigMaps with 'owner=ibm-licensing' label are NOT extracted"
-    log_info "These are created by the License Service deployment itself, not by the operator"
+    log_info "Note: Only required resources from required_resources.md are extracted"
+    log_info "RBAC resources will be sourced from Kustomize (operand RBAC only)"
+    log_info "ConfigMaps are currently skipped (not mounted in deployment)"
+    log_info "Prometheus-related resources are skipped (feature not supported yet)"
 }
 
+# ============================================================================
+# Logging utilities
+# ============================================================================
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Logging functions
+log_info() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# ============================================================================
 # Main execution
+# ============================================================================
+
 main() {
     log_info "Starting resource extraction process..."
     log_info "Namespace: ${NAMESPACE}"
