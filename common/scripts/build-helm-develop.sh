@@ -41,20 +41,22 @@ echo "Building helm development chart ${CHART_NAME}-${CSV_VERSION}.tgz"
 
 # Copy helm directory to target to avoid modifying original files
 cp -r "./${SOURCE_DIR}" "./${TARGET_DIR}"
-
-# Set correct images (only if sed pattern is provided)
-if [ -n "${IMAGE_SED_PATTERN}" ]; then
-    # Use sed to override image tag with correct git branch name
-    tmp_file=$(mktemp)
-    sed "${IMAGE_SED_PATTERN}" "./${TARGET_DIR}/templates/deployment.yaml" > "${tmp_file}"
-    mv "${tmp_file}" "./${TARGET_DIR}/templates/deployment.yaml"
-
-    # Update values.yaml to change image pull prefix
-    "${YQ}" -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' "./${TARGET_DIR}/values.yaml"
     
-    # Update values.yaml to change image registry namespace
-    "${YQ}" -i ".${VALUES_COMPONENT_PREFIX}.imageRegistryNamespaceOperator = \"hyc-cloud-private-scratch-docker-local/ibmcom\"" "./${TARGET_DIR}/values.yaml"
-    "${YQ}" -i ".${VALUES_COMPONENT_PREFIX}.imageRegistryNamespaceOperand = \"hyc-cloud-private-scratch-docker-local/ibmcom\"" "./${TARGET_DIR}/values.yaml"
+# Update values.yaml to change image registry namespace and image pull prefix
+if [ "${CHART_NAME}" = "ibm-licensing-migration" ]; then
+    "${YQ}" -i ".${VALUES_COMPONENT_PREFIX}.imagePullPrefix = \"docker-na-public.artifactory.swg-devops.com\"" "./${TARGET_DIR}/values.yaml"
+    "${YQ}" -i ".${VALUES_COMPONENT_PREFIX}.imageRegistry = \"hyc-cloud-private-scratch-docker-local/ibmcom\"" "./${TARGET_DIR}/values.yaml"
+else
+    # Set correct images (only if sed pattern is provided)
+    if [ -n "${IMAGE_SED_PATTERN}" ]; then
+        "${YQ}" -i ".global.imagePullPrefix = \"docker-na-public.artifactory.swg-devops.com\"" "./${TARGET_DIR}/values.yaml"
+        tmp_file=$(mktemp)
+        sed "${IMAGE_SED_PATTERN}" "./${TARGET_DIR}/templates/deployment.yaml" > "${tmp_file}"
+        mv "${tmp_file}" "./${TARGET_DIR}/templates/deployment.yaml"
+
+        "${YQ}" -i ".${VALUES_COMPONENT_PREFIX}.imageRegistryNamespaceOperator = \"hyc-cloud-private-scratch-docker-local/ibmcom\"" "./${TARGET_DIR}/values.yaml"
+        "${YQ}" -i ".${VALUES_COMPONENT_PREFIX}.imageRegistryNamespaceOperand = \"hyc-cloud-private-scratch-docker-local/ibmcom\"" "./${TARGET_DIR}/values.yaml"
+    fi
 fi
 
 # Generate helm package
