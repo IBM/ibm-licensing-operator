@@ -40,10 +40,6 @@ const (
 	kindConfigMap           = "ConfigMap"
 )
 
-// func GetDefaultGatewayClassName() string {
-// 	return defaultGatewayClassName
-// }
-
 func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) *routev1.Route {
 	var tls *routev1.TLSConfig
 
@@ -62,8 +58,10 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS 
 	}
 	return &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetResourceName(instance),
-			Namespace: instance.Spec.InstanceNamespace,
+			Name:        GetResourceName(instance),
+			Namespace:   instance.Spec.InstanceNamespace,
+			Labels:      LabelsForMeta(instance),
+			Annotations: instance.Spec.Annotations,
 		},
 		Spec: routev1.RouteSpec{
 			To: routev1.RouteTargetReference{
