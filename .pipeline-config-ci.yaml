@@ -94,11 +94,6 @@ tasks:
             echo "Creating catalog image"
             echo "=========================================="
             ARCH=amd64 make catalogsource
-
-            echo "=========================================="
-            echo "Building development helm charts"
-            echo "=========================================="
-            make build/helm-develop-all
           else
             echo "=========================================="
             echo "Building amd64 image"
@@ -123,7 +118,7 @@ tasks:
             echo"=========================================="
             echo "Creating catalog image"
             echo "=========================================="
-            ARCH=amd64 make catalogsource-dev
+            ARCH=amd64 make catalogsource-development
 
             echo "=========================================="
             echo "Building development helm charts"
