@@ -14,9 +14,11 @@ Create a script that installs IBM License Service on a Kubernetes cluster, extra
 2. Wait for all resources to be ready
 3. Extract all created resources using label selector: `app.kubernetes.io/managed-by=ibm-licensing-operator`
 4. Clean up extracted resources (remove runtime fields like uid, resourceVersion, status etc.)
-5. Organize resources into separate yaml files.
+5. Organize resources into separate yaml files in `resources/` directory
 
-**Script will be implemented in**: `scripts/extract-operator-resources.sh`
+**Script implemented in**: `scripts/extract-operator-resources.sh`
+
+**Next Step**: Run the extraction script to generate actual resource YAML files, then analyze them before creating the templatization script.
 
 **Key Functions**:
 - `install_licensing_helm()`: Install LS using Helm charts from the repository
@@ -25,10 +27,7 @@ Create a script that installs IBM License Service on a Kubernetes cluster, extra
 - `cleanup_resource()`: Remove runtime fields from extracted YAML files
 
 **Resource Identification**:
-All resources created by the IBM Licensing Operator are labeled with:
-- `app.kubernetes.io/managed-by=ibm-licensing-operator`
-
-This label will be used to identify and extract all operator-managed resources.
+Resources created by the IBM Licensing Operator have label `app.kubernetes.io/instance=ibm-licensing-service`
 
 ### Phase 2: Installation Method
 
@@ -63,92 +62,30 @@ helm template ibm-licensing-cluster-scoped deploy/argo-cd/components/license-ser
    - Routes (on OpenShift)
    - etc.
 
-All these resources will be labeled with `app.kubernetes.io/managed-by=ibm-licensing-operator`
+### Phase 3: Templatize Extracted Resources and Handle Secrets
 
-### Phase 3: Resource Extraction Details
+#### 3.1 Script: `scripts/templatize-resources.sh`
 
-#### 3.1 Namespace-Scoped Resources to Extract
+**Purpose**: Convert extracted static YAML files into Helm templates with proper templating and secret handling.
 
-All namespace-scoped resources will be extracted using the label selector:
-`app.kubernetes.io/managed-by=ibm-licensing-operator`
+**Note**: This script will be created after running the extraction script and analyzing the actual resources that are created by the operator.
 
-**Resources to extract**:
-- **Deployment**: License Service deployment
-- **Service**: Service exposing the License Service
-- **ServiceAccount**: Service account for the operand
-- **Role**: Namespace-scoped permissions
-- **RoleBinding**: Binding the role to the service account
-- **ConfigMaps**: All configuration maps created by the operator
-- **Secrets**: Any secrets created by the operator
-- **Routes** (OpenShift only): Routes for external access
-- **Any other resources**: Any other resources created by the operator
+**Key Transformations**:
 
-**Extraction process**:
-1. Use kubectl with label selector to get all resources of each type
-2. Remove runtime fields (uid, resourceVersion, status, managedFields, etc.)
-3. Save each resource to a separate YAML file in `resources/` directory
+1. **Replace hardcoded namespaces**: Convert to Helm template variables
+2. **Add conditional blocks**: For platform-specific resources (e.g., OpenShift Routes)
+3. **Template environment variables**: Use values from values.yaml
+4. **Implement secret handling strategies**: For TLS and token secrets
 
-#### 3.2 Cluster-Scoped Resources to Extract
+#### 3.2 Templatization Process
 
-There is no need to extract cluster scoped resources. Cluster scope resources are not created by the operator and they will be extracted using kustomize in different script.
+The script will perform these transformations on extracted resources:
+- Replace hardcoded namespaces with Helm template variables
+- Add conditional blocks for platform-specific resources (e.g., OpenShift Routes)
+- Template resource limits and requests
+- Template environment variables
 
-### Phase 4: Create Helm Chart Structure
-
-#### 4.1 Directory Structure
-```
-helm-no-operator/
-├── Chart.yaml
-├── values.yaml
-├── templates/
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   ├── serviceaccount.yaml
-│   ├── role.yaml
-│   ├── rolebinding.yaml
-│   ├── configmaps.yaml
-│   ├── secrets.yaml
-│   └── routes.yaml
-└── README.md
-```
-
-**Note**: During development, a temporary `resources/` directory will be used to store raw extracted YAMLs before templatization. This directory is not part of the final Helm chart and can be deleted after the chart is generated.
-
-#### 4.2 Chart.yaml
-```yaml
-apiVersion: v2
-name: ibm-licensing-no-operator
-description: A Helm chart for IBM Licensing Service installation (without operator)
-type: application
-version: 4.2.21
-appVersion: "4.2.21"
-```
-
-#### 4.3 values.yaml
-
-The values.yaml will be based on the structure from `deploy/argo-cd/components/license-service/helm-cluster-scoped/values.yaml` but simplified for standalone deployment without the operator.
-
-Example structure:
-```yaml
----
-global:
-  licenseAccept: true
-  imagePullPrefix: icr.io
-  imagePullSecret: ibm-entitlement-key
-  instanceNamespace: ""
-
-ibmLicensing:
-  imageRegistryNamespace: cpopen/cpfs
-  enableRoutes: true
-  
-  # Environment variables for the operand
-  env:
-    httpsEnable: "true"
-    datasource: "datacollector"
-```
-
-### Phase 5: Analyze and Handle Secrets
-
-#### 5.1 Identify Secret Types
+#### 3.3 Identify Secret Types
 
 **Purpose**: Analyze extracted secrets to determine which ones require special handling in the Helm chart.
 
@@ -164,7 +101,7 @@ ibmLicensing:
    - API access tokens
    - Must be generated securely and persist across upgrades
 
-#### 5.2 Helm Chart Strategies for Secrets
+#### 3.4 Helm Chart Strategies for Secrets
 
 **Strategy 1: TLS Secret Handling**
 
@@ -220,27 +157,61 @@ This approach:
 - Preserves the existing token on upgrades
 - Ensures token consistency across Helm operations
 
-### Phase 6: Templatize Extracted Resources
+### Phase 4: Create Helm Chart Structure
 
-#### 6.1 Script: `scripts/templatize-resources.sh`
+#### 4.1 Directory Structure
+```
+helm-no-operator/
+├── Chart.yaml
+├── values.yaml
+├── templates/
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   ├── serviceaccount.yaml
+│   ├── role.yaml
+│   ├── rolebinding.yaml
+│   ├── configmaps.yaml
+│   ├── secrets.yaml
+│   └── routes.yaml
+└── README.md
+```
 
-**Purpose**: Convert extracted static YAML files into Helm templates with proper templating.
+**Note**: During development, a temporary `resources/` directory will be used to store raw extracted YAMLs before templatization. This directory is not part of the final Helm chart and can be deleted after the chart is generated.
 
-**Key Transformations**:
+#### 4.2 Chart.yaml
+```yaml
+apiVersion: v2
+name: ibm-licensing-no-operator
+description: A Helm chart for IBM Licensing Service installation (without operator)
+type: application
+version: 4.2.21
+appVersion: "4.2.21"
+```
 
-1. **Replace hardcoded namespaces**: Convert to Helm template variables
-2. **Add conditional blocks**: For platform-specific resources (e.g., OpenShift Routes)
-3. **Template environment variables**: Use values from values.yaml
+#### 4.3 values.yaml
 
-#### 6.2 Templatization Process
+The values.yaml will be based on the structure from `deploy/argo-cd/components/license-service/helm-cluster-scoped/values.yaml` but simplified for standalone deployment without the operator.
 
-The script will perform these transformations on extracted resources:
-- Replace hardcoded namespaces with Helm template variables
-- Add conditional blocks for platform-specific resources (e.g., OpenShift Routes)
-- Template resource limits and requests
-- Template environment variables
+Example structure:
+```yaml
+---
+global:
+  licenseAccept: true
+  imagePullPrefix: icr.io
+  imagePullSecret: ibm-entitlement-key
+  instanceNamespace: ""
 
-### Phase 7: Complete Automation Script
+ibmLicensing:
+  imageRegistryNamespace: cpopen/cpfs
+  enableRoutes: true
+  
+  # Environment variables for the operand
+  env:
+    httpsEnable: "true"
+    datasource: "datacollector"
+```
+
+### Phase 5: Complete Automation Script
 
 #### Script: `scripts/generate-helm-no-operator.sh`
 
@@ -249,8 +220,8 @@ The script will perform these transformations on extracted resources:
 1. Install IBM Licensing Service using Helm charts from `deploy/argo-cd/components/license-service/helm-cluster-scoped/`
 2. Wait for all resources to be ready
 3. Extract all resources from the cluster using label selector
-4. Analyze secrets and implement proper handling strategies
-5. Templatize resources for the new Helm chart
+4. Templatize resources and implement secret handling strategies
+5. Generate complete Helm chart structure
 6. Cleanup (optional)
 
 **Output**:
