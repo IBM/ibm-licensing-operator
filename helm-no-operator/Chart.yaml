@@ -1,0 +1,28 @@
+apiVersion: v2
+name: ibm-licensing-service
+description: "A Helm chart for IBM License Service. Deploy License Service to retrieve license usage data from your cluster and create licensing snapshots. License Service collects and measures the license usage of IBM products at the cluster level."
+type: application
+version: 4.2.23
+appVersion: "4.2.23"
+icon: https://www.ibm.com/brand/experience-guides/developer/b1db1ae501d522a1a4b49613fe07c9f1/01_8-bar-positive.svg
+home: https://ibm.biz/license-service
+sources:
+  - https://github.com/IBM/ibm-licensing-operator
+maintainers:
+  - name: IBM
+    email: support@ibm.com
+
+annotations:
+  charts.openshift.io/provider: IBM
+  charts.openshift.io/name: ibm-licensing-service
+  charts.openshift.io/sources: https://github.com/IBM/ibm-licensing-operator
+
+keywords:
+  - ibm
+  - licensing
+  - compliance
+  - audit
+  - cloudpak
+  - license-service
+
+# Made with Bob
