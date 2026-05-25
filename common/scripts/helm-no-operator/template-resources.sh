@@ -1,0 +1,130 @@
+#!/bin/bash
+# template-resources.sh
+# Purpose: Template YAML files (secrets, deployment) from resources/final to Helm templates using yq and sed
+# Usage: ./scripts/template-resources.sh
+
+set -e
+
+INPUT_DIR="./resources/final"
+OUTPUT_DIR="./helm-no-operator/templates"
+TEMP_DIR="./temp"
+YQ="./bin/yq"
+
+# Check if yq is available
+if [ ! -x "$YQ" ]; then
+    echo "[ERROR] yq not found at $YQ. Please run 'make install-yq' first."
+    exit 1
+fi
+
+echo "[INFO] Templating secrets..."
+
+# Create temp directory
+mkdir -p "$TEMP_DIR"
+
+# Process first secret (ibm-licensing-token)
+cp "$INPUT_DIR/secret-ibm-licensing-token.yaml" "$TEMP_DIR/secret-ibm-licensing-token.yaml"
+
+# Step 1: Use yq to add placeholder for token (yq works on valid YAML)
+TOKEN_FIELD=$($YQ '.data | keys | .[0]' "$TEMP_DIR/secret-ibm-licensing-token.yaml")
+$YQ -i ".data.$TOKEN_FIELD = \"sed-me-token\"" "$TEMP_DIR/secret-ibm-licensing-token.yaml"
+
+# Step 2: Use sed to replace placeholders with Helm templates
+sed -i '' "s/namespace: ibm-licensing/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/secret-ibm-licensing-token.yaml"
+sed -i '' "s/sed-me-token/{{ randAlphaNum 32 | b64enc }}/g" "$TEMP_DIR/secret-ibm-licensing-token.yaml"
+
+# Process second secret (ibm-licensing-upload-token)
+cp "$INPUT_DIR/secret-ibm-licensing-upload-token.yaml" "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml"
+
+# Step 1: Use yq to add placeholder for token (yq works on valid YAML)
+UPLOAD_TOKEN_FIELD=$($YQ '.data | keys | .[0]' "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml")
+$YQ -i ".data.$UPLOAD_TOKEN_FIELD = \"sed-me-upload-token\"" "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml"
+
+# Step 2: Use sed to replace placeholders with Helm templates
+sed -i '' "s/namespace: ibm-licensing/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml"
+sed -i '' "s/sed-me-upload-token/{{ randAlphaNum 32 | b64enc }}/g" "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml"
+
+# Combine both secrets into final output
+cat "$TEMP_DIR/secret-ibm-licensing-token.yaml" > "$OUTPUT_DIR/secrets.yaml"
+echo "---" >> "$OUTPUT_DIR/secrets.yaml"
+cat "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml" >> "$OUTPUT_DIR/secrets.yaml"
+
+echo "[INFO] ✓ secrets.yaml created"
+
+# Process deployment
+echo "[INFO] Templating deployment..."
+
+cp "$INPUT_DIR/deployment-ibm-licensing-service-instance.yaml" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Step 1: Use yq to add placeholders for values that need templating
+# Replace namespace
+$YQ -i '.metadata.namespace = "sed-me-namespace"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Replace image
+$YQ -i '.spec.template.spec.containers[0].image = "sed-me-image"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.initContainers[0].image = "sed-me-image"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Replace imagePullSecrets
+$YQ -i '.spec.template.spec.imagePullSecrets[0].name = "sed-me-imagePullSecret"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Replace environment variables in main container
+$YQ -i '.spec.template.spec.containers[0].env[0].value = "sed-me-namespace"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.containers[0].env[1].value = "sed-me-datasource"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.containers[0].env[2].value = "sed-me-httpsEnable"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.containers[0].env[3].value = "sed-me-enableInstanaMetricCollection"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.containers[0].env[4].value = "sed-me-httpsCertsSource"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.containers[0].env[5].value = "sed-me-prometheusQuerySourceEnabled"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Replace environment variables in init container
+$YQ -i '.spec.template.spec.initContainers[0].env[0].value = "sed-me-namespace"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.initContainers[0].env[1].value = "sed-me-datasource"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.initContainers[0].env[2].value = "sed-me-httpsEnable"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.initContainers[0].env[3].value = "sed-me-enableInstanaMetricCollection"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.initContainers[0].env[4].value = "sed-me-httpsCertsSource"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.initContainers[0].env[5].value = "sed-me-prometheusQuerySourceEnabled"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Replace resource limits and requests in main container
+$YQ -i '.spec.template.spec.containers[0].resources.limits.cpu = "sed-me-cpu-limit"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.containers[0].resources.limits.memory = "sed-me-memory-limit"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.containers[0].resources.requests.cpu = "sed-me-cpu-request"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.containers[0].resources.requests.memory = "sed-me-memory-request"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.containers[0].resources.requests."ephemeral-storage" = "sed-me-ephemeral-storage-request"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Replace resource limits and requests in init container
+$YQ -i '.spec.template.spec.initContainers[0].resources.limits.cpu = "sed-me-cpu-limit"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.initContainers[0].resources.limits.memory = "sed-me-memory-limit"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.initContainers[0].resources.requests.cpu = "sed-me-cpu-request"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.initContainers[0].resources.requests.memory = "sed-me-memory-request"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+$YQ -i '.spec.template.spec.initContainers[0].resources.requests."ephemeral-storage" = "sed-me-ephemeral-storage-request"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Step 2: Use sed to replace placeholders with Helm templates
+# Replace namespace
+sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Replace imagePullSecrets BEFORE image (to avoid conflicts)
+sed -i '' "s/name: sed-me-imagePullSecret/name: {{ .Values.global.imagePullSecret }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Replace image
+sed -i '' "s|image: sed-me-image|image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23|g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Replace environment variables
+sed -i '' 's/value: sed-me-namespace/value: {{ .Values.ibmLicensing.namespace | quote }}/g' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+sed -i '' 's/value: sed-me-datasource/value: {{ .Values.ibmLicensing.datasource | quote }}/g' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+sed -i '' 's/value: "sed-me-httpsEnable"/value: {{ .Values.ibmLicensing.httpsEnable | quote }}/g' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+sed -i '' 's/value: "sed-me-enableInstanaMetricCollection"/value: {{ .Values.ibmLicensing.enableInstanaMetricCollection | quote }}/g' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+sed -i '' 's/value: sed-me-httpsCertsSource/value: {{ .Values.ibmLicensing.httpsCertsSource | quote }}/g' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+sed -i '' 's/value: "sed-me-prometheusQuerySourceEnabled"/value: {{ .Values.ibmLicensing.prometheusQuerySourceEnabled | quote }}/g' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Replace resource limits and requests
+sed -i '' "s/sed-me-cpu-limit/{{ .Values.ibmLicensing.resources.limits.cpu }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+sed -i '' "s/sed-me-memory-limit/{{ .Values.ibmLicensing.resources.limits.memory }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+sed -i '' "s/sed-me-cpu-request/{{ .Values.ibmLicensing.resources.requests.cpu }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+sed -i '' "s/sed-me-memory-request/{{ .Values.ibmLicensing.resources.requests.memory }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+sed -i '' "s/sed-me-ephemeral-storage-request/{{ .Values.ibmLicensing.resources.requests.ephemeralStorage }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+
+# Copy to output
+cp "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml" "$OUTPUT_DIR/deployment.yaml"
+
+# Clean up temp files
+rm -rf "$TEMP_DIR"
+
+echo "[INFO] ✓ deployment.yaml created"
