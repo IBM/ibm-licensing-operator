@@ -60,7 +60,9 @@ install_licensing_helm() {
     log_info "First helm template run (creating CRDs and initial resources)..."
     helm template ibm-licensing-cluster-scoped "${HELM_CHART_PATH}" \
         --namespace "${NAMESPACE}" \
-        --set global.licenseAccept=true | kubectl apply -f - || true
+        --set global.licenseAccept=true \
+        --set ibmLicensing.spec.features.prometheusQuerySource.enabled=false \
+        --set ibmLicensing.spec.features.alerting.enabled=false | kubectl apply -f - || true
     
     # Wait for CRDs to be established
     log_info "Waiting for CRDs to be established..."
@@ -70,7 +72,9 @@ install_licensing_helm() {
     log_info "Second helm template run (ensuring all resources are created)..."
     helm template ibm-licensing-cluster-scoped "${HELM_CHART_PATH}" \
         --namespace "${NAMESPACE}" \
-        --set global.licenseAccept=true | kubectl apply -f -
+        --set global.licenseAccept=true \
+        --set ibmLicensing.spec.features.prometheusQuerySource.enabled=false \
+        --set ibmLicensing.spec.features.alerting.enabled=false | kubectl apply -f -
     
     log_info "Helm installation completed"
 }
@@ -78,6 +82,10 @@ install_licensing_helm() {
 # Wait for deployment to be ready
 wait_for_resources() {
     log_info "Waiting for License Service deployment ibm-licensing-service-instance..."
+    
+    # Wait for deployment to be created
+    log_info "Waiting 60 seconds for deployment to be created..."
+    sleep 60
     
     # Wait for License Service deployment (operator will create it)
     if ! kubectl wait --for=condition=available --timeout="${TIMEOUT}s" \
@@ -90,11 +98,56 @@ wait_for_resources() {
 }
 
 # Clean up runtime and default fields from YAML using kubectl neat
+# and additional yq processing for fields that kubectl neat doesn't remove
 cleanup_resource() {
-    local input_file="$1"
-    local output_file="$2"
+    local resource_type="$1"
     
-    kubectl neat -f "${input_file}" > "${output_file}"
+    # First pass: kubectl neat to remove most runtime fields
+    # Second pass: Remove additional runtime fields based on resource type using yq
+    case "${resource_type}" in
+        deployment)
+            kubectl neat | yq eval 'del(.metadata.annotations."deployment.kubernetes.io/revision") |
+                     del(.spec.progressDeadlineSeconds) |
+                     del(.spec.revisionHistoryLimit) |
+                     del(.spec.strategy) |
+                     del(.spec.template.spec.dnsPolicy) |
+                     del(.spec.template.spec.restartPolicy) |
+                     del(.spec.template.spec.schedulerName) |
+                     del(.spec.template.spec.serviceAccount) |
+                     del(.spec.template.spec.containers[].terminationMessagePath) |
+                     del(.spec.template.spec.containers[].terminationMessagePolicy) |
+                     del(.spec.template.spec.containers[].securityContext.procMount) |
+                     del(.spec.template.spec.initContainers[].terminationMessagePath) |
+                     del(.spec.template.spec.initContainers[].terminationMessagePolicy) |
+                     del(.spec.template.spec.initContainers[].securityContext.procMount) |
+                     del(.spec.template.spec.containers[].livenessProbe.failureThreshold) |
+                     del(.spec.template.spec.containers[].livenessProbe.successThreshold) |
+                     del(.spec.template.spec.containers[].readinessProbe.failureThreshold) |
+                     del(.spec.template.spec.containers[].readinessProbe.successThreshold)'
+                     # TODO fix error I0526 15:32:45.073015   81401 warnings.go:110] "Warning: spec.template.spec.containers[0].ports[0]: duplicate port definition with spec.template.spec.initContainers[0].ports[0]"
+            ;;
+        service)
+            kubectl neat | yq eval 'del(.metadata.annotations."service.alpha.openshift.io/serving-cert-signed-by") |
+                     del(.metadata.annotations."service.beta.openshift.io/serving-cert-signed-by") |
+                     del(.spec.clusterIP) |
+                     del(.spec.clusterIPs) |
+                     del(.spec.ipFamilies) |
+                     del(.spec.ipFamilyPolicy)'
+            ;;
+        route)
+            kubectl neat | yq eval 'del(.metadata.annotations."openshift.io/host.generated") |
+                     del(.spec.host) |
+                     del(.spec.wildcardPolicy)'
+            ;;
+        secret)
+            # Secrets are already clean from kubectl neat
+            kubectl neat
+            ;;
+        *)
+            # For other resources, just use kubectl neat output
+            kubectl neat
+            ;;
+    esac
 }
 
 # Extract namespace-scoped resources created by the operator
@@ -140,9 +193,9 @@ extract_namespace_resources() {
             continue
         fi
         
-        # Extract the resource and clean it up with kubectl neat
+        # Extract the resource and clean it up
         local output_file="${OUTPUT_DIR}/cluster/${resource_type}-${resource_name}.yaml"
-        kubectl get "${resource_type}" "${resource_name}" -n "${NAMESPACE}" -o yaml | kubectl neat > "${output_file}"
+        kubectl get "${resource_type}" "${resource_name}" -n "${NAMESPACE}" -o yaml | cleanup_resource "${resource_type}" > "${output_file}"
         
         log_info "Saved to ${output_file}"
     done
@@ -186,10 +239,10 @@ main() {
     log_info "Namespace: ${NAMESPACE}"
     log_info "Output directory: ${OUTPUT_DIR}"
     
-    # Clean up output directory if it exists
-    if [ -d "${OUTPUT_DIR}" ]; then
-        log_warn "Output directory ${OUTPUT_DIR} already exists, cleaning up..."
-        rm -rf "${OUTPUT_DIR}"
+    # Clean up cluster resources directory if it exists
+    if [ -d "${OUTPUT_DIR}/cluster" ]; then
+        log_warn "Cluster resources directory ${OUTPUT_DIR}/cluster already exists, cleaning up..."
+        rm -rf "${OUTPUT_DIR}/cluster"
     fi
     
     mkdir -p "${OUTPUT_DIR}"
