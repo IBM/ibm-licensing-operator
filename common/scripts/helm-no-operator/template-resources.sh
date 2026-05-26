@@ -150,7 +150,12 @@ cp "$INPUT_DIR/route-ibm-licensing-service-instance.yaml" "$TEMP_DIR/route-ibm-l
 # Step 1: Use yq to add placeholder for namespace
 $YQ -i '.metadata.namespace = "sed-me-namespace"' "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
 
-# Step 2: Use sed to replace placeholder with Helm template
+# Step 2: Remove hardcoded TLS certificates
+$YQ -i 'del(.spec.tls.certificate)' "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
+$YQ -i 'del(.spec.tls.key)' "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
+$YQ -i 'del(.spec.tls.destinationCACertificate)' "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
+
+# Step 3: Use sed to replace placeholder with Helm template
 sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
 
 # Copy to output
