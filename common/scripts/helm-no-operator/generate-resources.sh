@@ -16,8 +16,8 @@
 # limitations under the License.
 #
 
-# Script to generate RBAC resources for IBM Licensing Service instance (operand)
-# This script uses kustomize to build RBAC resources and extracts only instance-related RBAC
+# Script to generate RBAC resources and CRDs for IBM Licensing Service instance (operand)
+# This script uses kustomize to build resources and extracts only instance-related RBAC and CRDs
 
 set -e -o pipefail
 
@@ -64,33 +64,36 @@ check_prerequisites() {
     log_info "Prerequisites check passed"
 }
 
-# Generate RBAC resources
+# Generate RBAC resources and CRDs
 generate_rbac() {
-    log_info "Generating instance RBAC resources..."
+    log_info "Generating instance RBAC resources and CRDs..."
     
     mkdir -p "${OUTPUT_DIR}"
     
     # Build with kustomize and save to temp file
-    "${KUSTOMIZE}" build "${PROJECT_ROOT}/config/manifests" > "${OUTPUT_DIR}/tmp-rbac.yaml"
+    "${KUSTOMIZE}" build "${PROJECT_ROOT}/config/manifests" > "${OUTPUT_DIR}/tmp-resources.yaml"
     
     # Extract ClusterRole and ClusterRoleBinding for ibm-license-service
-    (echo "---" && "${YQ}" 'select((.kind == "ClusterRole" or .kind == "ClusterRoleBinding") and .metadata.name == "ibm-license-service")' "${OUTPUT_DIR}/tmp-rbac.yaml") > "${OUTPUT_DIR}/cluster-rbac.yaml"
+    (echo "---" && "${YQ}" 'select((.kind == "ClusterRole" or .kind == "ClusterRoleBinding") and .metadata.name == "ibm-license-service")' "${OUTPUT_DIR}/tmp-resources.yaml") > "${OUTPUT_DIR}/cluster-rbac.yaml"
     
     # Extract Role and RoleBinding for ibm-license-service
-    (echo "---" && "${YQ}" 'select((.kind == "Role" or .kind == "RoleBinding") and .metadata.name == "ibm-license-service")' "${OUTPUT_DIR}/tmp-rbac.yaml") > "${OUTPUT_DIR}/rbac.yaml"
+    (echo "---" && "${YQ}" 'select((.kind == "Role" or .kind == "RoleBinding") and .metadata.name == "ibm-license-service")' "${OUTPUT_DIR}/tmp-resources.yaml") > "${OUTPUT_DIR}/rbac.yaml"
     
     # Extract ServiceAccount for ibm-license-service
-    (echo "---" && "${YQ}" 'select(.kind == "ServiceAccount" and .metadata.name == "ibm-license-service")' "${OUTPUT_DIR}/tmp-rbac.yaml") > "${OUTPUT_DIR}/serviceaccounts.yaml"
+    (echo "---" && "${YQ}" 'select(.kind == "ServiceAccount" and .metadata.name == "ibm-license-service")' "${OUTPUT_DIR}/tmp-resources.yaml") > "${OUTPUT_DIR}/serviceaccounts.yaml"
+    
+    # Extract CustomResourceDefinitions
+    (echo "---" && "${YQ}" 'select(.kind == "CustomResourceDefinition")' "${OUTPUT_DIR}/tmp-resources.yaml") > "${OUTPUT_DIR}/crds.yaml"
     
     # Clean up temp file
-    rm -f "${OUTPUT_DIR}/tmp-rbac.yaml"
+    rm -f "${OUTPUT_DIR}/tmp-resources.yaml"
     
-    log_info "RBAC resources generated successfully"
+    log_info "RBAC resources and CRDs generated successfully"
 }
 
 # Main execution
 main() {
-    log_info "Starting instance RBAC generation..."
+    log_info "Starting instance RBAC and CRD generation..."
     log_info "Output directory: ${OUTPUT_DIR}"
     
     # Execute steps
@@ -98,7 +101,7 @@ main() {
     generate_rbac
     
     log_info ""
-    log_info "Instance RBAC generation completed!"
+    log_info "Instance RBAC and CRD generation completed!"
 }
 
 # Run main function

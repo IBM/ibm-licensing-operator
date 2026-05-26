@@ -1,0 +1,92 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app.kubernetes.io/component: ibm-licensing-service-svc
+    app.kubernetes.io/instance: ibm-licensing-service
+    app.kubernetes.io/managed-by: operator
+    app.kubernetes.io/name: ibm-licensing-service-instance
+    release: ibm-licensing-service
+  name: ibm-licensing-service-instance
+  namespace: {{ .Values.ibmLicensing.namespace }}
+spec:
+  port:
+    targetPort: api-port
+  tls:
+    certificate: |-
+      -----BEGIN CERTIFICATE-----
+      MIIDqjCCApKgAwIBAgIDB0rbMA0GCSqGSIb3DQEBCwUAMGMxDDAKBgNVBAoTA0lC
+      TTFTMFEGA1UEAxNKaWJtLWxpY2Vuc2luZy1zZXJ2aWNlLWluc3RhbmNlLWlibS1s
+      aWNlbnNpbmcuYXBwcy5ucnQtZGVtby5jcC5meXJlLmlibS5jb20wHhcNMjYwNTIx
+      MTUwMDA5WhcNMjcwNTIxMTUwMDA5WjBjMQwwCgYDVQQKEwNJQk0xUzBRBgNVBAMT
+      SmlibS1saWNlbnNpbmctc2VydmljZS1pbnN0YW5jZS1pYm0tbGljZW5zaW5nLmFw
+      cHMubnJ0LWRlbW8uY3AuZnlyZS5pYm0uY29tMIIBIjANBgkqhkiG9w0BAQEFAAOC
+      AQ8AMIIBCgKCAQEAxoK8C6lYLQkIF/PIN6RBwJrlOg3I7vVCT7+81IqRGDUa6L2i
+      GTfrkNQ3GBPNHxm48RP/+CFoLI4d6C+dpD1xsA2wv/ja9CDjVRV5RiliPLNJmv9m
+      uZHIPA8gRiaoPuBhD7FoMvgPCR26p1NKGqgK3BAEOyvgYub/Vu6CMUPYsQu2X4v8
+      bmze1Y7oCVFMAjW98gxDuAtzHo4goddZfo+P858IX+KyGG3fGe6D0HLwgHzc/xyx
+      0fJtnPWWbp3RgaJUGzZ7Mh6O84uqWTGAnomnk2d1Qv+TTm7jj9lm1vjwZBofds7h
+      DfnvL4gLziJj2S4Zve134bAnwJHUhfVEgY/uOwIDAQABo2cwZTAMBgNVHRMBAf8E
+      AjAAMFUGA1UdEQROMEyCSmlibS1saWNlbnNpbmctc2VydmljZS1pbnN0YW5jZS1p
+      Ym0tbGljZW5zaW5nLmFwcHMubnJ0LWRlbW8uY3AuZnlyZS5pYm0uY29tMA0GCSqG
+      SIb3DQEBCwUAA4IBAQAaK894eaeycxzEF7CFQEOH5oklwpSAlaFNrYpdqUQVZL6q
+      EJwF7iK0XMvC2PUe8OdPmtwLBI/GIrbsDFxUvNz610pu4l4GjJxb7a8Wbab2PuJ0
+      oKAjlwNyJhux+Z0IoDp7gKLvlhASWMF44dtJubB0JbTwpMbsnjEObvjb9vHi09+V
+      hyEh/w0QhiQhwZRMSBD3Z9pjD3m/GMoDAG1Fr2zQyXy9uE1xqcyk9f2tVLxpAPWJ
+      SiSVHf1Bx1GEtu1AcuWiaewMrOyaI3fZWX/WZ84yL6DKPn4T9Q4Wdnhd+Si/8rLu
+      L/jt+IoGGz5BxgN3Yqeo9K82wOqkjwSwzns7qAX2
+      -----END CERTIFICATE-----
+    destinationCACertificate: |-
+      -----BEGIN CERTIFICATE-----
+      MIIDUTCCAjmgAwIBAgIIH9pVAxNfoNEwDQYJKoZIhvcNAQELBQAwNjE0MDIGA1UE
+      Awwrb3BlbnNoaWZ0LXNlcnZpY2Utc2VydmluZy1zaWduZXJAMTc3NzI5NjY4MTAe
+      Fw0yNjA0MjcxMzMxMjBaFw0yODA2MjUxMzMxMjFaMDYxNDAyBgNVBAMMK29wZW5z
+      aGlmdC1zZXJ2aWNlLXNlcnZpbmctc2lnbmVyQDE3NzcyOTY2ODEwggEiMA0GCSqG
+      SIb3DQEBAQUAA4IBDwAwggEKAoIBAQDwEXMcGVZeyVCOq57EOb569vuifH2Q8y+w
+      UcEP9vHhRS35JIUognydLGQzy7tLpaIjR4fQ7BWpouxobnpr4D0Ti/E426UN7nMi
+      zDUnkJjpBiDcXu8LLwMM04izujMldAx91e8eKfxE37Zh2Mctw8ZEt7HmkkNYkgpm
+      ci2GjjMs3qTHXpZ/KXeYrCWImsVyopZC5OttD++6ie/VPHkEw9r3uXloOqfUXSU+
+      ouaKadFNQXOp2g72TK9GV8CW3lFszxtX0xNXPEl60oEWs3vy3WIIXadCKHq/Lhdf
+      T+wuWOBNHsuekm5ngB5+ZqeUNPFqUZfWdap7mLJT+Te5BATTNke/AgMBAAGjYzBh
+      MA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBRkQzup
+      utMvd+6MFvOIDoD024IBWDAfBgNVHSMEGDAWgBRkQzuputMvd+6MFvOIDoD024IB
+      WDANBgkqhkiG9w0BAQsFAAOCAQEAGy/SL5bMQuNCAn+enRcoxlkqrRukYB76g5so
+      FHJIp4eJfykVlEBYVmc9KRMCJ59XMlSH1tDxRjVAj+KssUY1XiFcr96xBneEJUhJ
+      YvKCGt4q2j6tVtY6qmcBExm+QUT5eWRp5vR5FWFgv1gocahYperapbohkf7b1TOC
+      hPGr5DVd6b+ZvebUMVNz3MC3JHaBUG8PtVeSvze7heVIZi+FhlDx0WUpVH4edgo3
+      /Jez9C+dZnFVT8nuwDxa5U4ZArbR14cJsMTIWpcSTisqqSts917xSvi6Axxe+GBP
+      x5GSxLxJ7JYxhBYCpOyCC7QsEmiOjFg6t9xrcI3CIuVwRxc9Yg==
+      -----END CERTIFICATE-----
+    insecureEdgeTerminationPolicy: None
+    key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEowIBAAKCAQEAxoK8C6lYLQkIF/PIN6RBwJrlOg3I7vVCT7+81IqRGDUa6L2i
+      GTfrkNQ3GBPNHxm48RP/+CFoLI4d6C+dpD1xsA2wv/ja9CDjVRV5RiliPLNJmv9m
+      uZHIPA8gRiaoPuBhD7FoMvgPCR26p1NKGqgK3BAEOyvgYub/Vu6CMUPYsQu2X4v8
+      bmze1Y7oCVFMAjW98gxDuAtzHo4goddZfo+P858IX+KyGG3fGe6D0HLwgHzc/xyx
+      0fJtnPWWbp3RgaJUGzZ7Mh6O84uqWTGAnomnk2d1Qv+TTm7jj9lm1vjwZBofds7h
+      DfnvL4gLziJj2S4Zve134bAnwJHUhfVEgY/uOwIDAQABAoIBABCLlForRUBy3vW4
+      6ZU/P56EUOdSGQJXQ8chon7BuKhgjyHne4UhkYs5MAkpAVdk8/KrKZIuhDnBpwF5
+      306kmZiqxqWn4eWOGWFQ9sVfxqKevA6xcdToSMM+Uxpo6p+O+qTUGWy1TlkcQ4Xi
+      hCvzmWNQT6H4HSDxKUZyftYI7+mIyRdX1Db61SAtgbXY8dw/RqMwNp8i30Sg1JqG
+      ybRshVGxA+JRBmhy2GaglztNCLGnQsCYNJl/iyBq7gE7mxzUkCRdbPQTI2ZPLQBY
+      MikhpsQUqsgBmyMKoCyPOCxDsdgjQSlE3MX1Fci/0AvF/ImWgunYND12uMmtX6gS
+      C5hzM2ECgYEA3di3/CcPWYDUg8oOwRAhqDHRAIqiU9IpiI1C500ibBzHEksrqDLe
+      HOUL8ePmYbRUQiTpbyewVrrRMt0JgFhMewV7VeRIO5aewRkOoGYE6orTvnXPmMGj
+      TgJ2Th1EKRrfZolUaAKttPzAZngWCmSXG+6iDB5b0RcAF7XIjOpxC6ECgYEA5RJR
+      Ces5IOn0cPWiauhtSX5Q1uFSpRC6HWxA+ZmMg+a+be6BD6YEZe1lHBn86V407jnC
+      PKgWEi4FeX/Vytli9mwQ0mbKGDlvNtGT6wlMu5pBhC6Zt6QOlFRrwYtzQ1meZNMB
+      ygFkYDSlMvQyyy7xj7Bpz17NWcKj3S/HKczNTFsCgYAh1yYxm4+22nUQaWkYwCoy
+      Ku8zwvICEUPupYW4HMcMcNNZEghlzuScyb+ptVb2Pni/4juNjiNTB4pT1O3XGyEH
+      fw2SS5FNLaunzvexNf63/FdSbUwuhBMyGiQLxGEaWBQN4xLyDr6Kpid/OgA6s59t
+      Tlh/ur3MxlJoS319KWH3IQKBgQDJ+6OfRlzCS+hw7fY/pCAxTIMFZfrUd3JUXU7R
+      h3YiHATPtBzy6mU4ZuHfrH6YW6v6Xs2JZIDJmPDU2EZwLcyYEmOm0mHiiEorIRL3
+      jOSvCu44GksKZUtBuUqmh0qkGVKT/oa2UxHpzqHX0wEyrXrsQxaZdjNFsV2BvA42
+      KlLfvwKBgCX5XFf/9vPb8EqkNFvTmW3imfROwsSz03FYLy+jZKH0vJ4y1tl9muIa
+      37yg0fllHkzCGjExJp1dtrN+qY6RG7tnVSywJA324aIHBZDsAnON1bYw4pkZEJt5
+      4U5xDiZtwehZpSrCTmgQzq+1KM5YRMTGOuqPxgWvGQ9buMxU4oG+
+      -----END RSA PRIVATE KEY-----
+    termination: reencrypt
+  to:
+    kind: Service
+    name: ibm-licensing-service-instance

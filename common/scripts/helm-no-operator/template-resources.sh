@@ -124,7 +124,48 @@ sed -i '' "s/sed-me-ephemeral-storage-request/{{ .Values.ibmLicensing.resources.
 # Copy to output
 cp "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml" "$OUTPUT_DIR/deployment.yaml"
 
+echo "[INFO] ✓ deployment.yaml created"
+
+# Process service
+echo "[INFO] Templating service..."
+
+cp "$INPUT_DIR/service-ibm-licensing-service-instance.yaml" "$TEMP_DIR/service-ibm-licensing-service-instance.yaml"
+
+# Step 1: Use yq to add placeholder for namespace
+$YQ -i '.metadata.namespace = "sed-me-namespace"' "$TEMP_DIR/service-ibm-licensing-service-instance.yaml"
+
+# Step 2: Use sed to replace placeholder with Helm template
+sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/service-ibm-licensing-service-instance.yaml"
+
+# Copy to output
+cp "$TEMP_DIR/service-ibm-licensing-service-instance.yaml" "$OUTPUT_DIR/service.yaml"
+
+echo "[INFO] ✓ service.yaml created"
+
+# Process route
+echo "[INFO] Templating route..."
+
+cp "$INPUT_DIR/route-ibm-licensing-service-instance.yaml" "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
+
+# Step 1: Use yq to add placeholder for namespace
+$YQ -i '.metadata.namespace = "sed-me-namespace"' "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
+
+# Step 2: Use sed to replace placeholder with Helm template
+sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
+
+# Copy to output
+cp "$TEMP_DIR/route-ibm-licensing-service-instance.yaml" "$OUTPUT_DIR/route.yaml"
+
+echo "[INFO] ✓ route.yaml created"
+
+# Process CRDs
+echo "[INFO] Templating CRDs..."
+
+# CRDs are cluster-scoped resources and typically don't need templating
+# Just copy them directly to the output directory
+cp "$INPUT_DIR/crds.yaml" "$OUTPUT_DIR/crds.yaml"
+
+echo "[INFO] ✓ crds.yaml created"
+
 # Clean up temp files
 rm -rf "$TEMP_DIR"
-
-echo "[INFO] ✓ deployment.yaml created"
