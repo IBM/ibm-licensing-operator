@@ -167,5 +167,57 @@ cp "$INPUT_DIR/crds.yaml" "$OUTPUT_DIR/crds.yaml"
 
 echo "[INFO] ✓ crds.yaml created"
 
+# Process ServiceAccount
+echo "[INFO] Templating serviceaccount..."
+
+cp "$INPUT_DIR/serviceaccounts.yaml" "$TEMP_DIR/serviceaccounts.yaml"
+
+# Step 1: Use yq to add placeholder for namespace
+$YQ -i '.metadata.namespace = "sed-me-namespace"' "$TEMP_DIR/serviceaccounts.yaml"
+
+# Step 2: Use sed to replace placeholder with Helm template
+sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/serviceaccounts.yaml"
+
+# Copy to output
+cp "$TEMP_DIR/serviceaccounts.yaml" "$OUTPUT_DIR/serviceaccount.yaml"
+
+echo "[INFO] ✓ serviceaccount.yaml created"
+
+# Process RBAC (Role and RoleBinding)
+echo "[INFO] Templating rbac..."
+
+cp "$INPUT_DIR/rbac.yaml" "$TEMP_DIR/rbac.yaml"
+
+# Step 1: Use yq to add placeholders for namespace in both Role and RoleBinding
+$YQ -i '(select(.kind == "Role") | .metadata.namespace) = "sed-me-namespace"' "$TEMP_DIR/rbac.yaml"
+$YQ -i '(select(.kind == "RoleBinding") | .metadata.namespace) = "sed-me-namespace"' "$TEMP_DIR/rbac.yaml"
+$YQ -i '(select(.kind == "RoleBinding") | .subjects[0].namespace) = "sed-me-namespace"' "$TEMP_DIR/rbac.yaml"
+
+# Step 2: Use sed to replace placeholders with Helm templates
+sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/rbac.yaml"
+
+# Copy to output
+cp "$TEMP_DIR/rbac.yaml" "$OUTPUT_DIR/rbac.yaml"
+
+echo "[INFO] ✓ rbac.yaml created"
+
+# Process Cluster RBAC (ClusterRole and ClusterRoleBinding)
+echo "[INFO] Templating cluster-rbac..."
+
+cp "$INPUT_DIR/cluster-rbac.yaml" "$TEMP_DIR/cluster-rbac.yaml"
+
+# Step 1: Use yq to add placeholders for namespace in ClusterRoleBinding
+# Note: ClusterRole doesn't have namespace, but ClusterRoleBinding metadata and subjects do
+$YQ -i '(select(.kind == "ClusterRoleBinding") | .metadata.namespace) = "sed-me-namespace"' "$TEMP_DIR/cluster-rbac.yaml"
+$YQ -i '(select(.kind == "ClusterRoleBinding") | .subjects[0].namespace) = "sed-me-namespace"' "$TEMP_DIR/cluster-rbac.yaml"
+
+# Step 2: Use sed to replace placeholders with Helm templates
+sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/cluster-rbac.yaml"
+
+# Copy to output
+cp "$TEMP_DIR/cluster-rbac.yaml" "$OUTPUT_DIR/cluster-rbac.yaml"
+
+echo "[INFO] ✓ cluster-rbac.yaml created"
+
 # Clean up temp files
 rm -rf "$TEMP_DIR"
