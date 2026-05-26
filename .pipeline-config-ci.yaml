@@ -90,7 +90,7 @@ tasks:
             make multiarch-image-latest
             make multiarch-image
 
-            echo"=========================================="
+            echo "=========================================="
             echo "Creating catalog image"
             echo "=========================================="
             ARCH=amd64 make catalogsource
@@ -115,7 +115,7 @@ tasks:
             echo "=========================================="
             make multiarch-image-development
 
-            echo"=========================================="
+            echo "=========================================="
             echo "Creating catalog image"
             echo "=========================================="
             ARCH=amd64 make catalogsource-development
