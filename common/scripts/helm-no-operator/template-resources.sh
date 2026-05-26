@@ -158,8 +158,10 @@ $YQ -i 'del(.spec.tls.destinationCACertificate)' "$TEMP_DIR/route-ibm-licensing-
 # Step 3: Use sed to replace placeholder with Helm template
 sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
 
-# Copy to output
-cp "$TEMP_DIR/route-ibm-licensing-service-instance.yaml" "$OUTPUT_DIR/route.yaml"
+# Step 4: Wrap with conditional for enableRoutes
+echo "{{- if .Values.ibmLicensing.enableRoutes }}" > "$OUTPUT_DIR/route.yaml"
+cat "$TEMP_DIR/route-ibm-licensing-service-instance.yaml" >> "$OUTPUT_DIR/route.yaml"
+echo "{{- end }}" >> "$OUTPUT_DIR/route.yaml"
 
 echo "[INFO] ✓ route.yaml created"
 

@@ -1,27 +1,17 @@
-# Global settings (matches existing chart structure)
+# Global settings
 global:
-  imagePullPrefix: docker-na-public.artifactory.swg-devops.com
+  imagePullPrefix: icr.io
   imagePullSecret: ibm-entitlement-key
   licenseAccept: true
 
-# IBM Licensing configuration (matches existing chart structure)
+# IBM Licensing configuration
 ibmLicensing:
   # Namespace configuration
   namespace: ibm-licensing
   
   # Image registry configuration
-  imageRegistryNamespaceOperator: hyc-cloud-private-integration-docker-local/ibmcom
-  imageRegistryNamespaceOperand: hyc-cloud-private-integration-docker-local/ibmcom
-  
-  # RBAC configuration
-  createRBAC: true
-  
-  # Environment variables
-  datasource: datacollector
-  httpsEnable: true
-  enableInstanaMetricCollection: false
-  httpsCertsSource: external
-  prometheusQuerySourceEnabled: true
+  imageRegistryNamespaceOperator: cpopen
+  imageRegistryNamespaceOperand: cpopen/cpfs
   
   # Resource limits
   resources:
@@ -32,7 +22,16 @@ ibmLicensing:
       cpu: 200m
       memory: 256Mi
       ephemeralStorage: 256Mi
+
+  # RBAC configuration
+  createRBAC: true
   
   # Route configuration (OpenShift)
-  route:
-    enabled: true
+  enableRoutes: true
+
+  # Environment variables
+  datasource: datacollector
+  httpsEnable: true
+  enableInstanaMetricCollection: false
+  httpsCertsSource: external
+  prometheusQuerySourceEnabled: true
