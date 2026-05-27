@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations: {}
   labels:
     app.kubernetes.io/component: ibm-licensing-service-svc
     app.kubernetes.io/instance: ibm-licensing-service
@@ -16,7 +17,6 @@ spec:
       app: ibm-licensing-service-instance
       component: ibm-licensing-service-svc
       licensing_cr: instance
-  strategy: {}
   template:
     metadata:
       annotations:
@@ -56,29 +56,31 @@ spec:
               value: {{ .Values.ibmLicensing.enableInstanaMetricCollection | quote }}
             - name: HTTPS_CERTS_SOURCE
               value: {{ .Values.ibmLicensing.httpsCertsSource | quote }}
-            - name: PROMETHEUS_QUERY_SOURCE_ENABLED
-              value: {{ .Values.ibmLicensing.prometheusQuerySourceEnabled | quote }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
           imagePullPolicy: IfNotPresent
           livenessProbe:
+            failureThreshold: 3
             httpGet:
               path: /
               port: 8080
               scheme: HTTPS
             initialDelaySeconds: 120
             periodSeconds: 300
+            successThreshold: 1
             timeoutSeconds: 10
           name: license-service
           ports:
             - containerPort: 8080
               protocol: TCP
           readinessProbe:
+            failureThreshold: 3
             httpGet:
               path: /
               port: 8080
               scheme: HTTPS
             initialDelaySeconds: 60
             periodSeconds: 60
+            successThreshold: 1
             timeoutSeconds: 10
           resources:
             limits:
@@ -138,8 +140,6 @@ spec:
               value: {{ .Values.ibmLicensing.enableInstanaMetricCollection | quote }}
             - name: HTTPS_CERTS_SOURCE
               value: {{ .Values.ibmLicensing.httpsCertsSource | quote }}
-            - name: PROMETHEUS_QUERY_SOURCE_ENABLED
-              value: {{ .Values.ibmLicensing.prometheusQuerySourceEnabled | quote }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
           imagePullPolicy: IfNotPresent
           name: ocp-check-secret
@@ -179,6 +179,7 @@ spec:
             - mountPath: /opt/licensing/certs/
               name: licensing-https-certs
               readOnly: true
+      restartPolicy: Always
       serviceAccountName: ibm-license-service
       terminationGracePeriodSeconds: 60
       tolerations:
@@ -204,4 +205,3 @@ spec:
         - emptyDir:
             sizeLimit: 600Mi
           name: tmp
-status: {}

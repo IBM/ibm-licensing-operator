@@ -5,7 +5,7 @@
 
 set -e
 
-INPUT_DIR="./resources/final"
+INPUT_DIR="./resources"
 OUTPUT_DIR="./helm-no-operator/templates"
 TEMP_DIR="./temp"
 YQ="./bin/yq"
@@ -20,6 +20,9 @@ echo "[INFO] Templating secrets..."
 
 # Create temp directory
 mkdir -p "$TEMP_DIR"
+
+# Create output directory
+mkdir -p "$OUTPUT_DIR"
 
 # Process first secret (ibm-licensing-token)
 cp "$INPUT_DIR/secret-ibm-licensing-token.yaml" "$TEMP_DIR/secret-ibm-licensing-token.yaml"
@@ -72,7 +75,6 @@ $YQ -i '.spec.template.spec.containers[0].env[1].value = "sed-me-datasource"' "$
 $YQ -i '.spec.template.spec.containers[0].env[2].value = "sed-me-httpsEnable"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
 $YQ -i '.spec.template.spec.containers[0].env[3].value = "sed-me-enableInstanaMetricCollection"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
 $YQ -i '.spec.template.spec.containers[0].env[4].value = "sed-me-httpsCertsSource"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
-$YQ -i '.spec.template.spec.containers[0].env[5].value = "sed-me-prometheusQuerySourceEnabled"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
 
 # Replace environment variables in init container
 $YQ -i '.spec.template.spec.initContainers[0].env[0].value = "sed-me-namespace"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
@@ -80,7 +82,6 @@ $YQ -i '.spec.template.spec.initContainers[0].env[1].value = "sed-me-datasource"
 $YQ -i '.spec.template.spec.initContainers[0].env[2].value = "sed-me-httpsEnable"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
 $YQ -i '.spec.template.spec.initContainers[0].env[3].value = "sed-me-enableInstanaMetricCollection"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
 $YQ -i '.spec.template.spec.initContainers[0].env[4].value = "sed-me-httpsCertsSource"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
-$YQ -i '.spec.template.spec.initContainers[0].env[5].value = "sed-me-prometheusQuerySourceEnabled"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
 
 # Replace resource limits and requests in main container
 $YQ -i '.spec.template.spec.containers[0].resources.limits.cpu = "sed-me-cpu-limit"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
@@ -112,7 +113,6 @@ sed -i '' 's/value: sed-me-datasource/value: {{ .Values.ibmLicensing.datasource 
 sed -i '' 's/value: "sed-me-httpsEnable"/value: {{ .Values.ibmLicensing.httpsEnable | quote }}/g' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
 sed -i '' 's/value: "sed-me-enableInstanaMetricCollection"/value: {{ .Values.ibmLicensing.enableInstanaMetricCollection | quote }}/g' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
 sed -i '' 's/value: sed-me-httpsCertsSource/value: {{ .Values.ibmLicensing.httpsCertsSource | quote }}/g' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
-sed -i '' 's/value: "sed-me-prometheusQuerySourceEnabled"/value: {{ .Values.ibmLicensing.prometheusQuerySourceEnabled | quote }}/g' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
 
 # Replace resource limits and requests
 sed -i '' "s/sed-me-cpu-limit/{{ .Values.ibmLicensing.resources.limits.cpu }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
