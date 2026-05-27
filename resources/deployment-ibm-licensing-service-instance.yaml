@@ -59,24 +59,28 @@ spec:
           image: icr.io/cpopen/cpfs/ibm-licensing:4.2.23
           imagePullPolicy: IfNotPresent
           livenessProbe:
+            failureThreshold: 3
             httpGet:
               path: /
               port: 8080
               scheme: HTTPS
             initialDelaySeconds: 120
             periodSeconds: 300
+            successThreshold: 1
             timeoutSeconds: 10
           name: license-service
           ports:
             - containerPort: 8080
               protocol: TCP
           readinessProbe:
+            failureThreshold: 3
             httpGet:
               path: /
               port: 8080
               scheme: HTTPS
             initialDelaySeconds: 60
             periodSeconds: 60
+            successThreshold: 1
             timeoutSeconds: 10
           resources:
             limits:
@@ -92,6 +96,7 @@ spec:
               drop:
                 - ALL
             privileged: false
+            procMount: Default
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             seccompProfile:
@@ -155,6 +160,7 @@ spec:
               drop:
                 - ALL
             privileged: false
+            procMount: Default
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             seccompProfile:
@@ -173,6 +179,7 @@ spec:
             - mountPath: /opt/licensing/certs/
               name: licensing-https-certs
               readOnly: true
+      restartPolicy: Always
       serviceAccountName: ibm-license-service
       terminationGracePeriodSeconds: 60
       tolerations:

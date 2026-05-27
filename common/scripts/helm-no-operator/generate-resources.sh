@@ -24,7 +24,7 @@ set -e -o pipefail
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
-OUTPUT_DIR="${OUTPUT_DIR:-${PROJECT_ROOT}/resources/final}"
+OUTPUT_DIR="${OUTPUT_DIR:-${PROJECT_ROOT}/resources}"
 
 # Tool paths (use from LOCALBIN if available, otherwise from PATH)
 KUSTOMIZE="${KUSTOMIZE:-${PROJECT_ROOT}/bin/kustomize}"

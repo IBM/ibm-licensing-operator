@@ -7,7 +7,7 @@
 set -e -o pipefail
 
 # Configuration
-NAMESPACE="${NAMESPACE:-ibm-licensing}"
+NAMESPACE="ibm-licensing"
 HELM_CHART_PATH="deploy/argo-cd/components/license-service/helm-cluster-scoped"
 OUTPUT_DIR="resources"
 TIMEOUT=300  # 5 minutes timeout for resource readiness
@@ -83,13 +83,33 @@ install_licensing_helm() {
 wait_for_resources() {
     log_info "Waiting for License Service deployment ibm-licensing-service-instance..."
     
-    # Wait for deployment to be created
-    log_info "Waiting 60 seconds for deployment to be created..."
-    sleep 60
+    # Poll for deployment creation (12 attempts x 10 seconds = 120 seconds max)
+    local attempts=0
+    local max_attempts=12
     
-    # Wait for License Service deployment (operator will create it)
+    while [ $attempts -lt $max_attempts ]; do
+        if kubectl get deployment ibm-licensing-service-instance -n "${NAMESPACE}" &>/dev/null; then
+            log_info "Deployment found after $((attempts * 10))s"
+            break
+        fi
+        
+        attempts=$((attempts + 1))
+        if [ $attempts -lt $max_attempts ]; then
+            log_info "Deployment not found yet, waiting 10s... (attempt $attempts/$max_attempts)"
+            sleep 10
+        fi
+    done
+    
+    # Check if deployment was found
+    if [ $attempts -eq $max_attempts ]; then
+        log_error "Deployment not created after $((max_attempts * 10))s timeout"
+        exit 1
+    fi
+    
+    # Wait for License Service deployment to be ready
+    log_info "Waiting for deployment to become available..."
     if ! kubectl wait --for=condition=available --timeout="${TIMEOUT}s" \
-        deployment/ibm-licensing-service-instance -n "${NAMESPACE}" 2>/dev/null; then
+        deployment/ibm-licensing-service-instance -n "${NAMESPACE}"; then
         log_error "License Service deployment not ready after ${TIMEOUT}s timeout"
         exit 1
     fi
@@ -111,19 +131,12 @@ cleanup_resource() {
                      del(.spec.revisionHistoryLimit) |
                      del(.spec.strategy) |
                      del(.spec.template.spec.dnsPolicy) |
-                     del(.spec.template.spec.restartPolicy) |
                      del(.spec.template.spec.schedulerName) |
                      del(.spec.template.spec.serviceAccount) |
                      del(.spec.template.spec.containers[].terminationMessagePath) |
                      del(.spec.template.spec.containers[].terminationMessagePolicy) |
-                     del(.spec.template.spec.containers[].securityContext.procMount) |
                      del(.spec.template.spec.initContainers[].terminationMessagePath) |
-                     del(.spec.template.spec.initContainers[].terminationMessagePolicy) |
-                     del(.spec.template.spec.initContainers[].securityContext.procMount) |
-                     del(.spec.template.spec.containers[].livenessProbe.failureThreshold) |
-                     del(.spec.template.spec.containers[].livenessProbe.successThreshold) |
-                     del(.spec.template.spec.containers[].readinessProbe.failureThreshold) |
-                     del(.spec.template.spec.containers[].readinessProbe.successThreshold)'
+                     del(.spec.template.spec.initContainers[].terminationMessagePolicy)'
                      # TODO fix error I0526 15:32:45.073015   81401 warnings.go:110] "Warning: spec.template.spec.containers[0].ports[0]: duplicate port definition with spec.template.spec.initContainers[0].ports[0]"
             ;;
         service)
@@ -140,11 +153,9 @@ cleanup_resource() {
                      del(.spec.wildcardPolicy)'
             ;;
         secret)
-            # Secrets are already clean from kubectl neat
             kubectl neat
             ;;
         *)
-            # For other resources, just use kubectl neat output
             kubectl neat
             ;;
     esac
@@ -155,18 +166,13 @@ cleanup_resource() {
 extract_namespace_resources() {
     log_info "Extracting required namespace-scoped resources from ${NAMESPACE}..."
     
-    mkdir -p "${OUTPUT_DIR}/cluster"
+    mkdir -p "${OUTPUT_DIR}"
     
-    # Define required resources by type and name (from required_resources.md)
-    # Format: "resource_type:resource_name"
+    # Define required resources by type and name, format: "resource_type:resource_name"
     local required_resources=(
-        # Core Components
         "deployment:ibm-licensing-service-instance"
         "service:ibm-licensing-service-instance"
         "route:ibm-licensing-service-instance"
-        
-        # Secrets (required for deployment)
-        "secret:ibm-license-service-cert"
         "secret:ibm-licensing-token"
         "secret:ibm-licensing-upload-token"
     )
@@ -194,7 +200,7 @@ extract_namespace_resources() {
         fi
         
         # Extract the resource and clean it up
-        local output_file="${OUTPUT_DIR}/cluster/${resource_type}-${resource_name}.yaml"
+        local output_file="${OUTPUT_DIR}/${resource_type}-${resource_name}.yaml"
         kubectl get "${resource_type}" "${resource_name}" -n "${NAMESPACE}" -o yaml | cleanup_resource "${resource_type}" > "${output_file}"
         
         log_info "Saved to ${output_file}"
@@ -239,10 +245,10 @@ main() {
     log_info "Namespace: ${NAMESPACE}"
     log_info "Output directory: ${OUTPUT_DIR}"
     
-    # Clean up cluster resources directory if it exists
-    if [ -d "${OUTPUT_DIR}/cluster" ]; then
-        log_warn "Cluster resources directory ${OUTPUT_DIR}/cluster already exists, cleaning up..."
-        rm -rf "${OUTPUT_DIR}/cluster"
+    # Clean up output directory if it exists
+    if [ -d "${OUTPUT_DIR}" ]; then
+        log_warn "Output directory ${OUTPUT_DIR} already exists, cleaning up..."
+        rm -rf "${OUTPUT_DIR}"
     fi
     
     mkdir -p "${OUTPUT_DIR}"
@@ -265,5 +271,3 @@ main() {
 
 # Run main function
 main "$@"
-
-# Made with Bob
