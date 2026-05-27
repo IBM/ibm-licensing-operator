@@ -82,8 +82,8 @@ generate_rbac() {
     # Extract ServiceAccount for ibm-license-service
     (echo "---" && "${YQ}" 'select(.kind == "ServiceAccount" and .metadata.name == "ibm-license-service")' "${OUTPUT_DIR}/tmp-resources.yaml") > "${OUTPUT_DIR}/serviceaccounts.yaml"
     
-    # Extract CustomResourceDefinitions
-    (echo "---" && "${YQ}" 'select(.kind == "CustomResourceDefinition")' "${OUTPUT_DIR}/tmp-resources.yaml") > "${OUTPUT_DIR}/crds.yaml"
+    # Extract CustomResourceDefinitions (excluding IBMLicensing CRD, because that CRD is only used by operator)
+    (echo "---" && "${YQ}" 'select(.kind == "CustomResourceDefinition" and .metadata.name != "ibmlicensings.operator.ibm.com")' "${OUTPUT_DIR}/tmp-resources.yaml") > "${OUTPUT_DIR}/crds.yaml"
     
     # Clean up temp file
     rm -f "${OUTPUT_DIR}/tmp-resources.yaml"
