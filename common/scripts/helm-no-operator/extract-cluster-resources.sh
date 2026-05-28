@@ -180,11 +180,6 @@ extract_namespace_resources() {
     log_info "Extracting ${#required_resources[@]} required resources..."
     
     for resource_spec in "${required_resources[@]}"; do
-        # Skip comments
-        if [[ "${resource_spec}" =~ ^[[:space:]]*# ]]; then
-            continue
-        fi
-        
         # Parse resource type and name
         local resource_type
         local resource_name
