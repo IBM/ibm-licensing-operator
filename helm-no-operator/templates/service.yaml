@@ -15,7 +15,10 @@ spec:
   ports:
     - name: api-port
       port: 8080
+      protocol: TCP
+      targetPort: 8080
   selector:
     app: ibm-licensing-service-instance
     component: ibm-licensing-service-svc
     licensing_cr: instance
+  type: ClusterIP

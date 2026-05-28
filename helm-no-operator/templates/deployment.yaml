@@ -180,6 +180,7 @@ spec:
               name: licensing-https-certs
               readOnly: true
       restartPolicy: Always
+      securityContext: {}
       serviceAccountName: ibm-license-service
       terminationGracePeriodSeconds: 60
       tolerations:

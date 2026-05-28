@@ -26,9 +26,8 @@ check_prerequisites() {
         exit 1
     fi
     
-    if ! kubectl neat --help &> /dev/null; then
-        log_error "kubectl neat plugin is not installed"
-        log_error "Install it with: kubectl krew install neat"
+    if ! command -v yq &> /dev/null; then
+        log_error "yq is not installed"
         exit 1
     fi
     
@@ -117,16 +116,23 @@ wait_for_resources() {
     log_info "License Service deployment is ready"
 }
 
-# Clean up runtime and default fields from YAML using kubectl neat
-# and additional yq processing for fields that kubectl neat doesn't remove
+# Clean up runtime and default fields from YAML using yq only
 cleanup_resource() {
     local resource_type="$1"
     
-    # First pass: kubectl neat to remove most runtime fields
-    # Second pass: Remove additional runtime fields based on resource type using yq
+    # Common deletions for all resources (applied first)
+    local common_deletes='del(.metadata.creationTimestamp) |
+                          del(.metadata.generation) |
+                          del(.metadata.resourceVersion) |
+                          del(.metadata.uid) |
+                          del(.metadata.ownerReferences) |
+                          del(.status)'
+    
+    # Apply common deletions, then resource-specific deletions
     case "${resource_type}" in
         deployment)
-            kubectl neat | yq eval 'del(.metadata.annotations."deployment.kubernetes.io/revision") |
+            yq eval "${common_deletes} |
+                     del(.metadata.annotations.\"deployment.kubernetes.io/revision\") |
                      del(.spec.progressDeadlineSeconds) |
                      del(.spec.revisionHistoryLimit) |
                      del(.spec.strategy) |
@@ -136,27 +142,28 @@ cleanup_resource() {
                      del(.spec.template.spec.containers[].terminationMessagePath) |
                      del(.spec.template.spec.containers[].terminationMessagePolicy) |
                      del(.spec.template.spec.initContainers[].terminationMessagePath) |
-                     del(.spec.template.spec.initContainers[].terminationMessagePolicy)'
+                     del(.spec.template.spec.initContainers[].terminationMessagePolicy)"
                      # TODO fix error I0526 15:32:45.073015   81401 warnings.go:110] "Warning: spec.template.spec.containers[0].ports[0]: duplicate port definition with spec.template.spec.initContainers[0].ports[0]"
             ;;
         service)
-            kubectl neat | yq eval 'del(.metadata.annotations."service.alpha.openshift.io/serving-cert-signed-by") |
-                     del(.metadata.annotations."service.beta.openshift.io/serving-cert-signed-by") |
+            yq eval "${common_deletes} |
+                     del(.metadata.annotations.\"service.alpha.openshift.io/serving-cert-signed-by\") |
+                     del(.metadata.annotations.\"service.beta.openshift.io/serving-cert-signed-by\") |
                      del(.spec.clusterIP) |
                      del(.spec.clusterIPs) |
+                     del(.spec.internalTrafficPolicy) |
                      del(.spec.ipFamilies) |
-                     del(.spec.ipFamilyPolicy)'
+                     del(.spec.ipFamilyPolicy) |
+                     del(.spec.sessionAffinity)"
             ;;
         route)
-            kubectl neat | yq eval 'del(.metadata.annotations."openshift.io/host.generated") |
+            yq eval "${common_deletes} |
+                     del(.metadata.annotations.\"openshift.io/host.generated\") |
                      del(.spec.host) |
-                     del(.spec.wildcardPolicy)'
-            ;;
-        secret)
-            kubectl neat
+                     del(.spec.wildcardPolicy)"
             ;;
         *)
-            kubectl neat
+            yq eval "${common_deletes}"
             ;;
     esac
 }
