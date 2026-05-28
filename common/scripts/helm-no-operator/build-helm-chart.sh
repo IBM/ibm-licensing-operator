@@ -18,14 +18,14 @@
 
 # Script to build Helm chart for IBM Licensing Service (no operator)
 # This script orchestrates the entire process:
-# 1. Extract resources from a running cluster
-# 2. Generate RBAC and CRD resources
+# 1. Extract resources from a cluster
+# 2. Generate RBAC and CRD resources using kustomize
 # 3. Template resources into Helm templates
 # 4. Clean up temporary resources directory
 
 set -e -o pipefail
 
-# Configuration
+# Create path to resources directory based on script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 RESOURCES_DIR="${PROJECT_ROOT}/resources"
@@ -33,20 +33,9 @@ RESOURCES_DIR="${PROJECT_ROOT}/resources"
 # Source shared logging utilities
 source "${SCRIPT_DIR}/logging.sh"
 
-# Print banner
-print_banner() {
-    echo ""
-    echo "=========================================="
-    echo "  IBM Licensing Helm Chart Builder"
-    echo "=========================================="
-    echo ""
-}
-
 # Main execution
-main() {
-    print_banner
-    
-    log_info "Starting Helm chart build process..."
+main() {    
+    log_info "Starting Helm chart without operator build process..."
     log_info "Project root: ${PROJECT_ROOT}"
     log_info "Resources directory: ${RESOURCES_DIR}"
     echo ""
@@ -93,16 +82,7 @@ main() {
     echo ""
     log_info "Generated Helm templates are available in:"
     log_info "  ${PROJECT_ROOT}/helm-no-operator/templates/"
-    echo ""
-    log_info "Next steps:"
-    log_info "  1. Review the generated templates"
-    log_info "  2. Update helm-no-operator/values.yaml if needed"
-    log_info "  3. Test the Helm chart with: helm template ibm-licensing ./helm-no-operator"
-    log_info "  4. Install with: helm install ibm-licensing ./helm-no-operator"
-    echo ""
 }
 
 # Run main function
 main "$@"
-
-# Made with Bob
