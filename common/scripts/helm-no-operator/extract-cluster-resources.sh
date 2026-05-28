@@ -1,24 +1,38 @@
 #!/bin/bash
 
+#
+# Copyright 2026 IBM Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 # Script to extract resources created by IBM Licensing Operator
 # This script installs the operator, waits for resources to be ready,
-# and extracts all created resources for Helm chart generation
+# and extracts all created resources into yaml files.
 
 set -e -o pipefail
 
-# Get the repository root directory (3 levels up from this script)
+# Create paths to other folders
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
-
-# Local bin directory for tools
 LOCALBIN="${REPO_ROOT}/bin"
+
 YQ="${LOCALBIN}/yq"
 
 # Configuration
 NAMESPACE="ibm-licensing"
 HELM_CHART_PATH="deploy/argo-cd/components/license-service/helm-cluster-scoped"
 OUTPUT_DIR="resources"
-TIMEOUT=300  # 5 minutes timeout for resource readiness
 
 # Source shared logging utilities
 source "${SCRIPT_DIR}/logging.sh"
@@ -68,10 +82,8 @@ install_licensing_helm() {
     
     # First run: Create CRDs and initial resources
     # Note: This may fail for the CR because CRDs aren't ready yet - this is expected
-    log_info "First helm template run (creating CRDs and initial resources)..."
+    log_info "First helm template run"
     helm template ibm-licensing-cluster-scoped "${HELM_CHART_PATH}" \
-        --namespace "${NAMESPACE}" \
-        --set global.licenseAccept=true \
         --set ibmLicensing.spec.features.prometheusQuerySource.enabled=false \
         --set ibmLicensing.spec.features.alerting.enabled=false | kubectl apply -f - || true
     
@@ -82,8 +94,6 @@ install_licensing_helm() {
     # Second run: Ensure all dependent resources are created (including CR)
     log_info "Second helm template run (ensuring all resources are created)..."
     helm template ibm-licensing-cluster-scoped "${HELM_CHART_PATH}" \
-        --namespace "${NAMESPACE}" \
-        --set global.licenseAccept=true \
         --set ibmLicensing.spec.features.prometheusQuerySource.enabled=false \
         --set ibmLicensing.spec.features.alerting.enabled=false | kubectl apply -f -
     
@@ -118,6 +128,7 @@ wait_for_resources() {
     fi
     
     # Wait for License Service deployment to be ready
+    local TIMEOUT=80  # timeout for deployment readiness
     log_info "Waiting for deployment to become available..."
     if ! kubectl wait --for=condition=available --timeout="${TIMEOUT}s" \
         deployment/ibm-licensing-service-instance -n "${NAMESPACE}"; then
@@ -128,7 +139,7 @@ wait_for_resources() {
     log_info "License Service deployment is ready"
 }
 
-# Clean up runtime and default fields from YAML using yq only
+# Clean up runtime and default fields from YAML
 cleanup_resource() {
     local resource_type="$1"
     
@@ -174,8 +185,7 @@ cleanup_resource() {
     esac
 }
 
-# Extract namespace-scoped resources created by the operator
-# Only extracts required resources as specified in required_resources.md
+# Extract resources created by the operator
 extract_namespace_resources() {
     log_info "Extracting required namespace-scoped resources from ${NAMESPACE}..."
     
@@ -193,31 +203,24 @@ extract_namespace_resources() {
     
     for resource_spec in "${required_resources[@]}"; do
         # Parse resource type and name
-        local resource_type
-        local resource_name
-        resource_type=$(echo "${resource_spec}" | cut -d':' -f1)
-        resource_name=$(echo "${resource_spec}" | cut -d':' -f2)
+        local resource_type=$(echo "${resource_spec}" | cut -d':' -f1)
+        local resource_name=$(echo "${resource_spec}" | cut -d':' -f2)
         
         log_info "Extracting ${resource_type}/${resource_name}..."
         
         # Check if resource exists
         if ! kubectl get "${resource_type}" "${resource_name}" -n "${NAMESPACE}" &>/dev/null; then
-            log_warn "${resource_type}/${resource_name} not found, skipping..."
-            continue
+            log_error "${resource_type}/${resource_name} not found"
+            exit 1
         fi
         
         # Extract the resource and clean it up
         local output_file="${OUTPUT_DIR}/${resource_type}-${resource_name}.yaml"
         kubectl get "${resource_type}" "${resource_name}" -n "${NAMESPACE}" -o yaml | cleanup_resource "${resource_type}" > "${output_file}"
-        
         log_info "Saved to ${output_file}"
     done
     
     log_info ""
-    log_info "Note: Only required resources from required_resources.md are extracted"
-    log_info "RBAC resources will be sourced from Kustomize (operand RBAC only)"
-    log_info "ConfigMaps are currently skipped (not mounted in deployment)"
-    log_info "Prometheus-related resources are skipped (feature not supported yet)"
 }
 
 # ============================================================================
@@ -246,11 +249,6 @@ main() {
     
     log_info "Resource extraction completed successfully!"
     log_info "Extracted resources are available in: ${OUTPUT_DIR}/"
-    log_info ""
-    log_info "Next steps:"
-    log_info "1. Review extracted resources in ${OUTPUT_DIR}/"
-    log_info "2. Run templatization script to convert to Helm templates"
-    log_info "3. Test the generated Helm chart"
 }
 
 # Run main function
