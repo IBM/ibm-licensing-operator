@@ -1,22 +1,43 @@
 #!/bin/bash
-# template-resources.sh
-# Purpose: Template YAML files (secrets, deployment) from resources/final to Helm templates using yq and sed
-# Usage: ./scripts/template-resources.sh
+
+#
+# Copyright 2026 IBM Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Script to template YAML files (secrets, deployment) from resources/ to Helm templates using yq and sed
 
 set -e
 
-INPUT_DIR="./resources"
-OUTPUT_DIR="./helm-no-operator/templates"
-TEMP_DIR="./temp"
-YQ="./bin/yq"
+# Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+INPUT_DIR="${PROJECT_ROOT}/resources"
+OUTPUT_DIR="${PROJECT_ROOT}/helm-no-operator/templates"
+TEMP_DIR="${PROJECT_ROOT}/temp"
+YQ="${PROJECT_ROOT}/bin/yq"
+
+# Source shared logging utilities
+source "${SCRIPT_DIR}/logging.sh"
 
 # Check if yq is available
 if [ ! -x "$YQ" ]; then
-    echo "[ERROR] yq not found at $YQ. Please run 'make install-yq' first."
+    log_error "yq not found at $YQ. Please run 'make install-yq' first."
     exit 1
 fi
 
-echo "[INFO] Templating secrets..."
+log_info "Templating secrets..."
 
 # Create temp directory
 mkdir -p "$TEMP_DIR"
@@ -51,10 +72,10 @@ cat "$TEMP_DIR/secret-ibm-licensing-token.yaml" > "$OUTPUT_DIR/secrets.yaml"
 echo "---" >> "$OUTPUT_DIR/secrets.yaml"
 cat "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml" >> "$OUTPUT_DIR/secrets.yaml"
 
-echo "[INFO] ✓ secrets.yaml created"
+log_info "✓ secrets.yaml created"
 
 # Process deployment
-echo "[INFO] Templating deployment..."
+log_info "Templating deployment..."
 
 cp "$INPUT_DIR/deployment-ibm-licensing-service-instance.yaml" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
 
@@ -124,10 +145,10 @@ sed -i '' "s/sed-me-ephemeral-storage-request/{{ .Values.ibmLicensing.resources.
 # Copy to output
 cp "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml" "$OUTPUT_DIR/deployment.yaml"
 
-echo "[INFO] ✓ deployment.yaml created"
+log_info "✓ deployment.yaml created"
 
 # Process service
-echo "[INFO] Templating service..."
+log_info "Templating service..."
 
 cp "$INPUT_DIR/service-ibm-licensing-service-instance.yaml" "$TEMP_DIR/service-ibm-licensing-service-instance.yaml"
 
@@ -140,42 +161,19 @@ sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.name
 # Copy to output
 cp "$TEMP_DIR/service-ibm-licensing-service-instance.yaml" "$OUTPUT_DIR/service.yaml"
 
-echo "[INFO] ✓ service.yaml created"
-
-# Process route
-echo "[INFO] Templating route..."
-
-cp "$INPUT_DIR/route-ibm-licensing-service-instance.yaml" "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
-
-# Step 1: Use yq to add placeholder for namespace
-$YQ -i '.metadata.namespace = "sed-me-namespace"' "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
-
-# Step 2: Remove hardcoded TLS certificates
-$YQ -i 'del(.spec.tls.certificate)' "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
-$YQ -i 'del(.spec.tls.key)' "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
-$YQ -i 'del(.spec.tls.destinationCACertificate)' "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
-
-# Step 3: Use sed to replace placeholder with Helm template
-sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/route-ibm-licensing-service-instance.yaml"
-
-# Step 4: Wrap with conditional for enableRoutes
-echo "{{- if .Values.ibmLicensing.enableRoutes }}" > "$OUTPUT_DIR/route.yaml"
-cat "$TEMP_DIR/route-ibm-licensing-service-instance.yaml" >> "$OUTPUT_DIR/route.yaml"
-echo "{{- end }}" >> "$OUTPUT_DIR/route.yaml"
-
-echo "[INFO] ✓ route.yaml created"
+log_info "✓ service.yaml created"
 
 # Process CRDs
-echo "[INFO] Templating CRDs..."
+log_info "Templating CRDs..."
 
 # CRDs are cluster-scoped resources and typically don't need templating
 # Just copy them directly to the output directory
 cp "$INPUT_DIR/crds.yaml" "$OUTPUT_DIR/crds.yaml"
 
-echo "[INFO] ✓ crds.yaml created"
+log_info "✓ crds.yaml created"
 
 # Process ServiceAccount
-echo "[INFO] Templating serviceaccount..."
+log_info "Templating serviceaccount..."
 
 cp "$INPUT_DIR/serviceaccounts.yaml" "$TEMP_DIR/serviceaccounts.yaml"
 
@@ -188,10 +186,10 @@ sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.name
 # Copy to output
 cp "$TEMP_DIR/serviceaccounts.yaml" "$OUTPUT_DIR/serviceaccount.yaml"
 
-echo "[INFO] ✓ serviceaccount.yaml created"
+log_info "✓ serviceaccount.yaml created"
 
 # Process RBAC (Role and RoleBinding)
-echo "[INFO] Templating rbac..."
+log_info "Templating rbac..."
 
 cp "$INPUT_DIR/rbac.yaml" "$TEMP_DIR/rbac.yaml"
 
@@ -206,10 +204,10 @@ sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.name
 # Copy to output
 cp "$TEMP_DIR/rbac.yaml" "$OUTPUT_DIR/rbac.yaml"
 
-echo "[INFO] ✓ rbac.yaml created"
+log_info "✓ rbac.yaml created"
 
 # Process Cluster RBAC (ClusterRole and ClusterRoleBinding)
-echo "[INFO] Templating cluster-rbac..."
+log_info "Templating cluster-rbac..."
 
 cp "$INPUT_DIR/cluster-rbac.yaml" "$TEMP_DIR/cluster-rbac.yaml"
 
@@ -224,7 +222,7 @@ sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.name
 # Copy to output
 cp "$TEMP_DIR/cluster-rbac.yaml" "$OUTPUT_DIR/cluster-rbac.yaml"
 
-echo "[INFO] ✓ cluster-rbac.yaml created"
+log_info "✓ cluster-rbac.yaml created"
 
 # Clean up temp files
 rm -rf "$TEMP_DIR"

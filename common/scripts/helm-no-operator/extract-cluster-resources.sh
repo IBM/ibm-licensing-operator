@@ -6,11 +6,22 @@
 
 set -e -o pipefail
 
+# Get the repository root directory (3 levels up from this script)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+
+# Local bin directory for tools
+LOCALBIN="${REPO_ROOT}/bin"
+YQ="${LOCALBIN}/yq"
+
 # Configuration
 NAMESPACE="ibm-licensing"
 HELM_CHART_PATH="deploy/argo-cd/components/license-service/helm-cluster-scoped"
 OUTPUT_DIR="resources"
 TIMEOUT=300  # 5 minutes timeout for resource readiness
+
+# Source shared logging utilities
+source "${SCRIPT_DIR}/logging.sh"
 
 # Check prerequisites
 check_prerequisites() {
@@ -26,8 +37,9 @@ check_prerequisites() {
         exit 1
     fi
     
-    if ! command -v yq &> /dev/null; then
-        log_error "yq is not installed"
+    if [ ! -x "${YQ}" ]; then
+        log_error "yq is not installed in ${LOCALBIN}"
+        log_error "Run 'make install-yq' to install it"
         exit 1
     fi
     
@@ -131,7 +143,7 @@ cleanup_resource() {
     # Apply common deletions, then resource-specific deletions
     case "${resource_type}" in
         deployment)
-            yq eval "${common_deletes} |
+            "${YQ}" eval "${common_deletes} |
                      del(.metadata.annotations.\"deployment.kubernetes.io/revision\") |
                      del(.spec.progressDeadlineSeconds) |
                      del(.spec.revisionHistoryLimit) |
@@ -146,7 +158,7 @@ cleanup_resource() {
                      # TODO fix error I0526 15:32:45.073015   81401 warnings.go:110] "Warning: spec.template.spec.containers[0].ports[0]: duplicate port definition with spec.template.spec.initContainers[0].ports[0]"
             ;;
         service)
-            yq eval "${common_deletes} |
+            "${YQ}" eval "${common_deletes} |
                      del(.metadata.annotations.\"service.alpha.openshift.io/serving-cert-signed-by\") |
                      del(.metadata.annotations.\"service.beta.openshift.io/serving-cert-signed-by\") |
                      del(.spec.clusterIP) |
@@ -156,14 +168,8 @@ cleanup_resource() {
                      del(.spec.ipFamilyPolicy) |
                      del(.spec.sessionAffinity)"
             ;;
-        route)
-            yq eval "${common_deletes} |
-                     del(.metadata.annotations.\"openshift.io/host.generated\") |
-                     del(.spec.host) |
-                     del(.spec.wildcardPolicy)"
-            ;;
         *)
-            yq eval "${common_deletes}"
+            "${YQ}" eval "${common_deletes}"
             ;;
     esac
 }
@@ -179,7 +185,6 @@ extract_namespace_resources() {
     local required_resources=(
         "deployment:ibm-licensing-service-instance"
         "service:ibm-licensing-service-instance"
-        "route:ibm-licensing-service-instance"
         "secret:ibm-licensing-token"
         "secret:ibm-licensing-upload-token"
     )
@@ -213,29 +218,6 @@ extract_namespace_resources() {
     log_info "RBAC resources will be sourced from Kustomize (operand RBAC only)"
     log_info "ConfigMaps are currently skipped (not mounted in deployment)"
     log_info "Prometheus-related resources are skipped (feature not supported yet)"
-}
-
-# ============================================================================
-# Logging utilities
-# ============================================================================
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Logging functions
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
 }
 
 # ============================================================================
