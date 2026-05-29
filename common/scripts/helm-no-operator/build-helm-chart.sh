@@ -31,6 +31,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 RESOURCES_DIR="${PROJECT_ROOT}/resources"
 
 # Source shared logging utilities
+# shellcheck source=common/scripts/helm-no-operator/logging.sh
 source "${SCRIPT_DIR}/logging.sh"
 
 # Main execution

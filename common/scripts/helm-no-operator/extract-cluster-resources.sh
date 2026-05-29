@@ -34,6 +34,7 @@ HELM_CHART_PATH="deploy/argo-cd/components/license-service/helm-cluster-scoped"
 OUTPUT_DIR="resources"
 
 # Source shared logging utilities
+# shellcheck source=common/scripts/helm-no-operator/logging.sh
 source "${SCRIPT_DIR}/logging.sh"
 
 # Check prerequisites
@@ -202,8 +203,10 @@ extract_namespace_resources() {
     
     for resource_spec in "${required_resources[@]}"; do
         # Parse resource type and name
-        local resource_type=$(echo "${resource_spec}" | cut -d':' -f1)
-        local resource_name=$(echo "${resource_spec}" | cut -d':' -f2)
+        local resource_type
+        local resource_name
+        resource_type=$(echo "${resource_spec}" | cut -d':' -f1)
+        resource_name=$(echo "${resource_spec}" | cut -d':' -f2)
         
         log_info "Extracting ${resource_type}/${resource_name}..."
         

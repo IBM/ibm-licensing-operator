@@ -31,6 +31,7 @@ KUSTOMIZE="${KUSTOMIZE:-${PROJECT_ROOT}/bin/kustomize}"
 YQ="${YQ:-${PROJECT_ROOT}/bin/yq}"
 
 # Source shared logging utilities
+# shellcheck source=common/scripts/helm-no-operator/logging.sh
 source "${SCRIPT_DIR}/logging.sh"
 
 # Check prerequisites
