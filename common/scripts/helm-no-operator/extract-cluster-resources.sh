@@ -127,7 +127,7 @@ wait_for_resources() {
     fi
     
     # Wait for License Service deployment to be ready
-    local TIMEOUT=80  # timeout for deployment readiness
+    local TIMEOUT=150  # timeout for deployment readiness
     log_info "Waiting for deployment to become available..."
     if ! kubectl wait --for=condition=available --timeout="${TIMEOUT}s" \
         deployment/ibm-licensing-service-instance -n "${NAMESPACE}"; then
