@@ -6,14 +6,9 @@ global:
 
 # IBM Licensing configuration
 ibmLicensing:
-  # Namespace configuration
   namespace: ibm-licensing
-  
-  # Image registry configuration
   imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs
-  
-  # Resource limits
   resources:
     limits:
       cpu: 500m
@@ -22,16 +17,8 @@ ibmLicensing:
       cpu: 200m
       memory: 256Mi
       ephemeralStorage: 256Mi
-
-  # RBAC configuration
   createRBAC: true
-  
-  # Route configuration (OpenShift)
-  enableRoutes: true
-
-  # Environment variables
   datasource: datacollector
   httpsEnable: true
   enableInstanaMetricCollection: false
   httpsCertsSource: external
-  prometheusQuerySourceEnabled: true
