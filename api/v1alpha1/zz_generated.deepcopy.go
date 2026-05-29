@@ -96,6 +96,11 @@ func (in *Features) DeepCopyInto(out *Features) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.OperandRequestsEnabled != nil {
+		in, out := &in.OperandRequestsEnabled, &out.OperandRequestsEnabled
+		*out = new(bool)
+		**out = **in
+	}
 	if in.CustomNamespaceScopeConfigMap != nil {
 		in, out := &in.CustomNamespaceScopeConfigMap, &out.CustomNamespaceScopeConfigMap
 		*out = new(string)
