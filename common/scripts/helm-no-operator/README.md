@@ -1,6 +1,6 @@
 # Helm Chart Generation Scripts (No Operator)
 
-This directory contains scripts for generating a standalone Helm chart for IBM Licensing Service deployed without the IBM Licensing Operator.
+This directory contains scripts generating a standalone Helm chart for deploying IBM Licensing Service without the IBM Licensing Operator.
 
 ## Overview
 
@@ -31,7 +31,7 @@ These scripts automate the process of:
 
 ### 2. `extract-cluster-resources.sh`
 
-**Extracts resources created by the operator from a running Kubernetes cluster** where IBM Licensing Service has been deployed.
+**Installs IBM License Service and extracts resources created by the operator** from a running Kubernetes cluster.
 
 ---
 
@@ -56,7 +56,7 @@ To generate a complete Helm chart from scratch:
 ./common/scripts/helm-no-operator/build-helm-chart.sh
 ```
 
-After running the build process, you need to check what was generated in helm-no-operator folder. If you want to adjust generated helm chart, you will need to adjust the generation scripts and re-run the build process.
+After running the build process, you need to check what was generated in helm-no-operator folder. If you want to adjust generated helm chart, you will need to make changes in the generation scripts and re-run the build process.
 
 ## Testing the Generated Chart
 
