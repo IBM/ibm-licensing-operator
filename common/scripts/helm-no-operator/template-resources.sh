@@ -60,23 +60,25 @@ template_secrets() {
     # Process first secret (ibm-licensing-token)
     cp "$INPUT_DIR/secret-ibm-licensing-token.yaml" "$TEMP_DIR/secret-ibm-licensing-token.yaml"
     
-    # Step 1: Use yq to add placeholder for token
+    # Step 1: Use yq to add placeholders
+    $YQ -i '.metadata.namespace = "sed-me-namespace"' "$TEMP_DIR/secret-ibm-licensing-token.yaml"
     TOKEN_FIELD=$($YQ '.data | keys | .[0]' "$TEMP_DIR/secret-ibm-licensing-token.yaml")
     $YQ -i ".data.$TOKEN_FIELD = \"sed-me-token\"" "$TEMP_DIR/secret-ibm-licensing-token.yaml"
     
     # Step 2: Use sed to replace placeholders with Helm templates
-    sed -i '' "s/namespace: ibm-licensing/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/secret-ibm-licensing-token.yaml"
+    sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/secret-ibm-licensing-token.yaml"
     sed -i '' "s/sed-me-token/{{ randAlphaNum 24 | b64enc }}/g" "$TEMP_DIR/secret-ibm-licensing-token.yaml"
     
     # Process second secret (ibm-licensing-upload-token)
     cp "$INPUT_DIR/secret-ibm-licensing-upload-token.yaml" "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml"
     
-    # Step 1: Use yq to add placeholder for token
+    # Step 1: Use yq to add placeholders
+    $YQ -i '.metadata.namespace = "sed-me-namespace"' "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml"
     UPLOAD_TOKEN_FIELD=$($YQ '.data | keys | .[0]' "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml")
     $YQ -i ".data.$UPLOAD_TOKEN_FIELD = \"sed-me-upload-token\"" "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml"
     
     # Step 2: Use sed to replace placeholders with Helm templates
-    sed -i '' "s/namespace: ibm-licensing/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml"
+    sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml"
     sed -i '' "s/sed-me-upload-token/{{ randAlphaNum 24 | b64enc }}/g" "$TEMP_DIR/secret-ibm-licensing-upload-token.yaml"
     
     # Combine both secrets into final output
@@ -92,7 +94,7 @@ template_deployment() {
     
     cp "$INPUT_DIR/deployment-ibm-licensing-service-instance.yaml" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
     
-    # Step 1: Use yq to add placeholders for values that need templating
+    # Step 1: Use yq to add placeholders
     # Replace namespace
     $YQ -i '.metadata.namespace = "sed-me-namespace"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
     
@@ -166,10 +168,10 @@ template_service() {
     
     cp "$INPUT_DIR/service-ibm-licensing-service-instance.yaml" "$TEMP_DIR/service-ibm-licensing-service-instance.yaml"
     
-    # Step 1: Use yq to add placeholder for namespace
+    # Step 1: Use yq to add placeholders
     $YQ -i '.metadata.namespace = "sed-me-namespace"' "$TEMP_DIR/service-ibm-licensing-service-instance.yaml"
     
-    # Step 2: Use sed to replace placeholder with Helm template
+    # Step 2: Use sed to replace placeholders with Helm templates
     sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/service-ibm-licensing-service-instance.yaml"
     
     # Copy to output
@@ -193,10 +195,10 @@ template_serviceaccount() {
     
     cp "$INPUT_DIR/serviceaccounts.yaml" "$TEMP_DIR/serviceaccounts.yaml"
     
-    # Step 1: Use yq to add placeholder for namespace
+    # Step 1: Use yq to add placeholders
     $YQ -i '.metadata.namespace = "sed-me-namespace"' "$TEMP_DIR/serviceaccounts.yaml"
     
-    # Step 2: Use sed to replace placeholder with Helm template
+    # Step 2: Use sed to replace placeholders with Helm templates
     sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/serviceaccounts.yaml"
     
     # Copy to output
@@ -210,7 +212,7 @@ template_rbac() {
     
     cp "$INPUT_DIR/rbac.yaml" "$TEMP_DIR/rbac.yaml"
     
-    # Step 1: Use yq to add placeholders for namespace in both Role and RoleBinding
+    # Step 1: Use yq to add placeholders
     $YQ -i '(select(.kind == "Role") | .metadata.namespace) = "sed-me-namespace"' "$TEMP_DIR/rbac.yaml"
     $YQ -i '(select(.kind == "RoleBinding") | .metadata.namespace) = "sed-me-namespace"' "$TEMP_DIR/rbac.yaml"
     $YQ -i '(select(.kind == "RoleBinding") | .subjects[0].namespace) = "sed-me-namespace"' "$TEMP_DIR/rbac.yaml"
@@ -229,8 +231,7 @@ template_cluster_rbac() {
     
     cp "$INPUT_DIR/cluster-rbac.yaml" "$TEMP_DIR/cluster-rbac.yaml"
     
-    # Step 1: Use yq to add placeholders for namespace in ClusterRoleBinding
-    # Note: ClusterRole doesn't have namespace, but ClusterRoleBinding metadata and subjects do
+    # Step 1: Use yq to add placeholders
     $YQ -i '(select(.kind == "ClusterRoleBinding") | .metadata.namespace) = "sed-me-namespace"' "$TEMP_DIR/cluster-rbac.yaml"
     $YQ -i '(select(.kind == "ClusterRoleBinding") | .subjects[0].namespace) = "sed-me-namespace"' "$TEMP_DIR/cluster-rbac.yaml"
     
