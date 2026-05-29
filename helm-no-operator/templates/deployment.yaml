@@ -115,8 +115,6 @@ spec:
             - mountPath: /opt/licensing/certs/
               name: licensing-https-certs
               readOnly: true
-      imagePullSecrets:
-        - name: {{ .Values.global.imagePullSecret }}
       initContainers:
         - command:
             - sh
@@ -206,3 +204,7 @@ spec:
         - emptyDir:
             sizeLimit: 600Mi
           name: tmp
+      {{ if .Values.global.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.global.imagePullSecret }}
+      {{- end -}}

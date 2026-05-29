@@ -100,8 +100,8 @@ template_deployment() {
     $YQ -i '.spec.template.spec.containers[0].image = "sed-me-image"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
     $YQ -i '.spec.template.spec.initContainers[0].image = "sed-me-image"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
     
-    # Replace imagePullSecrets
-    $YQ -i '.spec.template.spec.imagePullSecrets[0].name = "sed-me-imagePullSecret"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+    # Remove imagePullSecrets (will be added conditionally later)
+    $YQ -i 'del(.spec.template.spec.imagePullSecrets)' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
     
     # Replace environment variables in main container
     $YQ -i '.spec.template.spec.containers[0].env[0].value = "sed-me-namespace"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
@@ -135,9 +135,6 @@ template_deployment() {
     # Replace namespace
     sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
     
-    # Replace imagePullSecrets BEFORE image (to avoid conflicts)
-    sed -i '' "s/name: sed-me-imagePullSecret/name: {{ .Values.global.imagePullSecret }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
-    
     # Replace image
     sed -i '' "s|image: sed-me-image|image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23|g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
     
@@ -154,6 +151,9 @@ template_deployment() {
     sed -i '' "s/sed-me-cpu-request/{{ .Values.ibmLicensing.resources.requests.cpu }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
     sed -i '' "s/sed-me-memory-request/{{ .Values.ibmLicensing.resources.requests.memory }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
     sed -i '' "s/sed-me-ephemeral-storage-request/{{ .Values.ibmLicensing.resources.requests.ephemeralStorage }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+    
+    # Append conditional imagePullSecrets section
+    cat "${PROJECT_ROOT}/common/makefile-generate/yaml-deployment-pull-secrets-part" >> "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
     
     # Copy to output
     cp "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml" "$OUTPUT_DIR/deployment.yaml"
