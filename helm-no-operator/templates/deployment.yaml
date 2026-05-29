@@ -141,9 +141,6 @@ spec:
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
           imagePullPolicy: IfNotPresent
           name: ocp-check-secret
-          ports:
-            - containerPort: 8080
-              protocol: TCP
           resources:
             limits:
               cpu: {{ .Values.ibmLicensing.resources.limits.cpu }}

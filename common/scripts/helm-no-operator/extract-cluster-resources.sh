@@ -164,8 +164,8 @@ cleanup_resource() {
                      del(.spec.template.spec.containers[].terminationMessagePath) |
                      del(.spec.template.spec.containers[].terminationMessagePolicy) |
                      del(.spec.template.spec.initContainers[].terminationMessagePath) |
-                     del(.spec.template.spec.initContainers[].terminationMessagePolicy)"
-                     # TODO fix error I0526 15:32:45.073015   81401 warnings.go:110] "Warning: spec.template.spec.containers[0].ports[0]: duplicate port definition with spec.template.spec.initContainers[0].ports[0]"
+                     del(.spec.template.spec.initContainers[].terminationMessagePolicy) |
+                     del(.spec.template.spec.initContainers[].ports)"
             ;;
         service)
             "${YQ}" eval "${common_deletes} |
