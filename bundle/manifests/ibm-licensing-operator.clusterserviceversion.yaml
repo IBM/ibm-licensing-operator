@@ -81,7 +81,7 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.23
-    createdAt: "2026-05-29T11:16:08Z"
+    createdAt: "2026-05-29T13:40:48Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
@@ -402,6 +402,15 @@ spec:
             path: softwareCentral.sandbox
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+          - description: |-
+              Comma-separated list of namespaces the operand must monitor. At least one
+              namespace is required. The operator merges this list with its own
+              WATCH_NAMESPACE scope, disables the operand's cluster-wide namespace
+              discovery, and restricts every workload-listing call to the resulting set.
+            displayName: Watched Namespaces
+            path: watchedNamespaces
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
         version: v1alpha1
       - description: |-
           IBMLicensingDefinition is a custom resource for internal use only. It is used by some IBM products to assign their pods to the licensed products for the licensing specific calculation, performed by the IBM License Service.

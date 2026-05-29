@@ -20,56 +20,28 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/IBM/ibm-licensing-operator/api/v1alpha1/features"
 )
 
-func TestIsNamespaceDiscoveryEnabledFeaturesNil(t *testing.T) {
+func TestGetWatchedNamespacesEmpty(t *testing.T) {
 	spec := &IBMLicensingSpec{}
-	assert.True(t, spec.IsNamespaceDiscoveryEnabled(),
-		"Features unset should default namespace discovery to enabled.")
+	assert.Nil(t, spec.GetWatchedNamespaces(),
+		"Empty watchedNamespaces should yield no namespaces.")
 }
 
-func TestIsNamespaceDiscoveryEnabledBlockNil(t *testing.T) {
-	spec := &IBMLicensingSpec{Features: &Features{}}
-	assert.True(t, spec.IsNamespaceDiscoveryEnabled(),
-		"namespaceDiscovery block unset should default discovery to enabled.")
+func TestGetWatchedNamespacesSingle(t *testing.T) {
+	spec := &IBMLicensingSpec{WatchedNamespaces: "ns-a"}
+	assert.Equal(t, []string{"ns-a"}, spec.GetWatchedNamespaces(),
+		"A single namespace should be parsed into a one-element slice.")
 }
 
-func TestIsNamespaceDiscoveryEnabledPointerNil(t *testing.T) {
-	spec := &IBMLicensingSpec{Features: &Features{NamespaceDiscovery: &features.NamespaceDiscovery{}}}
-	assert.True(t, spec.IsNamespaceDiscoveryEnabled(),
-		"namespaceDiscovery.enabled unset should default discovery to enabled.")
+func TestGetWatchedNamespacesMultiple(t *testing.T) {
+	spec := &IBMLicensingSpec{WatchedNamespaces: "ns-a,ns-b,ns-c"}
+	assert.Equal(t, []string{"ns-a", "ns-b", "ns-c"}, spec.GetWatchedNamespaces(),
+		"A comma-separated list should be split into its elements.")
 }
 
-func TestIsNamespaceDiscoveryEnabledExplicitTrue(t *testing.T) {
-	spec := &IBMLicensingSpec{Features: &Features{NamespaceDiscovery: &features.NamespaceDiscovery{Enabled: new(true)}}}
-	assert.True(t, spec.IsNamespaceDiscoveryEnabled(),
-		"namespaceDiscovery.enabled=true should return true.")
-}
-
-func TestIsNamespaceDiscoveryEnabledExplicitFalse(t *testing.T) {
-	spec := &IBMLicensingSpec{Features: &Features{NamespaceDiscovery: &features.NamespaceDiscovery{Enabled: new(false)}}}
-	assert.False(t, spec.IsNamespaceDiscoveryEnabled(),
-		"namespaceDiscovery.enabled=false should return false.")
-}
-
-func TestGetDiscoveryNamespacesFeaturesNil(t *testing.T) {
-	spec := &IBMLicensingSpec{}
-	assert.Nil(t, spec.GetDiscoveryNamespaces(),
-		"Features unset should yield no discovery namespaces.")
-}
-
-func TestGetDiscoveryNamespacesBlockNil(t *testing.T) {
-	spec := &IBMLicensingSpec{Features: &Features{}}
-	assert.Nil(t, spec.GetDiscoveryNamespaces(),
-		"namespaceDiscovery block unset should yield no discovery namespaces.")
-}
-
-func TestGetDiscoveryNamespacesSet(t *testing.T) {
-	spec := &IBMLicensingSpec{Features: &Features{NamespaceDiscovery: &features.NamespaceDiscovery{
-		Namespaces: []string{"ns-a", "ns-b"},
-	}}}
-	assert.Equal(t, []string{"ns-a", "ns-b"}, spec.GetDiscoveryNamespaces(),
-		"GetDiscoveryNamespaces should return the configured list.")
+func TestGetWatchedNamespacesTrimsAndDropsEmpty(t *testing.T) {
+	spec := &IBMLicensingSpec{WatchedNamespaces: " ns-a , ,ns-b ,"}
+	assert.Equal(t, []string{"ns-a", "ns-b"}, spec.GetWatchedNamespaces(),
+		"Whitespace should be trimmed and empty entries dropped.")
 }

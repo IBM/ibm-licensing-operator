@@ -377,6 +377,15 @@ spec:
         path: softwareCentral.sandbox
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: |-
+          Comma-separated list of namespaces the operand must monitor. At least one
+          namespace is required. The operator merges this list with its own
+          WATCH_NAMESPACE scope, disables the operand's cluster-wide namespace
+          discovery, and restricts every workload-listing call to the resulting set.
+        displayName: Watched Namespaces
+        path: watchedNamespaces
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       version: v1alpha1
   description: |-
     **Important:**

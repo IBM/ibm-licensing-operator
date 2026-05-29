@@ -258,6 +258,17 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		return reconcile.Result{}, fmt.Errorf("spec.softwareCentral.entitlementKeySecret must be set when Software Central integration is enabled")
 	}
 
+	// Validate the operand's watched-namespace scope. The operand is always
+	// restricted to an explicit namespace set, so the merged set (the operator's
+	// own WATCH_NAMESPACE plus spec.watchedNamespaces) must contain at least one
+	// namespace. When NSS is enabled it owns WATCH_NAMESPACE (sourced from the
+	// nssConfigMap, which the operator cannot see here), so skip the check and
+	// let NSS supply the scope.
+	if !instance.Spec.IsNamespaceScopeEnabled() && len(service.GetEffectiveWatchedNamespaces(instance.Spec)) == 0 {
+		return reconcile.Result{}, fmt.Errorf("spec.watchedNamespaces must contain at least one namespace " +
+			"(or the operator's WATCH_NAMESPACE must be set)")
+	}
+
 	r.controllerStatus(instance)
 
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
@@ -1451,14 +1462,8 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 	if instance.Spec.IsNamespaceScopeEnabled() {
 		r.Log.Info("Namespace scope restriction is enabled")
 	}
-	if !instance.Spec.IsNamespaceDiscoveryEnabled() {
-		if len(instance.Spec.GetDiscoveryNamespaces()) == 0 {
-			r.Log.Info("namespaceDiscovery.enabled is false but namespaceDiscovery.namespaces " +
-				"is empty; ignoring the switch and keeping cluster-wide namespace discovery enabled")
-		} else {
-			r.Log.Info("Namespace discovery is disabled; operand restricted to the configured namespace list")
-		}
-	}
+	r.Log.Info("Operand namespace discovery is disabled; restricting operand to watched namespaces",
+		"watchedNamespaces", service.GetEffectiveWatchedNamespaces(instance.Spec))
 
 }
 
