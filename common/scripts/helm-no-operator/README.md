@@ -1,14 +1,13 @@
 # Helm Chart Generation Scripts (No Operator)
 
-This directory contains scripts for generating a standalone Helm chart for IBM Licensing Service that can be deployed without the IBM Licensing Operator.
+This directory contains scripts for generating a standalone Helm chart for IBM Licensing Service deployed without the IBM Licensing Operator.
 
 ## Overview
 
 These scripts automate the process of:
-1. Extracting resources from a running IBM Licensing Service instance
-2. Generating RBAC and CRD resources from the operator's manifests
+1. Extracting resources created by IBM Licensing Service operator into yaml files
+2. Generating CRD and instance RBAC resources from the operator's manifests
 3. Converting extracted resources into Helm templates
-4. Building a complete Helm chart ready for deployment
 
 ## Scripts
 
@@ -23,9 +22,7 @@ These scripts automate the process of:
 
 **What it does:**
 - Executes all steps in sequence
-- Provides colored output for easy tracking
 - Cleans up temporary resources after completion
-- Displays next steps after successful completion
 
 **Output:**
 - Generated Helm templates in `helm-no-operator/templates/`
@@ -34,13 +31,13 @@ These scripts automate the process of:
 
 ### 2. `extract-cluster-resources.sh`
 
-**Extracts resources from a running Kubernetes cluster** where IBM Licensing Service has been deployed via the operator.
+**Extracts resources created by the operator from a running Kubernetes cluster** where IBM Licensing Service has been deployed.
 
 ---
 
 ### 3. `generate-resources.sh`
 
-**Generates RBAC and CRD resources** from the operator's Kustomize manifests.
+**Generates CRD and instance RBAC resources** from the operator's Kustomize manifests.
 
 ---
 
@@ -55,7 +52,7 @@ These scripts automate the process of:
 To generate a complete Helm chart from scratch:
 
 ```bash
-# Run the main build script (recommended)
+# Run the main build script
 ./common/scripts/helm-no-operator/build-helm-chart.sh
 ```
 
@@ -76,7 +73,7 @@ helm install ibm-licensing ./helm-no-operator
 ### Tools
 - `kubectl` - Kubernetes CLI
 - `helm` - Helm package manager
-- `sed` - Stream editor (macOS or Linux version)
+- `sed` - Stream editor
 
 ### Cluster Access
 - Active Kubernetes cluster connection
@@ -90,7 +87,6 @@ Example route (make sure to adjust namespace and TLS configuration):
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  annotations: {}
   name: ibm-licensing-service-instance
   namespace: ibm-licensing
 spec:
@@ -114,5 +110,4 @@ spec:
   to:
     kind: Service
     name: ibm-licensing-service-instance
-    weight: 100
 ```
