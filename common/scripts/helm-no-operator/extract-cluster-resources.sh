@@ -107,23 +107,24 @@ wait_for_resources() {
     # Poll for deployment creation (12 attempts x 10 seconds = 120 seconds max)
     local attempts=0
     local max_attempts=12
+    local wait_interval=10
     
     while [ $attempts -lt $max_attempts ]; do
         if kubectl get deployment ibm-licensing-service-instance -n "${NAMESPACE}" &>/dev/null; then
-            log_info "Deployment found after $((attempts * 10))s"
+            log_info "Deployment found after $((attempts * wait_interval))s"
             break
         fi
         
         attempts=$((attempts + 1))
         if [ $attempts -lt $max_attempts ]; then
-            log_info "Deployment not found yet, waiting 10s... (attempt $attempts/$max_attempts)"
-            sleep 10
+            log_info "Deployment not found yet, waiting ${wait_interval}s... (attempt $attempts/$max_attempts)"
+            sleep "${wait_interval}"
         fi
     done
     
     # Check if deployment was found
     if [ $attempts -eq $max_attempts ]; then
-        log_error "Deployment not created after $((max_attempts * 10))s timeout"
+        log_error "Deployment not created after $((max_attempts * wait_interval))s timeout"
         exit 1
     fi
     
