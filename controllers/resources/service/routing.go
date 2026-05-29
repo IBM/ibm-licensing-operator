@@ -58,10 +58,8 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS 
 	}
 	return &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        GetResourceName(instance),
-			Namespace:   instance.Spec.InstanceNamespace,
-			Labels:      LabelsForMeta(instance),
-			Annotations: instance.Spec.Annotations,
+			Name:      GetResourceName(instance),
+			Namespace: instance.Spec.InstanceNamespace,
 		},
 		Spec: routev1.RouteSpec{
 			To: routev1.RouteTargetReference{
