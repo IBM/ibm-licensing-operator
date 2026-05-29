@@ -53,7 +53,7 @@ check_prerequisites() {
 }
 
 # Generate RBAC resources and CRDs
-generate_rbac() {
+generate_resources() {
     log_info "Generating instance RBAC resources and CRDs..."
     
     mkdir -p "${OUTPUT_DIR}"
@@ -79,17 +79,16 @@ generate_rbac() {
     log_info "RBAC resources and CRDs generated successfully"
 }
 
-# Main execution
 main() {
-    log_info "Starting instance RBAC and CRD generation..."
+    log_info "Starting CRD and instance RBAC generation..."
     log_info "Output directory: ${OUTPUT_DIR}"
     
     # Execute steps
     check_prerequisites
-    generate_rbac
+    generate_resources
     
     log_info ""
-    log_info "Instance RBAC and CRD generation completed!"
+    log_info "Instance CRD and RBAC generation completed!"
 }
 
 # Run main function

@@ -22,11 +22,10 @@
 
 set -e -o pipefail
 
-# Create paths to other folders
+# Create paths to other folders/tools
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 LOCALBIN="${REPO_ROOT}/bin"
-
 YQ="${LOCALBIN}/yq"
 
 # Configuration
