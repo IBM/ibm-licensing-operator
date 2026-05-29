@@ -198,7 +198,7 @@ func TestGetLicensingEnvironmentVariablesNodeCpuCappingExplicitTrue(t *testing.T
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace:     "namespace",
 		Datasource:            "datacollector",
-		NodeCpuCappingEnabled: ptr.To(true),
+		Features: &operatorv1alpha1.Features{NodeCpuCappingEnabled: ptr.To(true)},
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
@@ -210,7 +210,7 @@ func TestGetLicensingEnvironmentVariablesNodeCpuCappingExplicitFalse(t *testing.
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace:     "namespace",
 		Datasource:            "datacollector",
-		NodeCpuCappingEnabled: ptr.To(false),
+		Features: &operatorv1alpha1.Features{NodeCpuCappingEnabled: ptr.To(false)},
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
