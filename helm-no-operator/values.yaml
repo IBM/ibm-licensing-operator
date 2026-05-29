@@ -2,12 +2,10 @@
 global:
   imagePullPrefix: icr.io
   imagePullSecret: ibm-entitlement-key
-  licenseAccept: true
 
 # IBM Licensing configuration
 ibmLicensing:
   namespace: ibm-licensing
-  imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs
   resources:
     limits:
