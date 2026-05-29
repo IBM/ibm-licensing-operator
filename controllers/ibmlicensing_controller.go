@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 	goruntime "runtime"
 	"sort"
@@ -128,6 +129,12 @@ type IBMLicensingReconciler struct {
 	Recorder                record.EventRecorder
 	OperatorNamespace       string
 	NamespaceScopeSemaphore chan bool
+	// OperandRequestsEnabled is the OperandRequest-support decision made at operator
+	// startup (see main.go). The OperandRequest controller, discovery and the
+	// OperatorGroup cleaner are wired accordingly before reconciliation begins, so a
+	// change to the CR flag can only take effect after a restart - Reconcile detects
+	// the mismatch and restarts the operator.
+	OperandRequestsEnabled bool
 }
 
 // //kubebuilder:rbac:namespace=ibm-licensing,groups=,resources=pod,verbs=get;list;watch;create;update;patch;delete
@@ -213,6 +220,16 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 	}
 
 	instance := foundInstance.DeepCopy()
+
+	// OperandRequest support is wired at operator startup, so a change to the
+	// features.operandRequestsEnabled flag can only take effect after a restart.
+	// Restart the operator when the desired setting no longer matches the one
+	// the process started with.
+	if desiredOperandRequests := instance.Spec.IsOperandRequestsEnabled(); desiredOperandRequests != r.OperandRequestsEnabled {
+		reqLogger.Info("OperandRequest support setting changed; restarting operator to re-evaluate startup wiring",
+			"running", r.OperandRequestsEnabled, "desired", desiredOperandRequests)
+		os.Exit(0)
+	}
 
 	err := service.UpdateVersion(r.Client, instance)
 	if err != nil {

@@ -86,8 +86,18 @@ func (in *Features) DeepCopyInto(out *Features) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.NodeCpuCappingEnabled != nil {
+		in, out := &in.NodeCpuCappingEnabled, &out.NodeCpuCappingEnabled
+		*out = new(bool)
+		**out = **in
+	}
 	if in.KubeRBACAuthEnabled != nil {
 		in, out := &in.KubeRBACAuthEnabled, &out.KubeRBACAuthEnabled
+		*out = new(bool)
+		**out = **in
+	}
+	if in.OperandRequestsEnabled != nil {
+		in, out := &in.OperandRequestsEnabled, &out.OperandRequestsEnabled
 		*out = new(bool)
 		**out = **in
 	}
@@ -462,11 +472,6 @@ func (in *IBMLicensingSpec) DeepCopyInto(out *IBMLicensingSpec) {
 	}
 	if in.ChargebackEnabled != nil {
 		in, out := &in.ChargebackEnabled, &out.ChargebackEnabled
-		*out = new(bool)
-		**out = **in
-	}
-	if in.NodeCpuCappingEnabled != nil {
-		in, out := &in.NodeCpuCappingEnabled, &out.NodeCpuCappingEnabled
 		*out = new(bool)
 		**out = **in
 	}

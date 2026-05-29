@@ -46,11 +46,27 @@ type Features struct {
 	// +optional
 	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
 
+	// Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
+	// real node capacity. Default true.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Node CPU Capping Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +optional
+	NodeCpuCappingEnabled *bool `json:"nodeCpuCappingEnabled,omitempty"`
+
 	// Enables the bearer-token / Kubernetes RBAC authentication path on the
 	// operand (TokenReview + SubjectAccessReview). When nil, defaults to true
 	// to preserve existing behavior.
 	// +optional
 	KubeRBACAuthEnabled *bool `json:"kubeRBACAuthEnabled,omitempty"`
+
+	// Enables the OperandRequest integration handled by the operator: the
+	// OperandRequest controller, OperandRequest discovery and the OperatorGroup
+	// cleaner. When nil, defaults to true to preserve existing behavior. Set to
+	// false to run without the OperandRequest mechanism and without the
+	// cluster-wide OperandRequest/ConfigMap/Secret RBAC it requires. The value
+	// is read at operator startup; changing it triggers an operator restart so
+	// the startup wiring is re-evaluated.
+	// +optional
+	OperandRequestsEnabled *bool `json:"operandRequestsEnabled,omitempty"`
 
 	// Special terms, must be granted by IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Custom namespaces Config Map",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
@@ -101,6 +117,17 @@ func (spec *IBMLicensingSpec) GetDiscoveryNamespaces() []string {
 		return nil
 	}
 	return spec.Features.NamespaceDiscovery.Namespaces
+}
+
+// IsOperandRequestsEnabled reports whether the operator should run the
+// OperandRequest integration (the OperandRequest controller, OperandRequest
+// discovery and the OperatorGroup cleaner). Defaults to true when there is no
+// features block or the flag is unset, so existing CRs keep today's behavior.
+func (spec *IBMLicensingSpec) IsOperandRequestsEnabled() bool {
+	if !spec.HaveFeatures() || spec.Features.OperandRequestsEnabled == nil {
+		return true
+	}
+	return *spec.Features.OperandRequestsEnabled
 }
 
 func (spec *IBMLicensingSpec) IsCustomNamespaceScopeConfigMap() bool {

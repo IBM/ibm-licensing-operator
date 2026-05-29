@@ -29,13 +29,13 @@ func TestIsNodeCpuCappingEnabledNil(t *testing.T) {
 }
 
 func TestIsNodeCpuCappingEnabledExplicitTrue(t *testing.T) {
-	spec := &IBMLicensingSpec{NodeCpuCappingEnabled: new(true)}
+	spec := &IBMLicensingSpec{Features: &Features{NodeCpuCappingEnabled: new(true)}}
 	assert.True(t, spec.IsNodeCpuCappingEnabled(),
 		"NodeCpuCappingEnabled=true should return true.")
 }
 
 func TestIsNodeCpuCappingEnabledExplicitFalse(t *testing.T) {
-	spec := &IBMLicensingSpec{NodeCpuCappingEnabled: new(false)}
+	spec := &IBMLicensingSpec{Features: &Features{NodeCpuCappingEnabled: new(false)}}
 	assert.False(t, spec.IsNodeCpuCappingEnabled(),
 		"NodeCpuCappingEnabled=false should return false.")
 }
