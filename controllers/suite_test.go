@@ -231,7 +231,7 @@ var _ = BeforeSuite(func() {
 		Recorder:                mgr.GetEventRecorderFor("IBMLicensing"),
 		OperatorNamespace:       operatorNamespace,
 		NamespaceScopeSemaphore: nssEnabledSemaphore,
-		OperandRequestsEnabled: true,
+		OperandRequestsEnabled:  true,
 	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
 
