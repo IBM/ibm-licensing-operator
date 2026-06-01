@@ -52,7 +52,7 @@ check_prerequisites() {
     fi
     
     if [ ! -x "${YQ}" ]; then
-        log_error "yq not found at $YQ. Run 'make install-yq' to install it."
+        log_error "yq not found at $YQ, run 'make install-yq' to install it."
         exit 1
     fi
     
@@ -67,6 +67,9 @@ check_prerequisites() {
 # Create namespace if it doesn't exist
 create_namespace() {
     log_info "Creating namespace ${NAMESPACE}..."
+    # Use kubectl apply instead of kubectl create to make this operation idempotent.
+    # This approach creates the namespace if it doesn't exist, or updates it if it does,
+    # avoiding errors when the namespace already exists.
     kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
 }
 
@@ -103,8 +106,8 @@ install_licensing_helm() {
 wait_for_resources() {
     log_info "Waiting for License Service deployment ibm-licensing-service-instance..."
     
-    # Poll for deployment creation (12 attempts x 10 seconds = 120 seconds max)
-    local attempts=0
+    # Poll for deployment creation (12 attempts with 10 second delay between retries)
+    local attempts=1
     local max_attempts=12
     local wait_interval=10
     
@@ -114,11 +117,9 @@ wait_for_resources() {
             break
         fi
         
+        log_info "Deployment not found yet, waiting ${wait_interval}s... (attempt $attempts/$max_attempts)"
+        sleep "${wait_interval}"
         attempts=$((attempts + 1))
-        if [ $attempts -lt $max_attempts ]; then
-            log_info "Deployment not found yet, waiting ${wait_interval}s... (attempt $attempts/$max_attempts)"
-            sleep "${wait_interval}"
-        fi
     done
     
     # Check if deployment was found

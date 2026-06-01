@@ -43,7 +43,7 @@ check_prerequisites() {
     fi
     
     if [ ! -x "${YQ}" ]; then
-        log_error "yq not found at $YQ. Run 'make install-yq' to install it."
+        log_error "yq not found at $YQ, run 'make install-yq' to install it."
         exit 1
     fi
     
