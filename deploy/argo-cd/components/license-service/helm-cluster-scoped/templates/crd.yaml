@@ -381,6 +381,11 @@ spec:
                         operand (TokenReview + SubjectAccessReview). When nil, defaults to true
                         to preserve existing behavior.
                       type: boolean
+                    nodeCpuCappingEnabled:
+                      description: |-
+                        Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
+                        real node capacity. Default true.
+                      type: boolean
                     nssConfigMap:
                       description: Special terms, must be granted by IBM Pricing.
                       type: string
@@ -499,10 +504,9 @@ spec:
                     - VERBOSE
                   type: string
                 nodeCpuCappingEnabled:
-                  default: true
                   description: |-
                     Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
-                    real node capacity. Default true.
+                    real node capacity. Defaults to true.
                   type: boolean
                 resources:
                   description: ResourceRequirements describes the compute resource requirements.
