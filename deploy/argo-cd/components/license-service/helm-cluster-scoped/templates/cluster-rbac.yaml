@@ -161,7 +161,6 @@ rules:
       - patch
       - update
       - watch
-  {{- if eq (include "ibm-licensing.operandRequestsEnabled" .) "true" }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -174,7 +173,6 @@ rules:
       - patch
       - update
       - watch
-  {{- end }}
   - apiGroups:
       - operator.openshift.io
     resources:
