@@ -4,8 +4,6 @@ global:
   licenseAccept: true
 
 ibmLicensing:
-  operandRequests:
-    enabled: true
   namespace: ibm-licensing
   watchNamespace: ibm-licensing
   imageRegistryNamespaceOperator: cpopen
