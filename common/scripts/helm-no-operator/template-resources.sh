@@ -134,6 +134,9 @@ template_deployment() {
     $YQ -i '.spec.template.spec.initContainers[0].resources.requests.memory = "sed-me-memory-request"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
     $YQ -i '.spec.template.spec.initContainers[0].resources.requests."ephemeral-storage" = "sed-me-ephemeral-storage-request"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
     
+    # Update managed-by label from operator to Helm for pod template
+    $YQ -i '.spec.template.metadata.labels."app.kubernetes.io/managed-by" = "Helm"' "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"
+    
     # Step 2: Use sed to replace placeholders with Helm templates
     # Replace namespace
     sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$TEMP_DIR/deployment-ibm-licensing-service-instance.yaml"

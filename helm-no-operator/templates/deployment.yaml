@@ -27,7 +27,7 @@ spec:
         app: ibm-licensing-service-instance
         app.kubernetes.io/component: ibm-licensing-service-svc
         app.kubernetes.io/instance: ibm-licensing-service
-        app.kubernetes.io/managed-by: operator
+        app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: ibm-licensing-service-instance
         component: ibm-licensing-service-svc
         licensing_cr: instance
