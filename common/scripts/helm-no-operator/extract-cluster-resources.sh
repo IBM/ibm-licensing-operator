@@ -113,7 +113,7 @@ wait_for_resources() {
     
     while [ $attempts -lt $max_attempts ]; do
         if kubectl get deployment ibm-licensing-service-instance -n "${NAMESPACE}" &>/dev/null; then
-            log_info "Deployment found after $((attempts * wait_interval))s"
+            log_info "Deployment found after $(((attempts - 1) * wait_interval))s"
             break
         fi
         
