@@ -21,14 +21,13 @@
 
 set -e -o pipefail
 
-# Configuration
+# Create paths to other folders/tools
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
-OUTPUT_DIR="${OUTPUT_DIR:-${PROJECT_ROOT}/resources}"
-
-# Tool paths (use from LOCALBIN if available, otherwise from PATH)
-KUSTOMIZE="${KUSTOMIZE:-${PROJECT_ROOT}/bin/kustomize}"
-YQ="${YQ:-${PROJECT_ROOT}/bin/yq}"
+OUTPUT_DIR="${PROJECT_ROOT}/resources"
+LOCALBIN="${PROJECT_ROOT}/bin"
+KUSTOMIZE="${LOCALBIN}/kustomize"
+YQ="${LOCALBIN}/yq"
 
 # Source shared logging utilities
 # shellcheck source=common/scripts/helm-no-operator/logging.sh
@@ -39,14 +38,12 @@ check_prerequisites() {
     log_info "Checking prerequisites..."
     
     if [ ! -x "${KUSTOMIZE}" ]; then
-        log_error "kustomize not found at ${KUSTOMIZE}"
-        log_error "Run 'make install-kustomize' to install it"
+        log_error "kustomize not found at ${KUSTOMIZE}, run 'make install-kustomize' to install it"
         exit 1
     fi
     
     if [ ! -x "${YQ}" ]; then
-        log_error "yq not found at ${YQ}"
-        log_error "Run 'make install-yq' to install it"
+        log_error "yq not found at $YQ. Run 'make install-yq' to install it."
         exit 1
     fi
     
