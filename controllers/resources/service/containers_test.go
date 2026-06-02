@@ -269,10 +269,7 @@ func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitFalse(t *tes
 		"KubeRBACAuthEnabled=false, KUBE_RBAC_AUTH_ENABLED=false should be added to Licensing pod.")
 }
 
-// ILS-2141: the operator always scopes the operand to an explicit, mandatory
-// watched-namespace set and disables the operand's cluster-wide discovery.
-
-func TestGetLicensingEnvironmentVariablesAlwaysDisablesDiscovery(t *testing.T) {
+func TestGetLicensingEnvironmentVariablesDisablesDiscoveryWhenWatchedNamespacesSet(t *testing.T) {
 	t.Setenv("WATCH_NAMESPACE", "")
 
 	spec := operatorv1alpha1.IBMLicensingSpec{
@@ -283,9 +280,24 @@ func TestGetLicensingEnvironmentVariablesAlwaysDisablesDiscovery(t *testing.T) {
 
 	envVars := getLicensingEnvironmentVariables(spec)
 	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "NAMESPACE_DISCOVERY_ENABLED", Value: "false"}),
-		"The operator always disables operand cluster-wide discovery, NAMESPACE_DISCOVERY_ENABLED=false should be added.")
+		"With watchedNamespaces set the operand is scoped, NAMESPACE_DISCOVERY_ENABLED=false should be added.")
 	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "WATCH_NAMESPACE", Value: "ns-a,ns-b"}),
 		"WATCH_NAMESPACE should carry the watchedNamespaces list when the operator scope is empty.")
+}
+
+func TestGetLicensingEnvironmentVariablesClusterScopedLeavesDiscoveryDefault(t *testing.T) {
+	t.Setenv("WATCH_NAMESPACE", "")
+
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.Equal(t, 0, countEnvVar(envVars, "NAMESPACE_DISCOVERY_ENABLED"),
+		"A cluster-scoped install must not disable the operand's cluster-wide discovery (NFR-12).")
+	assert.Equal(t, 0, countEnvVar(envVars, "WATCH_NAMESPACE"),
+		"A cluster-scoped install must not force WATCH_NAMESPACE on the operand.")
 }
 
 func TestGetLicensingEnvironmentVariablesWatchedNamespacesMergesOperatorScope(t *testing.T) {
@@ -356,7 +368,7 @@ func TestGetEffectiveWatchedNamespacesEmptyWhenNeitherSet(t *testing.T) {
 
 	spec := operatorv1alpha1.IBMLicensingSpec{}
 	assert.Empty(t, GetEffectiveWatchedNamespaces(spec),
-		"With neither the operator scope nor watchedNamespaces set, the effective set must be empty (an invalid config the controller rejects).")
+		"With neither the operator scope nor watchedNamespaces set, the effective set must be empty (the cluster-scoped case: the operand keeps cluster-wide discovery).")
 }
 
 func TestGetDefaultIBMLicensingSeedsWatchedNamespaces(t *testing.T) {
@@ -366,7 +378,7 @@ func TestGetDefaultIBMLicensingSeedsWatchedNamespaces(t *testing.T) {
 	assert.Equal(t, "ibm-licensing", defaultInstance.Spec.WatchedNamespaces,
 		"The default instance should seed watchedNamespaces with the operator namespace.")
 	assert.Equal(t, []string{"ibm-licensing"}, GetEffectiveWatchedNamespaces(defaultInstance.Spec),
-		"The default instance must yield a non-empty effective set even with an empty operator WATCH_NAMESPACE, so it passes validation.")
+		"The default instance must yield a non-empty effective set even with an empty operator WATCH_NAMESPACE, so it is scoped to the operator namespace.")
 }
 
 func TestGetEffectiveWatchedNamespacesFromOperatorScopeOnly(t *testing.T) {
