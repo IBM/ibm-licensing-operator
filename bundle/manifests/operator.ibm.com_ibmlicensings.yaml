@@ -118,10 +118,9 @@ spec:
                     - threadsPerCore
                     type: object
                   kubeRBACAuthEnabled:
-                    description: |-
-                      Enables the bearer-token / Kubernetes RBAC authentication path on the
-                      operand (TokenReview + SubjectAccessReview). When nil, defaults to true
-                      to preserve existing behavior.
+                    description: Enables the bearer-token / Kubernetes RBAC authentication
+                      path on the operand (TokenReview + SubjectAccessReview). Default
+                      true.
                     type: boolean
                   nodeCpuCappingEnabled:
                     description: |-
