@@ -134,14 +134,7 @@ spec:
                     description: Special terms, must be granted by IBM Pricing.
                     type: boolean
                   operandRequestsEnabled:
-                    description: |-
-                      Enables the OperandRequest integration handled by the operator: the
-                      OperandRequest controller, OperandRequest discovery and the OperatorGroup
-                      cleaner. When nil, defaults to true to preserve existing behavior. Set to
-                      false to run without the OperandRequest mechanism and without the
-                      cluster-wide OperandRequest/ConfigMap/Secret RBAC it requires. The value
-                      is read at operator startup; changing it triggers an operator restart so
-                      the startup wiring is re-evaluated.
+                    description: Enables the OperandRequest integration. Default true.
                     type: boolean
                   prometheusQuerySource:
                     description: Change prometheus query source settings.
@@ -486,9 +479,8 @@ spec:
                 type: string
               watchedNamespaces:
                 description: |-
-                  Comma-separated list of namespaces the operand must monitor. At least one
-                  namespace is required. The operator merges this list with its own
-                  WATCH_NAMESPACE scope, disables the operand's cluster-wide namespace
+                  Comma-separated list of namespaces the operand must monitor. At least one namespace is required.
+                  The operator merges this list with its own WATCH_NAMESPACE scope, disables the operand's cluster-wide namespace
                   discovery, and restricts every workload-listing call to the resulting set.
                 type: string
             required:

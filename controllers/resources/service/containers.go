@@ -34,29 +34,26 @@ const (
 )
 
 // GetEffectiveWatchedNamespaces returns the deduplicated union of the operator's
-// own WATCH_NAMESPACE scope and spec.watchedNamespaces. This is the set the
-// operand is restricted to.
+// own WATCH_NAMESPACE scope and spec.watchedNamespaces. This is the set the operand is restricted to.
 func GetEffectiveWatchedNamespaces(spec operatorv1alpha1.IBMLicensingSpec) []string {
 	seen := map[string]bool{}
 	var merged []string
+
 	add := func(namespaces []string) {
 		for _, ns := range namespaces {
-			// Trim here too: the operator's own WATCH_NAMESPACE is split without
-			// trimming (resources.GetWatchNamespaceAsList), unlike
-			// spec.GetWatchedNamespaces, so a space-padded entry would otherwise
-			// escape deduplication and reach the operand untrimmed.
 			ns = strings.TrimSpace(ns)
+
 			if ns != "" && !seen[ns] {
 				seen[ns] = true
 				merged = append(merged, ns)
 			}
 		}
 	}
-	// Operator's own WATCH_NAMESPACE. Ignore the error exactly as the nssEnabled
-	// path below does - main.go already fails first if it is unset.
+
 	operatorWatched, _ := resources.GetWatchNamespaceAsList()
 	add(operatorWatched)
 	add(spec.GetWatchedNamespaces())
+
 	return merged
 }
 
@@ -183,12 +180,10 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "false",
 		})
 	}
-	// Only scope the operand (disable its cluster-wide namespace discovery and
-	// pin WATCH_NAMESPACE) when scoping is actually requested: NSS is enabled, or
-	// the merged watched-namespace set is non-empty. A cluster-scoped ILS install
-	// (WATCH_NAMESPACE="" and no spec.watchedNamespaces) is left untouched so the
-	// operand keeps its default cluster-wide discovery (NAMESPACE_DISCOVERY_ENABLED
-	// unset => true)
+	// Only scope the operand (disable its cluster-wide namespace discovery and pin WATCH_NAMESPACE) when scoping
+	// is actually requested: NSS is enabled, or the merged watched-namespace set is non-empty. A cluster-scoped ILS install
+	// (WATCH_NAMESPACE="" and no spec.watchedNamespaces) is left untouched so the operand keeps its default cluster-wide discovery
+	// (NAMESPACE_DISCOVERY_ENABLED unset => true)
 	effectiveWatched := GetEffectiveWatchedNamespaces(spec)
 	if spec.IsNamespaceScopeEnabled() || len(effectiveWatched) > 0 {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
@@ -196,9 +191,8 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "false",
 		})
 
-		// The nssEnabled block above already owns WATCH_NAMESPACE when NSS is
-		// active; only set it here otherwise, so the env var is never emitted
-		// twice (a duplicate would make the operand spec invalid).
+		// The nssEnabled block above already owns WATCH_NAMESPACE when NSS is active.
+		// Only set it here otherwise, so the env var is never emitted twice (a duplicate would make the operand spec invalid)
 		if !spec.IsNamespaceScopeEnabled() {
 			environmentVariables = append(environmentVariables, corev1.EnvVar{
 				Name:  "WATCH_NAMESPACE",

@@ -90,9 +90,8 @@ type IBMLicensingSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Instance Namespace",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	InstanceNamespace string `json:"instanceNamespace,omitempty"`
 
-	// Comma-separated list of namespaces the operand must monitor. At least one
-	// namespace is required. The operator merges this list with its own
-	// WATCH_NAMESPACE scope, disables the operand's cluster-wide namespace
+	// Comma-separated list of namespaces the operand must monitor. At least one namespace is required.
+	// The operator merges this list with its own WATCH_NAMESPACE scope, disables the operand's cluster-wide namespace
 	// discovery, and restricts every workload-listing call to the resulting set.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Watched Namespaces",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional

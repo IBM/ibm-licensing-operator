@@ -21,19 +21,24 @@ LOCALBIN="${1:?Usage: $0 <localbin-path> <yamllint-version>}"
 YAMLLINT_VERSION="${2:?Usage: $0 <localbin-path> <yamllint-version>}"
 VENV_DIR="${LOCALBIN}/.venv"
 
-if ! [ -x "$(command -v python3)" ]; then
-  echo ">>> Tool not found: python3. Install suitable version and try again."
-  exit 1
-fi
-
 mkdir -p "${LOCALBIN}"
 
 if [ ! -d "${VENV_DIR}" ]; then
   echo ">>> Creating Python virtual environment at ${VENV_DIR}"
-  python3 -m venv "${VENV_DIR}"
+  if command -v uv >/dev/null 2>&1; then
+    uv venv "${VENV_DIR}"
+  else
+    echo "Creating venv using default python3"
+    python3 -m venv "${VENV_DIR}"
+  fi 
 fi
 
 echo ">>> Installing yamllint [${YAMLLINT_VERSION}]"
-"${VENV_DIR}/bin/pip" install "yamllint==${YAMLLINT_VERSION}"
+if command -v uv >/dev/null 2>&1; then
+  uv pip install --python "${VENV_DIR}/bin/python" "yamllint==${YAMLLINT_VERSION}"
+else
+  "${VENV_DIR}/bin/pip" install "yamllint==${YAMLLINT_VERSION}"
+fi
+
 chmod +x "${VENV_DIR}/bin/yamllint"
 echo ">>> yamllint ${YAMLLINT_VERSION} installed to ${VENV_DIR}/bin/yamllint"

@@ -31,10 +31,6 @@ func GetDefaultIBMLicensing(operatorNamespace string) operatorv1alpha1.IBMLicens
 			Datasource:        "datacollector",
 			HTTPSEnable:       true,
 			InstanceNamespace: operatorNamespace,
-			// The operand is always scoped to an explicit namespace set; seed the
-			// default instance with the operator namespace so it passes the
-			// mandatory watched-namespace validation even on a cluster-scoped
-			// operator (WATCH_NAMESPACE empty).
 			WatchedNamespaces: operatorNamespace,
 		},
 	}
