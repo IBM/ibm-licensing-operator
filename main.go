@@ -195,11 +195,10 @@ func main() {
 	// 1-size channel for communicating namespace scope status between IBMLicensing controller and operandrequest-discovery goroutine
 	nssEnabledSemaphore := make(chan bool, 1)
 
-	// Decide OperandRequest support once, at startup, since the OperandRequest controller,
-	// discovery and the OperatorGroup cleaner are wired before any IBMLicensing CR is reconciled.
-	// The decision comes from the active IBMLicensing CR's features.operandRequestsEnabled flag
-	// (defaulting to enabled when there is no CR or the flag is unset). When the flag is later
-	// changed, the IBMLicensing reconciler restarts the operator so this decision is re-evaluated.
+	// Decide OperandRequest support once, at startup, since the OperandRequest controller, discovery and the OperatorGroup cleaner
+	// are wired before any IBMLicensing CR is reconciled. The decision comes from the active IBMLicensing CR's features.operandRequestsEnabled flag
+	// (defaulting to enabled when there is no CR or the flag is unset). When the flag is later changed, the IBMLicensing reconciler restarts
+	// the operator so this decision is re-evaluated.
 	operandRequestsEnabled := startupOperandRequestsEnabled(mgr.GetAPIReader(), setupLog)
 
 	controller := &controllers.IBMLicensingReconciler{
@@ -313,12 +312,10 @@ func main() {
 	}
 }
 
-// startupOperandRequestsEnabled reads the active IBMLicensing CR's
-// features.operandRequestsEnabled flag to decide whether OperandRequest support
-// is wired at startup. It defaults to enabled when no CR exists yet, when the
-// flag is unset, or when the CRs cannot be listed, so existing installs keep
-// today's behavior. The active CR is the oldest one, matching the controller's
-// own active-instance selection.
+// startupOperandRequestsEnabled reads the active IBMLicensing CR's features.operandRequestsEnabled flag to decide
+// whether OperandRequest support is wired at startup. It defaults to enabled when no CR exists yet, when the
+// flag is unset, or when the CRs cannot be listed, so existing installs keep today's behavior. The active CR is the oldest one,
+// matching the controller's own active-instance selection.
 func startupOperandRequestsEnabled(reader client.Reader, log logr.Logger) bool {
 	ibmLicensingList := &operatoribmcomv1alpha1.IBMLicensingList{}
 	if err := reader.List(context.Background(), ibmLicensingList); err != nil {

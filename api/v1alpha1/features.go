@@ -52,19 +52,11 @@ type Features struct {
 	// +optional
 	NodeCpuCappingEnabled *bool `json:"nodeCpuCappingEnabled,omitempty"`
 
-	// Enables the bearer-token / Kubernetes RBAC authentication path on the
-	// operand (TokenReview + SubjectAccessReview). When nil, defaults to true
-	// to preserve existing behavior.
+	// Enables the bearer-token / Kubernetes RBAC authentication path on the operand (TokenReview + SubjectAccessReview). Default true.
 	// +optional
 	KubeRBACAuthEnabled *bool `json:"kubeRBACAuthEnabled,omitempty"`
 
-	// Enables the OperandRequest integration handled by the operator: the
-	// OperandRequest controller, OperandRequest discovery and the OperatorGroup
-	// cleaner. When nil, defaults to true to preserve existing behavior. Set to
-	// false to run without the OperandRequest mechanism and without the
-	// cluster-wide OperandRequest/ConfigMap/Secret RBAC it requires. The value
-	// is read at operator startup; changing it triggers an operator restart so
-	// the startup wiring is re-evaluated.
+	// Enables the OperandRequest integration. Default true.
 	// +optional
 	OperandRequestsEnabled *bool `json:"operandRequestsEnabled,omitempty"`
 
@@ -94,10 +86,8 @@ func (spec *IBMLicensingSpec) IsKubeRBACAuthEnabled() bool {
 	return *spec.Features.KubeRBACAuthEnabled
 }
 
-// IsOperandRequestsEnabled reports whether the operator should run the
-// OperandRequest integration (the OperandRequest controller, OperandRequest
-// discovery and the OperatorGroup cleaner). Defaults to true when there is no
-// features block or the flag is unset, so existing CRs keep today's behavior.
+// IsOperandRequestsEnabled reports whether the operator should run the OperandRequest integration (the OperandRequest controller,
+// OperandRequest discovery and the OperatorGroup cleaner). Defaults to true when there is no features block or the flag is unset
 func (spec *IBMLicensingSpec) IsOperandRequestsEnabled() bool {
 	if !spec.HaveFeatures() || spec.Features.OperandRequestsEnabled == nil {
 		return true
