@@ -52,9 +52,7 @@ type Features struct {
 	// +optional
 	NodeCpuCappingEnabled *bool `json:"nodeCpuCappingEnabled,omitempty"`
 
-	// Enables the bearer-token / Kubernetes RBAC authentication path on the
-	// operand (TokenReview + SubjectAccessReview). When nil, defaults to true
-	// to preserve existing behavior.
+	// Enables the bearer-token / Kubernetes RBAC authentication path on the operand (TokenReview + SubjectAccessReview). Default true.
 	// +optional
 	KubeRBACAuthEnabled *bool `json:"kubeRBACAuthEnabled,omitempty"`
 
