@@ -86,7 +86,7 @@ func (spec *IBMLicensingSpec) IsKubeRBACAuthEnabled() bool {
 	return *spec.Features.KubeRBACAuthEnabled
 }
 
-// IsOperandRequestsEnabled reports whether the operator should run the OperandRequest integration (the OperandRequest controller, 
+// IsOperandRequestsEnabled reports whether the operator should run the OperandRequest integration (the OperandRequest controller,
 // OperandRequest discovery and the OperatorGroup cleaner). Defaults to true when there is no features block or the flag is unset
 func (spec *IBMLicensingSpec) IsOperandRequestsEnabled() bool {
 	if !spec.HaveFeatures() || spec.Features.OperandRequestsEnabled == nil {
