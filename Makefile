@@ -806,6 +806,10 @@ generate-yaml-argo-cd: kustomize yq
 	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.ibmLicensing.watchNamespace }}/g" argo-cd/deployment.yaml
 	@cat ./common/makefile-generate/yaml-deployment-pull-secrets-part >> argo-cd/deployment.yaml
 
+	# Inject conditional RBAC Helm guards before the createRBAC wrap,
+	# so the per-rule guards nest inside the outer createRBAC conditional
+	@bash common/scripts/conditionalize-helm-rbac.sh argo-cd
+
 	# Wrap RBAC resources with conditional createRBAC check
 	@echo '{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}' | cat - argo-cd/rbac.yaml > argo-cd/rbac.yaml.tmp
 	@echo '{{- end }}' >> argo-cd/rbac.yaml.tmp
@@ -822,6 +826,24 @@ generate-yaml-argo-cd: kustomize yq
 	@mv argo-cd/serviceaccounts.yaml.tmp argo-cd/serviceaccounts.yaml
 
 	@rm argo-cd/tmp.yaml
+
+# CI guard for ILS-2352: the conditionalize-helm-rbac.sh script is idempotent, so
+# re-running it (in --check mode) over the committed cluster-scoped RBAC templates
+# must be a no-op. A diff means someone copied an un-guarded regenerated file
+# without re-running the script, or hand-edited a gated rule.
+HELM_CLUSTER_SCOPED_TEMPLATES := deploy/argo-cd/components/license-service/helm-cluster-scoped/templates
+.PHONY: verify/helm-conditional-rbac
+verify/helm-conditional-rbac: ## Fail if chart RBAC guards drift from generation
+	@tmp=$$(mktemp -d) \
+		&& cp $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml \
+		      $(HELM_CLUSTER_SCOPED_TEMPLATES)/rbac.yaml \
+		      $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac-for-operandrequests.yaml $$tmp/ \
+		&& bash common/scripts/conditionalize-helm-rbac.sh $$tmp --check; rc=$$?; \
+		rm -rf $$tmp; exit $$rc
+
+.PHONY: test/helm-conditional-rbac
+test/helm-conditional-rbac: helm ## Run conditional RBAC script + render-matrix tests (ILS-2352)
+	@bash common/scripts/tests/conditionalize-helm-rbac-test.sh
 
 ## Development Helm charts
 ## those helm charts are only used for our testing, production helm charts are built and published by CI/CD team

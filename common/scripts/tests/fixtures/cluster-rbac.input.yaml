@@ -14,12 +14,8 @@ rules:
       - ""
     resources:
       - pods
-      {{- if eq (include "ibm-licensing.namespaceDiscoveryEnabled" .) "true" }}
       - namespaces
-      {{- end }}
-      {{- if eq (include "ibm-licensing.nodeCpuCappingEnabled" .) "true" }}
       - nodes
-      {{- end }}
     verbs:
       - get
       - list
@@ -54,22 +50,18 @@ rules:
     verbs:
       - get
       - list
-  {{- if eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true" }}
   - apiGroups:
       - authentication.k8s.io
     resources:
       - tokenreviews
     verbs:
       - create
-  {{- end }}
-  {{- if eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true" }}
   - apiGroups:
       - authorization.k8s.io
     resources:
       - subjectaccessreviews
     verbs:
       - create
-  {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -81,20 +73,14 @@ metadata:
     component-id: {{ .Chart.Name }}
   name: ibm-license-service-restricted
 rules:
-  {{- if or (eq (include "ibm-licensing.namespaceDiscoveryEnabled" .) "true") (eq (include "ibm-licensing.nodeCpuCappingEnabled" .) "true") }}
   - apiGroups:
       - ""
     resources:
-      {{- if eq (include "ibm-licensing.namespaceDiscoveryEnabled" .) "true" }}
       - namespaces
-      {{- end }}
-      {{- if eq (include "ibm-licensing.nodeCpuCappingEnabled" .) "true" }}
       - nodes
-      {{- end }}
     verbs:
       - get
       - list
-  {{- end }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -104,22 +90,18 @@ rules:
     verbs:
       - get
       - list
-  {{- if eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true" }}
   - apiGroups:
       - authentication.k8s.io
     resources:
       - tokenreviews
     verbs:
       - create
-  {{- end }}
-  {{- if eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true" }}
   - apiGroups:
       - authorization.k8s.io
     resources:
       - subjectaccessreviews
     verbs:
       - create
-  {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -179,7 +161,6 @@ rules:
       - patch
       - update
       - watch
-  {{- if eq (include "ibm-licensing.operandRequestsEnabled" .) "true" }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -192,7 +173,6 @@ rules:
       - patch
       - update
       - watch
-  {{- end }}
   - apiGroups:
       - operator.openshift.io
     resources:

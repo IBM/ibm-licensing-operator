@@ -1,0 +1,34 @@
+# Conditional RBAC gating table (ILS-2352)
+#
+# Declarative data read by conditionalize-helm-rbac.awk. One row per gated rule.
+# Pipe-separated columns (surrounding whitespace is trimmed):
+#
+#   file | kind | name | apiGroup | resources | action | helper
+#
+#   file      basename of the RBAC template the row applies to ("*" = any)
+#   kind      document kind to match ("*"/"" = any)
+#   name      metadata.name to match ("*"/"" = any) -- scopes "namespaces" so the
+#             operator ClusterRole's own namespaces[get] rule stays unconditional
+#   apiGroup  apiGroups entry to match ("" = core group)
+#   resources resource to match; CSV for empty-guard = the rule's full resource set
+#   action    block       -> wrap the whole matching rule
+#             resource    -> wrap the single matching resource list item
+#             empty-guard -> outer "or" wrapper around a rule whose every resource
+#                            is individually gated (avoids an empty resources:)
+#             whole-file  -> nest helper guard inside the file's createRBAC wrapper
+#   helper    helper name (prefixed with ibm-licensing. at render time); for
+#             empty-guard use "or:helperA,helperB"
+#
+# file                                  | kind        | name                            | apiGroup              | resources            | action       | helper
+cluster-rbac.yaml                       | ClusterRole | ibm-license-service             | ""                    | nodes                | resource     | nodeCpuCappingEnabled
+cluster-rbac.yaml                       | ClusterRole | ibm-license-service             | ""                    | namespaces           | resource     | namespaceDiscoveryEnabled
+cluster-rbac.yaml                       | ClusterRole | ibm-license-service-restricted  | ""                    | nodes                | resource     | nodeCpuCappingEnabled
+cluster-rbac.yaml                       | ClusterRole | ibm-license-service-restricted  | ""                    | namespaces           | resource     | namespaceDiscoveryEnabled
+cluster-rbac.yaml                       | ClusterRole | ibm-license-service-restricted  | ""                    | namespaces,nodes     | empty-guard  | or:namespaceDiscoveryEnabled,nodeCpuCappingEnabled
+cluster-rbac.yaml                       | ClusterRole | ibm-license-service             | authentication.k8s.io | tokenreviews         | block        | kubeRBACAuthEnabled
+cluster-rbac.yaml                       | ClusterRole | ibm-license-service             | authorization.k8s.io  | subjectaccessreviews | block        | kubeRBACAuthEnabled
+cluster-rbac.yaml                       | ClusterRole | ibm-license-service-restricted  | authentication.k8s.io | tokenreviews         | block        | kubeRBACAuthEnabled
+cluster-rbac.yaml                       | ClusterRole | ibm-license-service-restricted  | authorization.k8s.io  | subjectaccessreviews | block        | kubeRBACAuthEnabled
+cluster-rbac.yaml                       | ClusterRole | ibm-licensing-operator          | operator.ibm.com      | operandrequests      | block        | operandRequestsEnabled
+rbac.yaml                               | Role        | ibm-licensing-operator          | operators.coreos.com  | operatorgroups       | block        | operandRequestsEnabled
+cluster-rbac-for-operandrequests.yaml   | *           | *                               | *                     | *                    | whole-file   | operandRequestsEnabled

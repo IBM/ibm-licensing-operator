@@ -13,3 +13,8 @@ ibmLicensing:
     version: 4.2.23
     datasource: datacollector
     httpsEnable: true
+    watchedNamespaces: ""                    # non-empty disables cluster-wide namespace discovery
+    features:
+      nodeCpuCappingEnabled: true            # false => no node-access RBAC
+      kubeRBACAuthEnabled: true              # false => no tokenreviews/subjectaccessreviews RBAC
+      operandRequestsEnabled: true           # false => no OperandRequest RBAC
