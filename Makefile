@@ -738,100 +738,105 @@ endif
 
 .PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard print-published-images
 
+# Cluster-scoped IBM License Service Helm chart templates. generate-yaml-argo-cd
+# writes its output directly here (the chart's templates are the generator's
+# source of truth), so regeneration updates the committed templates in place and
+# they cannot silently go stale via a skipped manual copy.
+HELM_CLUSTER_SCOPED_TEMPLATES := deploy/argo-cd/components/license-service/helm-cluster-scoped/templates
+
 .PHONY: generate-yaml-argo-cd
 generate-yaml-argo-cd: kustomize yq
-	@mkdir -p argo-cd && $(KUSTOMIZE) build config/manifests > argo-cd/tmp.yaml
+	@mkdir -p $(HELM_CLUSTER_SCOPED_TEMPLATES) && $(KUSTOMIZE) build config/manifests > $(HELM_CLUSTER_SCOPED_TEMPLATES)/tmp.yaml
 
 	# Split the resources into separate YAML files
-	@(echo "---" && $(YQ) 'select(.kind == "ClusterRole" or .kind == "ClusterRoleBinding")' argo-cd/tmp.yaml) > argo-cd/cluster-rbac.yaml
-	@(echo "---" && $(YQ) 'select(.kind == "IBMLicensing")' argo-cd/tmp.yaml) > argo-cd/cr.yaml
-	@(echo "---" && $(YQ) 'select(.kind == "CustomResourceDefinition")' argo-cd/tmp.yaml) > argo-cd/crd.yaml
-	@(echo "---" && $(YQ) 'select(.kind == "Deployment")' argo-cd/tmp.yaml) > argo-cd/deployment.yaml
-	@(echo "---" && $(YQ) 'select(.kind == "Role" or .kind == "RoleBinding")' argo-cd/tmp.yaml) > argo-cd/rbac.yaml
-	@(echo "---" && $(YQ) 'select(.kind == "ServiceAccount")' argo-cd/tmp.yaml) > argo-cd/serviceaccounts.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "ClusterRole" or .kind == "ClusterRoleBinding")' $(HELM_CLUSTER_SCOPED_TEMPLATES)/tmp.yaml) > $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "IBMLicensing")' $(HELM_CLUSTER_SCOPED_TEMPLATES)/tmp.yaml) > $(HELM_CLUSTER_SCOPED_TEMPLATES)/cr.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "CustomResourceDefinition")' $(HELM_CLUSTER_SCOPED_TEMPLATES)/tmp.yaml) > $(HELM_CLUSTER_SCOPED_TEMPLATES)/crd.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "Deployment")' $(HELM_CLUSTER_SCOPED_TEMPLATES)/tmp.yaml) > $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "Role" or .kind == "RoleBinding")' $(HELM_CLUSTER_SCOPED_TEMPLATES)/tmp.yaml) > $(HELM_CLUSTER_SCOPED_TEMPLATES)/rbac.yaml
+	@(echo "---" && $(YQ) 'select(.kind == "ServiceAccount")' $(HELM_CLUSTER_SCOPED_TEMPLATES)/tmp.yaml) > $(HELM_CLUSTER_SCOPED_TEMPLATES)/serviceaccounts.yaml
 
 	# Add missing namespaces
-	@$(YQ) -i 'select(.kind == "ClusterRoleBinding").subjects[0].namespace = "sed-me"' argo-cd/cluster-rbac.yaml
-	@$(YQ) -i 'select(.kind == "RoleBinding").subjects[0].namespace = "sed-me"' argo-cd/rbac.yaml
+	@$(YQ) -i 'select(.kind == "ClusterRoleBinding").subjects[0].namespace = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	@$(YQ) -i 'select(.kind == "RoleBinding").subjects[0].namespace = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/rbac.yaml
 
 	# Remove redundant data
-	@$(YQ) -i 'del(.metadata.namespace)' argo-cd/cluster-rbac.yaml
+	@$(YQ) -i 'del(.metadata.namespace)' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
 
 	# Prepare resources for templating with helm
-	@$(YQ) -i 'del(.spec)' argo-cd/cr.yaml
+	@$(YQ) -i 'del(.spec)' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cr.yaml
 	@$(YQ) -i '.metadata.annotations.sed-deployment-annotations-top = "sed-me" \
 	| .metadata.labels.sed-deployment-labels-top = "sed-me" \
 	| .spec.template.metadata.annotations.sed-deployment-annotations-bottom = "sed-me" \
 	| .spec.template.metadata.labels.sed-deployment-labels-bottom = "sed-me" \
-	| .spec.template.spec.containers[0].env[1].valueFrom = "sed-me"' argo-cd/deployment.yaml
-	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/cluster-rbac.yaml
-	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/cr.yaml
-	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/crd.yaml
-	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/deployment.yaml
-	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/rbac.yaml
-	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' argo-cd/serviceaccounts.yaml
+	| .spec.template.spec.containers[0].env[1].valueFrom = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cr.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/crd.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/rbac.yaml
+	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/serviceaccounts.yaml
 
 	# Add extra fields, for example argo-cd sync waves
-	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-options" = "ServerSideApply=true"' argo-cd/cr.yaml
-	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "-1"' argo-cd/crd.yaml
+	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-options" = "ServerSideApply=true"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cr.yaml
+	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "-1"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/crd.yaml
 	# This sync wave is crucial because the deployment must be created after the CR, to avoid a situation when ArgoCD
 	# starts creating the CR at the same time as the operator does it (patch isn't applied and a name conflict happens)
-	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "1"' argo-cd/deployment.yaml
+	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "1"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
 
 	# Replace all component-id labels to template them with helm
-	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/cluster-rbac.yaml
-	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/cr.yaml
-	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/crd.yaml
-	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/rbac.yaml
-	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/serviceaccounts.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/cr.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/crd.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/rbac.yaml
+	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/serviceaccounts.yaml
 
 	# Replace all namespaces to template them with helm
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/cluster-rbac.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/rbac.yaml
-	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" argo-cd/serviceaccounts.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/rbac.yaml
+	@sed -i '' "s/namespace: [^ ]*/namespace: {{ .Values.ibmLicensing.namespace }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/serviceaccounts.yaml
 
 	# Replace all registry occurrences to template them with helm
-	@sed -i '' "s/icr.io/{{ .Values.global.imagePullPrefix }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/cpopen\/cpfs/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/cpopen/{{ .Values.ibmLicensing.imageRegistryNamespaceOperator }}/g" argo-cd/deployment.yaml
+	@sed -i '' "s/icr.io/{{ .Values.global.imagePullPrefix }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
+	@sed -i '' "s/cpopen\/cpfs/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
+	@sed -i '' "s/cpopen/{{ .Values.ibmLicensing.imageRegistryNamespaceOperator }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
 
 	# Replace extra fields (in addition to the namespaces) to template them with helm
-	@cat ./common/makefile-generate/yaml-cr-spec-part >> argo-cd/cr.yaml
-	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.ibmLicensing.operator).annotations) }}\n      {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.ibmLicensing.operator).labels) }}\n      {{- toYaml .Values.ibmLicensing.operator.labels | nindent 4 -}}\n    {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.ibmLicensing.operator).annotations) }}\n          {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 8 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/sed-deployment-labels-bottom: sed-me/{{- if ((.Values.ibmLicensing.operator).labels) }}\n          {{- toYaml .Values.ibmLicensing.operator.labels | nindent 8 -}}\n        {{ end }}/g" argo-cd/deployment.yaml
-	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.ibmLicensing.watchNamespace }}/g" argo-cd/deployment.yaml
-	@cat ./common/makefile-generate/yaml-deployment-pull-secrets-part >> argo-cd/deployment.yaml
+	@cat ./common/makefile-generate/yaml-cr-spec-part >> $(HELM_CLUSTER_SCOPED_TEMPLATES)/cr.yaml
+	@sed -i '' "s/sed-deployment-annotations-top: sed-me/{{- if ((.Values.ibmLicensing.operator).annotations) }}\n      {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 4 -}}\n    {{ end }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
+	@sed -i '' "s/sed-deployment-labels-top: sed-me/{{- if ((.Values.ibmLicensing.operator).labels) }}\n      {{- toYaml .Values.ibmLicensing.operator.labels | nindent 4 -}}\n    {{ end }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
+	@sed -i '' "s/sed-deployment-annotations-bottom: sed-me/{{- if ((.Values.ibmLicensing.operator).annotations) }}\n          {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 8 -}}\n        {{ end }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
+	@sed -i '' "s/sed-deployment-labels-bottom: sed-me/{{- if ((.Values.ibmLicensing.operator).labels) }}\n          {{- toYaml .Values.ibmLicensing.operator.labels | nindent 8 -}}\n        {{ end }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
+	@sed -i '' "s/valueFrom: sed-me/value: {{ .Values.ibmLicensing.watchNamespace }}/g" $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
+	@cat ./common/makefile-generate/yaml-deployment-pull-secrets-part >> $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
 
 	# Inject conditional RBAC Helm guards before the createRBAC wrap,
 	# so the per-rule guards nest inside the outer createRBAC conditional
-	@bash common/scripts/conditionalize-helm-rbac.sh argo-cd
+	@bash common/scripts/conditionalize-helm-rbac.sh $(HELM_CLUSTER_SCOPED_TEMPLATES)
 
 	# Wrap RBAC resources with conditional createRBAC check
-	@echo '{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}' | cat - argo-cd/rbac.yaml > argo-cd/rbac.yaml.tmp
-	@echo '{{- end }}' >> argo-cd/rbac.yaml.tmp
-	@mv argo-cd/rbac.yaml.tmp argo-cd/rbac.yaml
+	@echo '{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}' | cat - $(HELM_CLUSTER_SCOPED_TEMPLATES)/rbac.yaml > $(HELM_CLUSTER_SCOPED_TEMPLATES)/rbac.yaml.tmp
+	@echo '{{- end }}' >> $(HELM_CLUSTER_SCOPED_TEMPLATES)/rbac.yaml.tmp
+	@mv $(HELM_CLUSTER_SCOPED_TEMPLATES)/rbac.yaml.tmp $(HELM_CLUSTER_SCOPED_TEMPLATES)/rbac.yaml
 
 	# Wrap cluster RBAC resources with conditional createRBAC check
-	@echo '{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}' | cat - argo-cd/cluster-rbac.yaml > argo-cd/cluster-rbac.yaml.tmp
-	@echo '{{- end }}' >> argo-cd/cluster-rbac.yaml.tmp
-	@mv argo-cd/cluster-rbac.yaml.tmp argo-cd/cluster-rbac.yaml
+	@echo '{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}' | cat - $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml > $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml.tmp
+	@echo '{{- end }}' >> $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml.tmp
+	@mv $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml.tmp $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
 
 	# Wrap ServiceAccount resources with conditional createRBAC check
-	@echo '{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}' | cat - argo-cd/serviceaccounts.yaml > argo-cd/serviceaccounts.yaml.tmp
-	@echo '{{- end }}' >> argo-cd/serviceaccounts.yaml.tmp
-	@mv argo-cd/serviceaccounts.yaml.tmp argo-cd/serviceaccounts.yaml
+	@echo '{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}' | cat - $(HELM_CLUSTER_SCOPED_TEMPLATES)/serviceaccounts.yaml > $(HELM_CLUSTER_SCOPED_TEMPLATES)/serviceaccounts.yaml.tmp
+	@echo '{{- end }}' >> $(HELM_CLUSTER_SCOPED_TEMPLATES)/serviceaccounts.yaml.tmp
+	@mv $(HELM_CLUSTER_SCOPED_TEMPLATES)/serviceaccounts.yaml.tmp $(HELM_CLUSTER_SCOPED_TEMPLATES)/serviceaccounts.yaml
 
-	@rm argo-cd/tmp.yaml
+	@rm $(HELM_CLUSTER_SCOPED_TEMPLATES)/tmp.yaml
 
 # CI guard for ILS-2352: the conditionalize-helm-rbac.sh script is idempotent, so
 # re-running it (in --check mode) over the committed cluster-scoped RBAC templates
 # must be a no-op. A diff means someone copied an un-guarded regenerated file
 # without re-running the script, or hand-edited a gated rule.
-HELM_CLUSTER_SCOPED_TEMPLATES := deploy/argo-cd/components/license-service/helm-cluster-scoped/templates
 .PHONY: verify/helm-conditional-rbac
 verify/helm-conditional-rbac: ## Fail if chart RBAC guards drift from generation
 	@tmp=$$(mktemp -d) \
