@@ -97,13 +97,13 @@ func (spec *IBMLicensingSpec) IsAlertingEnabled() bool {
 }
 
 func (spec *IBMLicensingSpec) IsPrometheusQuerySourceEnabled() bool {
-	// return false only and only if the value is set to false
+	// return true only if the value is explicitly set to true
 	if spec.HaveFeatures() && spec.Features.PrometheusQuerySource != nil &&
 		spec.Features.PrometheusQuerySource.Enabled != nil &&
-		!*spec.Features.PrometheusQuerySource.Enabled {
-		return false
+		*spec.Features.PrometheusQuerySource.Enabled {
+		return true
 	}
-	return true
+	return false
 }
 
 func (spec *IBMLicensingSpec) GetPrometheusQuerySourceURL() string {
