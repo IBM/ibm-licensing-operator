@@ -47,12 +47,12 @@ type Features struct {
 	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
 
 	// Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
-	// real node capacity. Default true.
+	// real node capacity. Defaults to true.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Node CPU Capping Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	// +optional
 	NodeCpuCappingEnabled *bool `json:"nodeCpuCappingEnabled,omitempty"`
 
-	// Enables the bearer-token / Kubernetes RBAC authentication path on the operand (TokenReview + SubjectAccessReview). Default true.
+	// Enables the bearer-token / Kubernetes RBAC authentication path on the operand (TokenReview + SubjectAccessReview). Defaults to true.
 	// +optional
 	KubeRBACAuthEnabled *bool `json:"kubeRBACAuthEnabled,omitempty"`
 
