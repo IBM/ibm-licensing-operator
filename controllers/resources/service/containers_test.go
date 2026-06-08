@@ -225,7 +225,7 @@ func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledFeatureNil(t *testin
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"}),
+	assert.NotContains(t, envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"},
 		"Features is nil, KUBE_RBAC_AUTH_ENABLED should not be added to Licensing pod.")
 }
 
