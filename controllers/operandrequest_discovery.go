@@ -33,7 +33,7 @@ import (
 
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=operators.coreos.com,resources=operatorgroups,verbs=get;list;patch;update;watch
 
-func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Reader, watchNamespace []string, namespaceScopeSemaphore chan bool) {
+func DiscoverOperandRequests(ctx context.Context, logger *logr.Logger, writer c.Writer, reader c.Reader, watchNamespace []string, namespaceScopeSemaphore chan bool) {
 	var nssEnabled, prevNssEnabledState bool
 	var operandRequestList odlm.OperandRequestList
 	var namespaceListToExtend []string
@@ -45,7 +45,12 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 	}
 
 	// synchronize with reconciliation of IBMLicensing instance
-	nssEnabled = <-namespaceScopeSemaphore
+	select {
+	case nssEnabled = <-namespaceScopeSemaphore:
+	case <-ctx.Done():
+		logger.Info("Stopping OperandRequest discovery")
+		return
+	}
 
 	for {
 		prevNssEnabledState = nssEnabled
@@ -62,7 +67,12 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 		}
 
 		if nssEnabled {
-			time.Sleep(30 * time.Second)
+			select {
+			case <-time.After(30 * time.Second):
+			case <-ctx.Done():
+				logger.Info("Stopping OperandRequest discovery")
+				return
+			}
 			continue
 		}
 
@@ -101,7 +111,12 @@ func DiscoverOperandRequests(logger *logr.Logger, writer c.Writer, reader c.Read
 			}
 		}
 
-		time.Sleep(30 * time.Second)
+		select {
+		case <-time.After(30 * time.Second):
+		case <-ctx.Done():
+			logger.Info("Stopping OperandRequest discovery")
+			return
+		}
 	}
 }
 

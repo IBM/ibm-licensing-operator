@@ -23,7 +23,6 @@ import (
 	"os"
 	r "runtime"
 
-	"github.com/go-logr/logr"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -112,7 +111,6 @@ func init() {
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
-	var routinesToCancel []func()
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
@@ -195,11 +193,21 @@ func main() {
 	// 1-size channel for communicating namespace scope status between IBMLicensing controller and operandrequest-discovery goroutine
 	nssEnabledSemaphore := make(chan bool, 1)
 
-	// Decide OperandRequest support once, at startup, since the OperandRequest controller, discovery and the OperatorGroup cleaner
-	// are wired before any IBMLicensing CR is reconciled. The decision comes from the active IBMLicensing CR's features.operandRequestsEnabled flag
-	// (defaulting to enabled when there is no CR or the flag is unset). When the flag is later changed, the IBMLicensing reconciler restarts
-	// the operator so this decision is re-evaluated.
-	operandRequestsEnabled := startupOperandRequestsEnabled(mgr.GetAPIReader(), setupLog)
+	// Hoist the signal context so it can parent the OperandRequest subsystem; the
+	// same context is passed to mgr.Start below so SIGTERM tears everything down
+	signalCtx := ctrl.SetupSignalHandler()
+
+	// The OperandRequest subsystem (controller, discovery, OperatorGroup cleaner) is started/stopped
+	// in-process by the IBMLicensing reconciler whenever features.operandRequestsEnabled changes
+	opreq := controllers.NewOperandRequestSubsystem(
+		signalCtx,
+		mgr,
+		restConfig,
+		operatorNamespace,
+		watchNamespaces,
+		nssEnabledSemaphore,
+		ctrl.Log.WithName("controllers").WithName("OperandRequest"),
+	)
 
 	controller := &controllers.IBMLicensingReconciler{
 		Client:                  mgr.GetClient(),
@@ -209,74 +217,11 @@ func main() {
 		Recorder:                mgr.GetEventRecorderFor("IBMLicensing"),
 		OperatorNamespace:       operatorNamespace,
 		NamespaceScopeSemaphore: nssEnabledSemaphore,
-		OperandRequestsEnabled:  operandRequestsEnabled,
+		Opreq:                   opreq,
 	}
 	if err = controller.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicensing")
 		os.Exit(1)
-	}
-
-	operandRequestList := odlm.OperandRequestList{}
-	opreqControllerEnabled := false
-	if operandRequestsEnabled {
-		opreqControllerEnabled, err = res.DoesCRDExist(mgr.GetAPIReader(), &operandRequestList)
-		if err != nil {
-			setupLog.Error(err, "An error occurred while checking for CRD existence. OperandRequest controller will not be started")
-		}
-	}
-
-	switch {
-	case !operandRequestsEnabled:
-		setupLog.Info("OperandRequest support is disabled (features.operandRequestsEnabled=false). " +
-			"OperandRequest controller, discovery and the OperatorGroup cleaner will not be started.")
-	case opreqControllerEnabled:
-		if err = (&controllers.OperandRequestReconciler{
-			Client:            mgr.GetClient(),
-			Reader:            mgr.GetAPIReader(),
-			Log:               ctrl.Log.WithName("controllers").WithName("OperandRequest"),
-			Scheme:            mgr.GetScheme(),
-			OperatorNamespace: operatorNamespace,
-		}).SetupWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create controller", "controller", "OperandRequest")
-			os.Exit(1)
-		}
-		crdLogger := ctrl.Log.WithName("operandrequest-discovery")
-		// In Cloud Pak 2.0/3.0 coexistence scenario, License Service Operator 4.x.x leverages Namespace Scope Operator and must not modify OperatorGroup.
-		isNssActive, err := res.IsNamespaceScopeOperatorAvailable(context.Background(), mgr.GetAPIReader(), operatorNamespace)
-		if err != nil {
-			setupLog.Error(err, "Error occurred while detecting Namespace Scope Operator")
-		}
-		if isNssActive {
-			setupLog.Info("Namespace Scope ConfigMap detected. operandrequest-discovery disabled")
-		} else {
-			// On clusters without OLM installed, skip both operandrequest-discovery and the stale-namespace cleanup task,
-			// otherwise every run produces a "no matches for kind OperatorGroup" error
-			operatorGroupList := operatorframeworkv1.OperatorGroupList{}
-			operatorGroupCRDExists, err := res.DoesCRDExist(mgr.GetAPIReader(), &operatorGroupList)
-			if err != nil {
-				setupLog.Error(err, "An error occurred while checking for OperatorGroup CRD existence. operandrequest-discovery and operatorgroup-namespaces-watcher will not be started")
-			}
-
-			if operatorGroupCRDExists {
-				go controllers.DiscoverOperandRequests(&crdLogger, mgr.GetClient(), mgr.GetAPIReader(), watchNamespaces, nssEnabledSemaphore)
-
-				logger := ctrl.Log.WithName("operatorgroup-namespaces-watcher")
-				removeStaleNamespacesTaskCtx, cancelRemoveStaleNamespacesTask := context.WithCancel(context.Background())
-
-				go controllers.RunRemoveStaleNamespacesFromOperatorGroupTask(removeStaleNamespacesTaskCtx, &logger, mgr.GetClient(), mgr.GetAPIReader())
-				routinesToCancel = append(routinesToCancel, cancelRemoveStaleNamespacesTask)
-			} else {
-				setupLog.Info("OperatorGroup CRD not found in cluster. operandrequest-discovery and operatorgroup-namespaces-watcher disabled")
-			}
-		}
-	default:
-		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
-		// Set custom time duration for CRD watcher (in seconds)
-		reconcileInterval, err := res.GetCrdReconcileInterval()
-		if err != nil {
-			setupLog.Error(err, "Incorrect reconcile interval set. Defaulting to 300s", "crd-watcher", "OperandRequest")
-		}
-		go res.RestartOnCRDCreation(&logger, mgr.GetClient(), &operandRequestList, reconcileInterval)
 	}
 
 	// If OperandBindInfo CRD exists, try to find ibm-licensing-bindinfo and delete it.
@@ -303,35 +248,8 @@ func main() {
 	_ = controller.CreateDefaultInstance(true)
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(signalCtx); err != nil {
 		setupLog.Error(err, "problem running manager")
-		for _, cancelRoutine := range routinesToCancel {
-			cancelRoutine()
-		}
 		os.Exit(1)
 	}
-}
-
-// startupOperandRequestsEnabled reads the active IBMLicensing CR's features.operandRequestsEnabled flag to decide
-// whether OperandRequest support is wired at startup. It defaults to enabled when no CR exists yet, when the
-// flag is unset, or when the CRs cannot be listed, so existing installs keep today's behavior. The active CR is the oldest one,
-// matching the controller's own active-instance selection.
-func startupOperandRequestsEnabled(reader client.Reader, log logr.Logger) bool {
-	ibmLicensingList := &operatoribmcomv1alpha1.IBMLicensingList{}
-	if err := reader.List(context.Background(), ibmLicensingList); err != nil {
-		log.Error(err, "Unable to list IBMLicensing CRs at startup; defaulting OperandRequest support to enabled")
-		return true
-	}
-
-	var active *operatoribmcomv1alpha1.IBMLicensing
-	for i := range ibmLicensingList.Items {
-		item := &ibmLicensingList.Items[i]
-		if active == nil || item.CreationTimestamp.Time.Before(active.CreationTimestamp.Time) {
-			active = item
-		}
-	}
-	if active == nil {
-		return true
-	}
-	return active.Spec.IsOperandRequestsEnabled()
 }

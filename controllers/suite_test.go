@@ -223,6 +223,20 @@ var _ = BeforeSuite(func() {
 
 	nssEnabledSemaphore := make(chan bool, 1)
 
+	// The OperandRequest controller is exercised directly via SetupWithManager
+	// below (the managed path), so the subsystem injected here is a stub: its
+	// activate is a no-op and crdExists reports present, so Sync just flips the
+	// state machine without standing up a second controller/cache. This keeps the
+	// IBMLicensing reconciler from dereferencing a nil Opreq.
+	opreqStub := &OperandRequestSubsystem{
+		parentCtx:  context.Background(),
+		log:        ctrl.Log.WithName("OperandRequest-stub"),
+		state:      opreqDisabled,
+		activate:   func(context.Context) error { return nil },
+		deactivate: func() {},
+		crdExists:  func(client.ObjectList) (bool, error) { return true, nil },
+	}
+
 	err = (&IBMLicensingReconciler{
 		Client:                  mgr.GetClient(),
 		Reader:                  mgr.GetAPIReader(),
@@ -231,6 +245,7 @@ var _ = BeforeSuite(func() {
 		Recorder:                mgr.GetEventRecorderFor("IBMLicensing"),
 		OperatorNamespace:       operatorNamespace,
 		NamespaceScopeSemaphore: nssEnabledSemaphore,
+		Opreq:                   opreqStub,
 	}).SetupWithManager(mgr)
 	Expect(err).ToNot(HaveOccurred())
 

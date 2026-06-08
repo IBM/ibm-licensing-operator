@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"os"
 	"reflect"
 	goruntime "runtime"
 	"sort"
@@ -129,7 +128,7 @@ type IBMLicensingReconciler struct {
 	Recorder                record.EventRecorder
 	OperatorNamespace       string
 	NamespaceScopeSemaphore chan bool
-	OperandRequestsEnabled  bool
+	Opreq                   *OperandRequestSubsystem
 }
 
 // //kubebuilder:rbac:namespace=ibm-licensing,groups=,resources=pod,verbs=get;list;watch;create;update;patch;delete
@@ -216,12 +215,11 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 
 	instance := foundInstance.DeepCopy()
 
-	// OperandRequest support is wired at operator startup, so a change to the features.operandRequestsEnabled flag can only take effect after a restart.
-	// Restart the operator when the desired setting no longer matches the one the process started with
-	if desiredOperandRequests := instance.Spec.IsOperandRequestsEnabled(); desiredOperandRequests != r.OperandRequestsEnabled {
-		reqLogger.Info("OperandRequest support setting changed; restarting operator to re-evaluate startup wiring",
-			"running", r.OperandRequestsEnabled, "desired", desiredOperandRequests)
-		os.Exit(0)
+	// Apply the OperandRequest support setting in-process. Sync only acts on an actual transition,
+	// so repeated reconciles with an unchanged flag are no-ops
+	if err := r.Opreq.Sync(instance.Spec.IsOperandRequestsEnabled()); err != nil {
+		reqLogger.Error(err, "Failed to apply OperandRequest support setting; will retry")
+		return reconcile.Result{}, err
 	}
 
 	err := service.UpdateVersion(r.Client, instance)

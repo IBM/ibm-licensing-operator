@@ -140,9 +140,9 @@ func (r *OperandRequestReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		reqLogger.Error(err, "Error during checking K8s API")
 	}
 
-	// Fetch the OperandRequest instance
+	// Fetch the OperandRequest instance via the uncached API reader
 	operandRequest := odlm.OperandRequest{}
-	if err := r.Client.Get(ctx, req.NamespacedName, &operandRequest); err != nil {
+	if err := r.Reader.Get(ctx, req.NamespacedName, &operandRequest); err != nil {
 		// Error reading the object - requeue the request.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
