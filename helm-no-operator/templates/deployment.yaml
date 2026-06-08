@@ -49,13 +49,19 @@ spec:
             - name: NAMESPACE
               value: {{ .Values.ibmLicensing.namespace | quote }}
             - name: DATASOURCE
-              value: {{ .Values.ibmLicensing.datasource | quote }}
+              value: {{ .Values.ibmLicensing.spec.datasource | quote }}
             - name: HTTPS_ENABLE
-              value: {{ .Values.ibmLicensing.httpsEnable | quote }}
+              value: {{ .Values.ibmLicensing.spec.httpsEnable | quote }}
             - name: ENABLE_INSTANA_METRIC_COLLECTION
-              value: {{ .Values.ibmLicensing.enableInstanaMetricCollection | quote }}
+              value: {{ .Values.ibmLicensing.spec.enableInstanaMetricCollection | quote }}
             - name: HTTPS_CERTS_SOURCE
-              value: {{ .Values.ibmLicensing.httpsCertsSource | quote }}
+              value: {{ .Values.ibmLicensing.spec.httpsCertsSource | quote }}
+            - name: NODE_CPU_CAPPING_ENABLED
+              value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}
+            - name: KUBE_RBAC_AUTH_ENABLED
+              value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
+            - name: WATCH_NAMESPACE
+              value: {{ concat (splitList "," (.Values.ibmLicensing.watchNamespace | default "")) (splitList "," (.Values.ibmLicensing.spec.watchedNamespaces | default "")) | compact | uniq | join ", " | quote }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
           imagePullPolicy: IfNotPresent
           livenessProbe:
@@ -84,12 +90,12 @@ spec:
             timeoutSeconds: 10
           resources:
             limits:
-              cpu: {{ .Values.ibmLicensing.resources.limits.cpu }}
-              memory: {{ .Values.ibmLicensing.resources.limits.memory }}
+              cpu: {{ .Values.ibmLicensing.spec.resources.limits.cpu }}
+              memory: {{ .Values.ibmLicensing.spec.resources.limits.memory }}
             requests:
-              cpu: {{ .Values.ibmLicensing.resources.requests.cpu }}
-              ephemeral-storage: {{ .Values.ibmLicensing.resources.requests.ephemeralStorage }}
-              memory: {{ .Values.ibmLicensing.resources.requests.memory }}
+              cpu: {{ .Values.ibmLicensing.spec.resources.requests.cpu }}
+              ephemeral-storage: {{ .Values.ibmLicensing.spec.resources.requests.ephemeralStorage }}
+              memory: {{ .Values.ibmLicensing.spec.resources.requests.memory }}
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -131,24 +137,30 @@ spec:
             - name: NAMESPACE
               value: {{ .Values.ibmLicensing.namespace | quote }}
             - name: DATASOURCE
-              value: {{ .Values.ibmLicensing.datasource | quote }}
+              value: {{ .Values.ibmLicensing.spec.datasource | quote }}
             - name: HTTPS_ENABLE
-              value: {{ .Values.ibmLicensing.httpsEnable | quote }}
+              value: {{ .Values.ibmLicensing.spec.httpsEnable | quote }}
             - name: ENABLE_INSTANA_METRIC_COLLECTION
-              value: {{ .Values.ibmLicensing.enableInstanaMetricCollection | quote }}
+              value: {{ .Values.ibmLicensing.spec.enableInstanaMetricCollection | quote }}
             - name: HTTPS_CERTS_SOURCE
-              value: {{ .Values.ibmLicensing.httpsCertsSource | quote }}
+              value: {{ .Values.ibmLicensing.spec.httpsCertsSource | quote }}
+            - name: NODE_CPU_CAPPING_ENABLED
+              value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}
+            - name: KUBE_RBAC_AUTH_ENABLED
+              value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
+            - name: WATCH_NAMESPACE
+              value: {{ concat (splitList "," (.Values.ibmLicensing.watchNamespace | default "")) (splitList "," (.Values.ibmLicensing.spec.watchedNamespaces | default "")) | compact | uniq | join ", " | quote }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
           imagePullPolicy: IfNotPresent
           name: ocp-check-secret
           resources:
             limits:
-              cpu: {{ .Values.ibmLicensing.resources.limits.cpu }}
-              memory: {{ .Values.ibmLicensing.resources.limits.memory }}
+              cpu: {{ .Values.ibmLicensing.spec.resources.limits.cpu }}
+              memory: {{ .Values.ibmLicensing.spec.resources.limits.memory }}
             requests:
-              cpu: {{ .Values.ibmLicensing.resources.requests.cpu }}
-              ephemeral-storage: {{ .Values.ibmLicensing.resources.requests.ephemeralStorage }}
-              memory: {{ .Values.ibmLicensing.resources.requests.memory }}
+              cpu: {{ .Values.ibmLicensing.spec.resources.requests.cpu }}
+              ephemeral-storage: {{ .Values.ibmLicensing.spec.resources.requests.ephemeralStorage }}
+              memory: {{ .Values.ibmLicensing.spec.resources.requests.memory }}
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
