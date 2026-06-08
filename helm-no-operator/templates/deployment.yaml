@@ -61,7 +61,7 @@ spec:
             - name: KUBE_RBAC_AUTH_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
             - name: WATCH_NAMESPACE
-              value: {{ concat (splitList "," (.Values.ibmLicensing.watchNamespace | default "")) (splitList "," (.Values.ibmLicensing.spec.watchedNamespaces | default "")) | compact | uniq | join ", " | quote }}
+              value: {{ include "ibm-licensing.watchNamespaces" . | quote }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
           imagePullPolicy: IfNotPresent
           livenessProbe:
@@ -149,7 +149,7 @@ spec:
             - name: KUBE_RBAC_AUTH_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
             - name: WATCH_NAMESPACE
-              value: {{ concat (splitList "," (.Values.ibmLicensing.watchNamespace | default "")) (splitList "," (.Values.ibmLicensing.spec.watchedNamespaces | default "")) | compact | uniq | join ", " | quote }}
+              value: {{ include "ibm-licensing.watchNamespaces" . | quote }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
           imagePullPolicy: IfNotPresent
           name: ocp-check-secret

@@ -165,7 +165,7 @@ template_deployment() {
     # Replace new environment variables
     sed -i '' 's/value: sed-me-nodeCpuCappingEnabled/value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
     sed -i '' 's/value: sed-me-kubeRBACAuthEnabled/value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
-    sed -i '' 's/value: sed-me-watchNamespace/value: {{ concat (splitList "," (.Values.ibmLicensing.watchNamespace | default "")) (splitList "," (.Values.ibmLicensing.spec.watchedNamespaces | default "")) | compact | uniq | join ", " | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
+    sed -i '' 's/value: sed-me-watchNamespace/value: {{ include "ibm-licensing.watchNamespaces" . | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
     
     # Replace resource limits and requests
     sed -i '' "s/sed-me-cpu-limit/{{ .Values.ibmLicensing.spec.resources.limits.cpu }}/g" "$OUTPUT_DIR/deployment.yaml"
