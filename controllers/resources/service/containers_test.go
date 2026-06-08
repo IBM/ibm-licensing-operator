@@ -225,8 +225,8 @@ func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledFeatureNil(t *testin
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.NotContains(t, envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"},
-		"Features is nil, KUBE_RBAC_AUTH_ENABLED should not be added to Licensing pod.")
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "true"},
+		"Features is nil, KUBE_RBAC_AUTH_ENABLED=true should be added to Licensing pod.")
 }
 
 func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledPointerNil(t *testing.T) {
@@ -237,8 +237,8 @@ func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledPointerNil(t *testin
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"}),
-		"KubeRBACAuthEnabled pointer is nil, KUBE_RBAC_AUTH_ENABLED should not be added to Licensing pod.")
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "true"},
+		"KubeRBACAuthEnabled pointer is nil, KUBE_RBAC_AUTH_ENABLED=true should be added to Licensing pod.")
 }
 
 func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitTrue(t *testing.T) {
@@ -251,8 +251,8 @@ func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitTrue(t *test
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"}),
-		"KubeRBACAuthEnabled=true, KUBE_RBAC_AUTH_ENABLED should not be added to Licensing pod.")
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "true"},
+		"KubeRBACAuthEnabled=true, KUBE_RBAC_AUTH_ENABLED=true should be added to Licensing pod.")
 }
 
 func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitFalse(t *testing.T) {
@@ -265,7 +265,7 @@ func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitFalse(t *tes
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"}),
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"},
 		"KubeRBACAuthEnabled=false, KUBE_RBAC_AUTH_ENABLED=false should be added to Licensing pod.")
 }
 
