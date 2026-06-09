@@ -80,6 +80,10 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Name:  "NODE_CPU_CAPPING_ENABLED",
 			Value: strconv.FormatBool(spec.IsNodeCpuCappingEnabled()),
 		},
+		{
+			Name:  "KUBE_RBAC_AUTH_ENABLED",
+			Value: strconv.FormatBool(spec.IsKubeRBACAuthEnabled()),
+		},
 	}
 	if spec.IsDebug() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
