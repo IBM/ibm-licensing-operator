@@ -169,7 +169,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 	// When spec.watchedNamespaces is set it is the exclusive source of truth for the operand's
 	// namespace scope: NAMESPACE_SCOPE_ENABLED=true restricts the operand to WATCH_NAMESPACE and
 	// suppresses every cluster-wide list call (workloads and chargeback). When the field is absent
-	// the operand keeps its default cluster-wide discovery behaviour unchanged.
+	// the operand keeps its default cluster-wide discovery behavior unchanged.
 	if watchedNss := spec.GetWatchedNamespaces(); len(watchedNss) > 0 {
 		// The NSS block above already emits NAMESPACE_SCOPE_ENABLED when NSS is on; only emit it
 		// here otherwise, so the env var is never emitted twice (a duplicate makes the pod spec invalid).
