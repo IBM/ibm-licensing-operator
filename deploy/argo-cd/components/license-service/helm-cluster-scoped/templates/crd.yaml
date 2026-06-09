@@ -691,13 +691,6 @@ spec:
                 version:
                   description: Version
                   type: string
-                watchedNamespaces:
-                  description: |-
-                    Comma-separated list of namespaces the operand must monitor. At least one
-                    namespace is required. The operator merges this list with its own
-                    WATCH_NAMESPACE scope, disables the operand's cluster-wide namespace
-                    discovery, and restricts every workload-listing call to the resulting set.
-                  type: string
               required:
                 - datasource
                 - httpsEnable
