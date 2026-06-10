@@ -37,7 +37,7 @@ package v1alpha1
 
 import (
 	"github.com/IBM/ibm-licensing-operator/api/v1alpha1/features"
-	"github.com/openshift/api/route/v1"
+	v1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -93,6 +93,11 @@ func (in *Features) DeepCopyInto(out *Features) {
 	}
 	if in.KubeRBACAuthEnabled != nil {
 		in, out := &in.KubeRBACAuthEnabled, &out.KubeRBACAuthEnabled
+		*out = new(bool)
+		**out = **in
+	}
+	if in.OperandRequestsEnabled != nil {
+		in, out := &in.OperandRequestsEnabled, &out.OperandRequestsEnabled
 		*out = new(bool)
 		**out = **in
 	}
