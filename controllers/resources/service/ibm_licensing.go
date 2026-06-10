@@ -31,7 +31,6 @@ func GetDefaultIBMLicensing(operatorNamespace string) operatorv1alpha1.IBMLicens
 			Datasource:        "datacollector",
 			HTTPSEnable:       true,
 			InstanceNamespace: operatorNamespace,
-			WatchedNamespaces: operatorNamespace,
 		},
 	}
 }

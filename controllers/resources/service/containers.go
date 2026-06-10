@@ -115,31 +115,25 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Name:  "NAMESPACE_SCOPE_ENABLED",
 			Value: "true",
 		})
-
-		// spec.watchedNamespaces, when set, is the exclusive source of truth for WATCH_NAMESPACE
-		// (emitted by the watchedNamespaces block below). The NSS block only sets WATCH_NAMESPACE
-		// when watchedNamespaces is empty, so the env var is never emitted twice.
-		if len(spec.GetWatchedNamespaces()) == 0 {
-			if spec.IsCustomNamespaceScopeConfigMap() {
-				customNsConfigMapName := spec.GetCustomNamespaceScopeConfigMap()
-				environmentVariables = append(environmentVariables, corev1.EnvVar{
-					Name: "WATCH_NAMESPACE",
-					ValueFrom: &corev1.EnvVarSource{
-						ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
-							Key:                  "namespaces",
-							LocalObjectReference: corev1.LocalObjectReference{Name: customNsConfigMapName},
-						},
+		if spec.IsCustomNamespaceScopeConfigMap() {
+			customNsConfigMapName := spec.GetCustomNamespaceScopeConfigMap()
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name: "WATCH_NAMESPACE",
+				ValueFrom: &corev1.EnvVarSource{
+					ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+						Key:                  "namespaces",
+						LocalObjectReference: corev1.LocalObjectReference{Name: customNsConfigMapName},
 					},
-				})
-			} else {
-				// It's not possible for error to occur here so we can ignore it.
-				// Should an error occur, it would already fail in main.go and would not reach this code.
-				watchNamespaces, _ := resources.GetWatchNamespace()
-				environmentVariables = append(environmentVariables, corev1.EnvVar{
-					Name:  "WATCH_NAMESPACE",
-					Value: watchNamespaces,
-				})
-			}
+				},
+			})
+		} else {
+			// It's not possible for error to occur here so we can ignore it.
+			// Should an error occur, it would already fail in main.go and would not reach this code.
+			watchNamespaces, _ := resources.GetWatchNamespace()
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name:  "WATCH_NAMESPACE",
+				Value: watchNamespaces,
+			})
 		}
 		if spec.Features.NamespaceScopeDenialLimit != 0 {
 			environmentVariables = append(environmentVariables, corev1.EnvVar{
@@ -158,24 +152,6 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "URL_AUTH_ENABLED",
 			Value: "false",
-		})
-	}
-	// When spec.watchedNamespaces is set it is the exclusive source of truth for the operand's
-	// namespace scope: NAMESPACE_SCOPE_ENABLED=true restricts the operand to WATCH_NAMESPACE and
-	// suppresses every cluster-wide list call (workloads and chargeback). When the field is absent
-	// the operand keeps its default cluster-wide discovery behavior unchanged.
-	if watchedNss := spec.GetWatchedNamespaces(); len(watchedNss) > 0 {
-		// The NSS block above already emits NAMESPACE_SCOPE_ENABLED when NSS is on; only emit it
-		// here otherwise, so the env var is never emitted twice (a duplicate makes the pod spec invalid).
-		if !spec.IsNamespaceScopeEnabled() {
-			environmentVariables = append(environmentVariables, corev1.EnvVar{
-				Name:  "NAMESPACE_SCOPE_ENABLED",
-				Value: "true",
-			})
-		}
-		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "WATCH_NAMESPACE",
-			Value: strings.Join(watchedNss, ","),
 		})
 	}
 	if spec.IsPrometheusQuerySourceEnabled() && resources.IsServiceCAAPI {
