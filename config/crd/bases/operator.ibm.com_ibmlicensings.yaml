@@ -131,7 +131,9 @@ spec:
                       reporting an error in custom namespaces scoping.
                     type: integer
                   nssEnabled:
-                    description: Special terms, must be granted by IBM Pricing.
+                    description: |-
+                      Restricts IBM License Service to watching only the namespaces specified in the WATCH_NAMESPACE operator environment variable or in the ConfigMap referenced by .features.nssConfigMap.
+                      This feature requires authorization from IBM Pricing.
                     type: boolean
                   operandRequestsEnabled:
                     description: Enables the OperandRequest integration. Default true.

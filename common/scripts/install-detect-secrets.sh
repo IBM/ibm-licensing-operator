@@ -26,7 +26,11 @@ mkdir -p "${LOCALBIN}"
 # Create venv if it doesn't exist
 if [ ! -d "${VENV_DIR}" ]; then
   echo ">>> Creating Python virtual environment at ${VENV_DIR}"
-  python3 -m venv "${VENV_DIR}"
+  if command -v uv >/dev/null 2>&1; then
+    uv venv "${VENV_DIR}"
+  else
+    python3 -m venv "${VENV_DIR}"
+  fi
 fi
 
 # Install or verify detect-secrets inside the venv
@@ -35,8 +39,13 @@ if "${VENV_DIR}/bin/detect-secrets" --version >/dev/null 2>&1; then
   "${VENV_DIR}/bin/detect-secrets" --version
 else
   echo ">>> Installing detect-secrets into ${VENV_DIR}"
-  "${VENV_DIR}/bin/pip" install --upgrade \
-    "git+https://github.com/ibm/detect-secrets.git@master#egg=detect-secrets"
+  if command -v uv >/dev/null 2>&1; then
+    uv pip install --python "${VENV_DIR}/bin/python" \
+      "git+https://github.com/ibm/detect-secrets.git@master#egg=detect-secrets"
+  else
+    "${VENV_DIR}/bin/pip" install --upgrade \
+      "git+https://github.com/ibm/detect-secrets.git@master#egg=detect-secrets"
+  fi
 fi
 
 # Create/update wrapper script in LOCALBIN so detect-secrets is on PATH

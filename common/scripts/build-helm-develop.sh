@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # Script to build helm development charts
-# Usage: build-helm-develop.sh <target-dir> <source-dir> <image-sed-pattern> <values-component-prefix> <chart-name> <csv-version> <git-branch> <helm-bin> <yq-bin> <chart-destination> <artifactory-token>
+# Usage: build-helm-develop.sh <target-dir> <source-dir> <image-sed-pattern> <values-component-prefix> <chart-name> <csv-version> <helm-bin> <yq-bin> <chart-destination> <artifactory-token>
 
 set -e
 
@@ -25,11 +25,10 @@ IMAGE_SED_PATTERN=$3         # Sed pattern to replace image tags (empty string "
 VALUES_COMPONENT_PREFIX=$4   # Prefix (from values.yaml) used for setting image registry namespace (e.g., "ibmLicensing", empty to skip)
 CHART_NAME=$5                # Name of the chart for the output .tgz file
 CSV_VERSION=$6               # Current CSV version
-GIT_BRANCH=$7                # Git branch name used when setting correct images
-HELM=$8                      # Path to helm binary
-YQ=$9                        # Path to yq binary
-CHART_DESTINATION=${10}      # Artifactory destination URL
-ARTIFACTORY_TOKEN=${11}      # Artifactory API token
+HELM=$7                      # Path to helm binary
+YQ=$8                        # Path to yq binary
+CHART_DESTINATION=${9}      # Artifactory destination URL
+ARTIFACTORY_TOKEN=${10}      # Artifactory API token
 
 # Safety check: abort if target directory already exists
 if [ -d "./${TARGET_DIR}" ]; then
