@@ -830,6 +830,7 @@ CHART_DESTINATION_BASE ?= https://na.artifactory.swg-devops.com/artifactory/hyc-
 CHART_DESTINATION_LS ?= $(CHART_DESTINATION_BASE)/ibm-licensing
 CHART_DESTINATION_LSR ?= $(CHART_DESTINATION_BASE)/ibm-license-service-reporter
 CHART_DESTINATION_LSS ?= $(CHART_DESTINATION_BASE)/ibm-license-service-scanner
+MIGRATION_CHART_VERSION ?= $(shell yq '.version' ./helm-migration/Chart.yaml)
 
 .PHONY: build/helm-develop-all
 build/helm-develop-all: build/helm-develop-ls build/helm-develop-lsr build/helm-develop-lss ## Build all development helm charts
@@ -842,6 +843,14 @@ build/helm-develop-ls: helm yq ## Build IBM License Service development helm cha
 		IMAGE_SED_PATTERN="s|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g" \
 		VALUES_COMPONENT_PREFIX=ibmLicensing \
 		CHART_NAME=ibm-licensing-cluster-scoped \
+		CHART_DESTINATION=$(CHART_DESTINATION_LS)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-migration-develop-ls \
+		SOURCE_DIR=helm-migration \
+		IMAGE_SED_PATTERN="" \
+		VALUES_COMPONENT_PREFIX=ibmLicensing \
+		CHART_NAME=ibm-licensing-migration \
+		CSV_VERSION=${MIGRATION_CHART_VERSION} \
 		CHART_DESTINATION=$(CHART_DESTINATION_LS)
 
 .PHONY: build/helm-develop-lsr
