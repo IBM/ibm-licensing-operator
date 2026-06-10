@@ -197,7 +197,9 @@ spec:
         path: features.nssDenialLimit
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
-      - description: Special terms, must be granted by IBM Pricing.
+      - description: |-
+          Restricts IBM License Service to watching only the namespaces specified in the WATCH_NAMESPACE operator environment variable or in the ConfigMap referenced by .features.nssConfigMap.
+          This feature requires authorization from IBM Pricing.
         displayName: Namespace scope enabled
         path: features.nssEnabled
         x-descriptors:
