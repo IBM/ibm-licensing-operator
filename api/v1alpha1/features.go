@@ -41,7 +41,8 @@ type Features struct {
 	// +optional
 	Alerting *features.Alerting `json:"alerting,omitempty"`
 
-	// Special terms, must be granted by IBM Pricing.
+	// Restricts IBM License Service to watching only the namespaces specified in the WATCH_NAMESPACE operator environment variable or in the ConfigMap referenced by .features.nssConfigMap.
+	// This feature requires authorization from IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Namespace scope enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
 	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`

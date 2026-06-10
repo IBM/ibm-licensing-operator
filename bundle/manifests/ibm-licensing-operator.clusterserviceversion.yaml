@@ -81,7 +81,7 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.23
-    createdAt: "2026-06-03T14:19:23Z"
+    createdAt: "2026-06-10T12:18:17Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
@@ -241,7 +241,9 @@ spec:
             path: features.nssDenialLimit
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:hidden
-          - description: Special terms, must be granted by IBM Pricing.
+          - description: |-
+              Restricts IBM License Service to watching only the namespaces specified in the WATCH_NAMESPACE operator environment variable or in the ConfigMap referenced by .features.nssConfigMap.
+              This feature requires authorization from IBM Pricing.
             displayName: Namespace scope enabled
             path: features.nssEnabled
             x-descriptors:
@@ -402,15 +404,6 @@ spec:
             path: softwareCentral.sandbox
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-          - description: |-
-              Comma-separated list of namespaces the operand must monitor. When non-empty it is the exclusive source
-              of truth for the operand's scope: the operator sets NAMESPACE_SCOPE_ENABLED=true and WATCH_NAMESPACE to
-              exactly this list, restricting every workload-listing and chargeback call to it (no cluster-wide listing).
-              When empty the operand keeps its default cluster-wide discovery behavior.
-            displayName: Watched Namespaces
-            path: watchedNamespaces
-            x-descriptors:
-              - urn:alm:descriptor:com.tectonic.ui:text
         version: v1alpha1
       - description: |-
           IBMLicensingDefinition is a custom resource for internal use only. It is used by some IBM products to assign their pods to the licensed products for the licensing specific calculation, performed by the IBM License Service.

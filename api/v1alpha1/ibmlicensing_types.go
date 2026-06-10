@@ -90,14 +90,6 @@ type IBMLicensingSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Instance Namespace",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	InstanceNamespace string `json:"instanceNamespace,omitempty"`
 
-	// Comma-separated list of namespaces the operand must monitor. When non-empty it is the exclusive source
-	// of truth for the operand's scope: the operator sets NAMESPACE_SCOPE_ENABLED=true and WATCH_NAMESPACE to
-	// exactly this list, restricting every workload-listing and chargeback call to it (no cluster-wide listing).
-	// When empty the operand keeps its default cluster-wide discovery behavior.
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Watched Namespaces",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
-	// +optional
-	WatchedNamespaces string `json:"watchedNamespaces,omitempty"`
-
 	// If default SCC user ID fails, you can set runAsUser option to fix that
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Security Context",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional

@@ -170,18 +170,6 @@ func (spec *IBMLicensingSpec) FillDefaultValues(reqLogger logr.Logger, isOCP4Cer
 	return nil
 }
 
-// GetWatchedNamespaces parses spec.WatchedNamespaces (a comma-separated string) into a
-// slice, trimming whitespace and dropping empty entries.
-func (spec *IBMLicensingSpec) GetWatchedNamespaces() []string {
-	var out []string
-	for ns := range strings.SplitSeq(spec.WatchedNamespaces, ",") {
-		if trimmed := strings.TrimSpace(ns); trimmed != "" {
-			out = append(out, trimmed)
-		}
-	}
-	return out
-}
-
 func (spec *IBMLicensingSpec) IsRouteEnabled() bool {
 	return spec.RouteEnabled != nil && *spec.RouteEnabled
 }
