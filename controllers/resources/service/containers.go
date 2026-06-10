@@ -160,12 +160,6 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "false",
 		})
 	}
-	if !spec.IsKubeRBACAuthEnabled() {
-		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "KUBE_RBAC_AUTH_ENABLED",
-			Value: "false",
-		})
-	}
 	// When spec.watchedNamespaces is set it is the exclusive source of truth for the operand's
 	// namespace scope: NAMESPACE_SCOPE_ENABLED=true restricts the operand to WATCH_NAMESPACE and
 	// suppresses every cluster-wide list call (workloads and chargeback). When the field is absent
