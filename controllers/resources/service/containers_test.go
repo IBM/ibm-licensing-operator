@@ -206,7 +206,6 @@ func TestGetLicensingEnvironmentVariablesNodeCpuCappingExplicitTrue(t *testing.T
 		"NodeCpuCappingEnabled=true, NODE_CPU_CAPPING_ENABLED=true should not be added to Licensing pod.")
 }
 
-
 func TestGetLicensingEnvironmentVariablesNodeCpuCappingExplicitFalse(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
