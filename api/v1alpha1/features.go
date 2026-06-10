@@ -46,6 +46,16 @@ type Features struct {
 	// +optional
 	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
 
+	// Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
+	// real node capacity. Defaults to true.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Node CPU Capping Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +optional
+	NodeCpuCappingEnabled *bool `json:"nodeCpuCappingEnabled,omitempty"`
+
+	// Enables the bearer-token / Kubernetes RBAC authentication path on the operand (TokenReview + SubjectAccessReview). Defaults to true.
+	// +optional
+	KubeRBACAuthEnabled *bool `json:"kubeRBACAuthEnabled,omitempty"`
+
 	// Special terms, must be granted by IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Custom namespaces Config Map",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
@@ -63,6 +73,13 @@ func (spec *IBMLicensingSpec) HaveFeatures() bool {
 
 func (spec *IBMLicensingSpec) IsNamespaceScopeEnabled() bool {
 	return spec.HaveFeatures() && spec.Features.NamespaceScopeEnabled != nil && *spec.Features.NamespaceScopeEnabled
+}
+
+func (spec *IBMLicensingSpec) IsKubeRBACAuthEnabled() bool {
+	if !spec.HaveFeatures() || spec.Features.KubeRBACAuthEnabled == nil {
+		return true
+	}
+	return *spec.Features.KubeRBACAuthEnabled
 }
 
 func (spec *IBMLicensingSpec) IsCustomNamespaceScopeConfigMap() bool {
