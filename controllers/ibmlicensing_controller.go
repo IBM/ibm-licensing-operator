@@ -1444,9 +1444,10 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 	if instance.Spec.IsNamespaceScopeEnabled() {
 		r.Log.Info("Namespace scope restriction is enabled")
 	}
-	r.Log.Info("Operand namespace discovery is disabled; restricting operand to watched namespaces",
-		"watchedNamespaces", service.GetEffectiveWatchedNamespaces(instance.Spec))
-
+	if watched := instance.Spec.GetWatchedNamespaces(); len(watched) > 0 {
+		r.Log.Info("Operand is restricted to watched namespaces (NAMESPACE_SCOPE_ENABLED=true)",
+			"watchedNamespaces", watched)
+	}
 }
 
 func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operatorv1alpha1.IBMLicensing, secretNsName types.NamespacedName, hostname []string, rolloutPods bool) (reconcile.Result, error) {

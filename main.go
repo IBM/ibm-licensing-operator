@@ -23,7 +23,6 @@ import (
 	"os"
 	r "runtime"
 
-	"github.com/go-logr/logr"
 	servicecav1 "github.com/openshift/api/operator/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -199,7 +198,11 @@ func main() {
 	// are wired before any IBMLicensing CR is reconciled. The decision comes from the active IBMLicensing CR's features.operandRequestsEnabled flag
 	// (defaulting to enabled when there is no CR or the flag is unset). When the flag is later changed, the IBMLicensing reconciler restarts
 	// the operator so this decision is re-evaluated.
-	operandRequestsEnabled := startupOperandRequestsEnabled(mgr.GetAPIReader(), setupLog)
+	operandRequestsEnabled, err := startupOperandRequestsEnabled(mgr.GetAPIReader())
+	if err != nil {
+		setupLog.Error(err, "failed to determine whether OperandRequest support is enabled")
+		os.Exit(1)
+	}
 
 	controller := &controllers.IBMLicensingReconciler{
 		Client:                  mgr.GetClient(),
@@ -312,15 +315,13 @@ func main() {
 	}
 }
 
-// startupOperandRequestsEnabled reads the active IBMLicensing CR's features.operandRequestsEnabled flag to decide
-// whether OperandRequest support is wired at startup. It defaults to enabled when no CR exists yet, when the
-// flag is unset, or when the CRs cannot be listed, so existing installs keep today's behavior. The active CR is the oldest one,
-// matching the controller's own active-instance selection.
-func startupOperandRequestsEnabled(reader client.Reader, log logr.Logger) bool {
+// startupOperandRequestsEnabled reads the active IBMLicensing CR's features.operandRequestsEnabled flag to decide whether OperandRequest
+// support is wired at startup. It defaults to enabled when no CR exists yet or when the flag is unset, so existing installs keep today's
+// behavior. The active CR is the oldest one, matching the controller's own active-instance selection.
+func startupOperandRequestsEnabled(reader client.Reader) (bool, error) {
 	ibmLicensingList := &operatoribmcomv1alpha1.IBMLicensingList{}
 	if err := reader.List(context.Background(), ibmLicensingList); err != nil {
-		log.Error(err, "Unable to list IBMLicensing CRs at startup; defaulting OperandRequest support to enabled")
-		return true
+		return false, fmt.Errorf("unable to list IBMLicensing CRs at startup: %w", err)
 	}
 
 	var active *operatoribmcomv1alpha1.IBMLicensing
@@ -331,7 +332,8 @@ func startupOperandRequestsEnabled(reader client.Reader, log logr.Logger) bool {
 		}
 	}
 	if active == nil {
-		return true
+		return true, nil
 	}
-	return active.Spec.IsOperandRequestsEnabled()
+
+	return active.Spec.IsOperandRequestsEnabled(), nil
 }

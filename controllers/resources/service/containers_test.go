@@ -225,8 +225,8 @@ func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledFeatureNil(t *testin
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"}),
-		"Features is nil, KUBE_RBAC_AUTH_ENABLED should not be added to Licensing pod.")
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "true"},
+		"Features is nil, KUBE_RBAC_AUTH_ENABLED=true should be added to Licensing pod.")
 }
 
 func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledPointerNil(t *testing.T) {
@@ -237,8 +237,8 @@ func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledPointerNil(t *testin
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"}),
-		"KubeRBACAuthEnabled pointer is nil, KUBE_RBAC_AUTH_ENABLED should not be added to Licensing pod.")
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "true"},
+		"KubeRBACAuthEnabled pointer is nil, KUBE_RBAC_AUTH_ENABLED=true should be added to Licensing pod.")
 }
 
 func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitTrue(t *testing.T) {
@@ -251,8 +251,8 @@ func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitTrue(t *test
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"}),
-		"KubeRBACAuthEnabled=true, KUBE_RBAC_AUTH_ENABLED should not be added to Licensing pod.")
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "true"},
+		"KubeRBACAuthEnabled=true, KUBE_RBAC_AUTH_ENABLED=true should be added to Licensing pod.")
 }
 
 func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitFalse(t *testing.T) {
@@ -265,11 +265,11 @@ func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitFalse(t *tes
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"}),
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"},
 		"KubeRBACAuthEnabled=false, KUBE_RBAC_AUTH_ENABLED=false should be added to Licensing pod.")
 }
 
-func TestGetLicensingEnvironmentVariablesDisablesDiscoveryWhenWatchedNamespacesSet(t *testing.T) {
+func TestGetLicensingEnvironmentVariablesEnablesNamespaceScopeWhenWatchedNamespacesSet(t *testing.T) {
 	t.Setenv("WATCH_NAMESPACE", "")
 
 	spec := operatorv1alpha1.IBMLicensingSpec{
@@ -279,13 +279,17 @@ func TestGetLicensingEnvironmentVariablesDisablesDiscoveryWhenWatchedNamespacesS
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "NAMESPACE_DISCOVERY_ENABLED", Value: "false"}),
-		"With watchedNamespaces set the operand is scoped, NAMESPACE_DISCOVERY_ENABLED=false should be added.")
+	assert.Equal(t, 1, countEnvVar(envVars, "NAMESPACE_SCOPE_ENABLED"),
+		"With watchedNamespaces set, NAMESPACE_SCOPE_ENABLED must be emitted exactly once.")
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "NAMESPACE_SCOPE_ENABLED", Value: "true"}),
+		"With watchedNamespaces set the operand is scoped, NAMESPACE_SCOPE_ENABLED=true should be added.")
+	assert.Equal(t, 1, countEnvVar(envVars, "WATCH_NAMESPACE"),
+		"WATCH_NAMESPACE must be emitted exactly once.")
 	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "WATCH_NAMESPACE", Value: "ns-a,ns-b"}),
 		"WATCH_NAMESPACE should carry the watchedNamespaces list when the operator scope is empty.")
 }
 
-func TestGetLicensingEnvironmentVariablesClusterScopedLeavesDiscoveryDefault(t *testing.T) {
+func TestGetLicensingEnvironmentVariablesClusterScopedEmitsNoScoping(t *testing.T) {
 	t.Setenv("WATCH_NAMESPACE", "")
 
 	spec := operatorv1alpha1.IBMLicensingSpec{
@@ -294,13 +298,13 @@ func TestGetLicensingEnvironmentVariablesClusterScopedLeavesDiscoveryDefault(t *
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.Equal(t, 0, countEnvVar(envVars, "NAMESPACE_DISCOVERY_ENABLED"),
-		"A cluster-scoped install must not disable the operand's cluster-wide discovery (NFR-12).")
+	assert.Equal(t, 0, countEnvVar(envVars, "NAMESPACE_SCOPE_ENABLED"),
+		"A cluster-scoped install must not emit NAMESPACE_SCOPE_ENABLED (NFR-12).")
 	assert.Equal(t, 0, countEnvVar(envVars, "WATCH_NAMESPACE"),
 		"A cluster-scoped install must not force WATCH_NAMESPACE on the operand.")
 }
 
-func TestGetLicensingEnvironmentVariablesWatchedNamespacesMergesOperatorScope(t *testing.T) {
+func TestGetLicensingEnvironmentVariablesWatchedNamespacesIsSourceOfTruth(t *testing.T) {
 	t.Setenv("WATCH_NAMESPACE", "ibm-licensing")
 
 	spec := operatorv1alpha1.IBMLicensingSpec{
@@ -310,12 +314,12 @@ func TestGetLicensingEnvironmentVariablesWatchedNamespacesMergesOperatorScope(t 
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "NAMESPACE_DISCOVERY_ENABLED", Value: "false"}),
-		"NAMESPACE_DISCOVERY_ENABLED=false should always be added.")
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "NAMESPACE_SCOPE_ENABLED", Value: "true"}),
+		"NAMESPACE_SCOPE_ENABLED=true must be emitted when watchedNamespaces is set.")
 	assert.Equal(t, 1, countEnvVar(envVars, "WATCH_NAMESPACE"),
 		"WATCH_NAMESPACE must be emitted exactly once.")
-	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "WATCH_NAMESPACE", Value: "ibm-licensing,ns-a,ns-b"}),
-		"WATCH_NAMESPACE should be the merged operator scope + watchedNamespaces set.")
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "WATCH_NAMESPACE", Value: "ns-a,ns-b"}),
+		"WATCH_NAMESPACE must carry only spec.watchedNamespaces; operator scope is not merged.")
 }
 
 func TestGetLicensingEnvironmentVariablesWatchedNamespacesDedupAndTrim(t *testing.T) {
@@ -329,7 +333,7 @@ func TestGetLicensingEnvironmentVariablesWatchedNamespacesDedupAndTrim(t *testin
 
 	envVars := getLicensingEnvironmentVariables(spec)
 	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "WATCH_NAMESPACE", Value: "ns-a,ns-b"}),
-		"WATCH_NAMESPACE should be trimmed and deduplicated against the operator scope.")
+		"WATCH_NAMESPACE should be the trimmed spec.watchedNamespaces list (operator scope is not merged).")
 }
 
 func TestGetLicensingEnvironmentVariablesWatchedNamespacesWithNamespaceScope(t *testing.T) {
@@ -345,48 +349,36 @@ func TestGetLicensingEnvironmentVariablesWatchedNamespacesWithNamespaceScope(t *
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "NAMESPACE_DISCOVERY_ENABLED", Value: "false"}),
-		"NAMESPACE_DISCOVERY_ENABLED=false should be added even when NSS is enabled.")
+	assert.Equal(t, 1, countEnvVar(envVars, "NAMESPACE_SCOPE_ENABLED"),
+		"NAMESPACE_SCOPE_ENABLED must be emitted exactly once (no duplicate from the two blocks).")
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "NAMESPACE_SCOPE_ENABLED", Value: "true"}),
+		"NSS must still emit NAMESPACE_SCOPE_ENABLED=true.")
 	assert.Equal(t, 1, countEnvVar(envVars, "WATCH_NAMESPACE"),
-		"With NSS also enabled, WATCH_NAMESPACE must be emitted exactly once (the NSS-owned entry).")
-	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "WATCH_NAMESPACE", Value: "ibm-licensing"}),
-		"The single WATCH_NAMESPACE entry should be the NSS-owned one.")
-	assert.False(t, Contains(envVars, corev1.EnvVar{Name: "WATCH_NAMESPACE", Value: "ibm-licensing,ns-a,ns-b"}),
-		"ILS-2141 must not emit a duplicate WATCH_NAMESPACE when NSS already owns it.")
+		"WATCH_NAMESPACE must be emitted exactly once.")
+	assert.True(t, Contains(envVars, corev1.EnvVar{Name: "WATCH_NAMESPACE", Value: "ns-a,ns-b"}),
+		"When watchedNamespaces is set it owns WATCH_NAMESPACE; NSS does not override it.")
 }
 
-func TestGetEffectiveWatchedNamespacesMergesAndDedups(t *testing.T) {
-	t.Setenv("WATCH_NAMESPACE", "ibm-licensing,ns-a")
+func TestGetLicensingEnvironmentVariablesNoWatchedNamespacesKeepsClusterWide(t *testing.T) {
+	t.Setenv("WATCH_NAMESPACE", "ibm-licensing")
 
-	spec := operatorv1alpha1.IBMLicensingSpec{WatchedNamespaces: " ns-a , ns-b ,"}
-	assert.Equal(t, []string{"ibm-licensing", "ns-a", "ns-b"}, GetEffectiveWatchedNamespaces(spec),
-		"The effective set should be the trimmed, deduplicated union of the operator scope and watchedNamespaces.")
-}
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		// WatchedNamespaces intentionally absent
+	}
 
-func TestGetEffectiveWatchedNamespacesEmptyWhenNeitherSet(t *testing.T) {
-	t.Setenv("WATCH_NAMESPACE", "")
-
-	spec := operatorv1alpha1.IBMLicensingSpec{}
-	assert.Empty(t, GetEffectiveWatchedNamespaces(spec),
-		"With neither the operator scope nor watchedNamespaces set, the effective set must be empty (the cluster-scoped case: the operand keeps cluster-wide discovery).")
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.Equal(t, 0, countEnvVar(envVars, "NAMESPACE_SCOPE_ENABLED"),
+		"When watchedNamespaces is absent, NAMESPACE_SCOPE_ENABLED must not be emitted (cluster-wide default).")
+	assert.Equal(t, 0, countEnvVar(envVars, "WATCH_NAMESPACE"),
+		"When watchedNamespaces is absent, WATCH_NAMESPACE is not emitted by the watchedNamespaces path.")
 }
 
 func TestGetDefaultIBMLicensingSeedsWatchedNamespaces(t *testing.T) {
-	t.Setenv("WATCH_NAMESPACE", "")
-
 	defaultInstance := GetDefaultIBMLicensing("ibm-licensing")
 	assert.Equal(t, "ibm-licensing", defaultInstance.Spec.WatchedNamespaces,
 		"The default instance should seed watchedNamespaces with the operator namespace.")
-	assert.Equal(t, []string{"ibm-licensing"}, GetEffectiveWatchedNamespaces(defaultInstance.Spec),
-		"The default instance must yield a non-empty effective set even with an empty operator WATCH_NAMESPACE, so it is scoped to the operator namespace.")
-}
-
-func TestGetEffectiveWatchedNamespacesFromOperatorScopeOnly(t *testing.T) {
-	t.Setenv("WATCH_NAMESPACE", "ibm-licensing")
-
-	spec := operatorv1alpha1.IBMLicensingSpec{}
-	assert.Equal(t, []string{"ibm-licensing"}, GetEffectiveWatchedNamespaces(spec),
-		"A CR with no watchedNamespaces is still valid when the operator's WATCH_NAMESPACE scope is set.")
 }
 
 func Contains[T comparable](s []T, e T) bool {

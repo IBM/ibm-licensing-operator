@@ -119,13 +119,13 @@ spec:
                     type: object
                   kubeRBACAuthEnabled:
                     description: Enables the bearer-token / Kubernetes RBAC authentication
-                      path on the operand (TokenReview + SubjectAccessReview). Default
-                      true.
+                      path on the operand (TokenReview + SubjectAccessReview). Defaults
+                      to true.
                     type: boolean
                   nodeCpuCappingEnabled:
                     description: |-
                       Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
-                      real node capacity. Default true.
+                      real node capacity. Defaults to true.
                     type: boolean
                   nssConfigMap:
                     description: Special terms, must be granted by IBM Pricing.
@@ -483,9 +483,10 @@ spec:
                 type: string
               watchedNamespaces:
                 description: |-
-                  Comma-separated list of namespaces the operand must monitor. At least one namespace is required.
-                  The operator merges this list with its own WATCH_NAMESPACE scope, disables the operand's cluster-wide namespace
-                  discovery, and restricts every workload-listing call to the resulting set.
+                  Comma-separated list of namespaces the operand must monitor. When non-empty it is the exclusive source
+                  of truth for the operand's scope: the operator sets NAMESPACE_SCOPE_ENABLED=true and WATCH_NAMESPACE to
+                  exactly this list, restricting every workload-listing and chargeback call to it (no cluster-wide listing).
+                  When empty the operand keeps its default cluster-wide discovery behavior.
                 type: string
             required:
             - datasource

@@ -1,0 +1,207 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations: {}
+  labels:
+    app.kubernetes.io/component: ibm-licensing-service-svc
+    app.kubernetes.io/instance: ibm-licensing-service
+    app.kubernetes.io/managed-by: operator
+    app.kubernetes.io/name: ibm-licensing-service-instance
+    release: ibm-licensing-service
+  name: ibm-licensing-service-instance
+  namespace: {{ .Values.ibmLicensing.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ibm-licensing-service-instance
+      component: ibm-licensing-service-svc
+      licensing_cr: instance
+  template:
+    metadata:
+      annotations:
+        productID: 068a62892a1e4db39641342e592daa25
+        productMetric: FREE
+        productName: IBM Cloud Platform Common Services
+      labels:
+        app: ibm-licensing-service-instance
+        app.kubernetes.io/component: ibm-licensing-service-svc
+        app.kubernetes.io/instance: ibm-licensing-service
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: ibm-licensing-service-instance
+        component: ibm-licensing-service-svc
+        licensing_cr: instance
+        release: ibm-licensing-service
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+                      - ppc64le
+                      - s390x
+      containers:
+        - env:
+            - name: NAMESPACE
+              value: {{ .Values.ibmLicensing.namespace | quote }}
+            - name: DATASOURCE
+              value: {{ .Values.ibmLicensing.datasource | quote }}
+            - name: HTTPS_ENABLE
+              value: {{ .Values.ibmLicensing.httpsEnable | quote }}
+            - name: ENABLE_INSTANA_METRIC_COLLECTION
+              value: {{ .Values.ibmLicensing.enableInstanaMetricCollection | quote }}
+            - name: HTTPS_CERTS_SOURCE
+              value: {{ .Values.ibmLicensing.httpsCertsSource | quote }}
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 8080
+              scheme: HTTPS
+            initialDelaySeconds: 120
+            periodSeconds: 300
+            successThreshold: 1
+            timeoutSeconds: 10
+          name: license-service
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 8080
+              scheme: HTTPS
+            initialDelaySeconds: 60
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 10
+          resources:
+            limits:
+              cpu: {{ .Values.ibmLicensing.resources.limits.cpu }}
+              memory: {{ .Values.ibmLicensing.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.ibmLicensing.resources.requests.cpu }}
+              ephemeral-storage: {{ .Values.ibmLicensing.resources.requests.ephemeralStorage }}
+              memory: {{ .Values.ibmLicensing.resources.requests.memory }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - mountPath: /opt/ibm/licensing/token
+              name: api-token
+              readOnly: true
+              subPath: token
+            - mountPath: /opt/ibm/licensing/token-upload
+              name: token-upload
+              readOnly: true
+              subPath: token-upload
+            - mountPath: /tmp
+              name: tmp
+            - mountPath: /opt/licensing/certs/
+              name: licensing-https-certs
+              readOnly: true
+      initContainers:
+        - command:
+            - sh
+            - -c
+            - |
+              while true; do
+                echo "$(date): Checking for ocp secret"
+                ls /opt/licensing/certs/* && break
+                echo "$(date): Required ocp secret not found ... try again in 30s"
+                sleep 30
+              done
+              echo "$(date): All required secrets exist"
+          env:
+            - name: NAMESPACE
+              value: {{ .Values.ibmLicensing.namespace | quote }}
+            - name: DATASOURCE
+              value: {{ .Values.ibmLicensing.datasource | quote }}
+            - name: HTTPS_ENABLE
+              value: {{ .Values.ibmLicensing.httpsEnable | quote }}
+            - name: ENABLE_INSTANA_METRIC_COLLECTION
+              value: {{ .Values.ibmLicensing.enableInstanaMetricCollection | quote }}
+            - name: HTTPS_CERTS_SOURCE
+              value: {{ .Values.ibmLicensing.httpsCertsSource | quote }}
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
+          imagePullPolicy: IfNotPresent
+          name: ocp-check-secret
+          resources:
+            limits:
+              cpu: {{ .Values.ibmLicensing.resources.limits.cpu }}
+              memory: {{ .Values.ibmLicensing.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.ibmLicensing.resources.requests.cpu }}
+              ephemeral-storage: {{ .Values.ibmLicensing.resources.requests.ephemeralStorage }}
+              memory: {{ .Values.ibmLicensing.resources.requests.memory }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - mountPath: /opt/ibm/licensing/token
+              name: api-token
+              readOnly: true
+              subPath: token
+            - mountPath: /opt/ibm/licensing/token-upload
+              name: token-upload
+              readOnly: true
+              subPath: token-upload
+            - mountPath: /tmp
+              name: tmp
+            - mountPath: /opt/licensing/certs/
+              name: licensing-https-certs
+              readOnly: true
+      restartPolicy: Always
+      securityContext: {}
+      serviceAccountName: ibm-license-service
+      terminationGracePeriodSeconds: 60
+      tolerations:
+        - effect: NoSchedule
+          key: dedicated
+          operator: Exists
+        - key: CriticalAddonsOnly
+          operator: Exists
+      volumes:
+        - name: api-token
+          secret:
+            defaultMode: 420
+            secretName: ibm-licensing-token
+        - name: token-upload
+          secret:
+            defaultMode: 420
+            secretName: ibm-licensing-upload-token
+        - name: licensing-https-certs
+          secret:
+            defaultMode: 420
+            optional: true
+            secretName: ibm-license-service-cert-internal
+        - emptyDir:
+            sizeLimit: 600Mi
+          name: tmp
+      {{ if .Values.global.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.global.imagePullSecret }}
+      {{- end -}}
