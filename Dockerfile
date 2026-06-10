@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-edge-docker-local/build-images/ubi9-minimal:latest
+FROM docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-edge-docker-local/build-images/ubi10-minimal:latest
 
 ARG IMAGE_NAME
 ARG IMAGE_DISPLAY_NAME
