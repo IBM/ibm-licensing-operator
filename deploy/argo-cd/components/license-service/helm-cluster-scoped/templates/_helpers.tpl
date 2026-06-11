@@ -24,8 +24,8 @@ All gates default to "enabled/present" so that an unset value reproduces today's
 RBAC exactly. The nil-safe parenthesised access yields "true" when spec /
 features / the field is absent (nil | toString -> "", ne "false" -> true),
 mirroring the operator helpers IsNodeCpuCappingEnabled / IsKubeRBACAuthEnabled /
-IsOperandRequestsEnabled and the watchedNamespaces "non-empty => discovery off"
-rule.
+IsOperandRequestsEnabled and IsNamespaceScopeEnabled (nil-default-false: namespace
+discovery stays on unless features.nssEnabled is explicitly true).
 */}}
 
 {{- define "ibm-licensing.nodeCpuCappingEnabled" -}}
@@ -41,5 +41,5 @@ rule.
 {{- end -}}
 
 {{- define "ibm-licensing.namespaceDiscoveryEnabled" -}}
-{{- empty ((.Values.ibmLicensing.spec).watchedNamespaces) -}}
+{{- ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" -}}
 {{- end -}}

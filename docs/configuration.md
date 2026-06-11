@@ -11,12 +11,13 @@ default in `values.yaml`, reproducing previous releases' runtime behavior. RBAC
 is only ever **trimmed** when you turn a feature off — nothing new is ever
 granted.
 
-> The defaults are written out explicitly (`features.*: true`,
-> `watchedNamespaces: ""`) rather than left unset. The rendered **RBAC** is
-> byte-identical to previous releases, and the operator treats explicit-default
-> identically to absent (its `IsKubeRBACAuthEnabled` / `IsNodeCpuCappingEnabled`
-> / `IsOperandRequestsEnabled` helpers default to `true`; empty
-> `watchedNamespaces` ⇒ cluster-wide discovery). The only manifest difference
+> The defaults are written out explicitly (`features.nodeCpuCappingEnabled`/
+> `kubeRBACAuthEnabled`/`operandRequestsEnabled: true`, `features.nssEnabled:
+> false`) rather than left unset. The rendered **RBAC** is byte-identical to
+> previous releases, and the operator treats explicit-default identically to
+> absent (its `IsKubeRBACAuthEnabled` / `IsNodeCpuCappingEnabled` /
+> `IsOperandRequestsEnabled` helpers default to `true`; `IsNamespaceScopeEnabled`
+> defaults to `false` ⇒ cluster-wide discovery). The only manifest difference
 > from earlier releases is that the rendered `IBMLicensing` CR now carries these
 > fields in `spec` explicitly.
 
@@ -34,8 +35,8 @@ behavior-preserving defaults:
 ```yaml
 ibmLicensing:
   spec:
-    watchedNamespaces: ""        # non-empty disables cluster-wide namespace discovery
     features:
+      nssEnabled: false            # true scopes the operand to the watchNamespace set / nssConfigMap and disables cluster-wide namespace discovery
       nodeCpuCappingEnabled: true
       kubeRBACAuthEnabled: true
       operandRequestsEnabled: true
@@ -46,7 +47,7 @@ ibmLicensing:
 | `ibmLicensing.spec.features.nodeCpuCappingEnabled: false` | `spec.features.nodeCpuCappingEnabled` | `true` (node access) | `nodes` resource dropped from the core-group rule of the `ibm-license-service` and `ibm-license-service-restricted` ClusterRoles |
 | `ibmLicensing.spec.features.kubeRBACAuthEnabled: false` | `spec.features.kubeRBACAuthEnabled` | `true` (token/SAR review) | `authentication.k8s.io/tokenreviews` (create) and `authorization.k8s.io/subjectaccessreviews` (create) rules dropped from both operand ClusterRoles |
 | `ibmLicensing.spec.features.operandRequestsEnabled: false` | `spec.features.operandRequestsEnabled` | `true` (ODLM integration) | `operator.ibm.com/operandrequests*` rule dropped from the `ibm-licensing-operator` ClusterRole; `operators.coreos.com/operatorgroups` rule dropped from the `ibm-licensing-operator` Role; the entire `cluster-rbac-for-operandrequests.yaml` content (`ibm-licensing-opreqs-role` ClusterRole + binding) is removed |
-| `ibmLicensing.spec.watchedNamespaces: "ns-a,ns-b"` (non-empty) | `spec.watchedNamespaces` | empty ⇒ cluster-wide discovery on | cluster-wide `namespaces` (get/list) dropped from the core-group rule of the `ibm-license-service` and `ibm-license-service-restricted` ClusterRoles. The `ibm-licensing-operator` ClusterRole's own `namespaces [get]` rule is **not** affected. |
+| `ibmLicensing.spec.features.nssEnabled: true` | `spec.features.nssEnabled` | `false` ⇒ cluster-wide discovery on | cluster-wide `namespaces` (get/list) dropped from the core-group rule of the `ibm-license-service` and `ibm-license-service-restricted` ClusterRoles. The operand is scoped to the `WATCH_NAMESPACE` set (or the ConfigMap named by `spec.features.nssConfigMap`). The `ibm-licensing-operator` ClusterRole's own `namespaces [get]` rule is **not** affected. |
 
 Notes:
 

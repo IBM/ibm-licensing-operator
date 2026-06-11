@@ -150,21 +150,21 @@ else
   assert_absent  "ibm-licensing-opreqs-role" "noOpreq" "$R"
   assert_present "$RES_NODES"               "noOpreq" "$R"
 
-  R="$(render --set ibmLicensing.spec.watchedNamespaces='a\,b')"
-  assert_present "$RES_NODES" "watchedNs" "$R"
+  R="$(render --set ibmLicensing.spec.features.nssEnabled=true)"
+  assert_present "$RES_NODES" "nssEnabled" "$R"
   # cluster namespaces list removed from operand roles, operator's own kept
   if command -v yq >/dev/null 2>&1; then
     ls_core="$(printf '%s' "$R" | yq 'select(.kind=="ClusterRole" and .metadata.name=="ibm-license-service") | .rules[] | select(.apiGroups[]=="") | .resources' 2>/dev/null)"
     if printf '%s' "$ls_core" | grep -q 'namespaces'; then
-      bad "render[watchedNs]: operand role still lists cluster namespaces"
+      bad "render[nssEnabled]: operand role still lists cluster namespaces"
     else
-      ok "render[watchedNs]: operand role drops cluster namespaces"
+      ok "render[nssEnabled]: operand role drops cluster namespaces"
     fi
     op_ns="$(printf '%s' "$R" | yq 'select(.kind=="ClusterRole" and .metadata.name=="ibm-licensing-operator") | .rules[] | select(.resources[]=="namespaces") | .resources' 2>/dev/null)"
     if printf '%s' "$op_ns" | grep -q 'namespaces'; then
-      ok "render[watchedNs]: operator role keeps its namespaces[get]"
+      ok "render[nssEnabled]: operator role keeps its namespaces[get]"
     else
-      bad "render[watchedNs]: operator role lost its namespaces[get]"
+      bad "render[nssEnabled]: operator role lost its namespaces[get]"
     fi
   fi
 
@@ -173,7 +173,7 @@ else
       --set ibmLicensing.spec.features.nodeCpuCappingEnabled=false \
       --set ibmLicensing.spec.features.kubeRBACAuthEnabled=false \
       --set ibmLicensing.spec.features.operandRequestsEnabled=false \
-      --set ibmLicensing.spec.watchedNamespaces='a\,b')"
+      --set ibmLicensing.spec.features.nssEnabled=true)"
   assert_present "$RES_PODS" "allOff" "$R"
   if command -v yq >/dev/null 2>&1; then
     if printf '%s' "$R" | yq 'true' >/dev/null 2>&1; then
