@@ -872,7 +872,7 @@ verify/helm-conditional-rbac: ## Fail if chart RBAC guards drift from generation
 		rm -rf $$tmp; exit $$rc
 
 .PHONY: test/helm-conditional-rbac
-test/helm-conditional-rbac: helm ## Run conditional RBAC script + render-matrix tests (ILS-2352)
+test/helm-conditional-rbac: helm ## Run conditional RBAC script + render-matrix tests
 	@bash common/scripts/tests/conditionalize-helm-rbac-test.sh
 
 ## Development Helm charts

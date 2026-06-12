@@ -1,4 +1,4 @@
-# Conditional RBAC gating table (ILS-2352)
+# Conditional RBAC gating table
 #
 # Declarative data read by conditionalize-helm-rbac.awk. One row per gated rule.
 # Pipe-separated columns (surrounding whitespace is trimmed):
