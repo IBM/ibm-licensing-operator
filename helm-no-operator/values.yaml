@@ -15,7 +15,7 @@ ibmLicensing:
     enableInstanaMetricCollection: false
     httpsCertsSource: external
     features:
-      nssEnabled: true
+      nssEnabled: false
       nodeCpuCappingEnabled: true
       kubeRBACAuthEnabled: true
     resources:
