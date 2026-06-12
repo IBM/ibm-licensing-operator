@@ -14,7 +14,7 @@ ibmLicensing:
     datasource: datacollector
     httpsEnable: true
     features:
-      nssEnabled: false                      # true => operand scoped to the watchNamespace set / nssConfigMap; no cluster-wide namespaces RBAC
-      nodeCpuCappingEnabled: true            # false => no node-access RBAC
-      kubeRBACAuthEnabled: true              # false => no tokenreviews/subjectaccessreviews RBAC
-      operandRequestsEnabled: true           # false => no OperandRequest RBAC
+      nssEnabled: false
+      nodeCpuCappingEnabled: true
+      kubeRBACAuthEnabled: true
+      operandRequestsEnabled: true
