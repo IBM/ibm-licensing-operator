@@ -93,24 +93,83 @@ END {
   if (MODE_WF) { do_wholefile(); exit }
 
   # Strip any previously-injected guards so re-application is idempotent.
-  cn = 0
+  # Top-level {{- if ... }} / {{- end }} are balanced through a stack so the outer
+  # createRBAC wrapper survives while ILS-2353 object guards (whose openers carry an
+  # ibm-licensing helper include) are removed. Indented rule/item guards are dropped
+  # by the per-line filters; a templated subject (name: {{ include ... }}) is content,
+  # not a {{- if opener, so it is preserved.
+  cn = 0; sp = 0
   for (i = 1; i <= N; i++) {
     s = L[i]
-    if (s ~ /include "ibm-licensing\./) continue
-    if (s ~ /^[ \t]+{{- end }}[ \t]*$/) continue
+    if (s ~ /^{{- if/) {
+      if (s ~ /include "ibm-licensing\./) { stack[++sp] = "STRIP" }
+      else                                { stack[++sp] = "KEEP"; C[++cn] = s }
+      continue
+    }
+    if (s ~ /^{{- end }}[ \t]*$/) {
+      if (sp > 0) { if (stack[sp--] == "KEEP") C[++cn] = s; continue }
+      C[++cn] = s; continue
+    }
+    if (s ~ /{{- if .*include "ibm-licensing\./) continue
+    if (s ~ /^[ \t]+{{- end }}[ \t]*$/)          continue
     C[++cn] = s
   }
 
+  build_object_guards()
+
   kind = ""; name = ""; in_meta = 0; in_rules = 0; sub_state = ""; rulen = 0
-  for (i = 1; i <= cn; i++) process(C[i])
+  objPending = ""
+  for (i = 1; i <= cn; i++) process(C[i], i)
   flush_rule()
+  if (objPending != "") print "{{- end }}"
 }
 
-function process(line,   item) {
+# For each document boundary (---) in the stripped stream, record the object-guard
+# helper (if any) that should wrap the document it opens, keyed by line index.
+function build_object_guards(   i, j, dk, dn, im) {
+  for (i = 1; i <= cn; i++) openAt[i] = ""
+  for (i = 1; i <= cn; i++) {
+    if (C[i] !~ /^---/) continue
+    dk = ""; dn = ""; im = 0
+    for (j = i + 1; j <= cn && C[j] !~ /^---/; j++) {
+      if (C[j] ~ /^kind:/)              { dk = trim(substr(C[j], 6)); im = 0 }
+      else if (C[j] ~ /^metadata:/)     { im = 1 }
+      else if (C[j] ~ /^[A-Za-z]/)      { im = 0 }
+      else if (im && C[j] ~ /^  name:/) { dn = trim(substr(C[j], index(C[j], ":") + 1)) }
+    }
+    openAt[i] = object_helper(dk, dn)
+  }
+}
+
+# Object rows match on (kind,name) only; apiGroup/resources are "*".
+function object_helper(k, n,   r) {
+  for (r = 1; r <= nrows; r++) {
+    if (R_action[r] != "object") continue
+    if (R_kind[r] != "" && R_kind[r] != "*" && R_kind[r] != k) continue
+    if (R_name[r] != "" && R_name[r] != "*" && R_name[r] != n) continue
+    return R_helper[r]
+  }
+  return ""
+}
+
+function process(line, idx,   item) {
   if (line ~ /^---/) {
     flush_rule()
+    if (objPending != "") { print "{{- end }}"; objPending = "" }
     print line
     kind = ""; name = ""; in_meta = 0; in_rules = 0; sub_state = ""
+    if (openAt[idx] != "") {
+      print "{{- if eq (include \"" helperPrefix openAt[idx] "\" .) \"true\" }}"
+      objPending = openAt[idx]
+    }
+    return
+  }
+  # Top-level {{- end }} (the createRBAC closer): close any open object guard first
+  # so the object {{- end }} nests inside the createRBAC wrapper.
+  if (line ~ /^{{- end }}[ \t]*$/) {
+    flush_rule()
+    if (objPending != "") { print "{{- end }}"; objPending = "" }
+    print line
     return
   }
   if (line ~ /^[A-Za-z]/) {
@@ -152,6 +211,13 @@ function process(line,   item) {
       return
     }
     print line
+    return
+  }
+  # cluster-monitoring-view subject follows the active operand SA (ILS-2353). The
+  # templated form is content (not a {{- if opener), so the strip phase keeps it and
+  # this rewrite is a no-op on re-run.
+  if (name == "ibm-license-service-cluster-monitoring-view" && line ~ /^    name: ibm-license-service$/) {
+    print "    name: {{ include \"" helperPrefix "operandServiceAccount\" . }}"
     return
   }
   print line

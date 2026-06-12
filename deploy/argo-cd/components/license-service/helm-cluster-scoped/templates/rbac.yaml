@@ -20,6 +20,15 @@ rules:
       - get
       - list
       - update
+  - apiGroups:
+      - operator.ibm.com
+    resources:
+      - ibmlicensingmetadatas
+      - ibmlicensingdefinitions
+      - ibmlicensingquerysources
+    verbs:
+      - get
+      - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -63,6 +72,15 @@ rules:
     verbs:
       - list
       - get
+  - apiGroups:
+      - operator.ibm.com
+    resources:
+      - ibmlicensingmetadatas
+      - ibmlicensingdefinitions
+      - ibmlicensingquerysources
+    verbs:
+      - get
+      - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -161,20 +179,6 @@ rules:
       - networking.k8s.io
     resources:
       - networkpolicies
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - operator.ibm.com
-    resources:
-      - ibmlicensings
-      - ibmlicensings/finalizers
-      - ibmlicensings/status
     verbs:
       - create
       - delete

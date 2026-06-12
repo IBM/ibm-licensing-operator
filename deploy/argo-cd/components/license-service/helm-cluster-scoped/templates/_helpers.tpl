@@ -14,20 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */}}
 
-{{/*
-Conditional RBAC feature gates (ILS-2352).
-
-Each helper returns the literal string "true" or "false". Gate templates on
-  {{- if eq (include "<helper>" .) "true" }}
-
-All gates default to "enabled/present" so that an unset value reproduces today's
-RBAC exactly. The nil-safe parenthesised access yields "true" when spec /
-features / the field is absent (nil | toString -> "", ne "false" -> true),
-mirroring the operator helpers IsNodeCpuCappingEnabled / IsKubeRBACAuthEnabled /
-IsOperandRequestsEnabled and IsNamespaceScopeEnabled (nil-default-false: namespace
-discovery stays on unless features.nssEnabled is explicitly true).
-*/}}
-
 {{- define "ibm-licensing.nodeCpuCappingEnabled" -}}
 {{- ne (((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled | toString) "false" -}}
 {{- end -}}
@@ -42,4 +28,38 @@ discovery stays on unless features.nssEnabled is explicitly true).
 
 {{- define "ibm-licensing.namespaceDiscoveryEnabled" -}}
 {{- ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" -}}
+{{- end -}}
+
+{{/* True when the unrestricted operand SA/ClusterRole is the active one (nss off). */}}
+{{- define "ibm-licensing.unrestrictedClusterRoleNeeded" -}}
+{{- ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" -}}
+{{- end -}}
+
+{{/* Restricted ClusterRole survives only if a cluster-scoped rule remains:
+     nodes (capping) or tokenreviews/SAR (kubeRBACAuth). Namespaces is moot here --
+     it is gated by namespaceDiscoveryEnabled which is always false in nss mode. */}}
+{{- define "ibm-licensing.restrictedClusterRoleNeeded" -}}
+{{- or (eq (include "ibm-licensing.nodeCpuCappingEnabled" .) "true") (eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true") -}}
+{{- end -}}
+
+{{/* cluster-monitoring-view binding: only for datasource=prometheus. */}}
+{{- define "ibm-licensing.clusterMonitoringNeeded" -}}
+{{- eq ((.Values.ibmLicensing.spec).datasource | toString) "prometheus" -}}
+{{- end -}}
+
+{{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise.
+     Drives the cluster-monitoring-view binding subject so it follows the active SA. */}}
+{{- define "ibm-licensing.operandServiceAccount" -}}
+{{- if eq (include "ibm-licensing.namespaceDiscoveryEnabled" .) "false" -}}
+ibm-license-service-restricted
+{{- else -}}
+ibm-license-service
+{{- end -}}
+{{- end -}}
+
+{{/* Operator cluster discovery (namespaces[get] / servicecas[list]). Default true to
+     preserve today's render; flipped off in the pass that lands the RESTMapper
+     OpenShift-detection substitution. Wiring it now keeps the gating table complete. */}}
+{{- define "ibm-licensing.operatorClusterDiscoveryNeeded" -}}
+true
 {{- end -}}

@@ -8,13 +8,18 @@
 #   file      basename of the RBAC template the row applies to ("*" = any)
 #   kind      document kind to match ("*"/"" = any)
 #   name      metadata.name to match ("*"/"" = any) -- scopes "namespaces" so the
-#             operator ClusterRole's own namespaces[get] rule stays unconditional
+#             operand roles' namespaces are gated on namespaceDiscoveryEnabled while
+#             the operator ClusterRole's own namespaces[get] is gated separately on
+#             operatorClusterDiscoveryNeeded (ILS-2353)
 #   apiGroup  apiGroups entry to match ("" = core group)
 #   resources resource to match; CSV for empty-guard = the rule's full resource set
 #   action    block       -> wrap the whole matching rule
 #             resource    -> wrap the single matching resource list item
 #             empty-guard -> outer "or" wrapper around a rule whose every resource
 #                            is individually gated (avoids an empty resources:)
+#             object      -> wrap the whole document (ClusterRole/Binding) matched by
+#                            (kind,name); apiGroup/resources are ignored (use "*").
+#                            Drops the entire object when the helper is false. (ILS-2353)
 #             whole-file  -> nest helper guard inside the file's createRBAC wrapper
 #   helper    helper name (prefixed with ibm-licensing. at render time); for
 #             empty-guard use "or:helperA,helperB"
@@ -30,5 +35,13 @@ cluster-rbac.yaml                       | ClusterRole | ibm-license-service     
 cluster-rbac.yaml                       | ClusterRole | ibm-license-service-restricted  | authentication.k8s.io | tokenreviews         | block        | kubeRBACAuthEnabled
 cluster-rbac.yaml                       | ClusterRole | ibm-license-service-restricted  | authorization.k8s.io  | subjectaccessreviews | block        | kubeRBACAuthEnabled
 cluster-rbac.yaml                       | ClusterRole | ibm-licensing-operator          | operator.ibm.com      | operandrequests      | block        | operandRequestsEnabled
+cluster-rbac.yaml                       | ClusterRole | ibm-licensing-operator          | ""                    | namespaces           | block        | operatorClusterDiscoveryNeeded
+cluster-rbac.yaml                       | ClusterRole | ibm-licensing-operator          | operator.openshift.io | servicecas           | block        | operatorClusterDiscoveryNeeded
 rbac.yaml                               | Role        | ibm-licensing-operator          | operators.coreos.com  | operatorgroups       | block        | operandRequestsEnabled
 cluster-rbac-for-operandrequests.yaml   | *           | *                               | *                     | *                    | whole-file   | operandRequestsEnabled
+# ILS-2353 object gates -- drop whole operand ClusterRoles/Bindings as features switch off.
+cluster-rbac.yaml                       | ClusterRole        | ibm-license-service                         | * | * | object | unrestrictedClusterRoleNeeded
+cluster-rbac.yaml                       | ClusterRoleBinding | ibm-license-service                         | * | * | object | unrestrictedClusterRoleNeeded
+cluster-rbac.yaml                       | ClusterRole        | ibm-license-service-restricted              | * | * | object | restrictedClusterRoleNeeded
+cluster-rbac.yaml                       | ClusterRoleBinding | ibm-license-service-restricted              | * | * | object | restrictedClusterRoleNeeded
+cluster-rbac.yaml                       | ClusterRoleBinding | ibm-license-service-cluster-monitoring-view | * | * | object | clusterMonitoringNeeded

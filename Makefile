@@ -771,6 +771,31 @@ generate-yaml-argo-cd: kustomize yq
 	| .spec.template.metadata.labels.sed-deployment-labels-bottom = "sed-me" \
 	| .spec.template.spec.containers[0].env[1].valueFrom = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
 	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+
+	# Annotate each cluster-scoped RBAC object with a head comment distinguishing
+	# operator vs operand vs reader roles (ILS-2353). Must run while the file is still
+	# pure YAML -- i.e. before component-id/namespace are templated into {{ }} below,
+	# which would make it unparseable by yq. The conditionalize awk preserves comments.
+	@$(YQ) -i '(select(.kind == "ClusterRole" and .metadata.name == "ibm-license-service") | .) head_comment = "Operand role (unrestricted): cluster-wide workload reads for the ibm-license-service operand SA. Rendered only when namespace-scope is off (nssEnabled != true)."' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	@$(YQ) -i '(select(.kind == "ClusterRole" and .metadata.name == "ibm-license-service-restricted") | .) head_comment = "Operand role (namespace-scoped / nss): for the ibm-license-service-restricted operand SA. Survives only while a cluster-scoped rule remains (node reads for CPU capping, or the kube-RBAC auth create rules); otherwise the whole object is dropped."' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	@$(YQ) -i '(select(.kind == "ClusterRole" and .metadata.name == "ibm-licensing-default-reader") | .) head_comment = "Reader endpoint (NOT the operator): grants GET on the License Service HTTP URLs to the ibm-licensing-default-reader SA, consumed by API readers. The operator only provisions its token. Always rendered."' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	@$(YQ) -i '(select(.kind == "ClusterRole" and .metadata.name == "ibm-licensing-operator") | .) head_comment = "Operator control-plane role: bound to the operator pod SA (ibm-licensing-operator). The cluster-scoped IBMLicensing CR watch is irreducible, so this ClusterRole always renders."' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	@$(YQ) -i '(select(.kind == "ClusterRoleBinding" and .metadata.name == "ibm-license-service-cluster-monitoring-view") | .) head_comment = "Cluster monitoring read path: needed only for datasource=prometheus; the subject follows the active operand SA."' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	# Bindings: each pairs a SA to its same-named ClusterRole. The two operand bindings
+	# are gated in lockstep with their ClusterRole so a binding never dangles past (or
+	# precedes) the role it references; the reader/operator bindings always render.
+	@$(YQ) -i '(select(.kind == "ClusterRoleBinding" and .metadata.name == "ibm-license-service") | .) head_comment = "Binds the unrestricted operand ClusterRole to the ibm-license-service SA. Gated in lockstep with that ClusterRole so the binding never dangles."' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	@$(YQ) -i '(select(.kind == "ClusterRoleBinding" and .metadata.name == "ibm-license-service-restricted") | .) head_comment = "Binds the restricted operand ClusterRole to the ibm-license-service-restricted SA. Gated in lockstep with that ClusterRole so the binding never dangles."' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	@$(YQ) -i '(select(.kind == "ClusterRoleBinding" and .metadata.name == "ibm-licensing-default-reader") | .) head_comment = "Binds the reader ClusterRole to the ibm-licensing-default-reader SA (the reader-token identity). Always rendered."' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	@$(YQ) -i '(select(.kind == "ClusterRoleBinding" and .metadata.name == "ibm-licensing-operator") | .) head_comment = "Binds the operator control-plane ClusterRole to the operator pod SA. Always rendered."' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
+	# yq emits the first document's head comment in place of its leading '---'
+	# separator; restore it so every document starts with '---' (the conditionalize
+	# awk keys object boundaries on '---').
+	@if [ "$$(head -1 $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml)" != "---" ]; then \
+		printf -- '---\n' | cat - $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml > $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml.tmp \
+		&& mv $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml.tmp $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml; \
+	fi
+
 	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cr.yaml
 	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/crd.yaml
 	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/deployment.yaml
