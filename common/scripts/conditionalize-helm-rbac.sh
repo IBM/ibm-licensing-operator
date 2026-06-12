@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# conditionalize-helm-rbac.sh (ILS-2352)
 #
 # Injects conditional RBAC Helm guards into generated RBAC templates, wrapping
 # designated rule blocks / resource list items in

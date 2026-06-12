@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# conditionalize-helm-rbac.awk (ILS-2352)
-#
 # Post-processes generated RBAC YAML, wrapping designated rule blocks and
 # resource list items in Helm guards driven by a declarative gating table.
 # See common/scripts/conditionalize-helm-rbac.sh and the design/plan docs.
@@ -217,7 +215,7 @@ function process(line, idx,   item) {
     print line
     return
   }
-  # cluster-monitoring-view subject follows the active operand SA (ILS-2353). The
+  # cluster-monitoring-view subject follows the active operand SA. The
   # templated form is content (not a {{- if opener), so the strip phase keeps it and
   # this rewrite is a no-op on re-run.
   if (name == "ibm-license-service-cluster-monitoring-view" && line ~ /^    name: ibm-license-service$/) {

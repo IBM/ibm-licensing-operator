@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Tests for conditionalize-helm-rbac.sh (ILS-2352).
 #
 # Self-contained POSIX-ish bash (no bats dependency). Covers:
 #   1. fixture in/out      -- un-guarded fixtures -> byte-exact golden
@@ -193,7 +191,7 @@ else
   fi
 
   # -------------------------------------------------------------------------
-  # 7. ILS-2353 object gates: whole ClusterRoles/bindings drop as features go
+  # 7. Whole ClusterRoles/bindings drop as features go
   #    off; cluster-monitoring-view is datasource-gated and follows the active SA;
   #    operand metadata reads live in namespaced Roles, never a ClusterRole.
   # -------------------------------------------------------------------------

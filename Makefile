@@ -773,7 +773,7 @@ generate-yaml-argo-cd: kustomize yq
 	@$(YQ) -i '.metadata.labels.component-id = "sed-me"' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
 
 	# Annotate each cluster-scoped RBAC object with a head comment distinguishing
-	# operator vs operand vs reader roles (ILS-2353). Must run while the file is still
+	# operator vs operand vs reader roles. Must run while the file is still
 	# pure YAML -- i.e. before component-id/namespace are templated into {{ }} below,
 	# which would make it unparseable by yq. The conditionalize awk preserves comments.
 	@$(YQ) -i '(select(.kind == "ClusterRole" and .metadata.name == "ibm-license-service") | .) head_comment = "Operand role (unrestricted): cluster-wide workload reads for the ibm-license-service operand SA. Rendered only when namespace-scope is off (nssEnabled != true)."' $(HELM_CLUSTER_SCOPED_TEMPLATES)/cluster-rbac.yaml
@@ -858,7 +858,7 @@ generate-yaml-argo-cd: kustomize yq
 
 	@rm $(HELM_CLUSTER_SCOPED_TEMPLATES)/tmp.yaml
 
-# CI guard for ILS-2352: the conditionalize-helm-rbac.sh script is idempotent, so
+# The conditionalize-helm-rbac.sh script is idempotent, so
 # re-running it (in --check mode) over the committed cluster-scoped RBAC templates
 # must be a no-op. A diff means someone copied an un-guarded regenerated file
 # without re-running the script, or hand-edited a gated rule.
