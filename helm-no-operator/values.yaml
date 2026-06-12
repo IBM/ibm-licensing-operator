@@ -9,13 +9,14 @@ ibmLicensing:
   watchNamespace: ibm-licensing
   imageRegistryNamespaceOperand: cpopen/cpfs
   createRBAC: true
+  watchedNamespaces: ""
   spec:
     datasource: datacollector
     httpsEnable: true
-    watchedNamespaces: ""
     enableInstanaMetricCollection: false
     httpsCertsSource: external
     features:
+      nssEnabled: true
       nodeCpuCappingEnabled: true
       kubeRBACAuthEnabled: true
     resources:
@@ -26,4 +27,3 @@ ibmLicensing:
         cpu: 200m
         memory: 256Mi
         ephemeralStorage: 256Mi
-

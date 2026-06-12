@@ -117,7 +117,7 @@ template_deployment() {
     # Add new environment variables to main container
     $YQ -i '.spec.template.spec.containers[0].env += [{"name": "NODE_CPU_CAPPING_ENABLED", "value": "sed-me-nodeCpuCappingEnabled"}]' "$OUTPUT_DIR/deployment.yaml"
     $YQ -i '.spec.template.spec.containers[0].env += [{"name": "KUBE_RBAC_AUTH_ENABLED", "value": "sed-me-kubeRBACAuthEnabled"}]' "$OUTPUT_DIR/deployment.yaml"
-    $YQ -i '.spec.template.spec.containers[0].env += [{"name": "WATCH_NAMESPACE", "value": "sed-me-watchNamespace"}]' "$OUTPUT_DIR/deployment.yaml"
+    $YQ -i '.spec.template.spec.containers[0].env += [{"name": "NAMESPACE_SCOPE_ENABLED", "value": "sed-me-nssEnabled"}]' "$OUTPUT_DIR/deployment.yaml"
     
     # Replace environment variables in init container
     $YQ -i '.spec.template.spec.initContainers[0].env[0].value = "sed-me-namespace"' "$OUTPUT_DIR/deployment.yaml"
@@ -129,7 +129,7 @@ template_deployment() {
     # Add new environment variables to init container
     $YQ -i '.spec.template.spec.initContainers[0].env += [{"name": "NODE_CPU_CAPPING_ENABLED", "value": "sed-me-nodeCpuCappingEnabled"}]' "$OUTPUT_DIR/deployment.yaml"
     $YQ -i '.spec.template.spec.initContainers[0].env += [{"name": "KUBE_RBAC_AUTH_ENABLED", "value": "sed-me-kubeRBACAuthEnabled"}]' "$OUTPUT_DIR/deployment.yaml"
-    $YQ -i '.spec.template.spec.initContainers[0].env += [{"name": "WATCH_NAMESPACE", "value": "sed-me-watchNamespace"}]' "$OUTPUT_DIR/deployment.yaml"
+    $YQ -i '.spec.template.spec.initContainers[0].env += [{"name": "NAMESPACE_SCOPE_ENABLED", "value": "sed-me-nssEnabled"}]' "$OUTPUT_DIR/deployment.yaml"
     
     # Replace resource limits and requests in main container
     $YQ -i '.spec.template.spec.containers[0].resources.limits.cpu = "sed-me-cpu-limit"' "$OUTPUT_DIR/deployment.yaml"
@@ -165,7 +165,7 @@ template_deployment() {
     # Replace new environment variables
     sed -i '' 's/value: sed-me-nodeCpuCappingEnabled/value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
     sed -i '' 's/value: sed-me-kubeRBACAuthEnabled/value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
-    sed -i '' 's/value: sed-me-watchNamespace/value: {{ include "ibm-licensing.watchNamespaces" . | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
+    sed -i '' 's/value: sed-me-nssEnabled/value: {{ .Values.ibmLicensing.spec.features.nssEnabled | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
     
     # Replace resource limits and requests
     sed -i '' "s/sed-me-cpu-limit/{{ .Values.ibmLicensing.spec.resources.limits.cpu }}/g" "$OUTPUT_DIR/deployment.yaml"
