@@ -56,6 +56,8 @@ spec:
               value: {{ .Values.ibmLicensing.spec.enableInstanaMetricCollection | quote }}
             - name: HTTPS_CERTS_SOURCE
               value: {{ .Values.ibmLicensing.spec.httpsCertsSource | quote }}
+            - name: WATCH_NAMESPACE
+              value: {{ .Values.ibmLicensing.watchNamespace | quote }}
             - name: NODE_CPU_CAPPING_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}
             - name: KUBE_RBAC_AUTH_ENABLED
@@ -144,6 +146,8 @@ spec:
               value: {{ .Values.ibmLicensing.spec.enableInstanaMetricCollection | quote }}
             - name: HTTPS_CERTS_SOURCE
               value: {{ .Values.ibmLicensing.spec.httpsCertsSource | quote }}
+            - name: WATCH_NAMESPACE
+              value: {{ .Values.ibmLicensing.watchNamespace | quote }}
             - name: NODE_CPU_CAPPING_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}
             - name: KUBE_RBAC_AUTH_ENABLED
