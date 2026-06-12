@@ -10,7 +10,7 @@
 #   name      metadata.name to match ("*"/"" = any) -- scopes "namespaces" so the
 #             operand roles' namespaces are gated on namespaceDiscoveryEnabled while
 #             the operator ClusterRole's own namespaces[get] is gated separately on
-#             operatorClusterDiscoveryNeeded (ILS-2353)
+#             operatorClusterDiscoveryNeeded
 #   apiGroup  apiGroups entry to match ("" = core group)
 #   resources resource to match; CSV for empty-guard = the rule's full resource set
 #   action    block       -> wrap the whole matching rule
@@ -19,7 +19,7 @@
 #                            is individually gated (avoids an empty resources:)
 #             object      -> wrap the whole document (ClusterRole/Binding) matched by
 #                            (kind,name); apiGroup/resources are ignored (use "*").
-#                            Drops the entire object when the helper is false. (ILS-2353)
+#                            Drops the entire object when the helper is false.
 #             whole-file  -> nest helper guard inside the file's createRBAC wrapper
 #   helper    helper name (prefixed with ibm-licensing. at render time); for
 #             empty-guard use "or:helperA,helperB"
@@ -39,7 +39,7 @@ cluster-rbac.yaml                       | ClusterRole | ibm-licensing-operator  
 cluster-rbac.yaml                       | ClusterRole | ibm-licensing-operator          | operator.openshift.io | servicecas           | block        | operatorClusterDiscoveryNeeded
 rbac.yaml                               | Role        | ibm-licensing-operator          | operators.coreos.com  | operatorgroups       | block        | operandRequestsEnabled
 cluster-rbac-for-operandrequests.yaml   | *           | *                               | *                     | *                    | whole-file   | operandRequestsEnabled
-# ILS-2353 object gates -- drop whole operand ClusterRoles/Bindings as features switch off.
+# Object gates -- drop whole operand ClusterRoles/Bindings as features switch off.
 cluster-rbac.yaml                       | ClusterRole        | ibm-license-service                         | * | * | object | unrestrictedClusterRoleNeeded
 cluster-rbac.yaml                       | ClusterRoleBinding | ibm-license-service                         | * | * | object | unrestrictedClusterRoleNeeded
 cluster-rbac.yaml                       | ClusterRole        | ibm-license-service-restricted              | * | * | object | restrictedClusterRoleNeeded

@@ -20,8 +20,8 @@
 #   3. context scoping     -- operator role's own namespaces[get] stays unguarded
 #   4. empty-guard         -- restricted role gets the outer "or" wrapper
 #   5. missing file        -- absent opreqs file is skipped, exit 0
-#   6. render matrix        -- helm template add/remove behavior (skipped if no helm)
-#   7. object gates (ILS-2353) -- whole ClusterRoles/bindings drop, cluster-monitoring-view
+#   6. render matrix       -- helm template add/remove behavior (skipped if no helm)
+#   7. object gates        -- whole ClusterRoles/bindings drop, cluster-monitoring-view
 #                            datasource gate + active-SA subject (skipped if no helm/yq)
 #
 # Usage: bash common/scripts/tests/conditionalize-helm-rbac-test.sh

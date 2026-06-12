@@ -140,7 +140,7 @@ type IBMLicensingReconciler struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 
-// ILS-2353: ibmlicensings is a Cluster-scoped CRD, so get/list/watch on it cannot
+// ibmlicensings is a Cluster-scoped CRD, so get/list/watch on it cannot
 // be granted by a namespaced Role -- it is a no-op there. The effective grant comes
 // from the cluster-scoped marker below. The namespaced marker is intentionally
 // disabled so the operator's namespaced Role no longer carries a dead ibmlicensings rule.

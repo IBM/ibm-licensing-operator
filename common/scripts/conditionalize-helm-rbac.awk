@@ -92,7 +92,7 @@ END {
 
   # Strip any previously-injected guards so re-application is idempotent.
   # Top-level {{- if ... }} / {{- end }} are balanced through a stack so the outer
-  # createRBAC wrapper survives while ILS-2353 object guards (whose openers carry an
+  # createRBAC wrapper survives while object guards (whose openers carry an
   # ibm-licensing helper include) are removed. Indented rule/item guards are dropped
   # by the per-line filters; a templated subject (name: {{ include ... }}) is content,
   # not a {{- if opener, so it is preserved.
