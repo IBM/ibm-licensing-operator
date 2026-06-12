@@ -121,6 +121,7 @@ END {
   objPending = ""
   for (i = 1; i <= cn; i++) process(C[i], i)
   flush_rule()
+  close_block()
   if (objPending != "") print "{{- end }}"
 }
 
@@ -155,6 +156,7 @@ function object_helper(k, n,   r) {
 function process(line, idx,   item) {
   if (line ~ /^---/) {
     flush_rule()
+    close_block()
     if (objPending != "") { print "{{- end }}"; objPending = "" }
     print line
     kind = ""; name = ""; in_meta = 0; in_rules = 0; sub_state = ""
@@ -168,12 +170,14 @@ function process(line, idx,   item) {
   # so the object {{- end }} nests inside the createRBAC wrapper.
   if (line ~ /^{{- end }}[ \t]*$/) {
     flush_rule()
+    close_block()
     if (objPending != "") { print "{{- end }}"; objPending = "" }
     print line
     return
   }
   if (line ~ /^[A-Za-z]/) {
     flush_rule()
+    close_block()
     in_rules = 0; sub_state = ""
     if (line ~ /^kind:/)          { kind = trim(substr(line, 6)); in_meta = 0 }
     else if (line ~ /^metadata:/) { in_meta = 1 }
@@ -242,8 +246,20 @@ function flush_rule(   i, r, act, blockHelper, egHelper, line, ind, gi, res, emi
   }
 
   ind = ruleIndent
+
+  # Coalesce adjacent block guards that share the same helper into one wrapper: keep
+  # the guard open across consecutive matching rules and close it only when the helper
+  # changes or at a rule-section boundary (close_block, from the document handlers).
+  # This avoids emitting a separate {{- if <helper> }} ... {{- end }} per rule when
+  # several neighbours gate on the same flag (e.g. kubeRBACAuthEnabled wrapping both
+  # tokenreviews and subjectaccessreviews).
+  if (openBlock != "" && openBlock != blockHelper) { print openBlockIndent "{{- end }}"; openBlock = "" }
+  if (blockHelper != "" && openBlock == "") {
+    print ind "{{- if eq (include \"" helperPrefix blockHelper "\" .) \"true\" }}"
+    openBlock = blockHelper; openBlockIndent = ind
+  }
+
   if (egHelper != "")    print ind build_or(egHelper)
-  if (blockHelper != "") print ind "{{- if eq (include \"" helperPrefix blockHelper "\" .) \"true\" }}"
   for (i = 1; i <= rulen; i++) {
     line = rulebuf[i]
     emitted = 0
@@ -259,9 +275,15 @@ function flush_rule(   i, r, act, blockHelper, egHelper, line, ind, gi, res, emi
     }
     if (!emitted) print line
   }
-  if (blockHelper != "") print ind "{{- end }}"
   if (egHelper != "")    print ind "{{- end }}"
+  # The block guard close is deferred to close_block() so adjacent same-helper rules share it.
   rulen = 0
+}
+
+# Close the currently open coalesced block guard, if any. Called at every rule-section
+# boundary (document separator, top-level key, createRBAC closer, EOF).
+function close_block() {
+  if (openBlock != "") { print openBlockIndent "{{- end }}"; openBlock = "" }
 }
 
 # Whole-file guard: nest an operandRequestsEnabled gate immediately inside the

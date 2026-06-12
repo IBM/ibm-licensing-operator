@@ -54,8 +54,6 @@ rules:
       - tokenreviews
     verbs:
       - create
-  {{- end }}
-  {{- if eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true" }}
   - apiGroups:
       - authorization.k8s.io
     resources:
@@ -98,8 +96,6 @@ rules:
       - tokenreviews
     verbs:
       - create
-  {{- end }}
-  {{- if eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true" }}
   - apiGroups:
       - authorization.k8s.io
     resources:
