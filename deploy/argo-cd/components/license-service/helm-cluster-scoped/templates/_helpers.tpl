@@ -35,11 +35,13 @@ limitations under the License.
 {{- ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" -}}
 {{- end -}}
 
-{{/* Restricted ClusterRole survives only if a cluster-scoped rule remains:
-     nodes (capping) or tokenreviews/SAR (kubeRBACAuth). Namespaces is moot here --
-     it is gated by namespaceDiscoveryEnabled which is always false in nss mode. */}}
+{{/* Restricted ClusterRole is the operand role only in nss mode (it backs the
+     ibm-license-service-restricted SA). Outside nss mode the unrestricted role
+     already carries the node/kube-RBAC rules, so the restricted object would be
+     dead RBAC. Render it only when nss is on AND a cluster-scoped rule remains:
+     nodes (capping) or tokenreviews/SAR (kubeRBACAuth). */}}
 {{- define "ibm-licensing.restrictedClusterRoleNeeded" -}}
-{{- or (eq (include "ibm-licensing.nodeCpuCappingEnabled" .) "true") (eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true") -}}
+{{- and (eq (include "ibm-licensing.namespaceDiscoveryEnabled" .) "false") (or (eq (include "ibm-licensing.nodeCpuCappingEnabled" .) "true") (eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true")) -}}
 {{- end -}}
 
 {{/* cluster-monitoring-view binding: only for datasource=prometheus. */}}
@@ -55,11 +57,4 @@ ibm-license-service-restricted
 {{- else -}}
 ibm-license-service
 {{- end -}}
-{{- end -}}
-
-{{/* Operator cluster discovery (namespaces[get] / servicecas[list]). Default true to
-     preserve today's render; flipped off in the pass that lands the RESTMapper
-     OpenShift-detection substitution. Wiring it now keeps the gating table complete. */}}
-{{- define "ibm-licensing.operatorClusterDiscoveryNeeded" -}}
-true
 {{- end -}}
