@@ -109,7 +109,7 @@ the cluster-scoped charts only support the `namespace` parameter
 
 #### Changing the target namespace
 
-<details>
+<details markdown="1">
 <summary>Click to expand</summary>
 
 By default, IBM Licensing components are installed in three different namespaces to separate the resources, and
@@ -127,7 +127,7 @@ helm:
 
 #### Applying custom metadata
 
-<details>
+<details markdown="1">
 <summary>Click to expand</summary>
 
 - To apply custom labels and annotations to the operator-managed resources, change the following lines:
@@ -160,7 +160,7 @@ helm:
 
 #### Specifying image registry and image registry namespace
 
-<details>
+<details markdown="1">
 <summary>Click to expand</summary>
 
 To specify a different image registry for the installation of the components, change the value of `global.imagePullPrefix` in the relevant `Application.yaml` file:
@@ -193,7 +193,7 @@ changes to the `applications/license-service.yaml` file, the image of the `ibm-l
 
 #### Specifying image pull secrets
 
-<details>
+<details markdown="1">
 <summary>Click to expand</summary>
 
 To specify which image pull secret should be used to pull from the registry, change the value of `global.imagePullSecret` in the relevant `Application.yaml` file:
@@ -219,12 +219,12 @@ To install all components, perform the following steps.
 
 1. Log in to your cluster, and open the following namespace.
 
-- For OpenShift, by default `openshift-gitops`
-- For EKS, by default `argocd`
+    - For OpenShift, by default `openshift-gitops`
+    - For EKS, by default `argocd`
 
-  ```shell
-  kubectl project shift-gitops
-  ```
+    ```shell
+    kubectl project shift-gitops
+    ```
 
 2. Run the following command.
 
@@ -243,17 +243,17 @@ To install selected components separately, for example to install *IBM License S
 
 1. Log in to your cluster, and open the following namespace.
 
-- For OpenShift, by default `openshift-gitops`
-- For EKS, by default `argocd`
+    - For OpenShift, by default `openshift-gitops`
+    - For EKS, by default `argocd`
 
-  ```shell
-  kubectl project shift-gitops
-  ```
+    ```shell
+    kubectl project shift-gitops
+    ```
 
 2. Run the following command.
 
     ```shell
-    kubectl apply -f<path-to-cloned-repo>/applications/license-service.yaml
+    kubectl apply -f <path-to-cloned-repo>/applications/license-service.yaml
     ```
 
 **Note:** Remember to `sync` after the applications are applied, or add the `auto-sync` option to your setup.
@@ -261,7 +261,7 @@ To install selected components separately, for example to install *IBM License S
 ### Installing on EKS clusters
 
 You must register your cluster and modify the `server` field of your `Application`, because the default local cluster
-destination is not supported. Follow official [AWS documentation](<https://docs.aws.amazon.com/eks/latest/userguide/argocd-register-clusters.html>) to
+destination is not supported. Follow official [AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/argocd-register-clusters.html) to
 register your cluster.
 
 You will also need to configure the right roles and permissions so that your ArgoCD instance can sync the application.
