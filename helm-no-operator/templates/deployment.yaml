@@ -56,14 +56,14 @@ spec:
               value: {{ .Values.ibmLicensing.spec.enableInstanaMetricCollection | quote }}
             - name: HTTPS_CERTS_SOURCE
               value: {{ .Values.ibmLicensing.spec.httpsCertsSource | quote }}
+            - name: NAMESPACE_SCOPE_ENABLED
+              value: {{ .Values.ibmLicensing.spec.features.nssEnabled | quote }}
             - name: WATCH_NAMESPACE
               value: {{ .Values.ibmLicensing.watchNamespace | quote }}
             - name: NODE_CPU_CAPPING_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}
             - name: KUBE_RBAC_AUTH_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
-            - name: NAMESPACE_SCOPE_ENABLED
-              value: {{ .Values.ibmLicensing.spec.features.nssEnabled | quote }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
           imagePullPolicy: IfNotPresent
           livenessProbe:
@@ -146,14 +146,14 @@ spec:
               value: {{ .Values.ibmLicensing.spec.enableInstanaMetricCollection | quote }}
             - name: HTTPS_CERTS_SOURCE
               value: {{ .Values.ibmLicensing.spec.httpsCertsSource | quote }}
+            - name: NAMESPACE_SCOPE_ENABLED
+              value: {{ .Values.ibmLicensing.spec.features.nssEnabled | quote }}
             - name: WATCH_NAMESPACE
               value: {{ .Values.ibmLicensing.watchNamespace | quote }}
             - name: NODE_CPU_CAPPING_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}
             - name: KUBE_RBAC_AUTH_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
-            - name: NAMESPACE_SCOPE_ENABLED
-              value: {{ .Values.ibmLicensing.spec.features.nssEnabled | quote }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
           imagePullPolicy: IfNotPresent
           name: ocp-check-secret
