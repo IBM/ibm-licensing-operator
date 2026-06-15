@@ -6,17 +6,23 @@ global:
 # IBM Licensing configuration
 ibmLicensing:
   namespace: ibm-licensing
+  watchNamespace: ibm-licensing
   imageRegistryNamespaceOperand: cpopen/cpfs
-  resources:
-    limits:
-      cpu: 500m
-      memory: 1Gi
-    requests:
-      cpu: 200m
-      memory: 256Mi
-      ephemeralStorage: 256Mi
   createRBAC: true
-  datasource: datacollector
-  httpsEnable: true
-  enableInstanaMetricCollection: false
-  httpsCertsSource: external
+  spec:
+    datasource: datacollector
+    httpsEnable: true
+    httpsCertsSource: external
+    enableInstanaMetricCollection: false
+    features:
+      nssEnabled: false
+      nodeCpuCappingEnabled: true
+      kubeRBACAuthEnabled: true
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 256Mi
+        ephemeralStorage: 256Mi
