@@ -163,8 +163,6 @@ template_deployment() {
     sed -i '' 's/value: "sed-me-httpsEnable"/value: {{ .Values.ibmLicensing.spec.httpsEnable | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
     sed -i '' 's/value: "sed-me-enableInstanaMetricCollection"/value: {{ .Values.ibmLicensing.spec.enableInstanaMetricCollection | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
     sed -i '' 's/value: sed-me-httpsCertsSource/value: {{ .Values.ibmLicensing.spec.httpsCertsSource | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
-    
-    # Replace new environment variables
     sed -i '' 's/value: sed-me-nssEnabled/value: {{ .Values.ibmLicensing.spec.features.nssEnabled | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
     sed -i '' 's/value: sed-me-watchNamespace/value: {{ .Values.ibmLicensing.watchNamespace | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
     sed -i '' 's/value: sed-me-nodeCpuCappingEnabled/value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
