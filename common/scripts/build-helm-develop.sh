@@ -27,7 +27,7 @@ CHART_NAME=$5                # Name of the chart for the output .tgz file
 CSV_VERSION=$6               # Current CSV version
 HELM=$7                      # Path to helm binary
 YQ=$8                        # Path to yq binary
-CHART_DESTINATION=${9}      # Artifactory destination URL
+CHART_DESTINATION=$9         # Artifactory destination URL
 ARTIFACTORY_TOKEN=${10}      # Artifactory API token
 
 # Safety check: abort if target directory already exists

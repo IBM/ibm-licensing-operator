@@ -13,3 +13,8 @@ ibmLicensing:
     version: 4.2.23
     datasource: datacollector
     httpsEnable: true
+    features:
+      nssEnabled: false
+      nodeCpuCappingEnabled: true
+      kubeRBACAuthEnabled: true
+      operandRequestsEnabled: true

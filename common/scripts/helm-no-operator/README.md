@@ -16,6 +16,7 @@ These scripts automate the process of:
 **Main orchestration script** that runs the entire Helm chart generation process.
 
 **Usage:**
+
 ```bash
 ./common/scripts/helm-no-operator/build-helm-chart.sh
 ```
@@ -71,18 +72,22 @@ helm install ibm-licensing ./helm-no-operator
 ## Requirements
 
 ### Tools
+
 - `kubectl` - Kubernetes CLI
 - `helm` - Helm package manager
 - `sed` - Stream editor
 
 ### Cluster Access
+
 - Active Kubernetes cluster connection
 - Sufficient permissions to create namespaces and deploy resources
 
 ## Route management
+
 If you are using OpenShift and want to use route to access Licensing Service endpoints, you will need to create the route manually after the helm installation. You can use ibm-license-service-cert-internal Secret to get the TLS certificate, but keep in mind that the service CA certificate, which issues the service certificates, is valid for 26 months and is automatically rotated when there is less than 13 months validity left. After rotation, the previous service CA configuration is still trusted until its expiration. This allows a grace period for all affected services to refresh their key material before the expiration.
 
 Example route (make sure to adjust namespace and TLS configuration):
+
 ```yaml
 apiVersion: route.openshift.io/v1
 kind: Route
