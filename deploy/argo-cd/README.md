@@ -109,7 +109,7 @@ the cluster-scoped charts only support the `namespace` parameter
 
 #### Changing the target namespace
 
-<details markdown="1">
+<details>
 <summary>Click to expand</summary>
 
 By default, IBM Licensing components are installed in three different namespaces to separate the resources, and
@@ -127,7 +127,7 @@ helm:
 
 #### Applying custom metadata
 
-<details markdown="1">
+<details>
 <summary>Click to expand</summary>
 
 - To apply custom labels and annotations to the operator-managed resources, change the following lines:
@@ -160,7 +160,7 @@ helm:
 
 #### Specifying image registry and image registry namespace
 
-<details markdown="1">
+<details>
 <summary>Click to expand</summary>
 
 To specify a different image registry for the installation of the components, change the value of `global.imagePullPrefix` in the relevant `Application.yaml` file:
@@ -193,7 +193,7 @@ changes to the `applications/license-service.yaml` file, the image of the `ibm-l
 
 #### Specifying image pull secrets
 
-<details markdown="1">
+<details>
 <summary>Click to expand</summary>
 
 To specify which image pull secret should be used to pull from the registry, change the value of `global.imagePullSecret` in the relevant `Application.yaml` file:
