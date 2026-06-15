@@ -12,8 +12,8 @@ ibmLicensing:
   spec:
     datasource: datacollector
     httpsEnable: true
-    enableInstanaMetricCollection: false
     httpsCertsSource: external
+    enableInstanaMetricCollection: false
     features:
       nssEnabled: false
       nodeCpuCappingEnabled: true
