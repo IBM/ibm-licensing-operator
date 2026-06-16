@@ -35,6 +35,15 @@ rules:
       - get
       - list
   - apiGroups:
+      - operator.ibm.com
+    resources:
+      - ibmlicensingmetadatas
+      - ibmlicensingdefinitions
+      - ibmlicensingquerysources
+    verbs:
+      - get
+      - list
+  - apiGroups:
       - authentication.k8s.io
     resources:
       - tokenreviews
@@ -78,15 +87,6 @@ rules:
       - get
       - list
       - update
-  - apiGroups:
-      - operator.ibm.com
-    resources:
-      - ibmlicensingmetadatas
-      - ibmlicensingdefinitions
-      - ibmlicensingquerysources
-    verbs:
-      - get
-      - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -98,6 +98,15 @@ rules:
     resources:
       - namespaces
       - nodes
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - operator.ibm.com
+    resources:
+      - ibmlicensingmetadatas
+      - ibmlicensingdefinitions
+      - ibmlicensingquerysources
     verbs:
       - get
       - list
@@ -151,12 +160,3 @@ rules:
     verbs:
      - list
      - get
-  - apiGroups:
-      - operator.ibm.com
-    resources:
-      - ibmlicensingmetadatas
-      - ibmlicensingdefinitions
-      - ibmlicensingquerysources
-    verbs:
-      - get
-      - list

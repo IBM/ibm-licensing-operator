@@ -47,6 +47,15 @@ rules:
     verbs:
       - get
       - list
+  - apiGroups:
+      - operator.ibm.com
+    resources:
+      - ibmlicensingmetadatas
+      - ibmlicensingdefinitions
+      - ibmlicensingquerysources
+    verbs:
+      - get
+      - list
   {{- if eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true" }}
   - apiGroups:
       - authentication.k8s.io
@@ -64,7 +73,7 @@ rules:
 {{- end }}
 ---
 {{- if eq (include "ibm-licensing.restrictedClusterRoleNeeded" .) "true" }}
-# Operand role (namespace-scoped / nss): for the ibm-license-service-restricted operand SA. Survives only while a cluster-scoped rule remains (node reads for CPU capping, or the kube-RBAC auth create rules); otherwise the whole object is dropped.
+# Operand role (namespace-scoped / nss): for the ibm-license-service-restricted operand SA. Rendered whenever namespace-scope is on; it always carries the cluster-wide metadata reads the operand needs, plus the node (CPU capping) and kube-RBAC auth rules when those features are enabled.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -89,6 +98,15 @@ rules:
       - get
       - list
   {{- end }}
+  - apiGroups:
+      - operator.ibm.com
+    resources:
+      - ibmlicensingmetadatas
+      - ibmlicensingdefinitions
+      - ibmlicensingquerysources
+    verbs:
+      - get
+      - list
   {{- if eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true" }}
   - apiGroups:
       - authentication.k8s.io
