@@ -19,7 +19,7 @@
 # Script to build Helm chart for IBM Licensing Service (no operator)
 # This script orchestrates the entire process:
 # 1. Extract resources from a cluster
-# 2. Generate RBAC and CRD resources using kustomize
+# 2. Generate CRD resources using kustomize
 # 3. Template resources into Helm templates
 # 4. Clean up temporary resources directory
 
@@ -49,10 +49,10 @@ main() {
     fi
     echo ""
     
-    # Step 2: Generate RBAC and CRD resources
-    log_step "Step 2/4: Generating RBAC and CRD resources..."
+    # Step 2: Generate CRD resources
+    log_step "Step 2/4: Generating CRD resources..."
     if ! bash "${SCRIPT_DIR}/generate-resources.sh"; then
-        log_error "Failed to generate RBAC and CRD resources"
+        log_error "Failed to generate CRD resources"
         exit 1
     fi
     echo ""

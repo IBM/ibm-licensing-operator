@@ -204,58 +204,11 @@ template_crds() {
     
     # CRDs are cluster-scoped resources and typically don't need templating
     # Just copy them directly to the output directory
-    cp "$INPUT_DIR/crds.yaml" "$OUTPUT_DIR/crds.yaml"
+    cp "$INPUT_DIR/crd.yaml" "$OUTPUT_DIR/crd.yaml"
     
-    log_info "crds.yaml created"
+    log_info "crd.yaml created"
 }
 
-template_serviceaccount() {
-    log_info "Templating serviceaccount..."
-    
-    # Copy to output directory and modify in place
-    cp "$INPUT_DIR/serviceaccounts.yaml" "$OUTPUT_DIR/serviceaccount.yaml"
-    
-    # Step 1: Use yq to add placeholders
-    $YQ -i '.metadata.namespace = "sed-me-namespace"' "$OUTPUT_DIR/serviceaccount.yaml"
-    
-    # Step 2: Use sed to replace placeholders with Helm templates
-    sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$OUTPUT_DIR/serviceaccount.yaml"
-    
-    log_info "serviceaccount.yaml created"
-}
-
-template_rbac() {
-    log_info "Templating rbac..."
-    
-    # Copy to output directory and modify in place
-    cp "$INPUT_DIR/rbac.yaml" "$OUTPUT_DIR/rbac.yaml"
-    
-    # Step 1: Use yq to add placeholders
-    $YQ -i '(select(.kind == "Role") | .metadata.namespace) = "sed-me-namespace"' "$OUTPUT_DIR/rbac.yaml"
-    $YQ -i '(select(.kind == "RoleBinding") | .metadata.namespace) = "sed-me-namespace"' "$OUTPUT_DIR/rbac.yaml"
-    $YQ -i '(select(.kind == "RoleBinding") | .subjects[0].namespace) = "sed-me-namespace"' "$OUTPUT_DIR/rbac.yaml"
-    
-    # Step 2: Use sed to replace placeholders with Helm templates
-    sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$OUTPUT_DIR/rbac.yaml"
-    
-    log_info "rbac.yaml created"
-}
-
-template_cluster_rbac() {
-    log_info "Templating cluster-rbac..."
-    
-    # Copy to output directory and modify in place
-    cp "$INPUT_DIR/cluster-rbac.yaml" "$OUTPUT_DIR/cluster-rbac.yaml"
-    
-    # Step 1: Use yq to add placeholders
-    $YQ -i '(select(.kind == "ClusterRoleBinding") | .metadata.namespace) = "sed-me-namespace"' "$OUTPUT_DIR/cluster-rbac.yaml"
-    $YQ -i '(select(.kind == "ClusterRoleBinding") | .subjects[0].namespace) = "sed-me-namespace"' "$OUTPUT_DIR/cluster-rbac.yaml"
-    
-    # Step 2: Use sed to replace placeholders with Helm templates
-    sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$OUTPUT_DIR/cluster-rbac.yaml"
-    
-    log_info "cluster-rbac.yaml created"
-}
 
 main() {
     log_info "Starting resource templating process..."
@@ -269,9 +222,6 @@ main() {
     template_deployment
     template_service
     template_crds
-    template_serviceaccount
-    template_rbac
-    template_cluster_rbac
     
     log_info ""
     log_info "Resource templating completed successfully!"

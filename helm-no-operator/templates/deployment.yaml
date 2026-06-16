@@ -192,7 +192,7 @@ spec:
               readOnly: true
       restartPolicy: Always
       securityContext: {}
-      serviceAccountName: ibm-license-service
+      serviceAccountName: {{ include "ibm-licensing.operandServiceAccount" . }}
       terminationGracePeriodSeconds: 60
       tolerations:
         - effect: NoSchedule
