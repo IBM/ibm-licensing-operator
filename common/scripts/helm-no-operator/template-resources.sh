@@ -175,6 +175,9 @@ template_deployment() {
     sed -i '' "s/sed-me-memory-request/{{ .Values.ibmLicensing.spec.resources.requests.memory }}/g" "$OUTPUT_DIR/deployment.yaml"
     sed -i '' "s/sed-me-ephemeral-storage-request/{{ .Values.ibmLicensing.spec.resources.requests.ephemeralStorage }}/g" "$OUTPUT_DIR/deployment.yaml"
     
+    # Replace serviceAccountName with helper template
+    sed -i '' 's/serviceAccountName: ibm-license-service$/serviceAccountName: {{ include "ibm-licensing.operandServiceAccount" . }}/g' "$OUTPUT_DIR/deployment.yaml"
+    
     # Append conditional imagePullSecrets section
     cat "${PROJECT_ROOT}/common/makefile-generate/yaml-deployment-pull-secrets-part" >> "$OUTPUT_DIR/deployment.yaml"
     
