@@ -119,3 +119,4 @@ subjects:
   - kind: ServiceAccount
     name: ibm-license-service-restricted
     namespace: {{ .Values.ibmLicensing.namespace }}
+{{- end }}
