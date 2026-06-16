@@ -16,8 +16,8 @@
 # limitations under the License.
 #
 
-# Script to generate RBAC resources and CRDs for IBM Licensing Service instance (operand)
-# This script uses kustomize to build resources and extracts only instance-related RBAC and CRDs
+# Script to generate CRDs for IBM Licensing Service instance (operand)
+# This script uses kustomize to build resources and extracts only instance-related CRDs
 
 set -e -o pipefail
 
@@ -50,35 +50,26 @@ check_prerequisites() {
     log_info "Prerequisites check passed"
 }
 
-# Generate RBAC resources and CRDs
+# Generate CRDs
 generate_resources() {
-    log_info "Generating instance RBAC resources and CRDs..."
+    log_info "Generating instance CRDs..."
     
     mkdir -p "${OUTPUT_DIR}"
     
     # Build with kustomize and save to temp file
     "${KUSTOMIZE}" build "${PROJECT_ROOT}/config/manifests" > "${OUTPUT_DIR}/tmp-resources.yaml"
     
-    # Extract ClusterRole and ClusterRoleBinding for ibm-license-service
-    (echo "---" && "${YQ}" 'select((.kind == "ClusterRole" or .kind == "ClusterRoleBinding") and .metadata.name == "ibm-license-service")' "${OUTPUT_DIR}/tmp-resources.yaml") > "${OUTPUT_DIR}/cluster-rbac.yaml"
-    
-    # Extract Role and RoleBinding for ibm-license-service
-    (echo "---" && "${YQ}" 'select((.kind == "Role" or .kind == "RoleBinding") and .metadata.name == "ibm-license-service")' "${OUTPUT_DIR}/tmp-resources.yaml") > "${OUTPUT_DIR}/rbac.yaml"
-    
-    # Extract ServiceAccount for ibm-license-service
-    (echo "---" && "${YQ}" 'select(.kind == "ServiceAccount" and .metadata.name == "ibm-license-service")' "${OUTPUT_DIR}/tmp-resources.yaml") > "${OUTPUT_DIR}/serviceaccounts.yaml"
-    
     # Extract CustomResourceDefinitions (excluding IBMLicensing CRD, because that CRD is only used by operator)
-    (echo "---" && "${YQ}" 'select(.kind == "CustomResourceDefinition" and .metadata.name != "ibmlicensings.operator.ibm.com")' "${OUTPUT_DIR}/tmp-resources.yaml") > "${OUTPUT_DIR}/crds.yaml"
+    (echo "---" && "${YQ}" 'select(.kind == "CustomResourceDefinition" and .metadata.name != "ibmlicensings.operator.ibm.com")' "${OUTPUT_DIR}/tmp-resources.yaml") > "${OUTPUT_DIR}/crd.yaml"
     
     # Clean up temp file
     rm -f "${OUTPUT_DIR}/tmp-resources.yaml"
     
-    log_info "RBAC resources and CRDs generated successfully"
+    log_info "CRDs generated successfully"
 }
 
 main() {
-    log_info "Starting CRD and instance RBAC generation..."
+    log_info "Starting CRD generation..."
     log_info "Output directory: ${OUTPUT_DIR}"
     
     # Execute steps
@@ -86,7 +77,7 @@ main() {
     generate_resources
     
     log_info ""
-    log_info "Instance CRD and RBAC generation completed!"
+    log_info "CRD generation completed!"
 }
 
 # Run main function

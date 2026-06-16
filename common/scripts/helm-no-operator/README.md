@@ -6,7 +6,7 @@ This directory contains scripts generating a standalone Helm chart for deploying
 
 These scripts automate the process of:
 1. Extracting resources created by IBM Licensing Service operator into yaml files
-2. Generating CRD and instance RBAC resources from the operator's manifests
+2. Generating CRD resources from the operator's manifests
 3. Converting extracted resources into Helm templates
 
 ## Scripts
@@ -38,7 +38,7 @@ These scripts automate the process of:
 
 ### 3. `generate-resources.sh`
 
-**Generates CRD and instance RBAC resources** from the operator's Kustomize manifests.
+**Generates CRD resources** from the operator's Kustomize manifests.
 
 ---
 
