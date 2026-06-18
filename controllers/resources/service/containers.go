@@ -116,7 +116,7 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 	}
 	if !spec.IsPodAnnotationsOverrideEnabled() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name: "POD_ANNOTATIONS_OVERRIDE_ENABLED",
+			Name:  "POD_ANNOTATIONS_OVERRIDE_ENABLED",
 			Value: "false",
 		})
 	}
