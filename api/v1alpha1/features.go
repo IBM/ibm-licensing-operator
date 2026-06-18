@@ -57,9 +57,13 @@ type Features struct {
 	// +optional
 	KubeRBACAuthEnabled *bool `json:"kubeRBACAuthEnabled,omitempty"`
 
-	// Enables the OperandRequest integration. Default true.
+	// Enables the OperandRequest integration. Defaults to true.
 	// +optional
 	OperandRequestsEnabled *bool `json:"operandRequestsEnabled,omitempty"`
+
+	// Enables pod annotations override using IBMLicensingDefinition CR-s. Defaults to true.
+	// +optional
+	PodAnnotationsOverrideEnabled *bool `json:"podAnnotationsOverrideEnabled,omitempty"`
 
 	// Special terms, must be granted by IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Custom namespaces Config Map",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
@@ -94,6 +98,13 @@ func (spec *IBMLicensingSpec) IsOperandRequestsEnabled() bool {
 		return true
 	}
 	return *spec.Features.OperandRequestsEnabled
+}
+
+func (spec *IBMLicensingSpec) IsPodAnnotationsOverrideEnabled() bool {
+	if !spec.HaveFeatures() || spec.Features.PodAnnotationsOverrideEnabled == nil {
+		return true
+	}
+	return *spec.Features.PodAnnotationsOverrideEnabled
 }
 
 func (spec *IBMLicensingSpec) IsCustomNamespaceScopeConfigMap() bool {
