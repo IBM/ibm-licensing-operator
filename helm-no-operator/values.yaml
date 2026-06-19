@@ -1,0 +1,28 @@
+# Global settings
+global:
+  imagePullPrefix: icr.io
+  imagePullSecret: ibm-entitlement-key
+
+# IBM Licensing configuration
+ibmLicensing:
+  namespace: ibm-licensing
+  watchNamespace: ibm-licensing
+  imageRegistryNamespaceOperand: cpopen/cpfs
+  createRBAC: true
+  spec:
+    datasource: datacollector
+    httpsEnable: true
+    httpsCertsSource: external
+    enableInstanaMetricCollection: false
+    features:
+      nssEnabled: false
+      nodeCpuCappingEnabled: true
+      kubeRBACAuthEnabled: true
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 256Mi
+        ephemeralStorage: 256Mi
