@@ -361,6 +361,9 @@ spec:
                       required:
                         - urlBasedEnabled
                       type: object
+                    customResourcesEnabled:
+                      description: Enables access to License Service custom resources. Defaults to true.
+                      type: boolean
                     hyperThreading:
                       description: Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading (SMT) enabled
                       properties:
