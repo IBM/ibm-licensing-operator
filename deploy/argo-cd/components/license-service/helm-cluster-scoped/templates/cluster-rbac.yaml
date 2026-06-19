@@ -47,6 +47,7 @@ rules:
     verbs:
       - get
       - list
+  {{- if eq (include "ibm-licensing.customResourcesEnabled" .) "true" }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -56,6 +57,7 @@ rules:
     verbs:
       - get
       - list
+  {{- end }}
   {{- if eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true" }}
   - apiGroups:
       - authentication.k8s.io
@@ -98,6 +100,7 @@ rules:
       - get
       - list
   {{- end }}
+  {{- if eq (include "ibm-licensing.customResourcesEnabled" .) "true" }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -107,6 +110,7 @@ rules:
     verbs:
       - get
       - list
+  {{- end }}
   {{- if eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true" }}
   - apiGroups:
       - authentication.k8s.io
