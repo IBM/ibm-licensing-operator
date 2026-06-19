@@ -101,8 +101,8 @@ func (in *Features) DeepCopyInto(out *Features) {
 		*out = new(bool)
 		**out = **in
 	}
-	if in.PodAnnotationsOverrideEnabled != nil {
-		in, out := &in.PodAnnotationsOverrideEnabled, &out.PodAnnotationsOverrideEnabled
+	if in.CustomResourcesEnabled != nil {
+		in, out := &in.CustomResourcesEnabled, &out.CustomResourcesEnabled
 		*out = new(bool)
 		**out = **in
 	}

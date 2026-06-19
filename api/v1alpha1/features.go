@@ -61,9 +61,9 @@ type Features struct {
 	// +optional
 	OperandRequestsEnabled *bool `json:"operandRequestsEnabled,omitempty"`
 
-	// Enables pod annotations override using IBMLicensingDefinition CR-s. Defaults to true.
+	// Enables access to License Service custom resources. Defaults to true.
 	// +optional
-	PodAnnotationsOverrideEnabled *bool `json:"podAnnotationsOverrideEnabled,omitempty"`
+	CustomResourcesEnabled *bool `json:"customResourcesEnabled,omitempty"`
 
 	// Special terms, must be granted by IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Custom namespaces Config Map",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
@@ -100,11 +100,11 @@ func (spec *IBMLicensingSpec) IsOperandRequestsEnabled() bool {
 	return *spec.Features.OperandRequestsEnabled
 }
 
-func (spec *IBMLicensingSpec) IsPodAnnotationsOverrideEnabled() bool {
-	if !spec.HaveFeatures() || spec.Features.PodAnnotationsOverrideEnabled == nil {
+func (spec *IBMLicensingSpec) AreCustomResourcesEnabled() bool {
+	if !spec.HaveFeatures() || spec.Features.CustomResourcesEnabled == nil {
 		return true
 	}
-	return *spec.Features.PodAnnotationsOverrideEnabled
+	return *spec.Features.CustomResourcesEnabled
 }
 
 func (spec *IBMLicensingSpec) IsCustomNamespaceScopeConfigMap() bool {

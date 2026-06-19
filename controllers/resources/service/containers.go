@@ -114,9 +114,9 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "false",
 		})
 	}
-	if !spec.IsPodAnnotationsOverrideEnabled() {
+	if !spec.AreCustomResourcesEnabled() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "POD_ANNOTATIONS_OVERRIDE_ENABLED",
+			Name:  "CUSTOM_RESOURCES_ENABLED",
 			Value: "false",
 		})
 	}
