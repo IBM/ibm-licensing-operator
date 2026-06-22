@@ -61,7 +61,7 @@ func GetWatchNamespaceAsList() ([]string, error) {
 		seen[token] = struct{}{}
 		sanitizedNamespaces = append(sanitizedNamespaces, token)
 	}
-	
+
 	return sanitizedNamespaces, nil
 }
 
