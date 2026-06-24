@@ -209,6 +209,18 @@ template_crds() {
     log_info "crd.yaml created"
 }
 
+copy_static_templates() {
+    log_info "Copying static Helm templates maintained in the chart..."
+    
+    cp "${PROJECT_ROOT}/helm-no-operator/templates/_helpers.tpl" "$OUTPUT_DIR/_helpers.tpl"
+    cp "${PROJECT_ROOT}/helm-no-operator/templates/serviceaccounts.yaml" "$OUTPUT_DIR/serviceaccounts.yaml"
+    cp "${PROJECT_ROOT}/helm-no-operator/templates/rbac.yaml" "$OUTPUT_DIR/rbac.yaml"
+    cp "${PROJECT_ROOT}/helm-no-operator/templates/cluster-rbac.yaml" "$OUTPUT_DIR/cluster-rbac.yaml"
+    cp "${PROJECT_ROOT}/helm-no-operator/templates/rbac-watch-namespace.yaml" "$OUTPUT_DIR/rbac-watch-namespace.yaml"
+    
+    log_info "Static Helm templates copied"
+}
+
 
 main() {
     log_info "Starting resource templating process..."
@@ -222,6 +234,7 @@ main() {
     template_deployment
     template_service
     template_crds
+    copy_static_templates
     
     log_info ""
     log_info "Resource templating completed successfully!"
