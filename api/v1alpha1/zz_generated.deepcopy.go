@@ -101,6 +101,11 @@ func (in *Features) DeepCopyInto(out *Features) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.CustomResourcesEnabled != nil {
+		in, out := &in.CustomResourcesEnabled, &out.CustomResourcesEnabled
+		*out = new(bool)
+		**out = **in
+	}
 	if in.CustomNamespaceScopeConfigMap != nil {
 		in, out := &in.CustomNamespaceScopeConfigMap, &out.CustomNamespaceScopeConfigMap
 		*out = new(string)

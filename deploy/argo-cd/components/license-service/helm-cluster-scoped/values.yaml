@@ -18,3 +18,4 @@ ibmLicensing:
       nodeCpuCappingEnabled: true
       kubeRBACAuthEnabled: true
       operandRequestsEnabled: true
+      customResourcesEnabled: true

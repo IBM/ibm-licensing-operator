@@ -30,6 +30,10 @@ limitations under the License.
 {{- ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" -}}
 {{- end -}}
 
+{{- define "ibm-licensing.customResourcesEnabled" -}}
+{{- ne (((.Values.ibmLicensing.spec).features).customResourcesEnabled | toString) "false" -}}
+{{- end -}}
+
 {{/* True when the unrestricted operand SA/ClusterRole is the active one (nss off). */}}
 {{- define "ibm-licensing.unrestrictedClusterRoleNeeded" -}}
 {{- ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" -}}
@@ -37,13 +41,13 @@ limitations under the License.
 
 {{/* Restricted ClusterRole is the operand role only in nss mode (it backs the
      ibm-license-service-restricted SA). Outside nss mode the unrestricted role
-     is the active one, so the restricted object would be dead RBAC. Render it
-     whenever nss is on: the operand always reads its metadata/definition/
-     querysource CRs cluster-wide, so the restricted role carries that
-     irreducible cluster-scoped grant (plus the gated nodes/kube-RBAC rules)
-     and is never empty in nss mode. */}}
+     is the active one, so the restricted object would be dead RBAC. Within nss
+     mode every rule block it carries is feature-gated (nodes via CPU capping,
+     the metadata/definition/querysource CR reads via customResources, and the
+     kube-RBAC auth rules), so render it only when at least one of those is on;
+     otherwise it would be an empty ClusterRole plus a dangling binding. */}}
 {{- define "ibm-licensing.restrictedClusterRoleNeeded" -}}
-{{- eq (include "ibm-licensing.namespaceDiscoveryEnabled" .) "false" -}}
+{{- and (eq (include "ibm-licensing.namespaceDiscoveryEnabled" .) "false") (or (eq (include "ibm-licensing.nodeCpuCappingEnabled" .) "true") (eq (include "ibm-licensing.customResourcesEnabled" .) "true") (eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true")) -}}
 {{- end -}}
 
 {{/* cluster-monitoring-view binding: only for datasource=prometheus. */}}

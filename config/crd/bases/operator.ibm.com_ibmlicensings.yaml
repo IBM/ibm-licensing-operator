@@ -97,6 +97,10 @@ spec:
                     required:
                     - urlBasedEnabled
                     type: object
+                  customResourcesEnabled:
+                    description: Enables access to License Service custom resources.
+                      Defaults to true.
+                    type: boolean
                   hyperThreading:
                     description: Configure if you have HyperThreading (HT) or Symmetrical
                       Multi-Threading (SMT) enabled
@@ -136,7 +140,8 @@ spec:
                       This feature requires authorization from IBM Pricing.
                     type: boolean
                   operandRequestsEnabled:
-                    description: Enables the OperandRequest integration. Default true.
+                    description: Enables the OperandRequest integration. Defaults
+                      to true.
                     type: boolean
                   prometheusQuerySource:
                     description: Change prometheus query source settings.

@@ -114,6 +114,12 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: "false",
 		})
 	}
+	if !spec.AreCustomResourcesEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "CUSTOM_RESOURCES_ENABLED",
+			Value: "false",
+		})
+	}
 	if spec.IsNamespaceScopeEnabled() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "NAMESPACE_SCOPE_ENABLED",
