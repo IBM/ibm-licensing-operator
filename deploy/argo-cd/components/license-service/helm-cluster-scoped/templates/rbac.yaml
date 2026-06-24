@@ -178,7 +178,7 @@ rules:
       - get
       - list
       - watch
-  {{- if eq (include "ibm-licensing.operandRequestsEnabled" .) "true" }}
+  {{- if ne (((.Values.ibmLicensing.spec).features).operandRequestsEnabled | toString) "false" }}
   - apiGroups:
       - operators.coreos.com
     resources:

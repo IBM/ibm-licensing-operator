@@ -1,6 +1,6 @@
 {{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}
 ---
-{{- if eq (include "ibm-licensing.unrestrictedClusterRoleNeeded" .) "true" }}
+{{- if ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" }}
 # Operand role (unrestricted): cluster-wide workload reads for the ibm-license-service operand SA. Rendered only when namespace-scope is off (nssEnabled != true).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -16,10 +16,10 @@ rules:
       - ""
     resources:
       - pods
-      {{- if eq (include "ibm-licensing.namespaceDiscoveryEnabled" .) "true" }}
+      {{- if ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" }}
       - namespaces
       {{- end }}
-      {{- if eq (include "ibm-licensing.nodeCpuCappingEnabled" .) "true" }}
+      {{- if ne (((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled | toString) "false" }}
       - nodes
       {{- end }}
     verbs:
@@ -47,7 +47,7 @@ rules:
     verbs:
       - get
       - list
-  {{- if eq (include "ibm-licensing.customResourcesEnabled" .) "true" }}
+  {{- if ne (((.Values.ibmLicensing.spec).features).customResourcesEnabled | toString) "false" }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -58,7 +58,7 @@ rules:
       - get
       - list
   {{- end }}
-  {{- if eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true" }}
+  {{- if ne (((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled | toString) "false" }}
   - apiGroups:
       - authentication.k8s.io
     resources:
@@ -86,21 +86,21 @@ metadata:
     component-id: {{ .Chart.Name }}
   name: ibm-license-service-restricted
 rules:
-  {{- if or (eq (include "ibm-licensing.namespaceDiscoveryEnabled" .) "true") (eq (include "ibm-licensing.nodeCpuCappingEnabled" .) "true") }}
+  {{- if or (ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true") (ne (((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled | toString) "false") }}
   - apiGroups:
       - ""
     resources:
-      {{- if eq (include "ibm-licensing.namespaceDiscoveryEnabled" .) "true" }}
+      {{- if ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" }}
       - namespaces
       {{- end }}
-      {{- if eq (include "ibm-licensing.nodeCpuCappingEnabled" .) "true" }}
+      {{- if ne (((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled | toString) "false" }}
       - nodes
       {{- end }}
     verbs:
       - get
       - list
   {{- end }}
-  {{- if eq (include "ibm-licensing.customResourcesEnabled" .) "true" }}
+  {{- if ne (((.Values.ibmLicensing.spec).features).customResourcesEnabled | toString) "false" }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -111,7 +111,7 @@ rules:
       - get
       - list
   {{- end }}
-  {{- if eq (include "ibm-licensing.kubeRBACAuthEnabled" .) "true" }}
+  {{- if ne (((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled | toString) "false" }}
   - apiGroups:
       - authentication.k8s.io
     resources:
@@ -187,7 +187,7 @@ rules:
       - patch
       - update
       - watch
-  {{- if eq (include "ibm-licensing.operandRequestsEnabled" .) "true" }}
+  {{- if ne (((.Values.ibmLicensing.spec).features).operandRequestsEnabled | toString) "false" }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -208,7 +208,7 @@ rules:
     verbs:
       - list
 ---
-{{- if eq (include "ibm-licensing.unrestrictedClusterRoleNeeded" .) "true" }}
+{{- if ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" }}
 # Binds the unrestricted operand ClusterRole to the ibm-license-service SA. Gated in lockstep with that ClusterRole so the binding never dangles.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -288,7 +288,7 @@ subjects:
     name: ibm-licensing-operator
     namespace: {{ .Values.ibmLicensing.namespace }}
 ---
-{{- if eq (include "ibm-licensing.clusterMonitoringNeeded" .) "true" }}
+{{- if eq ((.Values.ibmLicensing.spec).datasource | toString) "prometheus" }}
 # Cluster monitoring read path: needed only for datasource=prometheus; the subject follows the active operand SA.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
