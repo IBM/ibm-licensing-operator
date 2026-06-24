@@ -1,1 +1,0 @@
-{"id":"142170b7-12b1-4e40-bc14-b048c7d141ae","ts":"2026-06-24T14:37:30.903Z","path":"/Users/michalszczygiel/projects/ums-next/ibm-licensing-operator/helm-no-operator/templates/rbac-watch-namespace.yaml","version":"1.0.0","taskID":"e7b3ce71-4435-4bbf-8068-d24425d379b3"}
