@@ -9,6 +9,7 @@ ibmLicensing:
   watchNamespace: ibm-licensing
   imageRegistryNamespaceOperand: cpopen/cpfs
   createRBAC: true
+  createRBACInWatchedNamespaces: true
   spec:
     datasource: datacollector
     httpsEnable: true
