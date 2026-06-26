@@ -89,3 +89,6 @@ marketplace.redhat.com_meterdefinitions.yaml
 
 # Development helm charts
 ibm-*.tgz
+
+# Bob
+.bob
