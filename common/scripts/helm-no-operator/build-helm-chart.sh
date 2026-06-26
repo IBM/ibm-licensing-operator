@@ -78,7 +78,7 @@ main() {
 
     # Step 5: Update other resources using IBM Bob
     log_step "Step 5/5: Syncing RBAC from source-of-truth chart..."
-    bob -y "Sync cluster-rbac.yaml, rbac-watch-namespace.yaml, rbac.yaml, serviceaccounts.yaml, _helpers.tpl from ./helm-no-operator/templates/ with their counterparts in ./deploy/argo-cd/components/license-service/helm-cluster-scoped/templates/.
+    bob -y "Sync cluster-rbac.yaml, rbac-watch-namespace.yaml, rbac.yaml, serviceaccounts.yaml, _helpers.tpl from ./deploy/argo-cd/components/license-service/helm-cluster-scoped/templates/ into ./helm-no-operator/templates/.
     
     Rules:
     1. Keep only RBAC for the operand (instance deployment). Drop every resource whose name contains 'operator' or that is only needed by the operator controller (for example ClusterRole ibm-licensing-operator, Role ibm-licensing-operator, ClusterRole ibm-licensing-opreqs-role, and their bindings).
