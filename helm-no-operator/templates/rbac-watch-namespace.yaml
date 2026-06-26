@@ -1,6 +1,4 @@
-{{- if eq (lower (.Values.ibmLicensing.createRBACInWatchedNamespaces | toString)) "true" }}
-{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}
-{{- if eq (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" }}
+{{- if and (eq (lower (.Values.ibmLicensing.createRBACInWatchedNamespaces | toString)) "true") (eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true") (eq (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true") }}
 {{- $namespaces := splitList "," .Values.ibmLicensing.watchNamespace }}
 {{- $instanceNamespace := .Values.ibmLicensing.namespace }}
 {{- $operandServiceAccount := include "ibm-licensing.operandServiceAccount" . }}
@@ -52,8 +50,6 @@ subjects:
 - kind: ServiceAccount
   name: {{ $operandServiceAccount }}
   namespace: {{ $instanceNamespace }}
-{{- end }}
-{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

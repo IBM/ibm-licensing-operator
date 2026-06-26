@@ -86,14 +86,14 @@ metadata:
     component-id: {{ .Chart.Name }}
   name: ibm-license-service-restricted
 rules:
-  {{- if or (ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true") (ne (((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled | toString) "false") }}
+  {{- if or (eq (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "false") (eq (((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled | toString) "true") }}
   - apiGroups:
       - ""
     resources:
-      {{- if ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" }}
+      {{- if eq (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "false" }}
       - namespaces
       {{- end }}
-      {{- if ne (((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled | toString) "false" }}
+      {{- if eq (((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled | toString) "true" }}
       - nodes
       {{- end }}
     verbs:
