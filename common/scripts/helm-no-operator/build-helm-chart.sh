@@ -42,7 +42,7 @@ main() {
     echo ""
     
     # Step 1: Extract cluster resources
-    log_step "Step 1/4: Extracting resources from cluster..."
+    log_step "Step 1/5: Extracting resources from cluster..."
     if ! bash "${SCRIPT_DIR}/extract-cluster-resources.sh"; then
         log_error "Failed to extract cluster resources"
         exit 1
@@ -50,7 +50,7 @@ main() {
     echo ""
     
     # Step 2: Generate CRD resources
-    log_step "Step 2/4: Generating CRD resources..."
+    log_step "Step 2/5: Generating CRD resources..."
     if ! bash "${SCRIPT_DIR}/generate-resources.sh"; then
         log_error "Failed to generate CRD resources"
         exit 1
@@ -58,7 +58,7 @@ main() {
     echo ""
     
     # Step 3: Template resources into Helm templates
-    log_step "Step 3/4: Templating resources into Helm templates..."
+    log_step "Step 3/5: Templating resources into Helm templates..."
     if ! bash "${SCRIPT_DIR}/template-resources.sh"; then
         log_error "Failed to template resources"
         exit 1
@@ -66,7 +66,7 @@ main() {
     echo ""
     
     # Step 4: Clean up resources directory
-    log_step "Step 4/4: Cleaning up temporary resources directory..."
+    log_step "Step 4/5: Cleaning up temporary resources directory..."
     if [ -d "${RESOURCES_DIR}" ]; then
         log_info "Removing ${RESOURCES_DIR}..."
         rm -rf "${RESOURCES_DIR}"
@@ -75,6 +75,15 @@ main() {
         log_warn "Resources directory not found, skipping cleanup"
     fi
     echo ""
+
+    # Step 5: Update other resources using IBM Bob
+    log_step "Step 5/5: Syncing RBAC from source-of-truth chart..."
+    bob -y "Sync cluster-rbac.yaml, rbac-watch-namespace.yaml, rbac.yaml, serviceaccounts.yaml, _helpers.tpl from ./helm-no-operator/templates/ with their counterparts in ./deploy/argo-cd/components/license-service/helm-cluster-scoped/templates/.
+    
+    Rules:
+    1. Keep only RBAC for the operand (instance deployment). Drop every resource whose name contains 'operator' or that is only needed by the operator controller (for example ClusterRole ibm-licensing-operator, Role ibm-licensing-operator, ClusterRole ibm-licensing-opreqs-role, and their bindings).
+    2. Preserve all Helm conditionals ({{- if ... }}/{{- end }}) exactly as they appear in the source files.
+    3. Do not add or remove any other content."
     
     # Success message
     echo "=========================================="

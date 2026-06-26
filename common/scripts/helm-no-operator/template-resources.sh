@@ -209,7 +209,6 @@ template_crds() {
     log_info "crd.yaml created"
 }
 
-
 main() {
     log_info "Starting resource templating process..."
     log_info "Input directory: ${INPUT_DIR}"
@@ -222,7 +221,7 @@ main() {
     template_deployment
     template_service
     template_crds
-    
+
     log_info ""
     log_info "Resource templating completed successfully!"
     log_info "Templated resources are available in: ${OUTPUT_DIR}/"

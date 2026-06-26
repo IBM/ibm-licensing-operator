@@ -59,6 +59,20 @@ To generate a complete Helm chart from scratch:
 
 After running the build process, you need to check what was generated in helm-no-operator folder. If you want to adjust generated helm chart, you will need to make changes in the generation scripts and re-run the build process.
 
+## Generated vs. hand-maintained templates
+
+| File | Source |
+| --- | --- |
+| `secrets.yaml` | generated |
+| `deployment.yaml` | generated |
+| `service.yaml` | generated |
+| `crd.yaml` | generated |
+| `cluster-rbac.yaml` | hand-maintained / IBM Bob |
+| `rbac-watch-namespace.yaml` | hand-maintained / IBM Bob |
+| `rbac.yaml` | hand-maintained / IBM Bob |
+| `serviceaccounts.yaml` | hand-maintained / IBM Bob |
+| `_helpers.tpl` | hand-maintained / IBM Bob |
+
 ## Testing the Generated Chart
 
 ```bash
