@@ -22,13 +22,13 @@ limitations under the License.
      kube-RBAC auth rules), so render it only when at least one of those is on;
      otherwise it would be an empty ClusterRole plus a dangling binding. */}}
 {{- define "ibm-licensing.restrictedClusterRoleNeeded" -}}
-{{- and (eq (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true") (or (ne (((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled | toString) "false") (ne (((.Values.ibmLicensing.spec).features).customResourcesEnabled | toString) "false") (ne (((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled | toString) "false")) -}}
+{{- and ((.Values.ibmLicensing.spec).features).nssEnabled (or ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled ((.Values.ibmLicensing.spec).features).customResourcesEnabled ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled) -}}
 {{- end -}}
 
 {{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise.
      Drives the cluster-monitoring-view binding subject so it follows the active SA. */}}
 {{- define "ibm-licensing.operandServiceAccount" -}}
-{{- if eq (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" -}}
+{{- if ((.Values.ibmLicensing.spec).features).nssEnabled -}}
 ibm-license-service-restricted
 {{- else -}}
 ibm-license-service

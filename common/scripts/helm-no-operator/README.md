@@ -67,11 +67,11 @@ After running the build process, you need to check what was generated in helm-no
 | `deployment.yaml` | generated |
 | `service.yaml` | generated |
 | `crd.yaml` | generated |
-| `cluster-rbac.yaml` | hand-maintained |
-| `rbac-watch-namespace.yaml` | hand-maintained |
-| `rbac.yaml` | hand-maintained |
-| `serviceaccounts.yaml` | hand-maintained |
-| `_helpers.tpl` | hand-maintained |
+| `cluster-rbac.yaml` | hand-maintained / IBM Bob |
+| `rbac-watch-namespace.yaml` | hand-maintained / IBM Bob |
+| `rbac.yaml` | hand-maintained / IBM Bob |
+| `serviceaccounts.yaml` | hand-maintained / IBM Bob |
+| `_helpers.tpl` | hand-maintained / IBM Bob |
 
 ## Testing the Generated Chart
 

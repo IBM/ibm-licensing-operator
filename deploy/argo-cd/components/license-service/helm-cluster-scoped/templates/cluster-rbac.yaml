@@ -1,6 +1,6 @@
-{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}
+{{- if .Values.ibmLicensing.createRBAC }}
 ---
-{{- if ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" }}
+{{- if not ((.Values.ibmLicensing.spec).features).nssEnabled }}
 # Operand role (unrestricted): cluster-wide workload reads for the ibm-license-service operand SA. Rendered only when namespace-scope is off (nssEnabled != true).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -16,10 +16,10 @@ rules:
       - ""
     resources:
       - pods
-      {{- if ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" }}
+      {{- if not ((.Values.ibmLicensing.spec).features).nssEnabled }}
       - namespaces
       {{- end }}
-      {{- if ne (((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled | toString) "false" }}
+      {{- if ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
       - nodes
       {{- end }}
     verbs:
@@ -47,7 +47,7 @@ rules:
     verbs:
       - get
       - list
-  {{- if ne (((.Values.ibmLicensing.spec).features).customResourcesEnabled | toString) "false" }}
+  {{- if ((.Values.ibmLicensing.spec).features).customResourcesEnabled }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -58,7 +58,7 @@ rules:
       - get
       - list
   {{- end }}
-  {{- if ne (((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled | toString) "false" }}
+  {{- if ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled }}
   - apiGroups:
       - authentication.k8s.io
     resources:
@@ -86,21 +86,21 @@ metadata:
     component-id: {{ .Chart.Name }}
   name: ibm-license-service-restricted
 rules:
-  {{- if or (eq (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "false") (eq (((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled | toString) "true") }}
+  {{- if or (not ((.Values.ibmLicensing.spec).features).nssEnabled) ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
   - apiGroups:
       - ""
     resources:
-      {{- if eq (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "false" }}
+      {{- if not ((.Values.ibmLicensing.spec).features).nssEnabled }}
       - namespaces
       {{- end }}
-      {{- if eq (((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled | toString) "true" }}
+      {{- if ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
       - nodes
       {{- end }}
     verbs:
       - get
       - list
   {{- end }}
-  {{- if ne (((.Values.ibmLicensing.spec).features).customResourcesEnabled | toString) "false" }}
+  {{- if ((.Values.ibmLicensing.spec).features).customResourcesEnabled }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -111,7 +111,7 @@ rules:
       - get
       - list
   {{- end }}
-  {{- if ne (((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled | toString) "false" }}
+  {{- if ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled }}
   - apiGroups:
       - authentication.k8s.io
     resources:
@@ -187,7 +187,7 @@ rules:
       - patch
       - update
       - watch
-  {{- if ne (((.Values.ibmLicensing.spec).features).operandRequestsEnabled | toString) "false" }}
+  {{- if ((.Values.ibmLicensing.spec).features).operandRequestsEnabled }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -208,7 +208,7 @@ rules:
     verbs:
       - list
 ---
-{{- if ne (((.Values.ibmLicensing.spec).features).nssEnabled | toString) "true" }}
+{{- if not ((.Values.ibmLicensing.spec).features).nssEnabled }}
 # Binds the unrestricted operand ClusterRole to the ibm-license-service SA. Gated in lockstep with that ClusterRole so the binding never dangles.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
