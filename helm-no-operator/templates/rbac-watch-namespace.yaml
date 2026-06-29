@@ -1,0 +1,55 @@
+{{- if and .Values.ibmLicensing.createRBACInWatchedNamespaces .Values.ibmLicensing.createRBAC ((.Values.ibmLicensing.spec).features).nssEnabled }}
+{{- $namespaces := splitList "," .Values.ibmLicensing.watchNamespace }}
+{{- $instanceNamespace := .Values.ibmLicensing.namespace }}
+{{- $operandServiceAccount := include "ibm-licensing.operandServiceAccount" . }}
+{{- range $namespace := $namespaces }}
+{{- $trimmedNamespace := trim $namespace }}
+{{- if $trimmedNamespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+    component-id: {{ $.Chart.Name }}
+  name: ibm-license-service-watch
+  namespace: {{ $trimmedNamespace }}
+rules:
+- apiGroups:
+    - ""
+  resources:
+    - pods
+  verbs:
+    - get
+    - list
+- apiGroups:
+    - apps
+  resources:
+    - deployments
+  verbs:
+    - get
+    - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+    component-id: {{ $.Chart.Name }}
+  name: ibm-license-service-watch
+  namespace: {{ $trimmedNamespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ibm-license-service-watch
+subjects:
+- kind: ServiceAccount
+  name: {{ $operandServiceAccount }}
+  namespace: {{ $instanceNamespace }}
+{{- end }}
+{{- end }}
+{{- end }}

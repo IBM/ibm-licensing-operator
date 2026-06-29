@@ -10,6 +10,7 @@ ibmLicensing:
   imageRegistryNamespaceOperand: cpopen/cpfs
   imageRegistryNamespaceOperandVersion: 0fce18e23a08162d1ceca35bbd1e56cc11f95b53
   createRBAC: true
+  createRBACInWatchedNamespaces: true
   spec:
     datasource: datacollector
     httpsEnable: true
@@ -19,6 +20,7 @@ ibmLicensing:
       nssEnabled: false
       nodeCpuCappingEnabled: true
       kubeRBACAuthEnabled: true
+      customResourcesEnabled: true
       ibmLicensingAdditionalRolesEnabled: true
     resources:
       limits:
