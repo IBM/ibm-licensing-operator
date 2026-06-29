@@ -51,6 +51,12 @@ limitations under the License.
 {{- eq ((.Values.ibmLicensing.spec).datasource | toString) "prometheus" -}}
 {{- end -}}
 
+{{/* Additional reader roles (ibm-licensing-default-reader SA/ClusterRole/CRB): enabled by default,
+     set .Values.ibmLicensing.spec.features.ibmLicensingAdditionalRolesEnabled=false to skip them. */}}
+{{- define "ibm-licensing.additionalRolesEnabled" -}}
+{{- ne (((.Values.ibmLicensing.spec).features).ibmLicensingAdditionalRolesEnabled | toString) "false" -}}
+{{- end -}}
+
 {{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise.
      Drives the cluster-monitoring-view binding subject so it follows the active SA. */}}
 {{- define "ibm-licensing.operandServiceAccount" -}}

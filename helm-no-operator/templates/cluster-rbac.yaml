@@ -122,8 +122,9 @@ rules:
       - create
   {{- end }}
 {{- end }}
+{{- if eq (include "ibm-licensing.additionalRolesEnabled" .) "true" }}
 ---
-# Reader endpoint (NOT the operator): grants GET on the License Service HTTP URLs to the ibm-licensing-default-reader SA, consumed by API readers. The operator only provisions its token. Always rendered.
+# Reader endpoint (NOT the operator): grants GET on the License Service HTTP URLs to the ibm-licensing-default-reader SA, consumed by API readers. Rendered only when ibmLicensingAdditionalRolesEnabled=true (default).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -144,6 +145,7 @@ rules:
       - /workloads
     verbs:
       - get
+{{- end }}
 ---
 {{- if eq (include "ibm-licensing.unrestrictedClusterRoleNeeded" .) "true" }}
 # Binds the unrestricted operand ClusterRole to the ibm-license-service SA. Gated in lockstep with that ClusterRole so the binding never dangles.
@@ -186,8 +188,9 @@ subjects:
     name: ibm-license-service-restricted
     namespace: {{ .Values.ibmLicensing.namespace }}
 {{- end }}
+{{- if eq (include "ibm-licensing.additionalRolesEnabled" .) "true" }}
 ---
-# Binds the reader ClusterRole to the ibm-licensing-default-reader SA (the reader-token identity). Always rendered.
+# Binds the reader ClusterRole to the ibm-licensing-default-reader SA (the reader-token identity). Rendered only when ibmLicensingAdditionalRolesEnabled=true (default).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -205,6 +208,7 @@ subjects:
   - kind: ServiceAccount
     name: ibm-licensing-default-reader
     namespace: {{ .Values.ibmLicensing.namespace }}
+{{- end }}
 ---
 {{- if eq (include "ibm-licensing.clusterMonitoringNeeded" .) "true" }}
 # Cluster monitoring read path: needed only for datasource=prometheus; the subject follows the active operand SA.
