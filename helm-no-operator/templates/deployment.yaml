@@ -64,8 +64,9 @@ spec:
               value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}
             - name: KUBE_RBAC_AUTH_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
-          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
-          imagePullPolicy: IfNotPresent
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:{{ .Values.ibmLicensing.imageRegistryNamespaceOperandVersion }}
+          #ls-operand-standalone
+          imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 3
             httpGet:
@@ -154,8 +155,9 @@ spec:
               value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}
             - name: KUBE_RBAC_AUTH_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
-          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
-          imagePullPolicy: IfNotPresent
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:{{ .Values.ibmLicensing.imageRegistryNamespaceOperandVersion }}
+          #ls-operand-standalone
+          imagePullPolicy: Always
           name: ocp-check-secret
           resources:
             limits:

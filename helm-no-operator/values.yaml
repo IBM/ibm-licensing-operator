@@ -8,6 +8,7 @@ ibmLicensing:
   namespace: ibm-licensing
   watchNamespace: ibm-licensing
   imageRegistryNamespaceOperand: cpopen/cpfs
+  imageRegistryNamespaceOperandVersion: 0fce18e23a08162d1ceca35bbd1e56cc11f95b53
   createRBAC: true
   spec:
     datasource: datacollector
@@ -18,6 +19,7 @@ ibmLicensing:
       nssEnabled: false
       nodeCpuCappingEnabled: true
       kubeRBACAuthEnabled: true
+      ibmLicensingAdditionalRolesEnabled: true
     resources:
       limits:
         cpu: 500m
