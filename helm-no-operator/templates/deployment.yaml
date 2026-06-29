@@ -65,8 +65,7 @@ spec:
             - name: KUBE_RBAC_AUTH_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:{{ .Values.ibmLicensing.imageRegistryNamespaceOperandVersion }}
-          #ls-operand-standalone
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 3
             httpGet:
@@ -156,8 +155,7 @@ spec:
             - name: KUBE_RBAC_AUTH_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:{{ .Values.ibmLicensing.imageRegistryNamespaceOperandVersion }}
-          #ls-operand-standalone
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           name: ocp-check-secret
           resources:
             limits:
