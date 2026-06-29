@@ -79,6 +79,25 @@ rules:
     - get
     - list
     - watch
+{{- if (($.Values.ibmLicensing.spec).features).operandRequestsEnabled }}
+- apiGroups:
+    - ""
+  resources:
+    - configmaps
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+- apiGroups:
+    - ""
+  resources:
+    - secrets
+  verbs:
+    - create
+    - update
+{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
