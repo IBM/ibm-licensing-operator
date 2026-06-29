@@ -119,6 +119,7 @@ template_deployment() {
     $YQ -i '.spec.template.spec.containers[0].env += [{"name": "WATCH_NAMESPACE", "value": "sed-me-watchNamespace"}]' "$OUTPUT_DIR/deployment.yaml"
     $YQ -i '.spec.template.spec.containers[0].env += [{"name": "NODE_CPU_CAPPING_ENABLED", "value": "sed-me-nodeCpuCappingEnabled"}]' "$OUTPUT_DIR/deployment.yaml"
     $YQ -i '.spec.template.spec.containers[0].env += [{"name": "KUBE_RBAC_AUTH_ENABLED", "value": "sed-me-kubeRBACAuthEnabled"}]' "$OUTPUT_DIR/deployment.yaml"
+    $YQ -i '.spec.template.spec.containers[0].env += [{"name": "CUSTOM_RESOURCES_ENABLED", "value": "sed-me-customResourcesEnabled"}]' "$OUTPUT_DIR/deployment.yaml"
     
     # Replace environment variables in init container
     $YQ -i '.spec.template.spec.initContainers[0].env[0].value = "sed-me-namespace"' "$OUTPUT_DIR/deployment.yaml"
@@ -132,6 +133,7 @@ template_deployment() {
     $YQ -i '.spec.template.spec.initContainers[0].env += [{"name": "WATCH_NAMESPACE", "value": "sed-me-watchNamespace"}]' "$OUTPUT_DIR/deployment.yaml"
     $YQ -i '.spec.template.spec.initContainers[0].env += [{"name": "NODE_CPU_CAPPING_ENABLED", "value": "sed-me-nodeCpuCappingEnabled"}]' "$OUTPUT_DIR/deployment.yaml"
     $YQ -i '.spec.template.spec.initContainers[0].env += [{"name": "KUBE_RBAC_AUTH_ENABLED", "value": "sed-me-kubeRBACAuthEnabled"}]' "$OUTPUT_DIR/deployment.yaml"
+    $YQ -i '.spec.template.spec.initContainers[0].env += [{"name": "CUSTOM_RESOURCES_ENABLED", "value": "sed-me-customResourcesEnabled"}]' "$OUTPUT_DIR/deployment.yaml"
     
     # Replace resource limits and requests in main container
     $YQ -i '.spec.template.spec.containers[0].resources.limits.cpu = "sed-me-cpu-limit"' "$OUTPUT_DIR/deployment.yaml"
@@ -167,6 +169,7 @@ template_deployment() {
     sed -i '' 's/value: sed-me-watchNamespace/value: {{ .Values.ibmLicensing.watchNamespace | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
     sed -i '' 's/value: sed-me-nodeCpuCappingEnabled/value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
     sed -i '' 's/value: sed-me-kubeRBACAuthEnabled/value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
+    sed -i '' 's/value: sed-me-customResourcesEnabled/value: {{ .Values.ibmLicensing.spec.features.customResourcesEnabled | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
     
     # Replace resource limits and requests
     sed -i '' "s/sed-me-cpu-limit/{{ .Values.ibmLicensing.spec.resources.limits.cpu }}/g" "$OUTPUT_DIR/deployment.yaml"
@@ -209,7 +212,6 @@ template_crds() {
     log_info "crd.yaml created"
 }
 
-
 main() {
     log_info "Starting resource templating process..."
     log_info "Input directory: ${INPUT_DIR}"
@@ -222,7 +224,7 @@ main() {
     template_deployment
     template_service
     template_crds
-    
+
     log_info ""
     log_info "Resource templating completed successfully!"
     log_info "Templated resources are available in: ${OUTPUT_DIR}/"

@@ -257,6 +257,45 @@ func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitFalse(t *tes
 		"KubeRBACAuthEnabled=false, KUBE_RBAC_AUTH_ENABLED=false should be added to Licensing pod.")
 }
 
+func TestGetLicensingEnvironmentVariablesCustomResourcesEnabledFeatureNil(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.False(t, ContainsEnvVar(envVars, "CUSTOM_RESOURCES_ENABLED"),
+		"CustomResourcesEnabled omitted in CR, CUSTOM_RESOURCES_ENABLED should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesCustomResourcesEnabledExplicitTrue(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features: &operatorv1alpha1.Features{
+			CustomResourcesEnabled: ptr.To(true),
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.NotContains(t, envVars, corev1.EnvVar{Name: "CUSTOM_RESOURCES_ENABLED", Value: "true"},
+		"CustomResourcesEnabled=true, CUSTOM_RESOURCES_ENABLED=true should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesCustomResourcesEnabledExplicitFalse(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features: &operatorv1alpha1.Features{
+			CustomResourcesEnabled: ptr.To(false),
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "CUSTOM_RESOURCES_ENABLED", Value: "false"},
+		"CustomResourcesEnabled=false, CUSTOM_RESOURCES_ENABLED=false should be added to Licensing pod.")
+}
+
 func Contains[T comparable](s []T, e T) bool {
 	for _, v := range s {
 		if v == e {
