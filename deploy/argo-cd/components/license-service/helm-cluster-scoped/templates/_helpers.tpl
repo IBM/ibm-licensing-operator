@@ -25,8 +25,7 @@ limitations under the License.
 {{- and ((.Values.ibmLicensing.spec).features).nssEnabled (or ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled ((.Values.ibmLicensing.spec).features).customResourcesEnabled ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled) -}}
 {{- end -}}
 
-{{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise.
-     Drives the cluster-monitoring-view binding subject so it follows the active SA. */}}
+{{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise. */}}
 {{- define "ibm-licensing.operandServiceAccount" -}}
 {{- if ((.Values.ibmLicensing.spec).features).nssEnabled -}}
 ibm-license-service-restricted
