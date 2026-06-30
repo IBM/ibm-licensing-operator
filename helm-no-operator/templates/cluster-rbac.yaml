@@ -126,7 +126,7 @@ rules:
       - create
   {{- end }}
 {{- end }}
-{{- if include "ibm-licensing.additionalRolesEnabled" . }}
+{{- if ((.Values.ibmLicensing.spec).features).ibmLicensingAdditionalRolesEnabled }}
 ---
 # Reader endpoint (NOT the operator): grants GET on the License Service HTTP URLs to the ibm-licensing-default-reader SA, consumed by API readers. Rendered only when ibmLicensingAdditionalRolesEnabled=true (default).
 apiVersion: rbac.authorization.k8s.io/v1
@@ -192,7 +192,7 @@ subjects:
     name: ibm-license-service-restricted
     namespace: {{ .Values.ibmLicensing.namespace }}
 {{- end }}
-{{- if include "ibm-licensing.additionalRolesEnabled" . }}
+{{- if ((.Values.ibmLicensing.spec).features).ibmLicensingAdditionalRolesEnabled }}
 ---
 # Binds the reader ClusterRole to the ibm-licensing-default-reader SA (the reader-token identity). Rendered only when ibmLicensingAdditionalRolesEnabled=true (default).
 apiVersion: rbac.authorization.k8s.io/v1

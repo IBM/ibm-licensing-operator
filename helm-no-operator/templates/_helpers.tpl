@@ -25,12 +25,6 @@ limitations under the License.
 {{- and ((.Values.ibmLicensing.spec).features).nssEnabled (or ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled ((.Values.ibmLicensing.spec).features).customResourcesEnabled ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled) -}}
 {{- end -}}
 
-{{/* Additional reader roles (ibm-licensing-default-reader SA/ClusterRole/CRB): enabled by default,
-     set .Values.ibmLicensing.spec.features.ibmLicensingAdditionalRolesEnabled=false to skip them. */}}
-{{- define "ibm-licensing.additionalRolesEnabled" -}}
-{{- ((.Values.ibmLicensing.spec).features).ibmLicensingAdditionalRolesEnabled -}}
-{{- end -}}
-
 {{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise.
      Drives the cluster-monitoring-view binding subject so it follows the active SA. */}}
 {{- define "ibm-licensing.operandServiceAccount" -}}

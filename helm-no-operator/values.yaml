@@ -8,7 +8,7 @@ ibmLicensing:
   namespace: ibm-licensing
   watchNamespace: ibm-licensing
   imageRegistryNamespaceOperand: cpopen/cpfs
-  imageRegistryNamespaceOperandVersion: 4.2.24
+  ibmLicensingVersion: 4.2.24
   createRBAC: true
   createRBACInWatchedNamespaces: true
   spec:
