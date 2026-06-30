@@ -28,7 +28,7 @@ limitations under the License.
 {{/* Additional reader roles (ibm-licensing-default-reader SA/ClusterRole/CRB): enabled by default,
      set .Values.ibmLicensing.spec.features.ibmLicensingAdditionalRolesEnabled=false to skip them. */}}
 {{- define "ibm-licensing.additionalRolesEnabled" -}}
-{{- ne (((.Values.ibmLicensing.spec).features).ibmLicensingAdditionalRolesEnabled | toString) "false" -}}
+{{- ((.Values.ibmLicensing.spec).features).ibmLicensingAdditionalRolesEnabled -}}
 {{- end -}}
 
 {{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise.
