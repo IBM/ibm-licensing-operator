@@ -1,6 +1,5 @@
 {{- if and .Values.ibmLicensing.createRBACInWatchedNamespaces .Values.ibmLicensing.createRBAC ((.Values.ibmLicensing.spec).features).nssEnabled }}
 {{- $namespaces := splitList "," .Values.ibmLicensing.watchNamespace }}
-{{- $instanceNamespace := .Values.ibmLicensing.namespace }}
 {{- $operandServiceAccount := include "ibm-licensing.operandServiceAccount" . }}
 {{- range $namespace := $namespaces }}
 {{- $trimmedNamespace := trim $namespace }}
@@ -49,7 +48,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: {{ $operandServiceAccount }}
-  namespace: {{ $instanceNamespace }}
+  namespace: {{ $.Values.ibmLicensing.namespace }}
 {{- end }}
 {{- end }}
 {{- end }}
