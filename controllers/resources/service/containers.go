@@ -102,6 +102,24 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Value: strconv.Itoa(*htThreadsPerCores),
 		})
 	}
+	if !spec.IsNodeCpuCappingEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "NODE_CPU_CAPPING_ENABLED",
+			Value: "false",
+		})
+	}
+	if !spec.IsKubeRBACAuthEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "KUBE_RBAC_AUTH_ENABLED",
+			Value: "false",
+		})
+	}
+	if !spec.AreCustomResourcesEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "CUSTOM_RESOURCES_ENABLED",
+			Value: "false",
+		})
+	}
 	if spec.IsNamespaceScopeEnabled() {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "NAMESPACE_SCOPE_ENABLED",

@@ -97,6 +97,10 @@ spec:
                     required:
                     - urlBasedEnabled
                     type: object
+                  customResourcesEnabled:
+                    description: Enables access to License Service custom resources.
+                      Defaults to true.
+                    type: boolean
                   hyperThreading:
                     description: Configure if you have HyperThreading (HT) or Symmetrical
                       Multi-Threading (SMT) enabled
@@ -113,6 +117,16 @@ spec:
                     required:
                     - threadsPerCore
                     type: object
+                  kubeRBACAuthEnabled:
+                    description: Enables the bearer-token / Kubernetes RBAC authentication
+                      path on the operand (TokenReview + SubjectAccessReview). Defaults
+                      to true.
+                    type: boolean
+                  nodeCpuCappingEnabled:
+                    description: |-
+                      Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
+                      real node capacity. Defaults to true.
+                    type: boolean
                   nssConfigMap:
                     description: Special terms, must be granted by IBM Pricing.
                     type: string
@@ -121,7 +135,13 @@ spec:
                       reporting an error in custom namespaces scoping.
                     type: integer
                   nssEnabled:
-                    description: Special terms, must be granted by IBM Pricing.
+                    description: |-
+                      Restricts IBM License Service to watching only the namespaces specified in the WATCH_NAMESPACE operator environment variable or in the ConfigMap referenced by .features.nssConfigMap.
+                      This feature requires authorization from IBM Pricing.
+                    type: boolean
+                  operandRequestsEnabled:
+                    description: Enables the OperandRequest integration. Defaults
+                      to true.
                     type: boolean
                   prometheusQuerySource:
                     description: Change prometheus query source settings.

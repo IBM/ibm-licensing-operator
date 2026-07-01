@@ -1,4 +1,4 @@
-{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}
+{{- if and .Values.ibmLicensing.createRBAC ((.Values.ibmLicensing.spec).features).operandRequestsEnabled }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

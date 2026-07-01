@@ -41,10 +41,29 @@ type Features struct {
 	// +optional
 	Alerting *features.Alerting `json:"alerting,omitempty"`
 
-	// Special terms, must be granted by IBM Pricing.
+	// Restricts IBM License Service to watching only the namespaces specified in the WATCH_NAMESPACE operator environment variable or in the ConfigMap referenced by .features.nssConfigMap.
+	// This feature requires authorization from IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Namespace scope enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
 	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
+
+	// Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
+	// real node capacity. Defaults to true.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Node CPU Capping Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +optional
+	NodeCpuCappingEnabled *bool `json:"nodeCpuCappingEnabled,omitempty"`
+
+	// Enables the bearer-token / Kubernetes RBAC authentication path on the operand (TokenReview + SubjectAccessReview). Defaults to true.
+	// +optional
+	KubeRBACAuthEnabled *bool `json:"kubeRBACAuthEnabled,omitempty"`
+
+	// Enables the OperandRequest integration. Defaults to true.
+	// +optional
+	OperandRequestsEnabled *bool `json:"operandRequestsEnabled,omitempty"`
+
+	// Enables access to License Service custom resources. Defaults to true.
+	// +optional
+	CustomResourcesEnabled *bool `json:"customResourcesEnabled,omitempty"`
 
 	// Special terms, must be granted by IBM Pricing.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Custom namespaces Config Map",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
@@ -63,6 +82,29 @@ func (spec *IBMLicensingSpec) HaveFeatures() bool {
 
 func (spec *IBMLicensingSpec) IsNamespaceScopeEnabled() bool {
 	return spec.HaveFeatures() && spec.Features.NamespaceScopeEnabled != nil && *spec.Features.NamespaceScopeEnabled
+}
+
+func (spec *IBMLicensingSpec) IsKubeRBACAuthEnabled() bool {
+	if !spec.HaveFeatures() || spec.Features.KubeRBACAuthEnabled == nil {
+		return true
+	}
+	return *spec.Features.KubeRBACAuthEnabled
+}
+
+// IsOperandRequestsEnabled reports whether the operator should run the OperandRequest integration (the OperandRequest controller,
+// OperandRequest discovery and the OperatorGroup cleaner). Defaults to true when there is no features block or the flag is unset
+func (spec *IBMLicensingSpec) IsOperandRequestsEnabled() bool {
+	if !spec.HaveFeatures() || spec.Features.OperandRequestsEnabled == nil {
+		return true
+	}
+	return *spec.Features.OperandRequestsEnabled
+}
+
+func (spec *IBMLicensingSpec) AreCustomResourcesEnabled() bool {
+	if !spec.HaveFeatures() || spec.Features.CustomResourcesEnabled == nil {
+		return true
+	}
+	return *spec.Features.CustomResourcesEnabled
 }
 
 func (spec *IBMLicensingSpec) IsCustomNamespaceScopeConfigMap() bool {
