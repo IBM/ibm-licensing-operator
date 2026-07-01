@@ -1,0 +1,98 @@
+{
+  "version": "2.0.0",
+  "repository": "ibm-licensing-operator",
+  "generated": "2026-07-01T11:27:39Z",
+  "skills": [
+    {
+      "name": "setup-tools",
+      "category": "setup",
+      "description": "Install, verify, and clean the pinned local development toolchain in ./bin.",
+      "commands": [
+        "make install-all-tools",
+        "make verify-installed-tools",
+        "make install-linters",
+        "make clean"
+      ],
+      "tags": ["setup", "tools", "onboarding", "toolchain", "verification"]
+    },
+    {
+      "name": "code-quality",
+      "category": "quality",
+      "description": "Format, tidy, vet, lint, and secret-scan before committing (the pre-commit/CI quality gate).",
+      "commands": [
+        "make code-dev",
+        "make check",
+        "make audit"
+      ],
+      "tags": ["lint", "format", "vet", "secrets", "pre-commit", "quality"]
+    },
+    {
+      "name": "unit-test",
+      "category": "testing",
+      "description": "Run controller integration tests (Ginkgo/envtest) against an existing cluster.",
+      "commands": [
+        "make prepare-unit-test && make unit-test"
+      ],
+      "tags": ["test", "controllers", "envtest", "coverage", "validation"]
+    },
+    {
+      "name": "generate-manifests",
+      "category": "codegen",
+      "description": "Regenerate DeepCopy code, CRDs, RBAC, OLM bundle/CSV, and ArgoCD YAMLs after API changes.",
+      "commands": [
+        "make generate",
+        "make manifests",
+        "make bundle",
+        "make generate-yaml-argo-cd"
+      ],
+      "tags": ["crd", "codegen", "bundle", "csv", "rbac", "argocd", "api"]
+    },
+    {
+      "name": "build-and-deploy",
+      "category": "build",
+      "description": "Build the operator binary/image and run or deploy it against a cluster for local testing.",
+      "commands": [
+        "make build",
+        "make run",
+        "make build-push-image-development",
+        "make install && make deploy"
+      ],
+      "tags": ["build", "run", "deploy", "image", "development", "kubernetes"]
+    },
+    {
+      "name": "build-helm-charts",
+      "category": "helm",
+      "description": "Build the development Helm charts for License Service, Reporter, and Scanner (no-operator path).",
+      "commands": [
+        "make build/helm-develop-all",
+        "make build/helm-develop-ls",
+        "make build/helm-develop-lsr",
+        "make build/helm-develop-lss"
+      ],
+      "tags": ["helm", "charts", "no-operator", "packaging", "development"]
+    },
+    {
+      "name": "contributing",
+      "category": "knowledge",
+      "description": "How to contribute quality changes: workflow, DCO, pre-PR checklist, generated files, version bumps.",
+      "commands": [],
+      "tags": ["contributing", "workflow", "dco", "pull-request", "quality", "guide"]
+    },
+    {
+      "name": "operator-sdk-guide",
+      "category": "knowledge",
+      "description": "How operator-sdk/kubebuilder works for this operator: CRDs, controllers, reconcile flow, markers, codegen.",
+      "commands": [],
+      "tags": ["operator-sdk", "kubebuilder", "architecture", "controllers", "crd", "guide"]
+    }
+  ],
+  "categories": {
+    "setup": "Environment and toolchain setup",
+    "quality": "Code quality, linting, and security scanning",
+    "testing": "Testing and validation",
+    "codegen": "Code and manifest generation",
+    "build": "Building, running, and deploying the operator",
+    "helm": "Helm chart operations",
+    "knowledge": "Repo-specific guidance and architecture"
+  }
+}
