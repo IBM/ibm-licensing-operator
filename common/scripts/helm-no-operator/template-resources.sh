@@ -157,7 +157,7 @@ template_deployment() {
     sed -i '' "s/namespace: sed-me-namespace/namespace: {{ .Values.ibmLicensing.namespace }}/g" "$OUTPUT_DIR/deployment.yaml"
     
     # Replace image
-    sed -i '' "s|image: sed-me-image|image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23|g" "$OUTPUT_DIR/deployment.yaml"
+    sed -i '' "s|image: sed-me-image|image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:{{ .Values.ibmLicensing.ibmLicensingVersion }}|g" "$OUTPUT_DIR/deployment.yaml"
     
     # Replace environment variables
     sed -i '' 's/value: sed-me-namespace/value: {{ .Values.ibmLicensing.namespace | quote }}/g' "$OUTPUT_DIR/deployment.yaml"
