@@ -11,6 +11,7 @@ ibmLicensing:
   ibmLicensingVersion: 4.2.24
   createRBAC: true
   createRBACInWatchedNamespaces: true
+  createRBACReaderRole: true
   spec:
     datasource: datacollector
     httpsEnable: true
@@ -21,7 +22,6 @@ ibmLicensing:
       nodeCpuCappingEnabled: true
       kubeRBACAuthEnabled: true
       customResourcesEnabled: true
-      ibmLicensingAdditionalRolesEnabled: true
     resources:
       limits:
         cpu: 500m
