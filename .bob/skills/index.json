@@ -1,7 +1,7 @@
 {
   "version": "2.0.0",
   "repository": "ibm-licensing-operator",
-  "generated": "2026-07-01T11:27:39Z",
+  "generated": "2026-07-01T00:00:00Z",
   "skills": [
     {
       "name": "setup-tools",
@@ -84,6 +84,13 @@
       "description": "How operator-sdk/kubebuilder works for this operator: CRDs, controllers, reconcile flow, markers, codegen.",
       "commands": [],
       "tags": ["operator-sdk", "kubebuilder", "architecture", "controllers", "crd", "guide"]
+    },
+    {
+      "name": "refresh-agents-md",
+      "category": "knowledge",
+      "description": "Keep the root AGENTS.md agent guide accurate and in sync with the Makefile, toolchain, architecture, versioning, and the .bob/skills/ catalog.",
+      "commands": [],
+      "tags": ["agents-md", "documentation", "onboarding", "maintenance", "skills", "guide"]
     }
   ],
   "categories": {
