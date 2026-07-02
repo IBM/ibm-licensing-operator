@@ -1,13 +1,13 @@
 ---
 name: code-review
-description: Perform a thorough, precise code review of a change entirely inside the agent thread - no GitHub or network access required. Give it a base branch and a feature branch (and optionally a short description of the change); it reviews the git diff between them, runs an explicit review loop, decides PASS or CHANGES REQUESTED, and returns a prioritized list of required fixes. Use when asked to review a branch, a PR's changes, or "the diff" before merging. Repo-agnostic.
+description: Perform a thorough, precise code review of a GitHub pull request, in the agent thread, using the `gh` CLI. Give it a PR number (preferred) or a branch name - it fetches the PR and diff with `gh`, runs an explicit review loop, decides PASS or CHANGES REQUESTED, and returns a prioritized list of required fixes. Optionally takes a short description of the change to focus the review. Use when asked to review a PR, a branch's PR, or "the diff" before merging. Repo-agnostic.
 ---
 
 # code-review
 
-A self-contained code-review skill. It reviews the **diff between two git branches**
-directly in this agent thread - it does **not** need GitHub access, a PR number, or any
-network. You supply the branches; it produces a verdict and a fix list.
+A code-review skill that reviews a **GitHub pull request** in this agent thread using the
+**`gh` CLI**. You give it a PR number (or a branch, from which it finds the open PR); it
+pulls the PR metadata and diff with `gh`, then produces a verdict and a fix list.
 
 This skill is intentionally generic and portable: it makes no assumptions about the
 language, framework, or this specific repo. When a repo *does* ship its own conventions
@@ -18,36 +18,55 @@ language, framework, or this specific repo. When a repo *does* ship its own conv
 
 | Parameter | Required | Meaning |
 |-----------|----------|---------|
-| `base` | **yes** | The branch the change will merge **into** (e.g. `main`, `latest-4.x`). The baseline. |
-| `feature` | **yes** | The branch **under review** containing the change. |
+| `pr` | preferred | The pull-request **number** to review. When given, use it directly. |
+| `branch` | alternative | A branch name; find the open PR opened **from** this branch (see below). Use only when no `pr` number is supplied. |
 | `description` | no | A short summary of intent: what the change is meant to do, linked issue, risk areas to focus on. Improves precision - use it if given. |
 
-If either branch is missing, ask for it before starting. Do not guess the base branch.
+Take these **from the prompt that invoked this skill** - use exactly the PR number,
+branch, and description you were given. Provide at least one of `pr` or `branch`. Prefer
+`pr` when both are present. If neither is supplied, ask before starting - never guess which
+PR to review.
+
+**Prerequisite:** `gh` must be installed and authenticated (`gh auth status`). If it is
+not, stop and tell the caller to authenticate rather than falling back to a local diff.
+
+## Resolve the PR
+
+If given a **branch** instead of a PR number, find the open PR opened from it:
+
+```bash
+gh pr list --head <branch> --state open \
+  --json number,title,headRefName,baseRefName,url
+```
+
+- Exactly one PR → use its number.
+- **No** open PR → stop and report that; there is nothing to review.
+- **Multiple** PRs → list them (number, title, base) and ask which one; do not pick arbitrarily.
 
 ## Establish the diff
 
-Review the **merge-base diff**, not a raw two-dot diff, so unrelated commits already on
-`base` are excluded and you see exactly what `feature` introduces:
+Pull the PR's metadata and its diff with `gh` (this is the review surface - the PR's own
+base…head diff, so unrelated commits already on the base branch are excluded):
 
 ```bash
-git fetch --all --quiet 2>/dev/null || true          # best-effort; skip if offline
-git merge-base <base> <feature>                       # confirm the branches share history
-git diff --merge-base <base> <feature>                # the review surface (equivalent to base...feature)
-git diff --merge-base <base> <feature> --stat         # scope overview: files + churn
-git log --oneline <base>..<feature>                   # the commits being introduced
+gh pr view <pr> --json number,title,body,baseRefName,headRefName,state,url,files
+gh pr diff <pr>          # the full unified diff under review
+gh pr diff <pr> --name-only   # scope overview: changed files
 ```
 
 Read the **full diff**, and open the surrounding code of any non-trivial hunk with the
 file tools - a diff hunk alone hides callers, invariants, and the rest of the function.
-Never review from the `--stat` summary alone.
+Never review from the file list alone. If the PR branch is checked out locally you may also
+read whole files directly; the `gh pr diff` output is the authoritative review surface.
 
 ## The review loop
 
 Run this loop deliberately. Do not shortcut to a verdict.
 
-1. **Understand intent.** From the `description`, commit messages, and diff, state in one
-   or two sentences what this change is trying to do. If intent is unclear and no
-   description was given, note it - unclear intent is itself a review finding.
+1. **Understand intent.** From the `description`, the PR title/body, commit messages, and
+   diff, state in one or two sentences what this change is trying to do. If intent is
+   unclear and neither the PR body nor a `description` explains it, note it - unclear intent
+   is itself a review finding.
 
 2. **Map the blast radius.** List the files/functions touched and what depends on them.
    For each non-trivial hunk, read enough surrounding code to judge it in context
@@ -123,7 +142,7 @@ Be decisive - always emit exactly one verdict.
 Report in the thread using this structure:
 
 ```
-## Code review: <feature> → <base>
+## Code review: PR #<pr> — <title> (<headRefName> → <baseRefName>)
 
 **Verdict: PASS** | **CHANGES REQUESTED**
 

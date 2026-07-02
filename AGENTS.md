@@ -11,34 +11,55 @@ with detailed, up-to-date instructions. See `.bob/skills/index.json` for the ful
 
 | Task | Skill | Path |
 |------|-------|------|
+| Turn a task description into a detailed implementation plan (markdown file) | **implementation-plan** | `.bob/skills/implementation-plan/SKILL.md` |
 | Install / verify / clean the pinned local toolchain | **setup-tools** | `.bob/skills/setup-tools/SKILL.md` |
 | Format, tidy, vet, lint, secret-scan (pre-commit gate) | **code-quality** | `.bob/skills/code-quality/SKILL.md` |
 | Run controller tests (Ginkgo/envtest against a cluster) | **unit-test** | `.bob/skills/unit-test/SKILL.md` |
-| Review a branch/diff and get a PASS / CHANGES REQUESTED verdict + fixes | **code-review** | `.bob/skills/code-review/SKILL.md` |
+| Review a pull request (via `gh`) and get a PASS / CHANGES REQUESTED verdict + fixes | **code-review** | `.bob/skills/code-review/SKILL.md` |
 | Regenerate DeepCopy, CRDs, RBAC, OLM bundle, ArgoCD YAMLs | **generate-manifests** | `.bob/skills/generate-manifests/SKILL.md` |
 | Build / run / deploy the operator locally | **build-and-deploy** | `.bob/skills/build-and-deploy/SKILL.md` |
 | Build the stand-alone (no-operator) Helm charts | **build-helm-charts** | `.bob/skills/build-helm-charts/SKILL.md` |
 | Contribution workflow, DCO, pre-PR checklist, version bumps | **contributing** | `.bob/skills/contributing/SKILL.md` |
 | How operator-sdk/kubebuilder works here (architecture) | **operator-sdk-guide** | `.bob/skills/operator-sdk-guide/SKILL.md` |
+| How License Service splits across the operator / operand / commons repos | **license-service-architecture** | `.bob/skills/license-service-architecture/SKILL.md` |
 | Keep **this file** (`AGENTS.md`) in sync with the repo & skills | **refresh-agents-md** | `.bob/skills/refresh-agents-md/SKILL.md` |
 
-Typical inner loop: **setup-tools** → edit code → **generate-manifests** (if API/RBAC changed)
-→ **code-quality** → **unit-test** → **code-review** → **build-and-deploy** → **contributing** (pre-PR).
+Typical inner loop: **implementation-plan** (for non-trivial tasks) → **setup-tools** →
+edit code → **generate-manifests** (if API/RBAC changed) → **code-quality** → **unit-test**
+→ **code-review** → **build-and-deploy** → **contributing** (pre-PR).
 
-### Reviewing a change (code-review skill)
+### Planning a task (implementation-plan skill)
 
-To review a branch's changes without touching GitHub, use the **code-review** skill. It works
-entirely in the agent thread on the git diff between two branches and returns a
+For a non-trivial task, use the **implementation-plan** skill to turn a task description into
+a detailed, ordered plan grounded in the actual code, written to a markdown file. It plans
+only — it does not edit source.
+
+```
+# Ask the agent, e.g.:
+"Use the implementation-plan skill to plan the task in <task-file.md>; save the plan to docs/plans/<name>.md."
+"Use the implementation-plan skill for: <inline task description>. Write the plan to <path>."
+```
+
+Inputs: `task` (a path to a description file, or inline text — what/where/constraints) and
+`output` (where to save the plan; the caller chooses — the skill asks if it's omitted).
+`context` is optional. See `.bob/skills/implementation-plan/SKILL.md`.
+
+### Reviewing a pull request (code-review skill)
+
+To review a PR in the agent thread, use the **code-review** skill. It uses the `gh` CLI to
+fetch the PR and its diff, runs an explicit review loop, and returns a
 PASS / CHANGES REQUESTED verdict plus a prioritized list of required fixes.
 
 ```
 # Ask the agent, e.g.:
-"Use the code-review skill to review feature branch <feature> against base <base>."
+"Use the code-review skill to review PR #1234."
+"Use the code-review skill to review the PR open from branch <branch>."
 # Optionally add a short description of the change to focus the review.
 ```
 
-Required inputs: `base` (branch to merge into) and `feature` (branch under review);
-`description` is optional. See `.bob/skills/code-review/SKILL.md`.
+Inputs: a `pr` number (preferred) or a `branch` (the skill finds the open PR from it via
+`gh pr list --head`); `description` is optional. Requires `gh` installed and authenticated
+(`gh auth status`). See `.bob/skills/code-review/SKILL.md`.
 
 > Keep this file current with the **refresh-agents-md** skill
 > (`.bob/skills/refresh-agents-md/SKILL.md`) whenever the Makefile targets, toolchain,
@@ -50,6 +71,12 @@ Required inputs: `base` (branch to merge into) and `feature` (branch under revie
 kubebuilder v4) that installs and manages **License Service**, which collects license-usage
 data for IBM containerized products. It runs either as part of IBM Cloud Pak foundational
 services or stand-alone (the "no-operator" Helm path).
+
+This repo is **only the operator**. The License Service application it deploys (the *operand*)
+and the shared library that operand builds on (the *commons*) live in **separate repositories**
+with independent release cycles — the operator references the operand only as a pinned
+container image. See the **license-service-architecture** skill for how the three fit together
+(and don't assume the other repos are checked out locally).
 
 ## Toolchain
 

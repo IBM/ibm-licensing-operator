@@ -27,15 +27,22 @@
       "tags": ["lint", "format", "vet", "secrets", "pre-commit", "quality"]
     },
     {
+      "name": "implementation-plan",
+      "category": "planning",
+      "description": "Turn a task description (file path or inline text: what/where/constraints) into a detailed, ordered implementation plan written to a caller-chosen markdown file. Grounds the plan in the actual codebase; plans only, does not implement.",
+      "commands": [],
+      "tags": ["planning", "implementation-plan", "design", "task-breakdown", "markdown", "guide"]
+    },
+    {
       "name": "code-review",
       "category": "review",
-      "description": "Thorough, precise code review of a git diff between a base and feature branch, entirely in the agent thread (no GitHub access). Emits a PASS / CHANGES REQUESTED verdict and a prioritized list of required fixes.",
+      "description": "Thorough, precise code review of a GitHub pull request in the agent thread using the gh CLI. Takes a PR number (or a branch to find its open PR) and an optional change description; emits a PASS / CHANGES REQUESTED verdict and a prioritized list of required fixes.",
       "commands": [
-        "git diff --merge-base <base> <feature>",
-        "git diff --merge-base <base> <feature> --stat",
-        "git log --oneline <base>..<feature>"
+        "gh pr list --head <branch> --state open --json number,title,headRefName,baseRefName,url",
+        "gh pr view <pr> --json number,title,body,baseRefName,headRefName,state,url,files",
+        "gh pr diff <pr>"
       ],
-      "tags": ["review", "code-review", "diff", "quality", "verdict", "branches"]
+      "tags": ["review", "code-review", "pull-request", "gh", "quality", "verdict"]
     },
     {
       "name": "unit-test",
@@ -90,6 +97,13 @@
       "tags": ["contributing", "workflow", "dco", "pull-request", "quality", "guide"]
     },
     {
+      "name": "license-service-architecture",
+      "category": "knowledge",
+      "description": "How License Service is split across three separate repos - the operator (this repo), the operand (containerized License Service app), and the commons (shared library) - and how they interplay at build time and runtime. Does not assume the repos are checked out together.",
+      "commands": [],
+      "tags": ["architecture", "operator", "operand", "commons", "multi-repo", "guide"]
+    },
+    {
       "name": "operator-sdk-guide",
       "category": "knowledge",
       "description": "How operator-sdk/kubebuilder works for this operator: CRDs, controllers, reconcile flow, markers, codegen.",
@@ -107,6 +121,7 @@
   "categories": {
     "setup": "Environment and toolchain setup",
     "quality": "Code quality, linting, and security scanning",
+    "planning": "Turning a task into an actionable implementation plan",
     "review": "Reviewing changes for correctness and quality",
     "testing": "Testing and validation",
     "codegen": "Code and manifest generation",
