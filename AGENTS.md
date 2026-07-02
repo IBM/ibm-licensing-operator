@@ -14,6 +14,7 @@ with detailed, up-to-date instructions. See `.bob/skills/index.json` for the ful
 | Install / verify / clean the pinned local toolchain | **setup-tools** | `.bob/skills/setup-tools/SKILL.md` |
 | Format, tidy, vet, lint, secret-scan (pre-commit gate) | **code-quality** | `.bob/skills/code-quality/SKILL.md` |
 | Run controller tests (Ginkgo/envtest against a cluster) | **unit-test** | `.bob/skills/unit-test/SKILL.md` |
+| Review a branch/diff and get a PASS / CHANGES REQUESTED verdict + fixes | **code-review** | `.bob/skills/code-review/SKILL.md` |
 | Regenerate DeepCopy, CRDs, RBAC, OLM bundle, ArgoCD YAMLs | **generate-manifests** | `.bob/skills/generate-manifests/SKILL.md` |
 | Build / run / deploy the operator locally | **build-and-deploy** | `.bob/skills/build-and-deploy/SKILL.md` |
 | Build the stand-alone (no-operator) Helm charts | **build-helm-charts** | `.bob/skills/build-helm-charts/SKILL.md` |
@@ -22,7 +23,22 @@ with detailed, up-to-date instructions. See `.bob/skills/index.json` for the ful
 | Keep **this file** (`AGENTS.md`) in sync with the repo & skills | **refresh-agents-md** | `.bob/skills/refresh-agents-md/SKILL.md` |
 
 Typical inner loop: **setup-tools** → edit code → **generate-manifests** (if API/RBAC changed)
-→ **code-quality** → **unit-test** → **build-and-deploy** → **contributing** (pre-PR).
+→ **code-quality** → **unit-test** → **code-review** → **build-and-deploy** → **contributing** (pre-PR).
+
+### Reviewing a change (code-review skill)
+
+To review a branch's changes without touching GitHub, use the **code-review** skill. It works
+entirely in the agent thread on the git diff between two branches and returns a
+PASS / CHANGES REQUESTED verdict plus a prioritized list of required fixes.
+
+```
+# Ask the agent, e.g.:
+"Use the code-review skill to review feature branch <feature> against base <base>."
+# Optionally add a short description of the change to focus the review.
+```
+
+Required inputs: `base` (branch to merge into) and `feature` (branch under review);
+`description` is optional. See `.bob/skills/code-review/SKILL.md`.
 
 > Keep this file current with the **refresh-agents-md** skill
 > (`.bob/skills/refresh-agents-md/SKILL.md`) whenever the Makefile targets, toolchain,

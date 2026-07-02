@@ -27,6 +27,17 @@
       "tags": ["lint", "format", "vet", "secrets", "pre-commit", "quality"]
     },
     {
+      "name": "code-review",
+      "category": "review",
+      "description": "Thorough, precise code review of a git diff between a base and feature branch, entirely in the agent thread (no GitHub access). Emits a PASS / CHANGES REQUESTED verdict and a prioritized list of required fixes.",
+      "commands": [
+        "git diff --merge-base <base> <feature>",
+        "git diff --merge-base <base> <feature> --stat",
+        "git log --oneline <base>..<feature>"
+      ],
+      "tags": ["review", "code-review", "diff", "quality", "verdict", "branches"]
+    },
+    {
       "name": "unit-test",
       "category": "testing",
       "description": "Run controller integration tests (Ginkgo/envtest) against an existing cluster.",
@@ -96,6 +107,7 @@
   "categories": {
     "setup": "Environment and toolchain setup",
     "quality": "Code quality, linting, and security scanning",
+    "review": "Reviewing changes for correctness and quality",
     "testing": "Testing and validation",
     "codegen": "Code and manifest generation",
     "build": "Building, running, and deploying the operator",
