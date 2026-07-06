@@ -91,4 +91,4 @@ marketplace.redhat.com_meterdefinitions.yaml
 ibm-*.tgz
 
 # Bob
-.bob
+.bob/notes/
