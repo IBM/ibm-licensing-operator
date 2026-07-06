@@ -61,7 +61,7 @@ spec:
             - name: IBM_LICENSING_IMAGE
               value: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.24
             - name: WATCH_NAMESPACE
-              value: {{ .Values.ibmLicensing.watchNamespace }}
+              value: {{ .Values.ibmLicensing.watchNamespace | quote }}
             - name: OPERATOR_NAMESPACE
               valueFrom:
                 fieldRef:

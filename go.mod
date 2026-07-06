@@ -1,6 +1,6 @@
 module github.com/IBM/ibm-licensing-operator
 
-go 1.26.3
+go 1.26.4
 
 require (
 	emperror.dev/errors v0.8.1
@@ -75,7 +75,7 @@ require (
 	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/term v0.42.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
 	golang.org/x/time v0.15.0 // indirect

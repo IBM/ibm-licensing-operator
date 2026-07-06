@@ -64,7 +64,9 @@ spec:
               value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}
             - name: KUBE_RBAC_AUTH_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
-          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
+            - name: CUSTOM_RESOURCES_ENABLED
+              value: {{ .Values.ibmLicensing.spec.features.customResourcesEnabled | quote }}
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:{{ .Values.ibmLicensing.ibmLicensingVersion }}
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 3
@@ -154,7 +156,9 @@ spec:
               value: {{ .Values.ibmLicensing.spec.features.nodeCpuCappingEnabled | quote }}
             - name: KUBE_RBAC_AUTH_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
-          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:4.2.23
+            - name: CUSTOM_RESOURCES_ENABLED
+              value: {{ .Values.ibmLicensing.spec.features.customResourcesEnabled | quote }}
+          image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:{{ .Values.ibmLicensing.ibmLicensingVersion }}
           imagePullPolicy: IfNotPresent
           name: ocp-check-secret
           resources:
@@ -192,7 +196,7 @@ spec:
               readOnly: true
       restartPolicy: Always
       securityContext: {}
-      serviceAccountName: ibm-license-service
+      serviceAccountName: {{ include "ibm-licensing.operandServiceAccount" . }}
       terminationGracePeriodSeconds: 60
       tolerations:
         - effect: NoSchedule

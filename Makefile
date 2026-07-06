@@ -898,7 +898,6 @@ build/helm-develop-chart:
 		"$(VALUES_COMPONENT_PREFIX)" \
 		$(CHART_NAME) \
 		$(CSV_VERSION) \
-		$(GIT_BRANCH) \
 		$(HELM) \
 		$(YQ) \
 		$(CHART_DESTINATION) \

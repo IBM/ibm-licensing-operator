@@ -179,6 +179,13 @@ spec:
         path: features.hyperThreading
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: |-
+          Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
+          real node capacity. Defaults to true.
+        displayName: Node CPU Capping Enabled
+        path: features.nodeCpuCappingEnabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - description: Special terms, must be granted by IBM Pricing.
         displayName: Custom namespaces Config Map
         path: features.nssConfigMap
@@ -190,7 +197,9 @@ spec:
         path: features.nssDenialLimit
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
-      - description: Special terms, must be granted by IBM Pricing.
+      - description: |-
+          Restricts IBM License Service to watching only the namespaces specified in the WATCH_NAMESPACE operator environment variable or in the ConfigMap referenced by .features.nssConfigMap.
+          This feature requires authorization from IBM Pricing.
         displayName: Namespace scope enabled
         path: features.nssEnabled
         x-descriptors:

@@ -6,7 +6,7 @@ This directory contains scripts generating a standalone Helm chart for deploying
 
 These scripts automate the process of:
 1. Extracting resources created by IBM Licensing Service operator into yaml files
-2. Generating CRD and instance RBAC resources from the operator's manifests
+2. Generating CRD resources from the operator's manifests
 3. Converting extracted resources into Helm templates
 
 ## Scripts
@@ -16,6 +16,7 @@ These scripts automate the process of:
 **Main orchestration script** that runs the entire Helm chart generation process.
 
 **Usage:**
+
 ```bash
 ./common/scripts/helm-no-operator/build-helm-chart.sh
 ```
@@ -37,7 +38,7 @@ These scripts automate the process of:
 
 ### 3. `generate-resources.sh`
 
-**Generates CRD and instance RBAC resources** from the operator's Kustomize manifests.
+**Generates CRD resources** from the operator's Kustomize manifests.
 
 ---
 
@@ -58,6 +59,20 @@ To generate a complete Helm chart from scratch:
 
 After running the build process, you need to check what was generated in helm-no-operator folder. If you want to adjust generated helm chart, you will need to make changes in the generation scripts and re-run the build process.
 
+## Generated vs. hand-maintained templates
+
+| File | Source |
+| --- | --- |
+| `secrets.yaml` | generated |
+| `deployment.yaml` | generated |
+| `service.yaml` | generated |
+| `crd.yaml` | generated |
+| `cluster-rbac.yaml` | hand-maintained / IBM Bob |
+| `rbac-watch-namespace.yaml` | hand-maintained / IBM Bob |
+| `rbac.yaml` | hand-maintained / IBM Bob |
+| `serviceaccounts.yaml` | hand-maintained / IBM Bob |
+| `_helpers.tpl` | hand-maintained / IBM Bob |
+
 ## Testing the Generated Chart
 
 ```bash
@@ -71,18 +86,22 @@ helm install ibm-licensing ./helm-no-operator
 ## Requirements
 
 ### Tools
+
 - `kubectl` - Kubernetes CLI
 - `helm` - Helm package manager
 - `sed` - Stream editor
 
 ### Cluster Access
+
 - Active Kubernetes cluster connection
 - Sufficient permissions to create namespaces and deploy resources
 
 ## Route management
+
 If you are using OpenShift and want to use route to access Licensing Service endpoints, you will need to create the route manually after the helm installation. You can use ibm-license-service-cert-internal Secret to get the TLS certificate, but keep in mind that the service CA certificate, which issues the service certificates, is valid for 26 months and is automatically rotated when there is less than 13 months validity left. After rotation, the previous service CA configuration is still trusted until its expiration. This allows a grace period for all affected services to refresh their key material before the expiration.
 
 Example route (make sure to adjust namespace and TLS configuration):
+
 ```yaml
 apiVersion: route.openshift.io/v1
 kind: Route
