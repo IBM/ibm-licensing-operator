@@ -103,9 +103,9 @@ The following are some common scenarios with examples on how to resolve the prov
 
 **Note:** Apply the following examples to the following sources:
 
-- For License Service, apply the examples to the `helm-cluster-scoped` source that supports full CR configuration.
-- For License Service Reporter, apply the examples to the sources that targets the path with `helm`, not `helm-cluster-scoped`, as
-the cluster-scoped charts only support the `namespace` parameter
+- For License Service, apply the examples to the `helm` source (namespace-scoped chart) for CR and operator configuration, or to `helm-cluster-scoped` for cluster-level settings such as `createRBAC`.
+- For License Service Reporter, apply the examples to the source that targets the path with `helm`, not `helm-cluster-scoped`, as
+the cluster-scoped charts only support the `namespace` parameter.
 
 #### Changing the target namespace
 
@@ -284,10 +284,9 @@ Helm installation support is in its alpha stage. To install the Licensing compon
 
 - IBM License Service:
 
-**Note:** License Service supports only cluster-scoped installation and only has a `helm-cluster-scoped` chart.
-
 ```commandline
-helm install license-service ./components/license-service/helm-cluster-scoped
+helm install license-service-cluster-scoped ./components/license-service/helm-cluster-scoped
+helm install license-service ./components/license-service/helm
 ```
 
 - IBM License Service Reporter:
