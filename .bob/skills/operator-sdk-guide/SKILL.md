@@ -72,7 +72,7 @@ Markers in Go comments drive code generation - edit the marker, then regenerate
 
 ## The generation chain
 
-```
+```text
 edit api/*_types.go or controller RBAC markers
         │
    make generate     ──▶ api/*/zz_generated.deepcopy.go   (controller-gen object)

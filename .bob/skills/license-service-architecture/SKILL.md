@@ -17,6 +17,7 @@ belongs** and why some behavior can't be changed from here.
 ## The three repositories
 
 ### 1. Operator — `ibm-licensing-operator` (this repo)
+
 - **Language/stack:** Go, built with operator-sdk / kubebuilder.
 - **Role:** installs, configures, and manages License Service on a cluster. It owns the
   `IBMLicensing` CRD and the reconcile logic that turns a CR into running Kubernetes objects
@@ -25,6 +26,7 @@ belongs** and why some behavior can't be changed from here.
   deploys the operand's **image**; it does not build or import the operand's source.
 
 ### 2. Operand — the containerized License Service application
+
 - **Language/stack:** Java / Spring Boot, multi-module Maven, shipped as a multi-arch
   container image.
 - **Role:** the actual workload that does the licensing work - collecting, calculating, and
@@ -34,6 +36,7 @@ belongs** and why some behavior can't be changed from here.
   License Service *does at runtime* is an operand change, not an operator change.
 
 ### 3. Commons — the shared licensing library
+
 - **Language/stack:** a Java library, published as a jar (no container image of its own).
 - **Role:** shared domain code (models/POJOs, persistence, shared API types and utilities)
   used by the operand. It is a **build-time dependency of the operand**, consumed as a
@@ -42,7 +45,7 @@ belongs** and why some behavior can't be changed from here.
 
 ## How they interplay
 
-```
+```text
    licensing-commons (Java lib, jar)
             │  build-time dependency (published jar)
             ▼

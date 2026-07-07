@@ -34,7 +34,7 @@ For a non-trivial task, use the **implementation-plan** skill to turn a task des
 a detailed, ordered plan grounded in the actual code, written to a markdown file. It plans
 only — it does not edit source.
 
-```
+```text
 # Ask the agent, e.g.:
 "Use the implementation-plan skill to plan the task in <task-file.md>; save the plan to docs/plans/<name>.md."
 "Use the implementation-plan skill for: <inline task description>. Write the plan to <path>."
@@ -50,7 +50,7 @@ To review a PR in the agent thread, use the **code-review** skill. It uses the `
 fetch the PR and its diff, runs an explicit review loop, and returns a
 PASS / CHANGES REQUESTED verdict plus a prioritized list of required fixes.
 
-```
+```text
 # Ask the agent, e.g.:
 "Use the code-review skill to review PR #1234."
 "Use the code-review skill to review the PR open from branch <branch>."

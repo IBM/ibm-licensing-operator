@@ -141,7 +141,7 @@ Be decisive - always emit exactly one verdict.
 
 Report in the thread using this structure:
 
-```
+```text
 ## Code review: PR #<pr> — <title> (<headRefName> → <baseRefName>)
 
 **Verdict: PASS** | **CHANGES REQUESTED**
