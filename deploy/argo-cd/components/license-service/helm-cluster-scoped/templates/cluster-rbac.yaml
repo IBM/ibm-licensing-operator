@@ -86,16 +86,11 @@ metadata:
     component-id: {{ .Chart.Name }}
   name: ibm-license-service-restricted
 rules:
-  {{- if or (not ((.Values.ibmLicensing.spec).features).nssEnabled) ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
+  {{- if ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
   - apiGroups:
       - ""
     resources:
-      {{- if not ((.Values.ibmLicensing.spec).features).nssEnabled }}
-      - namespaces
-      {{- end }}
-      {{- if ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
       - nodes
-      {{- end }}
     verbs:
       - get
       - list
