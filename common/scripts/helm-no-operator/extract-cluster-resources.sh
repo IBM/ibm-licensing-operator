@@ -30,7 +30,8 @@ YQ="${LOCALBIN}/yq"
 
 # Configuration
 NAMESPACE="ibm-licensing"
-HELM_CHART_PATH="deploy/argo-cd/components/license-service/helm-cluster-scoped"
+HELM_CHART_PATH_CLUSTER_SCOPED="deploy/argo-cd/components/license-service/helm-cluster-scoped"
+HELM_CHART_PATH="deploy/argo-cd/components/license-service/helm"
 OUTPUT_DIR="resources"
 
 # Source shared logging utilities
@@ -77,15 +78,20 @@ create_namespace() {
 install_licensing_helm() {
     log_info "Installing IBM Licensing Service using Helm..."
     
+    if [ ! -d "${HELM_CHART_PATH_CLUSTER_SCOPED}" ]; then
+        log_error "Helm chart not found at ${HELM_CHART_PATH_CLUSTER_SCOPED}"
+        exit 1
+    fi
+
     if [ ! -d "${HELM_CHART_PATH}" ]; then
         log_error "Helm chart not found at ${HELM_CHART_PATH}"
         exit 1
     fi
     
-    # First run: Create CRDs and initial resources
+    # Step 1: Install cluster-scoped resources (CRDs, ClusterRoles)
     # Note: This may fail for the CR because CRDs aren't ready yet - this is expected
-    log_info "First helm template run"
-    helm template ibm-licensing-cluster-scoped "${HELM_CHART_PATH}" \
+    log_info "Installing cluster-scoped resources (CRDs, ClusterRoles)..."
+    helm template ibm-licensing-cluster-scoped "${HELM_CHART_PATH_CLUSTER_SCOPED}" \
         --set ibmLicensing.spec.features.prometheusQuerySource.enabled=false \
         --set ibmLicensing.spec.features.alerting.enabled=false | kubectl apply -f - || true
     
@@ -93,9 +99,10 @@ install_licensing_helm() {
     log_info "Waiting for CRDs to be established..."
     sleep 10
     
-    # Second run: Ensure all dependent resources are created (including CR)
-    log_info "Second helm template run (ensuring all resources are created)..."
-    helm template ibm-licensing-cluster-scoped "${HELM_CHART_PATH}" \
+    # Step 2: Install namespace-scoped resources (Deployment, ServiceAccounts, Roles, CR)
+    log_info "Installing namespace-scoped resources (Deployment, RBAC, CR)..."
+    helm template ibm-licensing "${HELM_CHART_PATH}" \
+        --namespace "${NAMESPACE}" \
         --set ibmLicensing.spec.features.prometheusQuerySource.enabled=false \
         --set ibmLicensing.spec.features.alerting.enabled=false | kubectl apply -f -
     

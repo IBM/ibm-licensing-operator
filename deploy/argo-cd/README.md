@@ -107,6 +107,22 @@ The following are some common scenarios with examples on how to resolve the prov
 - For License Service Reporter, apply the examples to the source that targets the path with `helm`, not `helm-cluster-scoped`, as
 the cluster-scoped charts only support the `namespace` parameter.
 
+**Note:** For License Service, the `createRBAC` flag and `spec.features.*` values exist in **both** sources because each chart owns a different layer of RBAC — `helm-cluster-scoped` controls ClusterRoles and ClusterRoleBindings, while `helm` controls Roles, RoleBindings, and ServiceAccounts. When overriding either of these in `applications/license-service.yaml`, apply the same value to both sources to keep the two layers consistent. For example, to disable RBAC creation in both charts:
+
+```yaml
+sources:
+  - path: deploy/argo-cd/components/license-service/helm-cluster-scoped
+    helm:
+      valuesObject:
+        ibmLicensing:
+          createRBAC: false
+  - path: deploy/argo-cd/components/license-service/helm
+    helm:
+      valuesObject:
+        ibmLicensing:
+          createRBAC: false
+```
+
 #### Changing the target namespace
 
 <details>
