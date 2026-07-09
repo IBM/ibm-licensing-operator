@@ -15,9 +15,10 @@ limitations under the License.
 */}}
 
 {{/* True when the restricted ClusterRole would carry at least one rule. Render the ClusterRole
-     and its binding only then; otherwise they would be an empty ClusterRole plus a dangling binding. */}}
+     and its binding only then; otherwise they would be an empty ClusterRole plus a dangling binding.
+     Covers: nodeCpuCapping, customResources, kubeRBACAuth, and chargebackEnabled. */}}
 {{- define "ibm-licensing.restrictedClusterRoleNotEmpty" -}}
-{{- or ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled ((.Values.ibmLicensing.spec).features).customResourcesEnabled ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled -}}
+{{- or ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled ((.Values.ibmLicensing.spec).features).customResourcesEnabled ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled .Values.ibmLicensing.spec.chargebackEnabled -}}
 {{- end -}}
 
 {{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise.
