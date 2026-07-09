@@ -14,15 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */}}
 
-{{/* Restricted ClusterRole is the operand role only in nss mode (it backs the
-     ibm-license-service-restricted SA). Outside nss mode the unrestricted role
-     is the active one, so the restricted object would be dead RBAC. Within nss
-     mode every rule block it carries is feature-gated (nodes via CPU capping,
-     the metadata/definition/querysource CR reads via customResources, and the
-     kube-RBAC auth rules), so render it only when at least one of those is on;
-     otherwise it would be an empty ClusterRole plus a dangling binding. */}}
-{{- define "ibm-licensing.restrictedClusterRoleNeeded" -}}
-{{- and ((.Values.ibmLicensing.spec).features).nssEnabled (or ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled ((.Values.ibmLicensing.spec).features).customResourcesEnabled ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled) -}}
+{{/* True when the restricted ClusterRole would carry at least one rule. Render the ClusterRole
+     and its binding only then; otherwise they would be an empty ClusterRole plus a dangling binding. */}}
+{{- define "ibm-licensing.restrictedClusterRoleNotEmpty" -}}
+{{- or ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled ((.Values.ibmLicensing.spec).features).customResourcesEnabled ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled -}}
 {{- end -}}
 
 {{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise. */}}
