@@ -91,6 +91,7 @@ rules:
       - namespaces
     verbs:
       - get
+      - list
   {{- end }}
   {{- if ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
   - apiGroups:
