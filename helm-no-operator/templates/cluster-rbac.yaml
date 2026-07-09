@@ -1,6 +1,6 @@
 {{- if .Values.ibmLicensing.createRBAC }}
----
 {{- if not ((.Values.ibmLicensing.spec).features).nssEnabled }}
+---
 # Operand role (unrestricted): cluster-wide workload reads for the ibm-license-service operand SA. Rendered only when namespace-scope is off (nssEnabled != true).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -16,9 +16,7 @@ rules:
       - ""
     resources:
       - pods
-      {{- if not ((.Values.ibmLicensing.spec).features).nssEnabled }}
       - namespaces
-      {{- end }}
       {{- if ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
       - nodes
       {{- end }}
@@ -73,9 +71,9 @@ rules:
       - create
   {{- end }}
 {{- end }}
+{{- if eq (include "ibm-licensing.restrictedClusterRoleNotEmpty" .) "true" }}
 ---
-{{- if eq (include "ibm-licensing.restrictedClusterRoleNeeded" .) "true" }}
-# Operand role (namespace-scoped / nss): for the ibm-license-service-restricted operand SA. Rendered whenever namespace-scope is on; it always carries the cluster-wide metadata reads the operand needs, plus the node (CPU capping) and kube-RBAC auth rules when those features are enabled.
+# Restricted operand role: backs the ibm-license-service-restricted SA. Rendered whenever it would carry at least one rule, i.e. when the node (CPU capping), metadata/definition/querysource CR read (customResources), or kube-RBAC auth features are enabled.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -86,16 +84,11 @@ metadata:
     component-id: {{ .Chart.Name }}
   name: ibm-license-service-restricted
 rules:
-  {{- if or (not ((.Values.ibmLicensing.spec).features).nssEnabled) ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
+  {{- if ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
   - apiGroups:
       - ""
     resources:
-      {{- if not ((.Values.ibmLicensing.spec).features).nssEnabled }}
-      - namespaces
-      {{- end }}
-      {{- if ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
       - nodes
-      {{- end }}
     verbs:
       - get
       - list
@@ -150,8 +143,8 @@ rules:
     verbs:
       - get
 {{- end }}
----
 {{- if not ((.Values.ibmLicensing.spec).features).nssEnabled }}
+---
 # Binds the unrestricted operand ClusterRole to the ibm-license-service SA. Gated in lockstep with that ClusterRole so the binding never dangles.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -171,8 +164,8 @@ subjects:
     name: ibm-license-service
     namespace: {{ .Values.ibmLicensing.namespace }}
 {{- end }}
+{{- if eq (include "ibm-licensing.restrictedClusterRoleNotEmpty" .) "true" }}
 ---
-{{- if eq (include "ibm-licensing.restrictedClusterRoleNeeded" .) "true" }}
 # Binds the restricted operand ClusterRole to the ibm-license-service-restricted SA. Gated in lockstep with that ClusterRole so the binding never dangles.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
