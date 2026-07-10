@@ -14,12 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */}}
 
-{{/* True when the restricted ClusterRole would carry at least one rule. Render the ClusterRole
-     and its binding only then; otherwise they would be an empty ClusterRole plus a dangling binding. */}}
-{{- define "ibm-licensing.restrictedClusterRoleNotEmpty" -}}
-{{- or ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled ((.Values.ibmLicensing.spec).features).customResourcesEnabled ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled -}}
-{{- end -}}
-
 {{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise.
      Drives the cluster-monitoring-view binding subject so it follows the active SA. */}}
 {{- define "ibm-licensing.operandServiceAccount" -}}
