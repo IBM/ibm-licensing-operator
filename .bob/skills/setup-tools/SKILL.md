@@ -60,7 +60,7 @@ make clean          # deletes ./bin/
 | detect-secrets | IBM fork, tracks `master` (installed via `install-detect-secrets.sh`) |
 | helm | v4.1.4 (installed on demand by `make helm`, not by `install-all-tools`) |
 
-Go toolchain: **go 1.26.3** (see `go.mod`).
+Go toolchain: **go 1.26.5** (see `go.mod`).
 
 ## Notes
 
