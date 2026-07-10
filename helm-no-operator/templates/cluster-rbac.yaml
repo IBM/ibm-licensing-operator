@@ -71,9 +71,8 @@ rules:
       - create
   {{- end }}
 {{- end }}
-{{- if eq (include "ibm-licensing.restrictedClusterRoleNotEmpty" .) "true" }}
 ---
-# Restricted operand role: backs the ibm-license-service-restricted SA when nssEnabled=true. Rendered whenever it would carry at least one rule, i.e. when the node (CPU capping), metadata/definition/querysource CR read (customResources), chargebackEnabled, or kube-RBAC auth features are enabled.
+# Restricted operand role: backs the ibm-license-service-restricted SA when nssEnabled=true. Always rendered; it carries the namespaces read rule unconditionally, plus node (CPU capping), metadata/definition/querysource CR read (customResources), and kube-RBAC auth rules when those features are enabled.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -84,7 +83,6 @@ metadata:
     component-id: {{ .Chart.Name }}
   name: ibm-license-service-restricted
 rules:
-  {{- if .Values.ibmLicensing.spec.chargebackEnabled }}
   - apiGroups:
       - ""
     resources:
@@ -92,7 +90,6 @@ rules:
     verbs:
       - get
       - list
-  {{- end }}
   {{- if ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
   - apiGroups:
       - ""
@@ -127,7 +124,6 @@ rules:
     verbs:
       - create
   {{- end }}
-{{- end }}
 {{- if .Values.ibmLicensing.createRBACReaderRole }}
 ---
 # Reader endpoint (NOT the operator): grants GET on the License Service HTTP URLs to the ibm-licensing-default-reader SA, consumed by API readers. Rendered only when createRBACReaderRole=true (default).
@@ -173,9 +169,8 @@ subjects:
     name: ibm-license-service
     namespace: {{ .Values.ibmLicensing.namespace }}
 {{- end }}
-{{- if eq (include "ibm-licensing.restrictedClusterRoleNotEmpty" .) "true" }}
 ---
-# Binds the restricted operand ClusterRole to the ibm-license-service-restricted SA. Gated in lockstep with that ClusterRole so the binding never dangles.
+# Binds the restricted operand ClusterRole to the ibm-license-service-restricted SA. Always rendered in lockstep with that ClusterRole.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -193,7 +188,6 @@ subjects:
   - kind: ServiceAccount
     name: ibm-license-service-restricted
     namespace: {{ .Values.ibmLicensing.namespace }}
-{{- end }}
 {{- if .Values.ibmLicensing.createRBACReaderRole }}
 ---
 # Binds the reader ClusterRole to the ibm-licensing-default-reader SA (the reader-token identity). Rendered only when createRBACReaderRole=true (default).
