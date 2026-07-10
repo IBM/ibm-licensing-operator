@@ -12,7 +12,7 @@ it describes *this* operator so you can navigate and extend it safely.
 ## Project shape
 
 - Layout: `go.kubebuilder.io/v4`, domain `ibm.com`, group `operator` (see `PROJECT`).
-- Module: `github.com/IBM/ibm-licensing-operator`, go 1.26.3.
+- Module: `github.com/IBM/ibm-licensing-operator`, go 1.26.5.
 - Entry point: `main.go` builds the runtime `scheme`, creates a controller-runtime
   `Manager`, and wires up the controllers.
 
