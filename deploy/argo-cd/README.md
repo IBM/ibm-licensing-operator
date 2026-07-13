@@ -103,9 +103,25 @@ The following are some common scenarios with examples on how to resolve the prov
 
 **Note:** Apply the following examples to the following sources:
 
-- For License Service, apply the examples to the `helm-cluster-scoped` source that supports full CR configuration.
-- For License Service Reporter, apply the examples to the sources that targets the path with `helm`, not `helm-cluster-scoped`, as
-the cluster-scoped charts only support the `namespace` parameter
+- For License Service, apply the examples to the `helm` source (namespace-scoped chart) for CR and operator configuration, or to `helm-cluster-scoped` for cluster-level settings such as `createRBAC`.
+- For License Service Reporter, apply the examples to the source that targets the path with `helm`, not `helm-cluster-scoped`, as
+the cluster-scoped charts only support the `namespace` parameter.
+
+**Note:** For License Service, the `createRBAC` flag and `spec.features.*` values exist in **both** sources because each chart owns a different layer of RBAC — `helm-cluster-scoped` controls ClusterRoles and ClusterRoleBindings, while `helm` controls Roles, RoleBindings, and ServiceAccounts. When overriding either of these in `applications/license-service.yaml`, apply the same value to both sources to keep the two layers consistent. For example, to disable RBAC creation in both charts:
+
+```yaml
+sources:
+  - path: deploy/argo-cd/components/license-service/helm-cluster-scoped
+    helm:
+      valuesObject:
+        ibmLicensing:
+          createRBAC: false
+  - path: deploy/argo-cd/components/license-service/helm
+    helm:
+      valuesObject:
+        ibmLicensing:
+          createRBAC: false
+```
 
 #### Changing the target namespace
 
@@ -284,10 +300,9 @@ Helm installation support is in its alpha stage. To install the Licensing compon
 
 - IBM License Service:
 
-**Note:** License Service supports only cluster-scoped installation and only has a `helm-cluster-scoped` chart.
-
 ```commandline
-helm install license-service ./components/license-service/helm-cluster-scoped
+helm install license-service-cluster-scoped ./components/license-service/helm-cluster-scoped
+helm install license-service ./components/license-service/helm
 ```
 
 - IBM License Service Reporter:
