@@ -49,6 +49,7 @@ subjects:
 - kind: ServiceAccount
   name: {{ $operandServiceAccount }}
   namespace: {{ $.Values.ibmLicensing.namespace }}
+{{- if not $.Values.ibmLicensing.noOperatorDeployment }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -117,6 +118,7 @@ subjects:
 - kind: ServiceAccount
   name: ibm-licensing-operator
   namespace: {{ $.Values.ibmLicensing.namespace }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

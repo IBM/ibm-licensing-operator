@@ -8,15 +8,32 @@ ibmLicensing:
   watchNamespace: ibm-licensing
   imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs
+  # When true, deploys the License Service application directly without the operator.
+  # The operator Deployment and IBMLicensing CR are suppressed; instead the operand
+  # Deployment, Service, Secrets, and CRDs are rendered directly.
+  noOperatorDeployment: false
   createRBAC: true
   createRBACInWatchedNamespaces: true
   spec:
     version: 4.2.24
     datasource: datacollector
     httpsEnable: true
+    # httpsCertsSource and enableInstanaMetricCollection are used only when
+    # noOperatorDeployment=true; the operator reads them from the CR spec otherwise.
+    httpsCertsSource: external
+    enableInstanaMetricCollection: false
     features:
       nssEnabled: false
       nodeCpuCappingEnabled: true
       kubeRBACAuthEnabled: true
       operandRequestsEnabled: true
       customResourcesEnabled: true
+    # resources are used only when noOperatorDeployment=true for the operand pod.
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 256Mi
+        ephemeralStorage: 256Mi

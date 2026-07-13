@@ -1,3 +1,4 @@
+{{- if not .Values.ibmLicensing.noOperatorDeployment }}
 ---
 apiVersion: operator.ibm.com/v1alpha1
 kind: IBMLicensing
@@ -22,3 +23,4 @@ spec:
   {{- end -}}
 
   {{- toYaml (mergeOverwrite .Values.ibmLicensing.spec $imagePullData) | nindent 2 }}
+{{- end }}
