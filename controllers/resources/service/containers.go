@@ -33,6 +33,7 @@ const (
 	softwareCentralDefaultFrequency = "5 0 * * *"
 )
 
+//nolint:gocyclo
 func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
 	var httpsEnableString = strconv.FormatBool(spec.HTTPSEnable)
 	var environmentVariables = []corev1.EnvVar{
