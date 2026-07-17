@@ -81,7 +81,7 @@ metadata:
     categories: Monitoring
     certified: "false"
     containerImage: icr.io/cpopen/ibm-licensing-operator:4.2.24
-    createdAt: "2026-05-11T09:09:00Z"
+    createdAt: "2026-07-17T11:06:24Z"
     description: The IBM Licensing Operator provides a Kubernetes CRD-Based API to monitor the license usage of products.
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
@@ -219,6 +219,11 @@ spec:
             path: features.auth.urlBasedEnabled
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:hidden
+          - description: Comma-separated list of namespaces to exclude during aggregation. Regex patterns are also supported.
+            displayName: Exclude Namespaces
+            path: features.excludeNamespace
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:text
           - description: Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading (SMT) enabled
             displayName: Hyper Threading
             path: features.hyperThreading

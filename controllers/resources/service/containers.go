@@ -152,6 +152,13 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			})
 		}
 	}
+	excludeNamespace := spec.GetSanitizedExcludeNamespace()
+	if excludeNamespace != "" && !spec.IsNamespaceScopeEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "EXCLUDE_NAMESPACE",
+			Value: excludeNamespace,
+		})
+	}
 	if spec.ChargebackRetentionPeriod != nil {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "CONTRIBUTIONS_DATA_RETENTION",

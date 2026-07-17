@@ -19,6 +19,7 @@ ibmLicensing:
     enableInstanaMetricCollection: false
     features:
       nssEnabled: false
+      excludeNamespace: ""
       nodeCpuCappingEnabled: true
       kubeRBACAuthEnabled: true
       customResourcesEnabled: true

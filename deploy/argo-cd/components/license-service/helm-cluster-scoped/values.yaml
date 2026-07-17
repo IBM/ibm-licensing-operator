@@ -16,6 +16,7 @@ ibmLicensing:
     httpsEnable: true
     features:
       nssEnabled: false
+      excludeNamespace: ""
       nodeCpuCappingEnabled: true
       kubeRBACAuthEnabled: true
       operandRequestsEnabled: true

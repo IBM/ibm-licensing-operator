@@ -17,6 +17,8 @@
 package v1alpha1
 
 import (
+	"strings"
+
 	"github.com/IBM/ibm-licensing-operator/api/v1alpha1/features"
 )
 
@@ -46,6 +48,11 @@ type Features struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Namespace scope enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:hidden"
 	// +optional
 	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
+
+	// Comma-separated list of namespaces to exclude during aggregation. Regex patterns are also supported.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Exclude Namespaces",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	ExcludeNamespace string `json:"excludeNamespace,omitempty"`
 
 	// Enables node CPU capping. When false, the operand will skip calls to the Kubernetes node API; node-capping is not applied and metrics may exceed
 	// real node capacity. Defaults to true.
@@ -82,6 +89,30 @@ func (spec *IBMLicensingSpec) HaveFeatures() bool {
 
 func (spec *IBMLicensingSpec) IsNamespaceScopeEnabled() bool {
 	return spec.HaveFeatures() && spec.Features.NamespaceScopeEnabled != nil && *spec.Features.NamespaceScopeEnabled
+}
+
+func (spec *IBMLicensingSpec) GetSanitizedExcludeNamespace() string {
+	if !spec.HaveFeatures() {
+		return ""
+	}
+
+	namespacesLookup := map[string]struct{}{}
+	dedupedNamespaces := []string{}
+
+	for namespace := range strings.SplitSeq(spec.Features.ExcludeNamespace, ",") {
+		trimmedNamespace := strings.TrimSpace(namespace)
+
+		if trimmedNamespace == "" {
+			continue
+		}
+
+		if _, ok := namespacesLookup[trimmedNamespace]; !ok {
+			namespacesLookup[trimmedNamespace] = struct{}{}
+			dedupedNamespaces = append(dedupedNamespaces, trimmedNamespace)
+		}
+	}
+
+	return strings.Join(dedupedNamespaces, ",")
 }
 
 func (spec *IBMLicensingSpec) IsKubeRBACAuthEnabled() bool {
