@@ -62,6 +62,7 @@ type IBMLicensingDefinitionStatus struct {
 // +operator-sdk:csv:customresourcedefinitions:displayName="IBM Licensing Definition"
 // +kubebuilder:resource:path=ibmlicensingdefinitions,scope=Namespaced
 // +kubebuilder:subresource:status
+// +kubebuilder:metadata:annotations=licensing.ibm.com/version=sed-me-ils-version
 type IBMLicensingDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

@@ -44,6 +44,7 @@ type IBMLicensingQuerySourceStatus struct {
 // +operator-sdk:csv:customresourcedefinitions:displayName="IBM Licensing Query Source"
 // +kubebuilder:resource:path=ibmlicensingquerysources,scope=Namespaced
 // +kubebuilder:subresource:status
+// +kubebuilder:metadata:annotations=licensing.ibm.com/version=sed-me-ils-version
 type IBMLicensingQuerySource struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

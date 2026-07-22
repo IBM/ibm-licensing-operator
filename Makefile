@@ -421,19 +421,15 @@ manifests: controller-gen yq
 	$(YQ) -i '.metadata.annotations."olm.skipRange" = ">=1.0.0 <$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
 	$(YQ) -i '.metadata.annotations.containerImage = "icr.io/cpopen/${IMG}:$(CSV_VERSION)"' ./config/manifests/bases/ibm-licensing-operator.clusterserviceversion.yaml
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=ibm-licensing-operator webhook paths="./api/..." paths="./controllers/..." output:crd:artifacts:config=config/crd/bases
-	# Stamp licensing.ibm.com/version into generated CRDs and resolve placeholder to CSV_VERSION
-	@$(YQ) -i '.metadata.annotations."licensing.ibm.com/version" = "sed-me-ils-version"' config/crd/bases/operator.ibm.com_ibmlicensingdefinitions.yaml
-	@$(YQ) -i '.metadata.annotations."licensing.ibm.com/version" = "sed-me-ils-version"' config/crd/bases/operator.ibm.com_ibmlicensingmetadatas.yaml
-	@$(YQ) -i '.metadata.annotations."licensing.ibm.com/version" = "sed-me-ils-version"' config/crd/bases/operator.ibm.com_ibmlicensingquerysources.yaml
-	@$(YQ) -i '.metadata.annotations."licensing.ibm.com/version" = "sed-me-ils-version"' config/crd/bases/operator.ibm.com_ibmlicensings.yaml
-	@sed -i '' "s/sed-me-ils-version/$(CSV_VERSION)/g" config/crd/bases/operator.ibm.com_ibmlicensingdefinitions.yaml
-	@sed -i '' "s/sed-me-ils-version/$(CSV_VERSION)/g" config/crd/bases/operator.ibm.com_ibmlicensingmetadatas.yaml
-	@sed -i '' "s/sed-me-ils-version/$(CSV_VERSION)/g" config/crd/bases/operator.ibm.com_ibmlicensingquerysources.yaml
-	@sed -i '' "s/sed-me-ils-version/$(CSV_VERSION)/g" config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 
 # Generate code
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
+	# Substitute CRD version placeholder with actual version
+	@sed -i '' "s/licensing.ibm.com\/version: sed-me-ils-version/licensing.ibm.com\/version: $(CSV_VERSION)/g" config/crd/bases/operator.ibm.com_ibmlicensingdefinitions.yaml
+	@sed -i '' "s/licensing.ibm.com\/version: sed-me-ils-version/licensing.ibm.com\/version: $(CSV_VERSION)/g" config/crd/bases/operator.ibm.com_ibmlicensingmetadatas.yaml
+	@sed -i '' "s/licensing.ibm.com\/version: sed-me-ils-version/licensing.ibm.com\/version: $(CSV_VERSION)/g" config/crd/bases/operator.ibm.com_ibmlicensingquerysources.yaml
+	@sed -i '' "s/licensing.ibm.com\/version: sed-me-ils-version/licensing.ibm.com\/version: $(CSV_VERSION)/g" config/crd/bases/operator.ibm.com_ibmlicensings.yaml
 
 # Build the docker image
 docker-build: test
@@ -786,10 +782,6 @@ generate-yaml-argo-cd: kustomize yq
 	# This sync wave is crucial because the deployment must be created after the CR, to avoid a situation when ArgoCD
 	# starts creating the CR at the same time as the operator does it (patch isn't applied and a name conflict happens)
 	@$(YQ) -i '.metadata.annotations."argocd.argoproj.io/sync-wave" = "1"' argo-cd/deployment.yaml
-
-	# Replace licensing.ibm.com/version with helm chart version template
-	@$(YQ) -i '.metadata.annotations."licensing.ibm.com/version" = "sed-me-ils-version"' argo-cd/crd.yaml
-	@sed -i '' "s/sed-me-ils-version/{{ .Chart.Version }}/g" argo-cd/crd.yaml
 
 	# Replace all component-id labels to template them with helm
 	@sed -i '' "s/component-id: sed-me/component-id: {{ .Chart.Name }}/g" argo-cd/cluster-rbac.yaml

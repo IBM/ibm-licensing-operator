@@ -47,6 +47,7 @@ type IBMLicensingMetadataStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ibmlicensingmetadatas,scope=Namespaced
 // +kubebuilder:deprecatedversion
+// +kubebuilder:metadata:annotations=licensing.ibm.com/version=sed-me-ils-version
 type IBMLicensingMetadata struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

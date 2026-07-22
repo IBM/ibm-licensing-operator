@@ -6,7 +6,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
     argocd.argoproj.io/sync-wave: "-1"
-    licensing.ibm.com/version: {{ .Chart.Version }}
+    licensing.ibm.com/version: 4.2.24
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
@@ -108,7 +108,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
     argocd.argoproj.io/sync-wave: "-1"
-    licensing.ibm.com/version: {{ .Chart.Version }}
+    licensing.ibm.com/version: 4.2.24
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
@@ -191,7 +191,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
     argocd.argoproj.io/sync-wave: "-1"
-    licensing.ibm.com/version: {{ .Chart.Version }}
+    licensing.ibm.com/version: 4.2.24
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
@@ -270,7 +270,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
     argocd.argoproj.io/sync-wave: "-1"
-    licensing.ibm.com/version: {{ .Chart.Version }}
+    licensing.ibm.com/version: 4.2.24
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator

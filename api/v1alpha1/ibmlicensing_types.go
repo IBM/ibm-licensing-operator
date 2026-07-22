@@ -250,6 +250,7 @@ type IBMLicensingFeaturesStatus struct {
 // +kubebuilder:printcolumn:name="Pod Phase",type=string,JSONPath=`.status..phase`
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=ibmlicensings,scope=Cluster
+// +kubebuilder:metadata:annotations=licensing.ibm.com/version=sed-me-ils-version
 // +operator-sdk:csv:customresourcedefinitions:displayName="IBM License Service"
 // +operator-sdk:csv:customresourcedefinitions:resources={{Service,v1,},{Pod,v1,}}
 // +operator-sdk:csv:customresourcedefinitions:resources={{Deployment,v1,},{Secret,v1,}}
