@@ -66,9 +66,9 @@ spec:
               value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
             - name: CUSTOM_RESOURCES_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.customResourcesEnabled | quote }}
-            {{- if and (not .Values.ibmLicensing.spec.features.nssEnabled) (.Values.ibmLicensing.spec.features.excludeNamespace) }}
+            {{- if and (not .Values.ibmLicensing.spec.features.nssEnabled) (.Values.ibmLicensing.excludeNamespace) }}
             - name: EXCLUDE_NAMESPACE
-              value: {{ .Values.ibmLicensing.spec.features.excludeNamespace | quote }}
+              value: {{ .Values.ibmLicensing.excludeNamespace | quote }}
             {{- end }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:{{ .Values.ibmLicensing.ibmLicensingVersion }}
           imagePullPolicy: IfNotPresent
@@ -162,9 +162,9 @@ spec:
               value: {{ .Values.ibmLicensing.spec.features.kubeRBACAuthEnabled | quote }}
             - name: CUSTOM_RESOURCES_ENABLED
               value: {{ .Values.ibmLicensing.spec.features.customResourcesEnabled | quote }}
-            {{- if and (not .Values.ibmLicensing.spec.features.nssEnabled) (.Values.ibmLicensing.spec.features.excludeNamespace) }}
+            {{- if and (not .Values.ibmLicensing.spec.features.nssEnabled) (.Values.ibmLicensing.excludeNamespace) }}
             - name: EXCLUDE_NAMESPACE
-              value: {{ .Values.ibmLicensing.spec.features.excludeNamespace | quote }}
+              value: {{ .Values.ibmLicensing.excludeNamespace | quote }}
             {{- end }}
           image: {{ .Values.global.imagePullPrefix }}/{{ .Values.ibmLicensing.imageRegistryNamespaceOperand }}/ibm-licensing:{{ .Values.ibmLicensing.ibmLicensingVersion }}
           imagePullPolicy: IfNotPresent
