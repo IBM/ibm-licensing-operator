@@ -173,6 +173,12 @@ spec:
         path: features.auth.urlBasedEnabled
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:hidden
+      - description: Comma-separated list of namespaces to exclude during aggregation.
+          Regex patterns are also supported.
+        displayName: Exclude Namespaces
+        path: features.excludeNamespace
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading
           (SMT) enabled
         displayName: Hyper Threading

@@ -21,4 +21,9 @@ spec:
     {{- $_ := set $imagePullData "imagePullSecrets" (prepend (default list .Values.ibmLicensing.spec.imagePullSecrets) .Values.global.imagePullSecret | uniq) -}}
   {{- end -}}
 
+  {{- /* Propagate top-level excludeNamespace into spec.features.excludeNamespace */ -}}
+  {{- if .Values.ibmLicensing.excludeNamespace -}}
+    {{- $_ := set $imagePullData "features" (mergeOverwrite (default dict ((.Values.ibmLicensing.spec).features)) (dict "excludeNamespace" .Values.ibmLicensing.excludeNamespace)) -}}
+  {{- end -}}
+
   {{- toYaml (mergeOverwrite .Values.ibmLicensing.spec $imagePullData) | nindent 2 }}

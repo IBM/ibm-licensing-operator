@@ -7,6 +7,7 @@ global:
 ibmLicensing:
   namespace: ibm-licensing
   watchNamespace: ibm-licensing
+  excludeNamespace: ""
   imageRegistryNamespaceOperand: cpopen/cpfs
   ibmLicensingVersion: 4.2.24
   createRBAC: true

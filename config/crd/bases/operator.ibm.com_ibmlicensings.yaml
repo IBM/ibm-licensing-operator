@@ -101,6 +101,10 @@ spec:
                     description: Enables access to License Service custom resources.
                       Defaults to true.
                     type: boolean
+                  excludeNamespace:
+                    description: Comma-separated list of namespaces to exclude during
+                      aggregation. Regex patterns are also supported.
+                    type: string
                   hyperThreading:
                     description: Configure if you have HyperThreading (HT) or Symmetrical
                       Multi-Threading (SMT) enabled

@@ -33,6 +33,7 @@ const (
 	softwareCentralDefaultFrequency = "5 0 * * *"
 )
 
+//nolint:gocyclo
 func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []corev1.EnvVar {
 	var httpsEnableString = strconv.FormatBool(spec.HTTPSEnable)
 	var environmentVariables = []corev1.EnvVar{
@@ -151,6 +152,13 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 				Value: strconv.Itoa(spec.Features.NamespaceScopeDenialLimit),
 			})
 		}
+	}
+	excludeNamespace := spec.GetSanitizedExcludeNamespace()
+	if excludeNamespace != "" && !spec.IsNamespaceScopeEnabled() {
+		environmentVariables = append(environmentVariables, corev1.EnvVar{
+			Name:  "EXCLUDE_NAMESPACE",
+			Value: excludeNamespace,
+		})
 	}
 	if spec.ChargebackRetentionPeriod != nil {
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
