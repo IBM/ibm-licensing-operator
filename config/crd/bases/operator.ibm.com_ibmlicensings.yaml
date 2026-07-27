@@ -103,7 +103,7 @@ spec:
                     type: boolean
                   excludeNamespace:
                     description: Comma-separated list of namespaces to exclude during
-                      aggregation. Regex patterns are also supported.
+                      aggregation. Wildcards (".*") are also supported.
                     type: string
                   hyperThreading:
                     description: Configure if you have HyperThreading (HT) or Symmetrical

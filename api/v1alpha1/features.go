@@ -49,7 +49,7 @@ type Features struct {
 	// +optional
 	NamespaceScopeEnabled *bool `json:"nssEnabled,omitempty"`
 
-	// Comma-separated list of namespaces to exclude during aggregation. Regex patterns are also supported.
+	// Comma-separated list of namespaces to exclude during aggregation. Wildcards (".*") are also supported.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Exclude Namespaces",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	ExcludeNamespace string `json:"excludeNamespace,omitempty"`
