@@ -9,7 +9,7 @@ ibmLicensing:
   watchNamespace: ibm-licensing
   excludeNamespace: ""
   imageRegistryNamespaceOperand: cpopen/cpfs
-  ibmLicensingVersion: 4.2.24
+  ibmLicensingVersion: 4.2.25
   createRBAC: true
   createRBACInWatchedNamespaces: true
   createRBACReaderRole: true
