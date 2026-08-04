@@ -6,12 +6,13 @@ global:
 ibmLicensing:
   namespace: ibm-licensing
   watchNamespace: ibm-licensing
+  excludeNamespace: ""
   imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs
   createRBAC: true
   createRBACInWatchedNamespaces: true
   spec:
-    version: 4.2.24
+    version: 4.2.25
     datasource: datacollector
     httpsEnable: true
     features:

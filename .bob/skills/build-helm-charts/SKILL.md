@@ -55,7 +55,7 @@ pushed to Artifactory when `ARTIFACTORY_TOKEN` is set.
 
 | Var | Purpose |
 |-----|---------|
-| `CSV_VERSION` | Base chart/image version (default `4.2.24`) |
+| `CSV_VERSION` | Base chart/image version (default `4.2.25`) |
 | `GIT_BRANCH` | Branch used for dev image tags |
 | `CHART_DESTINATION_*` | Artifactory destinations per component |
 
