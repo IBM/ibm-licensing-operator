@@ -1,5 +1,7 @@
-{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}
+{{- if .Values.ibmLicensing.createRBAC }}
+{{- if not ((.Values.ibmLicensing.spec).features).nssEnabled }}
 ---
+# Operand role (unrestricted): cluster-wide workload reads for the ibm-license-service operand SA. Rendered only when namespace-scope is off (nssEnabled != true).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -15,7 +17,9 @@ rules:
     resources:
       - pods
       - namespaces
+      {{- if ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
       - nodes
+      {{- end }}
     verbs:
       - get
       - list
@@ -41,6 +45,7 @@ rules:
     verbs:
       - get
       - list
+  {{- if ((.Values.ibmLicensing.spec).features).customResourcesEnabled }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -50,6 +55,8 @@ rules:
     verbs:
       - get
       - list
+  {{- end }}
+  {{- if ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled }}
   - apiGroups:
       - authentication.k8s.io
     resources:
@@ -62,7 +69,10 @@ rules:
       - subjectaccessreviews
     verbs:
       - create
+  {{- end }}
+{{- end }}
 ---
+# Restricted operand role: backs the ibm-license-service-restricted SA when nssEnabled=true. Always rendered; it carries the namespaces read rule unconditionally, plus node (CPU capping), metadata/definition/querysource CR read (customResources), and kube-RBAC auth rules when those features are enabled.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -77,10 +87,19 @@ rules:
       - ""
     resources:
       - namespaces
+    verbs:
+      - get
+      - list
+  {{- if ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled }}
+  - apiGroups:
+      - ""
+    resources:
       - nodes
     verbs:
       - get
       - list
+  {{- end }}
+  {{- if ((.Values.ibmLicensing.spec).features).customResourcesEnabled }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -90,6 +109,8 @@ rules:
     verbs:
       - get
       - list
+  {{- end }}
+  {{- if ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled }}
   - apiGroups:
       - authentication.k8s.io
     resources:
@@ -102,7 +123,9 @@ rules:
       - subjectaccessreviews
     verbs:
       - create
+  {{- end }}
 ---
+# Reader endpoint (NOT the operator): grants GET on the License Service HTTP URLs to the ibm-licensing-default-reader SA, consumed by API readers. The operator only provisions its token. Always rendered.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -124,6 +147,7 @@ rules:
     verbs:
       - get
 ---
+# Operator control-plane role: bound to the operator pod SA (ibm-licensing-operator). The cluster-scoped IBMLicensing CR watch is irreducible, so this ClusterRole always renders.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -161,6 +185,7 @@ rules:
       - patch
       - update
       - watch
+  {{- if ((.Values.ibmLicensing.spec).features).operandRequestsEnabled }}
   - apiGroups:
       - operator.ibm.com
     resources:
@@ -173,13 +198,16 @@ rules:
       - patch
       - update
       - watch
+  {{- end }}
   - apiGroups:
       - operator.openshift.io
     resources:
       - servicecas
     verbs:
       - list
+{{- if not ((.Values.ibmLicensing.spec).features).nssEnabled }}
 ---
+# Binds the unrestricted operand ClusterRole to the ibm-license-service SA. Gated in lockstep with that ClusterRole so the binding never dangles.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -197,7 +225,9 @@ subjects:
   - kind: ServiceAccount
     name: ibm-license-service
     namespace: {{ .Values.ibmLicensing.namespace }}
+{{- end }}
 ---
+# Binds the restricted operand ClusterRole to the ibm-license-service-restricted SA. Always rendered in lockstep with that ClusterRole.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -216,6 +246,7 @@ subjects:
     name: ibm-license-service-restricted
     namespace: {{ .Values.ibmLicensing.namespace }}
 ---
+# Binds the reader ClusterRole to the ibm-licensing-default-reader SA (the reader-token identity). Always rendered.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -234,6 +265,7 @@ subjects:
     name: ibm-licensing-default-reader
     namespace: {{ .Values.ibmLicensing.namespace }}
 ---
+# Binds the operator control-plane ClusterRole to the operator pod SA. Always rendered.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -250,23 +282,5 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: ibm-licensing-operator
-    namespace: {{ .Values.ibmLicensing.namespace }}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  labels:
-    app.kubernetes.io/instance: ibm-licensing-operator
-    app.kubernetes.io/managed-by: ibm-licensing-operator
-    app.kubernetes.io/name: ibm-licensing
-    component-id: {{ .Chart.Name }}
-  name: ibm-license-service-cluster-monitoring-view
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-monitoring-view
-subjects:
-  - kind: ServiceAccount
-    name: ibm-license-service
     namespace: {{ .Values.ibmLicensing.namespace }}
 {{- end }}

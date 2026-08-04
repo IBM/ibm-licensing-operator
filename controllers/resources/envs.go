@@ -39,14 +39,30 @@ func GetWatchNamespace() (string, error) {
 }
 
 // GetWatchNamespaceList returns list of namespaces operator should watch for changes.
+// Whitespaces trimming and deduplication is performed.
 func GetWatchNamespaceAsList() ([]string, error) {
-
-	ns, err := GetWatchNamespace()
+	namespaces, err := GetWatchNamespace()
 	if err != nil {
 		return nil, err
 	}
 
-	return strings.Split(ns, ","), nil
+	tokens := strings.Split(namespaces, ",")
+	seen := make(map[string]struct{})
+	sanitizedNamespaces := make([]string, 0, len(tokens))
+
+	for _, token := range tokens {
+		token = strings.TrimSpace(token)
+		if token == "" {
+			continue
+		}
+		if _, ok := seen[token]; ok {
+			continue
+		}
+		seen[token] = struct{}{}
+		sanitizedNamespaces = append(sanitizedNamespaces, token)
+	}
+
+	return sanitizedNamespaces, nil
 }
 
 // GetOperatorNamespace returns the Namespace the operator should be watching for changes.

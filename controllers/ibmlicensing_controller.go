@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 	goruntime "runtime"
 	"sort"
@@ -128,6 +129,7 @@ type IBMLicensingReconciler struct {
 	Recorder                record.EventRecorder
 	OperatorNamespace       string
 	NamespaceScopeSemaphore chan bool
+	OperandRequestsEnabled  bool
 }
 
 // //kubebuilder:rbac:namespace=ibm-licensing,groups=,resources=pod,verbs=get;list;watch;create;update;patch;delete
@@ -138,7 +140,6 @@ type IBMLicensingReconciler struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 
-// +kubebuilder:rbac:namespace=ibm-licensing,groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;watch;list;delete;update
 // +kubebuilder:rbac:namespace=ibm-licensing,groups=route.openshift.io,resources=routes;routes/custom-host,verbs=get;list;watch;create;update;patch;delete
@@ -213,6 +214,14 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 	}
 
 	instance := foundInstance.DeepCopy()
+
+	// OperandRequest support is wired at operator startup, so a change to the features.operandRequestsEnabled flag can only take effect after a restart.
+	// Restart the operator when the desired setting no longer matches the one the process started with
+	if desiredOperandRequests := instance.Spec.IsOperandRequestsEnabled(); desiredOperandRequests != r.OperandRequestsEnabled {
+		reqLogger.Info("OperandRequest support setting changed; restarting operator to re-evaluate startup wiring",
+			"running", r.OperandRequestsEnabled, "desired", desiredOperandRequests)
+		os.Exit(0)
+	}
 
 	err := service.UpdateVersion(r.Client, instance)
 	if err != nil {
@@ -1434,7 +1443,6 @@ func (r *IBMLicensingReconciler) controllerStatus(instance *operatorv1alpha1.IBM
 	if instance.Spec.IsNamespaceScopeEnabled() {
 		r.Log.Info("Namespace scope restriction is enabled")
 	}
-
 }
 
 func (r *IBMLicensingReconciler) reconcileSelfSignedCertificate(instance *operatorv1alpha1.IBMLicensing, secretNsName types.NamespacedName, hostname []string, rolloutPods bool) (reconcile.Result, error) {

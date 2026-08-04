@@ -40,10 +40,6 @@ const (
 	kindConfigMap           = "ConfigMap"
 )
 
-// func GetDefaultGatewayClassName() string {
-// 	return defaultGatewayClassName
-// }
-
 func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) *routev1.Route {
 	var tls *routev1.TLSConfig
 

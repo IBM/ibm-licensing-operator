@@ -86,6 +86,26 @@ func (in *Features) DeepCopyInto(out *Features) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.NodeCpuCappingEnabled != nil {
+		in, out := &in.NodeCpuCappingEnabled, &out.NodeCpuCappingEnabled
+		*out = new(bool)
+		**out = **in
+	}
+	if in.KubeRBACAuthEnabled != nil {
+		in, out := &in.KubeRBACAuthEnabled, &out.KubeRBACAuthEnabled
+		*out = new(bool)
+		**out = **in
+	}
+	if in.OperandRequestsEnabled != nil {
+		in, out := &in.OperandRequestsEnabled, &out.OperandRequestsEnabled
+		*out = new(bool)
+		**out = **in
+	}
+	if in.CustomResourcesEnabled != nil {
+		in, out := &in.CustomResourcesEnabled, &out.CustomResourcesEnabled
+		*out = new(bool)
+		**out = **in
+	}
 	if in.CustomNamespaceScopeConfigMap != nil {
 		in, out := &in.CustomNamespaceScopeConfigMap, &out.CustomNamespaceScopeConfigMap
 		*out = new(string)

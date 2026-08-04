@@ -194,6 +194,16 @@ func main() {
 	// 1-size channel for communicating namespace scope status between IBMLicensing controller and operandrequest-discovery goroutine
 	nssEnabledSemaphore := make(chan bool, 1)
 
+	// Decide OperandRequest support once, at startup, since the OperandRequest controller, discovery and the OperatorGroup cleaner
+	// are wired before any IBMLicensing CR is reconciled. The decision comes from the active IBMLicensing CR's features.operandRequestsEnabled flag
+	// (defaulting to enabled when there is no CR or the flag is unset). When the flag is later changed, the IBMLicensing reconciler restarts
+	// the operator so this decision is re-evaluated.
+	operandRequestsEnabled, err := startupOperandRequestsEnabled(mgr.GetAPIReader())
+	if err != nil {
+		setupLog.Error(err, "failed to determine whether OperandRequest support is enabled")
+		os.Exit(1)
+	}
+
 	controller := &controllers.IBMLicensingReconciler{
 		Client:                  mgr.GetClient(),
 		Reader:                  mgr.GetAPIReader(),
@@ -202,6 +212,7 @@ func main() {
 		Recorder:                mgr.GetEventRecorderFor("IBMLicensing"),
 		OperatorNamespace:       operatorNamespace,
 		NamespaceScopeSemaphore: nssEnabledSemaphore,
+		OperandRequestsEnabled:  operandRequestsEnabled,
 	}
 	if err = controller.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IBMLicensing")
@@ -209,12 +220,19 @@ func main() {
 	}
 
 	operandRequestList := odlm.OperandRequestList{}
-	opreqControllerEnabled, err := res.DoesCRDExist(mgr.GetAPIReader(), &operandRequestList)
-	if err != nil {
-		setupLog.Error(err, "An error occurred while checking for CRD existence. OperandRequest controller will not be started")
+	opreqControllerEnabled := false
+	if operandRequestsEnabled {
+		opreqControllerEnabled, err = res.DoesCRDExist(mgr.GetAPIReader(), &operandRequestList)
+		if err != nil {
+			setupLog.Error(err, "An error occurred while checking for CRD existence. OperandRequest controller will not be started")
+		}
 	}
 
-	if opreqControllerEnabled {
+	switch {
+	case !operandRequestsEnabled:
+		setupLog.Info("OperandRequest support is disabled (features.operandRequestsEnabled=false). " +
+			"OperandRequest controller, discovery and the OperatorGroup cleaner will not be started.")
+	case opreqControllerEnabled:
 		if err = (&controllers.OperandRequestReconciler{
 			Client:            mgr.GetClient(),
 			Reader:            mgr.GetAPIReader(),
@@ -254,7 +272,7 @@ func main() {
 				setupLog.Info("OperatorGroup CRD not found in cluster. operandrequest-discovery and operatorgroup-namespaces-watcher disabled")
 			}
 		}
-	} else {
+	default:
 		logger := ctrl.Log.WithName("crd-watcher").WithName("OperandRequest")
 		// Set custom time duration for CRD watcher (in seconds)
 		reconcileInterval, err := res.GetCrdReconcileInterval()
@@ -295,4 +313,27 @@ func main() {
 		}
 		os.Exit(1)
 	}
+}
+
+// startupOperandRequestsEnabled reads the active IBMLicensing CR's features.operandRequestsEnabled flag to decide whether OperandRequest
+// support is wired at startup. It defaults to enabled when no CR exists yet or when the flag is unset, so existing installs keep today's
+// behavior. The active CR is the oldest one, matching the controller's own active-instance selection.
+func startupOperandRequestsEnabled(reader client.Reader) (bool, error) {
+	ibmLicensingList := &operatoribmcomv1alpha1.IBMLicensingList{}
+	if err := reader.List(context.Background(), ibmLicensingList); err != nil {
+		return false, fmt.Errorf("unable to list IBMLicensing CRs at startup: %w", err)
+	}
+
+	var active *operatoribmcomv1alpha1.IBMLicensing
+	for i := range ibmLicensingList.Items {
+		item := &ibmLicensingList.Items[i]
+		if active == nil || item.CreationTimestamp.Time.Before(active.CreationTimestamp.Time) {
+			active = item
+		}
+	}
+	if active == nil {
+		return true, nil
+	}
+
+	return active.Spec.IsOperandRequestsEnabled(), nil
 }

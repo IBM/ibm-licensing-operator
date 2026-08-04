@@ -173,7 +173,7 @@ helm:
 ```
 
 As a result, the operator and operand image registries are overwritten. For example, after applying the above changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator`
-becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.23`.
+becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.24`.
 
 To additionally modify the image registry namespace of either the operator or the operand, change the value of `cpfs.imageRegistryNamespaceOperator` or `cpfs.imageRegistryNamespaceOperand`, or both, in the relevant `Application.yaml` file:
 
@@ -187,7 +187,7 @@ helm:
 
 As a result, the operator and operand image registry namespaces are overwritten. For example, after applying the above
 changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator` becomes
-`icr.io/<your-operator-image-registry-namespace>/ibm-licensing-operator:4.2.23`.
+`icr.io/<your-operator-image-registry-namespace>/ibm-licensing-operator:4.2.24`.
 
 </details>
 
@@ -219,12 +219,12 @@ To install all components, perform the following steps.
 
 1. Log in to your cluster, and open the following namespace.
 
-- For OpenShift, by default `openshift-gitops`
-- For EKS, by default `argocd`
+    - For OpenShift, by default `openshift-gitops`
+    - For EKS, by default `argocd`
 
-  ```shell
-  kubectl project shift-gitops
-  ```
+    ```shell
+    kubectl project shift-gitops
+    ```
 
 2. Run the following command.
 
@@ -243,17 +243,17 @@ To install selected components separately, for example to install *IBM License S
 
 1. Log in to your cluster, and open the following namespace.
 
-- For OpenShift, by default `openshift-gitops`
-- For EKS, by default `argocd`
+    - For OpenShift, by default `openshift-gitops`
+    - For EKS, by default `argocd`
 
-  ```shell
-  kubectl project shift-gitops
-  ```
+    ```shell
+    kubectl project shift-gitops
+    ```
 
 2. Run the following command.
 
     ```shell
-    kubectl apply -f<path-to-cloned-repo>/applications/license-service.yaml
+    kubectl apply -f <path-to-cloned-repo>/applications/license-service.yaml
     ```
 
 **Note:** Remember to `sync` after the applications are applied, or add the `auto-sync` option to your setup.
@@ -261,7 +261,7 @@ To install selected components separately, for example to install *IBM License S
 ### Installing on EKS clusters
 
 You must register your cluster and modify the `server` field of your `Application`, because the default local cluster
-destination is not supported. Follow official [AWS documentation](<https://docs.aws.amazon.com/eks/latest/userguide/argocd-register-clusters.html>) to
+destination is not supported. Follow official [AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/argocd-register-clusters.html) to
 register your cluster.
 
 You will also need to configure the right roles and permissions so that your ArgoCD instance can sync the application.

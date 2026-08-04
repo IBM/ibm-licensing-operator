@@ -153,20 +153,6 @@ rules:
 - apiGroups:
   - operator.ibm.com
   resources:
-  - ibmlicensings
-  - ibmlicensings/finalizers
-  - ibmlicensings/status
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - operator.ibm.com
-  resources:
   - operandbindinfos
   verbs:
   - delete

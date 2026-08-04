@@ -1,4 +1,4 @@
-{{- if eq (lower (.Values.ibmLicensing.createRBAC | toString)) "true" }}
+{{- if .Values.ibmLicensing.createRBAC }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -172,26 +172,13 @@ rules:
   - apiGroups:
       - operator.ibm.com
     resources:
-      - ibmlicensings
-      - ibmlicensings/finalizers
-      - ibmlicensings/status
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - operator.ibm.com
-    resources:
       - operandbindinfos
     verbs:
       - delete
       - get
       - list
       - watch
+  {{- if ((.Values.ibmLicensing.spec).features).operandRequestsEnabled }}
   - apiGroups:
       - operators.coreos.com
     resources:
@@ -202,6 +189,7 @@ rules:
       - patch
       - update
       - watch
+  {{- end }}
   - apiGroups:
       - route.openshift.io
     resources:

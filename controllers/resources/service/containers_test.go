@@ -183,9 +183,131 @@ func TestGetSoftwareCentralFrequencyDefaultValue(t *testing.T) {
 
 }
 
+func TestGetLicensingEnvironmentVariablesNodeCpuCappingDefault(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.False(t, ContainsEnvVar(envVars, "NODE_CPU_CAPPING_ENABLED"),
+		"NodeCpuCappingEnabled omitted in CR, NODE_CPU_CAPPING_ENABLED should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesNodeCpuCappingExplicitTrue(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features:          &operatorv1alpha1.Features{NodeCpuCappingEnabled: ptr.To(true)},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.NotContains(t, envVars, corev1.EnvVar{Name: "NODE_CPU_CAPPING_ENABLED", Value: "true"},
+		"NodeCpuCappingEnabled=true, NODE_CPU_CAPPING_ENABLED=true should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesNodeCpuCappingExplicitFalse(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features:          &operatorv1alpha1.Features{NodeCpuCappingEnabled: ptr.To(false)},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "NODE_CPU_CAPPING_ENABLED", Value: "false"},
+		"NodeCpuCappingEnabled=false, NODE_CPU_CAPPING_ENABLED=false should be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledFeatureNil(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.False(t, ContainsEnvVar(envVars, "KUBE_RBAC_AUTH_ENABLED"),
+		"KubeRBACAuthEnabled omitted in CR, KUBE_RBAC_AUTH_ENABLED should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitTrue(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features: &operatorv1alpha1.Features{
+			KubeRBACAuthEnabled: ptr.To(true),
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.NotContains(t, envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "true"},
+		"KubeRBACAuthEnabled=true, KUBE_RBAC_AUTH_ENABLED=true should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesKubeRBACAuthEnabledExplicitFalse(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features: &operatorv1alpha1.Features{
+			KubeRBACAuthEnabled: ptr.To(false),
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "KUBE_RBAC_AUTH_ENABLED", Value: "false"},
+		"KubeRBACAuthEnabled=false, KUBE_RBAC_AUTH_ENABLED=false should be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesCustomResourcesEnabledFeatureNil(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.False(t, ContainsEnvVar(envVars, "CUSTOM_RESOURCES_ENABLED"),
+		"CustomResourcesEnabled omitted in CR, CUSTOM_RESOURCES_ENABLED should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesCustomResourcesEnabledExplicitTrue(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features: &operatorv1alpha1.Features{
+			CustomResourcesEnabled: ptr.To(true),
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.NotContains(t, envVars, corev1.EnvVar{Name: "CUSTOM_RESOURCES_ENABLED", Value: "true"},
+		"CustomResourcesEnabled=true, CUSTOM_RESOURCES_ENABLED=true should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesCustomResourcesEnabledExplicitFalse(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features: &operatorv1alpha1.Features{
+			CustomResourcesEnabled: ptr.To(false),
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "CUSTOM_RESOURCES_ENABLED", Value: "false"},
+		"CustomResourcesEnabled=false, CUSTOM_RESOURCES_ENABLED=false should be added to Licensing pod.")
+}
+
 func Contains[T comparable](s []T, e T) bool {
 	for _, v := range s {
 		if v == e {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsEnvVar(s []corev1.EnvVar, e string) bool {
+	for _, v := range s {
+		if v.Name == e {
 			return true
 		}
 	}
