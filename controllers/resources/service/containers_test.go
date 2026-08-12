@@ -296,6 +296,74 @@ func TestGetLicensingEnvironmentVariablesCustomResourcesEnabledExplicitFalse(t *
 		"CustomResourcesEnabled=false, CUSTOM_RESOURCES_ENABLED=false should be added to Licensing pod.")
 }
 
+func TestGetLicensingEnvironmentVariablesExcludeNamespaceSet(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features: &operatorv1alpha1.Features{
+			ExcludeNamespace: "ns-a,ns-b",
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "EXCLUDE_NAMESPACE", Value: "ns-a,ns-b"},
+		"ExcludeNamespace set with NSS disabled, EXCLUDE_NAMESPACE should be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesExcludeNamespaceNotSetWhenNSSEnabled(t *testing.T) {
+	t.Setenv("WATCH_NAMESPACE", "ibm-licensing")
+
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features: &operatorv1alpha1.Features{
+			ExcludeNamespace:      "ns-a,ns-b",
+			NamespaceScopeEnabled: ptr.To(true),
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.False(t, ContainsEnvVar(envVars, "EXCLUDE_NAMESPACE"),
+		"NSS is enabled, EXCLUDE_NAMESPACE should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesExcludeNamespaceNotSetWhenEmpty(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features:          &operatorv1alpha1.Features{ExcludeNamespace: ""},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.False(t, ContainsEnvVar(envVars, "EXCLUDE_NAMESPACE"),
+		"ExcludeNamespace is empty, EXCLUDE_NAMESPACE should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesExcludeNamespaceNotSetWhenFeaturesNil(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.False(t, ContainsEnvVar(envVars, "EXCLUDE_NAMESPACE"),
+		"Features is nil, EXCLUDE_NAMESPACE should not be added to Licensing pod.")
+}
+
+func TestGetLicensingEnvironmentVariablesExcludeNamespaceSanitized(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		Features: &operatorv1alpha1.Features{
+			ExcludeNamespace: " ns-a , ns-b , ns-a ",
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "EXCLUDE_NAMESPACE", Value: "ns-a,ns-b"},
+		"ExcludeNamespace with whitespace and duplicates should be sanitized before being set as env var.")
+}
+
 func Contains[T comparable](s []T, e T) bool {
 	for _, v := range s {
 		if v == e {

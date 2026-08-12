@@ -15,9 +15,9 @@
 #
 
 # Current Operator version
-CSV_VERSION ?= 4.2.24
+CSV_VERSION ?= 4.2.25
 CSV_VERSION_DEVELOPMENT ?= development
-OLD_CSV_VERSION ?= 4.2.23
+OLD_CSV_VERSION ?= 4.2.24
 
 # Tools versions
 OPM_VERSION ?= v1.64.0
