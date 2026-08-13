@@ -43,10 +43,14 @@ cp -r "./${SOURCE_DIR}" "./${TARGET_DIR}"
 
 # Set correct images (only if sed pattern is provided)
 if [ -n "${IMAGE_SED_PATTERN}" ]; then
-    # Use sed to override image tag with correct git branch name
+    # Use sed to override image tags with correct git branch name in all template YAML files.
+    # Iterating over all files handles charts with multiple deployment templates (e.g. a
+    # regular operator deployment and a no-operator operand deployment in the same chart).
     tmp_file=$(mktemp)
-    sed "${IMAGE_SED_PATTERN}" "./${TARGET_DIR}/templates/deployment.yaml" > "${tmp_file}"
-    mv "${tmp_file}" "./${TARGET_DIR}/templates/deployment.yaml"
+    for yaml_file in "./${TARGET_DIR}/templates/"*.yaml; do
+        sed "${IMAGE_SED_PATTERN}" "${yaml_file}" > "${tmp_file}"
+        mv "${tmp_file}" "${yaml_file}"
+    done
 
     # Update values.yaml to change image pull prefix
     "${YQ}" -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' "./${TARGET_DIR}/values.yaml"

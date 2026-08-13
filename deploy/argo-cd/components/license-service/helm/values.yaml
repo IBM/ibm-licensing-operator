@@ -6,6 +6,9 @@ global:
 ibmLicensing:
   namespace: ibm-licensing
   watchNamespace: ibm-licensing
+  # Comma-separated list of namespaces to exclude from license collection.
+  # Used only when noOperatorDeployment=true; the operator reads this from the CR spec otherwise.
+  excludeNamespace: ""
   imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs
   # When true, deploys the License Service application directly without the operator.
@@ -15,7 +18,7 @@ ibmLicensing:
   createRBAC: true
   createRBACInWatchedNamespaces: true
   spec:
-    version: 4.2.24
+    version: 4.2.25
     datasource: datacollector
     httpsEnable: true
     # httpsCertsSource and enableInstanaMetricCollection are used only when
