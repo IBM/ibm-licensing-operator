@@ -31,4 +31,4 @@ ibmLicensing:
       requests:
         cpu: 200m
         memory: 256Mi
-        ephemeralStorage: 256Mi
+        ephemeral-storage: 256Mi
