@@ -1,4 +1,4 @@
-{{- if not .Values.ibmLicensing.noOperatorDeployment }}
+{{- if .Values.ibmLicensing.operatorDeployment }}
 ---
 apiVersion: operator.ibm.com/v1alpha1
 kind: IBMLicensing

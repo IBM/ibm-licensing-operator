@@ -7,14 +7,14 @@ ibmLicensing:
   namespace: ibm-licensing
   watchNamespace: ibm-licensing
   # Comma-separated list of namespaces to exclude from license collection.
-  # Used only when noOperatorDeployment=true; the operator reads this from the CR spec otherwise.
+  # Used only when operatorDeployment=false; the operator reads this from the CR spec otherwise.
   excludeNamespace: ""
   imageRegistryNamespaceOperator: cpopen
   imageRegistryNamespaceOperand: cpopen/cpfs
-  # When true, deploys the License Service application directly without the operator.
+  # When false, deploys the License Service application directly without the operator.
   # The operator Deployment and IBMLicensing CR are suppressed; instead the operand
   # Deployment, Service, Secrets, and CRDs are rendered directly.
-  noOperatorDeployment: false
+  operatorDeployment: true
   createRBAC: true
   createRBACInWatchedNamespaces: true
   spec:
@@ -22,7 +22,7 @@ ibmLicensing:
     datasource: datacollector
     httpsEnable: true
     # httpsCertsSource and enableInstanaMetricCollection are used only when
-    # noOperatorDeployment=true; the operator reads them from the CR spec otherwise.
+    # operatorDeployment=false; the operator reads them from the CR spec otherwise.
     httpsCertsSource: external
     enableInstanaMetricCollection: false
     features:
@@ -31,7 +31,7 @@ ibmLicensing:
       kubeRBACAuthEnabled: true
       operandRequestsEnabled: true
       customResourcesEnabled: true
-    # resources are used only when noOperatorDeployment=true for the operand pod.
+    # resources are used only when operatorDeployment=false for the operand pod.
     resources:
       limits:
         cpu: 500m
