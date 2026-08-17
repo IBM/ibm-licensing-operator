@@ -1,4 +1,3 @@
-{{- if .Values.ibmLicensing.operatorDeployment }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -106,4 +105,3 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.global.imagePullSecret }}
       {{- end -}}
-{{- end }}
