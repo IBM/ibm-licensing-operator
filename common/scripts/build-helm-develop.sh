@@ -43,9 +43,10 @@ cp -r "./${SOURCE_DIR}" "./${TARGET_DIR}"
 
 # Set correct images (only if sed pattern is provided)
 if [ -n "${IMAGE_SED_PATTERN}" ]; then
-    # Use sed to override image tags with correct git branch name in all template YAML files.
-    # Iterating over all files handles charts with multiple deployment templates (e.g. a
-    # regular operator deployment and a no-operator operand deployment in the same chart).
+    # Use sed to apply substitutions across all template YAML files.
+    # Iterating over all files is necessary because different charts have
+    # different files carrying version strings (e.g. deployment.yaml for
+    # image tags, crd.yaml for the licensing.ibm.com/version annotation).
     tmp_file=$(mktemp)
     for yaml_file in "./${TARGET_DIR}/templates/"*.yaml; do
         sed "${IMAGE_SED_PATTERN}" "${yaml_file}" > "${tmp_file}"
