@@ -102,7 +102,7 @@ spec:
               memory: {{ .Values.ibmLicensing.spec.resources.limits.memory }}
             requests:
               cpu: {{ .Values.ibmLicensing.spec.resources.requests.cpu }}
-              ephemeral-storage: {{ .Values.ibmLicensing.spec.resources.requests.ephemeralStorage }}
+              ephemeral-storage: {{ index .Values.ibmLicensing.spec.resources.requests "ephemeral-storage" }}
               memory: {{ .Values.ibmLicensing.spec.resources.requests.memory }}
           securityContext:
             allowPrivilegeEscalation: false
