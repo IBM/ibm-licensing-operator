@@ -14,9 +14,9 @@ Red Hat OpenShift Container Platform 4.10 or newer installed on Linux x86_64, Li
 
 ## Prerequisites
 
-Prerequisites depend on the integration of the License Service with an IBM Cloud Pak or IBM Containerized Software. For more information, see the applicable IBM Cloud Pak documentation or [ibm-licensing-operator for stand-alone IBM Containerized Software](https://ibm.biz/BdyGwh).
-
-The cluster-scoped resources (CRDs, ClusterRoles) must be installed first via the companion `ibm-licensing-cluster-scoped` chart.
+The cluster-scoped resources (CRDs, ClusterRoles, ClusterRoleBindings) must be installed first
+via the companion `ibm-licensing-cluster-scoped` chart. For more information, see the applicable
+IBM Cloud Pak documentation or [ibm-licensing-operator for stand-alone IBM Containerized Software](https://ibm.biz/BdyGwh).
 
 ---
 

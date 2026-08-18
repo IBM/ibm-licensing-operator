@@ -89,22 +89,28 @@ install_licensing_helm() {
     fi
     
     # Step 1: Install cluster-scoped resources (CRDs, ClusterRoles)
-    # Note: This may fail for the CR because CRDs aren't ready yet - this is expected
     log_info "Installing cluster-scoped resources (CRDs, ClusterRoles)..."
-    helm template ibm-licensing-cluster-scoped "${HELM_CHART_PATH_CLUSTER_SCOPED}" \
-        --set ibmLicensing.spec.features.prometheusQuerySource.enabled=false \
-        --set ibmLicensing.spec.features.alerting.enabled=false | kubectl apply -f - || true
-    
-    # Wait for CRDs to be established
-    log_info "Waiting for CRDs to be established..."
-    sleep 10
-    
-    # Step 2: Install namespace-scoped resources (Deployment, ServiceAccounts, Roles, CR)
-    log_info "Installing namespace-scoped resources (Deployment, RBAC, CR)..."
-    helm template ibm-licensing "${HELM_CHART_PATH}" \
+    helm upgrade --install ibm-licensing-cluster-scoped "${HELM_CHART_PATH_CLUSTER_SCOPED}" \
         --namespace "${NAMESPACE}" \
         --set ibmLicensing.spec.features.prometheusQuerySource.enabled=false \
-        --set ibmLicensing.spec.features.alerting.enabled=false | kubectl apply -f -
+        --set ibmLicensing.spec.features.alerting.enabled=false
+
+    # Wait for CRDs to be established
+    log_info "Waiting for CRDs to be established..."
+    kubectl wait crd \
+        ibmlicensings.operator.ibm.com \
+        ibmlicensingquerysources.operator.ibm.com \
+        ibmlicensingmetadatas.operator.ibm.com \
+        ibmlicensingdefinitions.operator.ibm.com \
+        --for=condition=Established \
+        --timeout=60s
+
+    # Step 2: Install namespace-scoped resources (Deployment, ServiceAccounts, Roles, CR)
+    log_info "Installing namespace-scoped resources (Deployment, RBAC, CR)..."
+    helm upgrade --install ibm-licensing "${HELM_CHART_PATH}" \
+        --namespace "${NAMESPACE}" \
+        --set ibmLicensing.spec.features.prometheusQuerySource.enabled=false \
+        --set ibmLicensing.spec.features.alerting.enabled=false
     
     log_info "Helm installation completed"
 }
