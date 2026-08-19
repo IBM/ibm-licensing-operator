@@ -840,7 +840,7 @@ build/helm-develop-ls: helm yq ## Build IBM License Service development helm cha
 	@$(MAKE) build/helm-develop-chart \
 		TARGET_DIR=helm-develop-ls \
 		SOURCE_DIR=deploy/argo-cd/components/license-service/helm-cluster-scoped \
-		IMAGE_SED_PATTERN="s|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g; s|licensing.ibm.com/version: $(CSV_VERSION)|licensing.ibm.com/version: $(GIT_BRANCH)|g" \
+		IMAGE_SED_PATTERN="s|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g" \
 		VALUES_COMPONENT_PREFIX=ibmLicensing \
 		CHART_NAME=ibm-licensing-cluster-scoped \
 		CHART_DESTINATION=$(CHART_DESTINATION_LS)
