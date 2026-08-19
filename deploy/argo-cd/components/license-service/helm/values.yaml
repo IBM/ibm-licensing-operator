@@ -16,7 +16,6 @@ ibmLicensing:
     version: 4.2.25
     datasource: datacollector
     httpsEnable: true
-    httpsCertsSource: external
     enableInstanaMetricCollection: false
     features:
       nssEnabled: false
