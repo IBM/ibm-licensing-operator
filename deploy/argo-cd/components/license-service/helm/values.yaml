@@ -16,7 +16,6 @@ ibmLicensing:
     version: 4.2.25
     datasource: datacollector
     httpsEnable: true
-    httpsCertsSource: external
     enableInstanaMetricCollection: false
     features:
       nssEnabled: false
@@ -24,11 +23,4 @@ ibmLicensing:
       kubeRBACAuthEnabled: true
       operandRequestsEnabled: true
       customResourcesEnabled: true
-    resources:
-      limits:
-        cpu: 500m
-        memory: 1Gi
-      requests:
-        cpu: 200m
-        memory: 256Mi
-        ephemeral-storage: 256Mi
+
