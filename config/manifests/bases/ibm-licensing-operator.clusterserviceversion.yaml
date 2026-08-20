@@ -134,6 +134,12 @@ spec:
         path: chargebackEnabled
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Label key that will be used to read group name when chargeback
+          is enabled. Default value is ibm-chargeback-group.
+        displayName: Chargeback Label Key
+        path: chargebackLabelKey
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Chargeback data retention period in days. Default value is 62
           days.
         displayName: Chargeback Retention Period in days
