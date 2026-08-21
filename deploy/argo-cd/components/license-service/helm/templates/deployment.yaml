@@ -28,32 +28,26 @@ spec:
   template:
     metadata:
       annotations:
-        productID: 068a62892a1e4db39641342e592daa25
-        productMetric: FREE
-        productName: IBM Cloud Platform Common Services
-        {{- if ((.Values.ibmLicensing.operator).annotations) }}
-          {{- toYaml .Values.ibmLicensing.operator.annotations | nindent 8 -}}
-        {{ end }}
+        {{- $ibmAnnotations := dict
+          "productID" "068a62892a1e4db39641342e592daa25"
+          "productMetric" "FREE"
+          "productName" "IBM Cloud Platform Common Services"
+        }}
+        {{- $legacyAnnotations := ((.Values.ibmLicensing.operator).annotations) | default dict }}
+        {{- toYaml (merge $ibmAnnotations .Values.ibmLicensing.podAnnotations $legacyAnnotations) | nindent 8 }}
       labels:
-        app.kubernetes.io/instance: ibm-licensing-operator
-        app.kubernetes.io/managed-by: ibm-licensing-operator
-        app.kubernetes.io/name: ibm-licensing
-        name: ibm-licensing-operator
-        {{- if ((.Values.ibmLicensing.operator).labels) }}
-          {{- toYaml .Values.ibmLicensing.operator.labels | nindent 8 -}}
-        {{ end }}
+        {{- $ibmLabels := dict
+          "app.kubernetes.io/instance" "ibm-licensing-operator"
+          "app.kubernetes.io/managed-by" "ibm-licensing-operator"
+          "app.kubernetes.io/name" "ibm-licensing"
+          "name" "ibm-licensing-operator"
+        }}
+        {{- $legacyLabels := ((.Values.ibmLicensing.operator).labels) | default dict }}
+        {{- toYaml (merge $ibmLabels .Values.ibmLicensing.podLabels $legacyLabels) | nindent 8 }}
     spec:
+      {{- $ibmAffinity := dict "nodeAffinity" (dict "requiredDuringSchedulingIgnoredDuringExecution" (dict "nodeSelectorTerms" (list (dict "matchExpressions" (list (dict "key" "kubernetes.io/arch" "operator" "In" "values" (list "amd64" "ppc64le" "s390x"))))))) }}
       affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: kubernetes.io/arch
-                    operator: In
-                    values:
-                      - amd64
-                      - ppc64le
-                      - s390x
+        {{- toYaml (merge $ibmAffinity .Values.ibmLicensing.affinity) | nindent 8 }}
       containers:
         - command:
             - ibm-licensing-operator
@@ -100,7 +94,11 @@ spec:
             runAsNonRoot: true
             seccompProfile:
               type: RuntimeDefault
-      serviceAccountName: ibm-licensing-operator
+      serviceAccountName: {{ .Values.ibmLicensing.serviceAccount.name | default "ibm-licensing-operator" }}
+      {{- if .Values.ibmLicensing.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.ibmLicensing.nodeSelector | nindent 8 }}
+      {{- end }}
       {{ if .Values.global.imagePullSecret }}
       imagePullSecrets:
         - name: {{ .Values.global.imagePullSecret }}
