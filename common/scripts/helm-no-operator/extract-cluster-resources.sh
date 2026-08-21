@@ -30,7 +30,8 @@ YQ="${LOCALBIN}/yq"
 
 # Configuration
 NAMESPACE="ibm-licensing"
-HELM_CHART_PATH="deploy/argo-cd/components/license-service/helm-cluster-scoped"
+HELM_CHART_PATH_CLUSTER_SCOPED="deploy/argo-cd/components/license-service/helm-cluster-scoped"
+HELM_CHART_PATH="deploy/argo-cd/components/license-service/helm"
 OUTPUT_DIR="resources"
 
 # Source shared logging utilities
@@ -77,27 +78,39 @@ create_namespace() {
 install_licensing_helm() {
     log_info "Installing IBM Licensing Service using Helm..."
     
+    if [ ! -d "${HELM_CHART_PATH_CLUSTER_SCOPED}" ]; then
+        log_error "Helm chart not found at ${HELM_CHART_PATH_CLUSTER_SCOPED}"
+        exit 1
+    fi
+
     if [ ! -d "${HELM_CHART_PATH}" ]; then
         log_error "Helm chart not found at ${HELM_CHART_PATH}"
         exit 1
     fi
     
-    # First run: Create CRDs and initial resources
-    # Note: This may fail for the CR because CRDs aren't ready yet - this is expected
-    log_info "First helm template run"
-    helm template ibm-licensing-cluster-scoped "${HELM_CHART_PATH}" \
+    # Step 1: Install cluster-scoped resources (CRDs, ClusterRoles)
+    log_info "Installing cluster-scoped resources (CRDs, ClusterRoles)..."
+    helm upgrade --install ibm-licensing-cluster-scoped "${HELM_CHART_PATH_CLUSTER_SCOPED}" \
+        --namespace "${NAMESPACE}" \
         --set ibmLicensing.spec.features.prometheusQuerySource.enabled=false \
-        --set ibmLicensing.spec.features.alerting.enabled=false | kubectl apply -f - || true
-    
+        --set ibmLicensing.spec.features.alerting.enabled=false
+
     # Wait for CRDs to be established
     log_info "Waiting for CRDs to be established..."
-    sleep 10
-    
-    # Second run: Ensure all dependent resources are created (including CR)
-    log_info "Second helm template run (ensuring all resources are created)..."
-    helm template ibm-licensing-cluster-scoped "${HELM_CHART_PATH}" \
+    kubectl wait crd \
+        ibmlicensings.operator.ibm.com \
+        ibmlicensingquerysources.operator.ibm.com \
+        ibmlicensingmetadatas.operator.ibm.com \
+        ibmlicensingdefinitions.operator.ibm.com \
+        --for=condition=Established \
+        --timeout=60s
+
+    # Step 2: Install namespace-scoped resources (Deployment, ServiceAccounts, Roles, CR)
+    log_info "Installing namespace-scoped resources (Deployment, RBAC, CR)..."
+    helm upgrade --install ibm-licensing "${HELM_CHART_PATH}" \
+        --namespace "${NAMESPACE}" \
         --set ibmLicensing.spec.features.prometheusQuerySource.enabled=false \
-        --set ibmLicensing.spec.features.alerting.enabled=false | kubectl apply -f -
+        --set ibmLicensing.spec.features.alerting.enabled=false
     
     log_info "Helm installation completed"
 }
