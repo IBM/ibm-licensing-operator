@@ -317,3 +317,4 @@ result in an unexpected state. Therefore, it is recommended to perform installat
 
 If you already have any Licensing components installed, use the `--take-ownership` flag, which is introduced in
 `helm` version `3.17.0`, when running the `install` commands.
+Specify `-n ${namespace}` (or `--namespace ${namespace}`) parameter to `helm` commands in order to provide namespace scope of these requests. 
