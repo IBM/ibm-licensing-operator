@@ -28,8 +28,8 @@ limitations under the License.
 {{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise. */}}
 {{- define "ibm-licensing.operandServiceAccount" -}}
 {{- if ((.Values.ibmLicensing.spec).features).nssEnabled -}}
-ibm-license-service-restricted
+{{- .Values.ibmLicensing.serviceAccount.name | default "ibm-license-service-restricted" -}}
 {{- else -}}
-ibm-license-service
+{{- .Values.ibmLicensing.serviceAccount.name | default "ibm-license-service" -}}
 {{- end -}}
 {{- end -}}
