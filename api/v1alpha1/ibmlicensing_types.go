@@ -122,7 +122,7 @@ type IBMLicensingSpec struct {
 }
 
 type IBMLicensingChargebackSpec struct {
-	// Consider updating to enable chargeback feature
+	// Enabling chargeback feature
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	ChargebackEnabled *bool `json:"chargebackEnabled,omitempty"`
@@ -132,7 +132,7 @@ type IBMLicensingChargebackSpec struct {
 	// +optional
 	ChargebackRetentionPeriod *int `json:"chargebackRetentionPeriod,omitempty"`
 
-	// Label key that will be used to read group name when chargeback is enabled. Default value is ibm-chargeback-group.
+	// Label key used to read the group name when chargeback is enabled. Defaults to "ibm-chargeback-group".
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Label Key",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	ChargebackLabelKey string `json:"chargebackLabelKey,omitempty"`

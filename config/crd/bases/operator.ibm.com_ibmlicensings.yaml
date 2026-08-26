@@ -58,11 +58,11 @@ spec:
                   that exists, or one that will be created
                 type: string
               chargebackEnabled:
-                description: Consider updating to enable chargeback feature
+                description: Enabling chargeback feature
                 type: boolean
               chargebackLabelKey:
-                description: Label key that will be used to read group name when chargeback
-                  is enabled. Default value is ibm-chargeback-group.
+                description: Label key used to read the group name when chargeback
+                  is enabled. Defaults to "ibm-chargeback-group".
                 type: string
               chargebackRetentionPeriod:
                 description: Chargeback data retention period in days. Default value
