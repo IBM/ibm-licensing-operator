@@ -836,13 +836,20 @@ MIGRATION_CHART_VERSION ?= $(shell yq '.version' ./helm-migration/Chart.yaml)
 build/helm-develop-all: build/helm-develop-ls build/helm-develop-lsr build/helm-develop-lss ## Build all development helm charts
 
 .PHONY: build/helm-develop-ls
-build/helm-develop-ls: helm yq ## Build IBM License Service development helm chart (cluster-scoped)
+build/helm-develop-ls: helm yq ## Build IBM License Service development helm charts (cluster-scoped and namespace-scoped)
 	@$(MAKE) build/helm-develop-chart \
 		TARGET_DIR=helm-develop-ls \
 		SOURCE_DIR=deploy/argo-cd/components/license-service/helm-cluster-scoped \
 		IMAGE_SED_PATTERN="s|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g" \
 		VALUES_COMPONENT_PREFIX=ibmLicensing \
 		CHART_NAME=ibm-licensing-cluster-scoped \
+		CHART_DESTINATION=$(CHART_DESTINATION_LS)
+	@$(MAKE) build/helm-develop-chart \
+		TARGET_DIR=helm-develop-ls-namespace-scoped \
+		SOURCE_DIR=deploy/argo-cd/components/license-service/helm \
+		IMAGE_SED_PATTERN="s|ibm-licensing-operator:$(CSV_VERSION)|ibm-licensing-operator:$(GIT_BRANCH)|g; s|ibm-licensing:$(CSV_VERSION)|ibm-licensing:$(GIT_BRANCH)|g" \
+		VALUES_COMPONENT_PREFIX=ibmLicensing \
+		CHART_NAME=ibm-licensing \
 		CHART_DESTINATION=$(CHART_DESTINATION_LS)
 	@$(MAKE) build/helm-develop-chart \
 		TARGET_DIR=helm-migration-develop-ls \
