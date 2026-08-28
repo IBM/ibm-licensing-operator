@@ -129,9 +129,15 @@ spec:
       - description: Annotations to be copied into all relevant resources
         displayName: Annotations
         path: annotations
-      - description: Consider updating to enable chargeback feature
+      - description: Enabling chargeback feature
         displayName: Chargeback Enabled
         path: chargebackEnabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Label key used to read the group name when chargeback is enabled.
+          Defaults to "ibm-chargeback-group".
+        displayName: Chargeback Label Key
+        path: chargebackLabelKey
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: Chargeback data retention period in days. Default value is 62
