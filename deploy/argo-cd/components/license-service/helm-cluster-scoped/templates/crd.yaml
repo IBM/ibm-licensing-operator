@@ -329,8 +329,11 @@ spec:
                   description: Secret name used to store application token, either one that exists, or one that will be created
                   type: string
                 chargebackEnabled:
-                  description: Consider updating to enable chargeback feature
+                  description: Enabling chargeback feature
                   type: boolean
+                chargebackLabelKey:
+                  description: Label key used to read the group name when chargeback is enabled. Defaults to "ibm-chargeback-group".
+                  type: string
                 chargebackRetentionPeriod:
                   description: Chargeback data retention period in days. Default value is 62 days.
                   type: integer
@@ -371,8 +374,7 @@ spec:
                       description: Enables access to License Service custom resources. Defaults to true.
                       type: boolean
                     excludeNamespace:
-                      description: Comma-separated list of namespaces to exclude during
-                        aggregation. Wildcards (".*") are also supported.
+                      description: Comma-separated list of namespaces to exclude during aggregation. Wildcards (".*") are also supported.
                       type: string
                     hyperThreading:
                       description: Configure if you have HyperThreading (HT) or Symmetrical Multi-Threading (SMT) enabled
@@ -408,7 +410,7 @@ spec:
                         This feature requires authorization from IBM Pricing.
                       type: boolean
                     operandRequestsEnabled:
-                      description: Enables the OperandRequest integration. Default true.
+                      description: Enables the OperandRequest integration. Defaults to true.
                       type: boolean
                     prometheusQuerySource:
                       description: Change prometheus query source settings.

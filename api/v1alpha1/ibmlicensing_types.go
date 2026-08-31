@@ -23,40 +23,6 @@ import (
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-type IBMLicensingGatewayOptions struct {
-
-	// Additional annotations that should include f.e. gateway class if using not default gateway controller
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Annotations",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
-	// +optional
-	Annotations map[string]string `json:"annotations,omitempty"`
-
-	// TLS Options to enable secure connection. Default is ibm-license-service-cert-internal.
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="TLS Secret Name",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
-	// +kubebuilder:default="ibm-license-service-cert-internal"
-	// +optional
-	TLSSecretName string `json:"tlsSecretName,omitempty"`
-
-	// GatewayClassName defines gateway class name option to be passed to the gateway spec field. Default is ibm-licensing.
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="GatewayClassName",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
-	// +kubebuilder:default="ibm-licensing"
-	// +optional
-	GatewayClassName string `json:"gatewayClassName,omitempty"`
-
-	// HTTPS port for Gateway listener. Default is 443. Only used when TLSSecretName is set.
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="HTTPS Port",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
-	// +kubebuilder:default=443
-	// +kubebuilder:validation:Minimum=1
-	// +kubebuilder:validation:Maximum=65535
-	// +optional
-	HTTPSPort *int32 `json:"httpsPort,omitempty"`
-
-	// Switch for enabling Gateway API on Openshift. Default is false.
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Enable Gateway API on Openshift",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
-	// +kubebuilder:default=false
-	// +optional
-	EnableGatewayAPIOpenshift bool `json:"enableGatewayAPIOpenshift,omitempty"`
-}
-
 // IBMLicensingSpec defines the desired state of IBMLicensing
 // +kubebuilder:pruning:PreserveUnknownFields
 type IBMLicensingSpec struct {
@@ -110,15 +76,9 @@ type IBMLicensingSpec struct {
 	// +optional
 	License *License `json:"license"`
 
-	// Consider updating to enable chargeback feature
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// Chargeback configuration
 	// +optional
-	ChargebackEnabled *bool `json:"chargebackEnabled,omitempty"`
-
-	// Chargeback data retention period in days. Default value is 62 days.
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Retention Period in days",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
-	// +optional
-	ChargebackRetentionPeriod *int `json:"chargebackRetentionPeriod,omitempty"`
+	IBMLicensingChargebackSpec `json:",inline"`
 
 	// Should Gateway be created to expose IBM Licensing Service API? Default is true.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Gateway Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
@@ -159,6 +119,57 @@ type IBMLicensingSpec struct {
 	// Enabling collection of Instana metrics
 	// +optional
 	EnableInstanaMetricCollection bool `json:"enableInstanaMetricCollection,omitempty"`
+}
+
+type IBMLicensingChargebackSpec struct {
+	// Enabling chargeback feature
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Enabled",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	ChargebackEnabled *bool `json:"chargebackEnabled,omitempty"`
+
+	// Chargeback data retention period in days. Default value is 62 days.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Retention Period in days",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
+	// +optional
+	ChargebackRetentionPeriod *int `json:"chargebackRetentionPeriod,omitempty"`
+
+	// Label key used to read the group name when chargeback is enabled. Defaults to "ibm-chargeback-group".
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Chargeback Label Key",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	ChargebackLabelKey string `json:"chargebackLabelKey,omitempty"`
+}
+
+type IBMLicensingGatewayOptions struct {
+
+	// Additional annotations that should include f.e. gateway class if using not default gateway controller
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Annotations",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// TLS Options to enable secure connection. Default is ibm-license-service-cert-internal.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="TLS Secret Name",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +kubebuilder:default="ibm-license-service-cert-internal"
+	// +optional
+	TLSSecretName string `json:"tlsSecretName,omitempty"`
+
+	// GatewayClassName defines gateway class name option to be passed to the gateway spec field. Default is ibm-licensing.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="GatewayClassName",xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +kubebuilder:default="ibm-licensing"
+	// +optional
+	GatewayClassName string `json:"gatewayClassName,omitempty"`
+
+	// HTTPS port for Gateway listener. Default is 443. Only used when TLSSecretName is set.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="HTTPS Port",xDescriptors="urn:alm:descriptor:com.tectonic.ui:number"
+	// +kubebuilder:default=443
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
+	// +optional
+	HTTPSPort *int32 `json:"httpsPort,omitempty"`
+
+	// Switch for enabling Gateway API on Openshift. Default is false.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Enable Gateway API on Openshift",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +kubebuilder:default=false
+	// +optional
+	EnableGatewayAPIOpenshift bool `json:"enableGatewayAPIOpenshift,omitempty"`
 }
 
 type IBMLicensingSoftwareCentralSpec struct {
