@@ -95,6 +95,19 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			Name:  "ENABLE_CHARGEBACK",
 			Value: "true",
 		})
+
+		if spec.ChargebackRetentionPeriod != nil {
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name:  "CONTRIBUTIONS_DATA_RETENTION",
+				Value: strconv.Itoa(*spec.ChargebackRetentionPeriod),
+			})
+		}
+		if spec.ChargebackLabelKey != "" {
+			environmentVariables = append(environmentVariables, corev1.EnvVar{
+				Name:  "CHARGEBACK_LABEL_KEY",
+				Value: spec.ChargebackLabelKey,
+			})
+		}
 	}
 	htThreadsPerCores := spec.GetHyperThreadingThreadsPerCoreOrNil()
 	if htThreadsPerCores != nil {
@@ -158,12 +171,6 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 		environmentVariables = append(environmentVariables, corev1.EnvVar{
 			Name:  "EXCLUDE_NAMESPACE",
 			Value: excludeNamespace,
-		})
-	}
-	if spec.ChargebackRetentionPeriod != nil {
-		environmentVariables = append(environmentVariables, corev1.EnvVar{
-			Name:  "CONTRIBUTIONS_DATA_RETENTION",
-			Value: strconv.Itoa(*spec.ChargebackRetentionPeriod),
 		})
 	}
 	if !spec.IsURLBasedAuthEnabled() {

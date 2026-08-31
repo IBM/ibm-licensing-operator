@@ -364,6 +364,68 @@ func TestGetLicensingEnvironmentVariablesExcludeNamespaceSanitized(t *testing.T)
 		"ExcludeNamespace with whitespace and duplicates should be sanitized before being set as env var.")
 }
 
+// verifies that when ChargebackEnabled is not set, none of the chargeback environment variables are added.
+func TestGetLicensingEnvironmentVariablesChargebackDisabled_NilFlag(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.False(t, ContainsEnvVar(envVars, "ENABLE_CHARGEBACK"),
+		"ChargebackEnabled is nil, ENABLE_CHARGEBACK should not be added to Licensing pod.")
+	assert.False(t, ContainsEnvVar(envVars, "CONTRIBUTIONS_DATA_RETENTION"),
+		"ChargebackEnabled is nil, CONTRIBUTIONS_DATA_RETENTION should not be added to Licensing pod.")
+	assert.False(t, ContainsEnvVar(envVars, "CHARGEBACK_LABEL_KEY"),
+		"ChargebackEnabled is nil, CHARGEBACK_LABEL_KEY should not be added to Licensing pod.")
+}
+
+// verifies that when ChargebackEnabled=true, ENABLE_CHARGEBACK is added to the Licensing pod.
+func TestGetLicensingEnvironmentVariablesChargebackEnabled(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace:          "namespace",
+		Datasource:                 "datacollector",
+		IBMLicensingChargebackSpec: operatorv1alpha1.IBMLicensingChargebackSpec{ChargebackEnabled: ptr.To(true)},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "ENABLE_CHARGEBACK", Value: "true"},
+		"ChargebackEnabled=true, ENABLE_CHARGEBACK=true should be added to Licensing pod.")
+}
+
+// verifies that when ChargebackEnabled=true with a retention period, CONTRIBUTIONS_DATA_RETENTION is added.
+func TestGetLicensingEnvironmentVariablesChargebackRetentionPeriod(t *testing.T) {
+	days := 90
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		IBMLicensingChargebackSpec: operatorv1alpha1.IBMLicensingChargebackSpec{
+			ChargebackEnabled:         ptr.To(true),
+			ChargebackRetentionPeriod: &days,
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "CONTRIBUTIONS_DATA_RETENTION", Value: "90"},
+		"ChargebackRetentionPeriod=90, CONTRIBUTIONS_DATA_RETENTION=90 should be added to Licensing pod.")
+}
+
+// verifies that when ChargebackEnabled=true with a custom label key, CHARGEBACK_LABEL_KEY is added.
+func TestGetLicensingEnvironmentVariablesChargebackLabelKey(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+		IBMLicensingChargebackSpec: operatorv1alpha1.IBMLicensingChargebackSpec{
+			ChargebackEnabled:  ptr.To(true),
+			ChargebackLabelKey: "my-chargeback-group",
+		},
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.Contains(t, envVars, corev1.EnvVar{Name: "CHARGEBACK_LABEL_KEY", Value: "my-chargeback-group"},
+		"ChargebackLabelKey set, CHARGEBACK_LABEL_KEY should be added to Licensing pod.")
+}
+
 func Contains[T comparable](s []T, e T) bool {
 	for _, v := range s {
 		if v == e {
