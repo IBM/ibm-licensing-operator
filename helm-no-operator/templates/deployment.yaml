@@ -20,30 +20,28 @@ spec:
   template:
     metadata:
       annotations:
-        productID: 068a62892a1e4db39641342e592daa25
-        productMetric: FREE
-        productName: IBM Cloud Platform Common Services
+        {{- $ibmAnnotations := dict
+          "productID" "068a62892a1e4db39641342e592daa25"
+          "productMetric" "FREE"
+          "productName" "IBM Cloud Platform Common Services"
+        }}
+        {{- toYaml (merge .Values.ibmLicensing.operand.podAnnotations $ibmAnnotations) | nindent 8 }}
       labels:
-        app: ibm-licensing-service-instance
-        app.kubernetes.io/component: ibm-licensing-service-svc
-        app.kubernetes.io/instance: ibm-licensing-service
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: ibm-licensing-service-instance
-        component: ibm-licensing-service-svc
-        licensing_cr: instance
-        release: ibm-licensing-service
+        {{- $ibmLabels := dict
+          "app" "ibm-licensing-service-instance"
+          "app.kubernetes.io/component" "ibm-licensing-service-svc"
+          "app.kubernetes.io/instance" "ibm-licensing-service"
+          "app.kubernetes.io/managed-by" "Helm"
+          "app.kubernetes.io/name" "ibm-licensing-service-instance"
+          "component" "ibm-licensing-service-svc"
+          "licensing_cr" "instance"
+          "release" "ibm-licensing-service"
+        }}
+        {{- toYaml (merge .Values.ibmLicensing.operand.podLabels $ibmLabels) | nindent 8 }}
     spec:
+      {{- $ibmAffinity := dict "nodeAffinity" (dict "requiredDuringSchedulingIgnoredDuringExecution" (dict "nodeSelectorTerms" (list (dict "matchExpressions" (list (dict "key" "kubernetes.io/arch" "operator" "In" "values" (list "amd64" "ppc64le" "s390x"))))))) }}
       affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: kubernetes.io/arch
-                    operator: In
-                    values:
-                      - amd64
-                      - ppc64le
-                      - s390x
+        {{- toYaml (merge .Values.ibmLicensing.operand.affinity $ibmAffinity) | nindent 8 }}
       containers:
         - env:
             - name: NAMESPACE
@@ -206,6 +204,10 @@ spec:
       securityContext: {}
       serviceAccountName: {{ include "ibm-licensing.operandServiceAccount" . }}
       terminationGracePeriodSeconds: 60
+      {{- if .Values.ibmLicensing.operand.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.ibmLicensing.operand.nodeSelector | nindent 8 }}
+      {{- end }}
       tolerations:
         - effect: NoSchedule
           key: dedicated
