@@ -115,7 +115,7 @@ roleRef:
   name: ibm-licensing-operator-watch
 subjects:
 - kind: ServiceAccount
-  name: {{ $.Values.ibmLicensing.serviceAccount.name | default "ibm-licensing-operator" }}
+  name: {{ $.Values.ibmLicensing.operator.serviceAccount.name | default "ibm-licensing-operator" }}
   namespace: {{ $.Values.ibmLicensing.namespace }}
 {{- end }}
 {{- end }}

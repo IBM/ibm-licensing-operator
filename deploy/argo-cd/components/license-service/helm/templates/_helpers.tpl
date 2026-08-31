@@ -25,11 +25,12 @@ limitations under the License.
 {{- and ((.Values.ibmLicensing.spec).features).nssEnabled (or ((.Values.ibmLicensing.spec).features).nodeCpuCappingEnabled ((.Values.ibmLicensing.spec).features).customResourcesEnabled ((.Values.ibmLicensing.spec).features).kubeRBACAuthEnabled) -}}
 {{- end -}}
 
-{{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise. */}}
+{{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise.
+     When operand.serviceAccount.name is set it overrides both defaults. */}}
 {{- define "ibm-licensing.operandServiceAccount" -}}
 {{- if ((.Values.ibmLicensing.spec).features).nssEnabled -}}
-{{- .Values.ibmLicensing.serviceAccount.name | default "ibm-license-service-restricted" -}}
+{{- ((.Values.ibmLicensing.operand).serviceAccount).name | default "ibm-license-service-restricted" -}}
 {{- else -}}
-{{- .Values.ibmLicensing.serviceAccount.name | default "ibm-license-service" -}}
+{{- ((.Values.ibmLicensing.operand).serviceAccount).name | default "ibm-license-service" -}}
 {{- end -}}
 {{- end -}}

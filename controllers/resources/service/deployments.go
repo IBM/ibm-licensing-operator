@@ -32,6 +32,7 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 	selectorLabels := LabelsForSelector(instance)
 	podLabels := LabelsForLicensingPod(instance)
 
+	// Build image pull secrets list
 	var imagePullSecrets []corev1.LocalObjectReference
 	if instance.Spec.ImagePullSecrets != nil {
 		imagePullSecrets = []corev1.LocalObjectReference{}
@@ -40,7 +41,40 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 		}
 	}
 
-	serviceAccount := GetServiceAccountName(instance)
+	// Build affinity — start with IBM-required node affinity, then merge in any user-provided rules
+	ibmNodeAffinity := &corev1.Affinity{
+		NodeAffinity: &corev1.NodeAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+				NodeSelectorTerms: []corev1.NodeSelectorTerm{
+					{
+						MatchExpressions: []corev1.NodeSelectorRequirement{
+							{
+								Key:      "kubernetes.io/arch",
+								Operator: corev1.NodeSelectorOpIn,
+								Values:   []string{"amd64", "ppc64le", "s390x"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	affinity := ibmNodeAffinity
+	if userAffinity := instance.Spec.Operand.GetAffinity(); userAffinity != nil {
+		// Merge user affinity on top; IBM NodeAffinity block always wins
+		merged := userAffinity.DeepCopy()
+		merged.NodeAffinity = ibmNodeAffinity.NodeAffinity
+		affinity = merged
+	}
+
+	// Build pod annotations — IBM base annotations always win over user-provided ones
+	podAnnotations := resources.AnnotationsForPod(instance)
+	for k, v := range instance.Spec.Operand.GetPodAnnotations() {
+		if _, exists := podAnnotations[k]; !exists {
+			podAnnotations[k] = v
+		}
+	}
+
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        GetResourceName(instance),
@@ -56,32 +90,17 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels:      podLabels,
-					Annotations: resources.AnnotationsForPod(instance),
+					Annotations: podAnnotations,
 				},
 				Spec: corev1.PodSpec{
 					Volumes:                       getLicensingVolumes(instance.Spec),
 					InitContainers:                GetLicensingInitContainers(instance.Spec),
 					Containers:                    GetLicensingContainer(instance.Spec),
 					TerminationGracePeriodSeconds: &resources.Seconds60,
-					ServiceAccountName:            serviceAccount,
+					ServiceAccountName:            instance.Spec.Operand.GetServiceAccountName(instance.Spec.IsNamespaceScopeEnabled()),
 					ImagePullSecrets:              imagePullSecrets,
-					Affinity: &corev1.Affinity{
-						NodeAffinity: &corev1.NodeAffinity{
-							RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-								NodeSelectorTerms: []corev1.NodeSelectorTerm{
-									{
-										MatchExpressions: []corev1.NodeSelectorRequirement{
-											{
-												Key:      "kubernetes.io/arch",
-												Operator: corev1.NodeSelectorOpIn,
-												Values:   []string{"amd64", "ppc64le", "s390x"},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
+					Affinity:                      affinity,
+					NodeSelector:                  instance.Spec.Operand.GetNodeSelector(),
 					Tolerations: []corev1.Toleration{
 						{
 							Key:      "dedicated",

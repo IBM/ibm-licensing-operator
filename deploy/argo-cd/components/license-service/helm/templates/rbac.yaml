@@ -220,7 +220,7 @@ roleRef:
   name: ibm-license-service
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.ibmLicensing.serviceAccount.operandName | default "ibm-license-service" }}
+    name: {{ if not ((.Values.ibmLicensing.spec).features).nssEnabled }}{{ ((.Values.ibmLicensing.operand).serviceAccount).name | default "ibm-license-service" }}{{ else }}ibm-license-service{{ end }}
     namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -239,7 +239,7 @@ roleRef:
   name: ibm-license-service-restricted
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.ibmLicensing.serviceAccount.operandRestrictedName | default "ibm-license-service-restricted" }}
+    name: {{ if ((.Values.ibmLicensing.spec).features).nssEnabled }}{{ ((.Values.ibmLicensing.operand).serviceAccount).name | default "ibm-license-service-restricted" }}{{ else }}ibm-license-service-restricted{{ end }}
     namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -258,6 +258,6 @@ roleRef:
   name: ibm-licensing-operator
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.ibmLicensing.serviceAccount.name | default "ibm-licensing-operator" }}
+    name: {{ .Values.ibmLicensing.operator.serviceAccount.name | default "ibm-licensing-operator" }}
     namespace: {{ .Values.ibmLicensing.namespace }}
 {{- end }}

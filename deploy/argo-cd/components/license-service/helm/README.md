@@ -60,8 +60,15 @@ helm install ibm-licensing ./helm --namespace ibm-licensing
 | `ibmLicensing.spec.features.kubeRBACAuthEnabled` | Enable kube RBAC authentication | `true` |
 | `ibmLicensing.spec.features.operandRequestsEnabled` | Enable operand requests | `true` |
 | `ibmLicensing.spec.features.customResourcesEnabled` | Enable custom resources | `true` |
-| `ibmLicensing.podAnnotations` | Extra annotations added to the operator pod. Existing IBM product annotations cannot be overridden | `{}` |
-| `ibmLicensing.podLabels` | Extra labels added to the operator pod. Existing selector labels cannot be overridden | `{}` |
-| `ibmLicensing.affinity` | Additional affinity rules merged with the IBM default `kubernetes.io/arch` node affinity | `{}` |
-| `ibmLicensing.nodeSelector` | Node selector for the operator pod | `{}` |
-| `ibmLicensing.serviceAccount.name` | Override the operator service account name. Use with `createRBAC: false` for pre-created service accounts | `""` |
+| `ibmLicensing.operator.podAnnotations` | Extra annotations added to the operator pod. IBM product annotations cannot be overridden | `{}` |
+| `ibmLicensing.operator.podLabels` | Extra labels added to the operator pod. IBM selector labels cannot be overridden | `{}` |
+| `ibmLicensing.operator.affinity` | Additional affinity rules merged with the IBM default `kubernetes.io/arch` node affinity | `{}` |
+| `ibmLicensing.operator.nodeSelector` | Node selector for the operator pod | `{}` |
+| `ibmLicensing.operator.serviceAccount.name` | Override the operator service account name. Use with `createRBAC: false` for pre-created service accounts | `""` |
+| `ibmLicensing.operator.annotations` | *(Legacy)* Extra annotations for the operator pod — use `operator.podAnnotations` instead | `{}` |
+| `ibmLicensing.operator.labels` | *(Legacy)* Extra labels for the operator pod — use `operator.podLabels` instead | `{}` |
+| `ibmLicensing.operand.serviceAccount.name` | Override the active operand service account name (`ibm-license-service` or `ibm-license-service-restricted` depending on `nssEnabled`) | `""` |
+| `ibmLicensing.operand.podAnnotations` | Extra annotations added to the operand pod. IBM product annotations cannot be overridden | `{}` |
+| `ibmLicensing.operand.podLabels` | Extra labels added to the operand pod. IBM selector labels cannot be overridden | `{}` |
+| `ibmLicensing.operand.affinity` | Additional affinity rules merged with the IBM default `kubernetes.io/arch` node affinity for the operand pod | `{}` |
+| `ibmLicensing.operand.nodeSelector` | Node selector for the operand pod | `{}` |
