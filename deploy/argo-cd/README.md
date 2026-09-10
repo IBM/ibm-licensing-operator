@@ -227,6 +227,32 @@ As a result, the `imagePullSecrets` field of the operator and the operand includ
 
 </details>
 
+#### Excluding namespaces from license collection
+
+<details>
+<summary>Click to expand</summary>
+
+When IBM License Service (ILS) coexists with IBM Usage Metering Service (UMS) running in capacity-counting mode (`PROCESSOR_CAPACITY_ENABLED`), certain namespaces must be excluded from ILS monitoring to prevent double-counting. UMS takes over capacity reporting for those namespaces, while ILS continues to monitor the rest of the cluster.
+
+Set `ibmLicensing.excludeNamespace` in the `helm` source (namespace-scoped chart) of `applications/license-service.yaml` to a comma-separated list of namespaces that UMS is responsible for:
+
+```yaml
+sources:
+  - path: deploy/argo-cd/components/license-service/helm
+    helm:
+      valuesObject:
+        ibmLicensing:
+          excludeNamespace: "ibm-usage-metering,app-ns-1,app-ns-2"
+```
+
+The value is passed directly to `spec.features.excludeNamespace` in the `IBMLicensing` CR.
+
+> **Note:** `ibmLicensing.excludeNamespace` replaces the entire field value — it does not merge with existing entries. Include all namespaces that should be excluded in a single comma-separated string.
+
+> **Note:** In most deployments, the namespaces listed in `ibmLicensing.excludeNamespace` should align with the `watchNamespace` (or `ibmUsageMetering.watchNamespace`) configured for the UMS instance. Namespaces present in one list but not the other may result in double-counting or gaps in monitoring.
+
+</details>
+
 ## Installing
 
 ### Installing all components
