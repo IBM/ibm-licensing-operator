@@ -25,7 +25,7 @@ spec:
           "productMetric" "FREE"
           "productName" "IBM Cloud Platform Common Services"
         }}
-        {{- toYaml (merge .Values.ibmLicensing.operand.podAnnotations $ibmAnnotations) | nindent 8 }}
+        {{- toYaml (merge $ibmAnnotations .Values.ibmLicensing.operand.podAnnotations) | nindent 8 }}
       labels:
         {{- $ibmLabels := dict
           "app" "ibm-licensing-service-instance"
@@ -37,11 +37,11 @@ spec:
           "licensing_cr" "instance"
           "release" "ibm-licensing-service"
         }}
-        {{- toYaml (merge .Values.ibmLicensing.operand.podLabels $ibmLabels) | nindent 8 }}
+        {{- toYaml (merge $ibmLabels .Values.ibmLicensing.operand.podLabels) | nindent 8 }}
     spec:
       {{- $ibmAffinity := dict "nodeAffinity" (dict "requiredDuringSchedulingIgnoredDuringExecution" (dict "nodeSelectorTerms" (list (dict "matchExpressions" (list (dict "key" "kubernetes.io/arch" "operator" "In" "values" (list "amd64" "ppc64le" "s390x"))))))) }}
       affinity:
-        {{- toYaml (merge .Values.ibmLicensing.operand.affinity $ibmAffinity) | nindent 8 }}
+        {{- toYaml (merge $ibmAffinity .Values.ibmLicensing.operand.affinity) | nindent 8 }}
       containers:
         - env:
             - name: NAMESPACE

@@ -34,7 +34,7 @@ spec:
           "productName" "IBM Cloud Platform Common Services"
         }}
         {{- $legacyAnnotations := ((.Values.ibmLicensing.operator).annotations) | default dict }}
-        {{- toYaml (merge .Values.ibmLicensing.operator.podAnnotations $legacyAnnotations $ibmAnnotations) | nindent 8 }}
+        {{- toYaml (merge $ibmAnnotations $legacyAnnotations .Values.ibmLicensing.operator.podAnnotations) | nindent 8 }}
       labels:
         {{- $ibmLabels := dict
           "app.kubernetes.io/instance" "ibm-licensing-operator"
@@ -43,11 +43,11 @@ spec:
           "name" "ibm-licensing-operator"
         }}
         {{- $legacyLabels := ((.Values.ibmLicensing.operator).labels) | default dict }}
-        {{- toYaml (merge .Values.ibmLicensing.operator.podLabels $legacyLabels $ibmLabels) | nindent 8 }}
+        {{- toYaml (merge $ibmLabels $legacyLabels .Values.ibmLicensing.operator.podLabels) | nindent 8 }}
     spec:
       {{- $ibmAffinity := dict "nodeAffinity" (dict "requiredDuringSchedulingIgnoredDuringExecution" (dict "nodeSelectorTerms" (list (dict "matchExpressions" (list (dict "key" "kubernetes.io/arch" "operator" "In" "values" (list "amd64" "ppc64le" "s390x"))))))) }}
       affinity:
-        {{- toYaml (merge .Values.ibmLicensing.operator.affinity $ibmAffinity) | nindent 8 }}
+        {{- toYaml (merge $ibmAffinity .Values.ibmLicensing.operator.affinity) | nindent 8 }}
       containers:
         - command:
             - ibm-licensing-operator
