@@ -66,13 +66,6 @@ const (
 	SchemeHTTPS = "https"
 )
 
-func GetServiceAccountName(instance *operatorv1alpha1.IBMLicensing) string {
-	if instance.Spec.IsNamespaceScopeEnabled() {
-		return LicensingServiceAccountRestricted
-	}
-	return LicensingServiceAccount
-}
-
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
 }
@@ -137,6 +130,12 @@ func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]s
 	selectorLabels := LabelsForSelector(instance)
 	for key, value := range selectorLabels {
 		podLabels[key] = value
+	}
+	// Merge user-provided pod labels — IBM base labels always win
+	for k, v := range instance.Spec.Operand.GetPodLabels() {
+		if _, exists := podLabels[k]; !exists {
+			podLabels[k] = v
+		}
 	}
 	return podLabels
 }

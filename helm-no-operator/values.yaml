@@ -13,6 +13,13 @@ ibmLicensing:
   createRBAC: true
   createRBACInWatchedNamespaces: true
   createRBACReaderRole: true
+  operand:
+    serviceAccount:
+      name: ""
+    podAnnotations: {}
+    podLabels: {}
+    nodeSelector: {}
+    affinity: {}
   spec:
     datasource: datacollector
     httpsEnable: true
