@@ -26,6 +26,9 @@ import (
 	"github.com/IBM/ibm-licensing-operator/version"
 )
 
+// maxDNSLabelLength is the maximum number of characters allowed in a single DNS label per RFC 1123.
+const maxDNSLabelLength = 63
+
 const (
 	LicensingResourceBase                = "ibm-licensing-service"
 	LicensingComponentName               = "ibm-licensing-service-svc"
@@ -75,6 +78,32 @@ func GetServiceAccountName(instance *operatorv1alpha1.IBMLicensing) string {
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
+}
+
+// TruncateForDNSLabel truncates namespace so that routeName+"-"+namespace does not exceed maxDNSLabelLength (63).
+// If the combined label already fits, namespace is returned unchanged.
+// ILS-3012: OpenShift Route admission rejects spec.host when the first DNS label exceeds 63 characters.
+func TruncateForDNSLabel(routeName, namespace string) string {
+	separator := "-"
+	maxNamespaceLen := maxDNSLabelLength - len(routeName) - len(separator)
+	if maxNamespaceLen <= 0 {
+		// routeName alone already fills the label — truncate namespace to empty string
+		// (this should not happen in practice given ILS resource names)
+		return ""
+	}
+	if len(namespace) <= maxNamespaceLen {
+		return namespace
+	}
+	return namespace[:maxNamespaceLen]
+}
+
+// GetLicensingRouteHostname returns the explicit spec.host value for the ILS Route.
+// It ensures the first DNS label (routeName+"-"+namespace) does not exceed 63 characters by
+// truncating the namespace segment if necessary, then appends the cluster apps domain.
+// appsDomain must be the bare domain (e.g. "apps.example.com") without a leading dot.
+func GetLicensingRouteHostname(routeName, namespace, appsDomain string) string {
+	truncatedNamespace := TruncateForDNSLabel(routeName, namespace)
+	return routeName + "-" + truncatedNamespace + "." + appsDomain
 }
 
 func GetServiceURL(instance *operatorv1alpha1.IBMLicensing) string {
