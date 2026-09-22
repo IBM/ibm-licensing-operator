@@ -40,8 +40,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -55,6 +58,13 @@ import (
 
 type reconcileLSFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
 
+// name of the ConfigMap that UMS instances create
+// to publish their excludeNamespace value to the licensing operator
+const umsExcludeNamespaceConfigMapName = "ibm-licensing-external-config"
+
+// key in the UMS ConfigMap that holds the excludeNamespace value
+const umsExcludeNamespaceDataKey = "excludeNamespace"
+
 func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := res.UpdateCacheClusterExtensions(mgr.GetAPIReader(), r.Log); err != nil {
 		r.Log.Error(err, "Error during checking K8s API")
@@ -67,7 +77,14 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	watcher := ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.IBMLicensing{}).
 		Owns(&appsv1.Deployment{}).
-		Owns(&corev1.Service{})
+		Owns(&corev1.Service{}).
+		Watches(
+			&corev1.ConfigMap{},
+			handler.EnqueueRequestsFromMapFunc(r.enqueueAllIBMLicensing),
+			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
+				return obj.GetName() == umsExcludeNamespaceConfigMapName
+			})),
+		)
 
 	if res.IsGatewayAPI {
 		watcher = watcher.
@@ -81,6 +98,84 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return watcher.Complete(r)
+}
+
+// returns reconcile requests for all IBMLicensing instances
+// used as a Watch handler so that any change to a UMS exclude-namespace ConfigMap
+// triggers a reconcile of every IBMLicensing CR on the cluster
+func (r *IBMLicensingReconciler) enqueueAllIBMLicensing(_ context.Context, _ client.Object) []reconcile.Request {
+	ibmLicensingList := &operatorv1alpha1.IBMLicensingList{}
+	if err := r.Client.List(context.TODO(), ibmLicensingList); err != nil {
+		r.Log.Error(err, "Failed to list IBMLicensing instances for UMS ConfigMap reconcile trigger")
+		return nil
+	}
+	requests := make([]reconcile.Request, 0, len(ibmLicensingList.Items))
+	for _, item := range ibmLicensingList.Items {
+		requests = append(requests, reconcile.Request{
+			NamespacedName: types.NamespacedName{Name: item.Name, Namespace: item.Namespace},
+		})
+	}
+	return requests
+}
+
+// mergeExcludeNamespacesFromUmsConfigMaps collects excludeNamespace values from all UMS-created
+// ibm-licensing-external-config ConfigMaps and merges them into instance.Spec.Features.ExcludeNamespace,
+// prepending any value already set in the CR
+func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instance *operatorv1alpha1.IBMLicensing, reqLogger logr.Logger) error {
+	collected := []string{}
+
+	if instance.Spec.IsNamespaceScopeEnabled() {
+		// NSS mode — search only in watched namespaces
+		namespacesToSearch, err := res.GetWatchNamespaceAsList()
+		if err != nil || len(namespacesToSearch) == 0 {
+			reqLogger.Info("NSS enabled but no watch namespaces found, skipping UMS ConfigMap merge", "error", err)
+			return nil
+		}
+		for _, ns := range namespacesToSearch {
+			cm := &corev1.ConfigMap{}
+			err := r.Client.Get(context.TODO(), types.NamespacedName{Name: umsExcludeNamespaceConfigMapName, Namespace: ns}, cm)
+			if err != nil {
+				if apierrors.IsNotFound(err) {
+					continue
+				}
+				reqLogger.Error(err, "Failed to get UMS exclude-namespace ConfigMap", "namespace", ns)
+				continue
+			}
+			if val, ok := cm.Data[umsExcludeNamespaceDataKey]; ok {
+				collected = append(collected, val)
+			}
+		}
+	} else {
+		// cluster scope — list across all namespaces
+		cmList := &corev1.ConfigMapList{}
+		if err := r.Client.List(context.TODO(), cmList); err != nil {
+			return err
+		}
+		for _, cm := range cmList.Items {
+			if cm.Name == umsExcludeNamespaceConfigMapName {
+				if val, ok := cm.Data[umsExcludeNamespaceDataKey]; ok {
+					collected = append(collected, val)
+				}
+			}
+		}
+	}
+
+	if len(collected) == 0 {
+		return nil
+	}
+
+	// merge collected values with existing spec value
+	if instance.Spec.Features != nil && instance.Spec.Features.ExcludeNamespace != "" {
+		collected = append([]string{instance.Spec.Features.ExcludeNamespace}, collected...)
+	}
+
+	if instance.Spec.Features == nil {
+		instance.Spec.Features = &operatorv1alpha1.Features{}
+	}
+	instance.Spec.Features.ExcludeNamespace = strings.Join(collected, ",")
+
+	reqLogger.Info("Merged UMS exclude-namespace ConfigMaps into ExcludeNamespace", "value", instance.Spec.Features.ExcludeNamespace)
+	return nil
 }
 
 func (r *IBMLicensingReconciler) createDefaultInstanceAfterCheck() error {
@@ -154,6 +249,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get
+// +kubebuilder:rbac:groups="",resources=configmaps,resourceNames=ibm-licensing-external-config,verbs=get;list
 
 func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Request) (reconcile.Result, error) {
 
@@ -253,6 +349,10 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 	r.controllerStatus(instance)
 
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
+
+	if err = r.mergeExcludeNamespacesFromUmsConfigMaps(instance, reqLogger); err != nil {
+		reqLogger.Error(err, "Failed to read UMS exclude-namespace ConfigMaps, proceeding with existing excludeNamespace value")
+	}
 
 	var recResult reconcile.Result
 
