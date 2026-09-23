@@ -43,10 +43,14 @@ cp -r "./${SOURCE_DIR}" "./${TARGET_DIR}"
 
 # Set correct images (only if sed pattern is provided)
 if [ -n "${IMAGE_SED_PATTERN}" ]; then
-    # Use sed to override image tag with correct git branch name
-    tmp_file=$(mktemp)
-    sed "${IMAGE_SED_PATTERN}" "./${TARGET_DIR}/templates/deployment.yaml" > "${tmp_file}"
-    mv "${tmp_file}" "./${TARGET_DIR}/templates/deployment.yaml"
+    # Use sed to override image tag with correct git branch name.
+    # deployment.yaml is only present in namespace-scoped charts; skip for cluster-scoped charts.
+    DEPLOYMENT_YAML="./${TARGET_DIR}/templates/deployment.yaml"
+    if [ -f "${DEPLOYMENT_YAML}" ]; then
+        tmp_file=$(mktemp)
+        sed "${IMAGE_SED_PATTERN}" "${DEPLOYMENT_YAML}" > "${tmp_file}"
+        mv "${tmp_file}" "${DEPLOYMENT_YAML}"
+    fi
 
     # Update values.yaml to change image pull prefix
     "${YQ}" -i '.global.imagePullPrefix = "docker-na-public.artifactory.swg-devops.com"' "./${TARGET_DIR}/values.yaml"

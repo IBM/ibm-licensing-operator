@@ -39,3 +39,57 @@ func TestIsNodeCpuCappingEnabledExplicitFalse(t *testing.T) {
 	assert.False(t, spec.IsNodeCpuCappingEnabled(),
 		"NodeCpuCappingEnabled=false should return false.")
 }
+
+func TestGetSanitizedExcludeNamespaceNoFeatures(t *testing.T) {
+	spec := &IBMLicensingSpec{}
+	assert.Equal(t, "", spec.GetSanitizedExcludeNamespace(),
+		"No features block should return empty string.")
+}
+
+func TestGetSanitizedExcludeNamespaceEmptyString(t *testing.T) {
+	spec := &IBMLicensingSpec{Features: &Features{ExcludeNamespace: ""}}
+	assert.Equal(t, "", spec.GetSanitizedExcludeNamespace(),
+		"Empty ExcludeNamespace should return empty string.")
+}
+
+func TestGetSanitizedExcludeNamespaceSingleNamespace(t *testing.T) {
+	spec := &IBMLicensingSpec{Features: &Features{ExcludeNamespace: "namespace-a"}}
+	assert.Equal(t, "namespace-a", spec.GetSanitizedExcludeNamespace(),
+		"Single namespace should be returned as-is.")
+}
+
+func TestGetSanitizedExcludeNamespaceMultipleNamespaces(t *testing.T) {
+	spec := &IBMLicensingSpec{Features: &Features{ExcludeNamespace: "namespace-a,namespace-b,namespace-c"}}
+	assert.Equal(t, "namespace-a,namespace-b,namespace-c", spec.GetSanitizedExcludeNamespace(),
+		"Multiple distinct namespaces should all be returned.")
+}
+
+func TestGetSanitizedExcludeNamespaceTrimsWhitespace(t *testing.T) {
+	spec := &IBMLicensingSpec{Features: &Features{ExcludeNamespace: " namespace-a , namespace-b , namespace-c "}}
+	assert.Equal(t, "namespace-a,namespace-b,namespace-c", spec.GetSanitizedExcludeNamespace(),
+		"Whitespace around namespace names should be trimmed.")
+}
+
+func TestGetSanitizedExcludeNamespaceRemovesDuplicates(t *testing.T) {
+	spec := &IBMLicensingSpec{Features: &Features{ExcludeNamespace: "namespace-a,namespace-b,namespace-a"}}
+	assert.Equal(t, "namespace-a,namespace-b", spec.GetSanitizedExcludeNamespace(),
+		"Duplicate namespaces should be removed, preserving first-seen order.")
+}
+
+func TestGetSanitizedExcludeNamespaceRemovesEmptyEntries(t *testing.T) {
+	spec := &IBMLicensingSpec{Features: &Features{ExcludeNamespace: "namespace-a,,namespace-b,"}}
+	assert.Equal(t, "namespace-a,namespace-b", spec.GetSanitizedExcludeNamespace(),
+		"Empty entries from consecutive commas or trailing comma should be removed.")
+}
+
+func TestGetSanitizedExcludeNamespaceRegexPattern(t *testing.T) {
+	spec := &IBMLicensingSpec{Features: &Features{ExcludeNamespace: "products-[a-zA-Z]+,database-[0-9]+"}}
+	assert.Equal(t, "products-[a-zA-Z]+,database-[0-9]+", spec.GetSanitizedExcludeNamespace(),
+		"Regex patterns should be preserved as-is.")
+}
+
+func TestGetSanitizedExcludeNamespaceWhitespaceOnlyEntry(t *testing.T) {
+	spec := &IBMLicensingSpec{Features: &Features{ExcludeNamespace: "namespace-a,   ,namespace-b"}}
+	assert.Equal(t, "namespace-a,namespace-b", spec.GetSanitizedExcludeNamespace(),
+		"Whitespace-only entries should be treated as empty and dropped.")
+}

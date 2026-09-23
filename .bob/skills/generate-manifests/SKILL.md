@@ -82,7 +82,7 @@ controller-gen, kustomize, yq, and operator-sdk installed - see [[setup-tools]].
 ## Notes
 
 - **Always commit generated files** with the API change (CONTRIBUTING.md requires it).
-- `CSV_VERSION` (default `4.2.24`) drives the bundle version; overriding it changes CSV
+- `CSV_VERSION` (default `4.2.25`) drives the bundle version; overriding it changes CSV
   contents - don't bump it as a side effect of regeneration.
 - The `temp/` directory holds intermediate build files and is gitignored; don't commit it.
 - Version bumps use `common/scripts/next_csv.sh <current> <new> <old>`, not this skill.
