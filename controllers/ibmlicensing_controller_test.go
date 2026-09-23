@@ -24,9 +24,14 @@ import (
 	. "github.com/onsi/gomega"
 	routev1 "github.com/openshift/api/route/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 
@@ -941,6 +946,109 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					annotations["timestamp"] == "2026-03-24"
 			}, timeout, interval).Should(BeTrue())
 		})
+	})
+})
+
+var _ = Describe("mergeExcludeNamespacesFromUmsConfigMaps", func() {
+	newReconciler := func(cms ...*corev1.ConfigMap) *IBMLicensingReconciler {
+		s := runtime.NewScheme()
+		Expect(corev1.AddToScheme(s)).To(Succeed())
+		Expect(operatorv1alpha1.AddToScheme(s)).To(Succeed())
+		objs := make([]client.Object, 0, len(cms))
+		for _, cm := range cms {
+			objs = append(objs, cm)
+		}
+		fakeClient := fake.NewClientBuilder().WithScheme(s).WithObjects(objs...).Build()
+		return &IBMLicensingReconciler{Client: fakeClient, Log: ctrl.Log.WithName("test")}
+	}
+
+	umsConfigMap := func(ns, excludeNamespace string) *corev1.ConfigMap {
+		cm := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: umsExcludeNamespaceConfigMapName, Namespace: ns}}
+		if excludeNamespace != "" {
+			cm.Data = map[string]string{umsExcludeNamespaceDataKey: excludeNamespace}
+		}
+		return cm
+	}
+
+	It("should skip merge in NSS mode", func() {
+		nssEnabled := true
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{NamespaceScopeEnabled: &nssEnabled},
+		}}
+		Expect(newReconciler(umsConfigMap("ums-ns-1", "ums-namespace-1")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(BeEmpty())
+	})
+
+	It("should leave ExcludeNamespace empty when no ConfigMaps exist", func() {
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{},
+		}}
+		Expect(newReconciler().mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(BeEmpty())
+	})
+
+	It("should set ExcludeNamespace from a single ConfigMap", func() {
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{},
+		}}
+		Expect(newReconciler(umsConfigMap("ums-ns-1", "ums-namespace-1")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(Equal("ums-namespace-1"))
+	})
+
+	It("should merge values from multiple ConfigMaps", func() {
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{},
+		}}
+		Expect(newReconciler(umsConfigMap("ums-ns-1", "ums-namespace-1"), umsConfigMap("ums-ns-2", "ums-namespace-2")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(ContainSubstring("ums-namespace-1"))
+		Expect(instance.Spec.Features.ExcludeNamespace).To(ContainSubstring("ums-namespace-2"))
+	})
+
+	It("should not deduplicate — dedup happens downstream in GetSanitizedExcludeNamespace()", func() {
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{},
+		}}
+		Expect(newReconciler(umsConfigMap("ums-ns-1", "ums-namespace-1"), umsConfigMap("ums-ns-2", "ums-namespace-1")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(Equal("ums-namespace-1,ums-namespace-1"))
+	})
+
+	It("should prepend CR value and append UMS values", func() {
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{ExcludeNamespace: "static-ns"},
+		}}
+		Expect(newReconciler(umsConfigMap("ums-ns-1", "ums-namespace-1")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(Equal("static-ns,ums-namespace-1"))
+	})
+
+	It("should ignore ConfigMap with empty excludeNamespace value", func() {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{Name: umsExcludeNamespaceConfigMapName, Namespace: "ums-ns-1"},
+			Data:       map[string]string{umsExcludeNamespaceDataKey: ""},
+		}
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{},
+		}}
+		Expect(newReconciler(cm).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(BeEmpty())
+	})
+
+	It("should ignore ConfigMap without the excludeNamespace key", func() {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{Name: umsExcludeNamespaceConfigMapName, Namespace: "ums-ns-1"},
+			Data:       map[string]string{"someOtherKey": "some-value"},
+		}
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{},
+		}}
+		Expect(newReconciler(cm).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(BeEmpty())
+	})
+
+	It("should initialize nil Features and set ExcludeNamespace", func() {
+		instance := &operatorv1alpha1.IBMLicensing{} // Features is nil
+		Expect(newReconciler(umsConfigMap("ums-ns-1", "ums-namespace-1")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features).NotTo(BeNil())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(Equal("ums-namespace-1"))
 	})
 })
 
