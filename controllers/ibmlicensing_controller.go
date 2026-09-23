@@ -143,6 +143,7 @@ func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instanc
 	}
 
 	if len(collected) == 0 {
+		reqLogger.Info("No UMS exclude-namespace ConfigMaps found, skipping merge")
 		return nil
 	}
 
