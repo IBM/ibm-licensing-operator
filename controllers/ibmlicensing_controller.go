@@ -122,40 +122,22 @@ func (r *IBMLicensingReconciler) enqueueAllIBMLicensing(_ context.Context, _ cli
 // ibm-licensing-external-config ConfigMaps and merges them into instance.Spec.Features.ExcludeNamespace,
 // prepending any value already set in the CR
 func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instance *operatorv1alpha1.IBMLicensing, reqLogger logr.Logger) error {
-	collected := []string{}
-
+	// in NSS mode the operand already receives WATCH_NAMESPACE and is restricted to those namespaces
+	// EXCLUDE_NAMESPACE is not set for the operand in NSS mode, so there is nothing to merge
 	if instance.Spec.IsNamespaceScopeEnabled() {
-		// NSS mode — search only in watched namespaces
-		namespacesToSearch, err := res.GetWatchNamespaceAsList()
-		if err != nil || len(namespacesToSearch) == 0 {
-			reqLogger.Info("NSS enabled but no watch namespaces found, skipping UMS ConfigMap merge", "error", err)
-			return nil
-		}
-		for _, ns := range namespacesToSearch {
-			cm := &corev1.ConfigMap{}
-			err := r.Client.Get(context.TODO(), types.NamespacedName{Name: umsExcludeNamespaceConfigMapName, Namespace: ns}, cm)
-			if err != nil {
-				if apierrors.IsNotFound(err) {
-					continue
-				}
-				reqLogger.Error(err, "Failed to get UMS exclude-namespace ConfigMap", "namespace", ns)
-				continue
-			}
+		return nil
+	}
+
+	// cluster-scope mode — collect excludeNamespace values from all UMS ConfigMaps across all namespaces
+	collected := []string{}
+	cmList := &corev1.ConfigMapList{}
+	if err := r.Client.List(context.TODO(), cmList); err != nil {
+		return err
+	}
+	for _, cm := range cmList.Items {
+		if cm.Name == umsExcludeNamespaceConfigMapName {
 			if val, ok := cm.Data[umsExcludeNamespaceDataKey]; ok {
 				collected = append(collected, val)
-			}
-		}
-	} else {
-		// cluster scope — list across all namespaces
-		cmList := &corev1.ConfigMapList{}
-		if err := r.Client.List(context.TODO(), cmList); err != nil {
-			return err
-		}
-		for _, cm := range cmList.Items {
-			if cm.Name == umsExcludeNamespaceConfigMapName {
-				if val, ok := cm.Data[umsExcludeNamespaceDataKey]; ok {
-					collected = append(collected, val)
-				}
 			}
 		}
 	}
