@@ -36,7 +36,9 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metaErrors "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -907,14 +909,41 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 	return reconcile.Result{}, nil
 }
 
+// getClusterAppsDomain reads the OpenShift cluster Ingress config object to retrieve the
+// wildcard apps domain used for auto-generated Route hostnames (e.g. "apps.example.com").
+// It uses unstructured access so that configv1 does not need to be registered in the scheme.
+// Returns an empty string (and logs a warning) if the domain cannot be determined.
+func (r *IBMLicensingReconciler) getClusterAppsDomain() string {
+	ingressConfig := &unstructured.Unstructured{}
+	ingressConfig.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "config.openshift.io",
+		Version: "v1",
+		Kind:    "Ingress",
+	})
+	if err := r.Client.Get(context.TODO(), types.NamespacedName{Name: "cluster"}, ingressConfig); err != nil {
+		r.Log.Info("Could not read cluster Ingress config; spec.host will not be set explicitly on Route", "error", err.Error())
+		return ""
+	}
+	// Prefer appsDomain (customisable) over domain (infrastructure default)
+	if appsDomain, found, _ := unstructured.NestedString(ingressConfig.Object, "spec", "appsDomain"); found && appsDomain != "" {
+		return appsDomain
+	}
+	if domain, found, _ := unstructured.NestedString(ingressConfig.Object, "spec", "domain"); found && domain != "" {
+		return domain
+	}
+	r.Log.Info("Cluster Ingress config found but contains no domain; spec.host will not be set explicitly on Route")
+	return ""
+}
+
 func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	defaultRouteTLS := &routev1.TLSConfig{
 		Termination:                   routev1.TLSTerminationReencrypt,
 		InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
 	}
 
+	appsDomain := r.getClusterAppsDomain()
 	route := &routev1.Route{}
-	expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
+	expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
 
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
 		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.GetResourceName(instance)}
@@ -939,7 +968,8 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 
 func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
-		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
+		appsDomain := r.getClusterAppsDomain()
+		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
 		foundRoute := &routev1.Route{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
 		if err != nil || reconcileResult.Requeue {
