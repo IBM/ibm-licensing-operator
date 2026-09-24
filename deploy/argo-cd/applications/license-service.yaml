@@ -12,3 +12,10 @@ spec:
     - repoURL: "https://github.com/IBM/ibm-licensing-operator"
       targetRevision: "latest-4.x"
       path: deploy/argo-cd/components/license-service/helm-cluster-scoped
+      helm:
+        valuesObject: {}
+    - repoURL: "https://github.com/IBM/ibm-licensing-operator"
+      targetRevision: "latest-4.x"
+      path: deploy/argo-cd/components/license-service/helm
+      helm:
+        valuesObject: {}
