@@ -13,7 +13,7 @@ ibmLicensing:
   createRBAC: true
   createRBACInWatchedNamespaces: true
   spec:
-    version: 4.2.25
+    version: 4.2.26
     datasource: datacollector
     httpsEnable: true
     enableInstanaMetricCollection: false
@@ -23,4 +23,3 @@ ibmLicensing:
       kubeRBACAuthEnabled: true
       operandRequestsEnabled: true
       customResourcesEnabled: true
-
