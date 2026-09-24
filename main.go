@@ -35,7 +35,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -64,10 +63,6 @@ var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
 )
-
-// umsExcludeConfigMapName is the name of the ConfigMap that UMS instances create
-// to publish their excludeNamespace value to the licensing operator
-const umsExcludeConfigMapName = "ibm-licensing-external-config"
 
 func printVersion() {
 	setupLog.Info(fmt.Sprintf("Operator Version: %s", version.Version))
@@ -144,17 +139,15 @@ func main() {
 
 	licensingLabelSelector, _ := labels.Parse("release in (ibm-licensing-service)")
 
-	umsExcludeConfigMapFieldSelector := fields.SelectorFromSet(fields.Set{"metadata.name": umsExcludeConfigMapName})
-
 	byObject := map[client.Object]cache.ByObject{
 		&corev1.Secret{}:     {Label: licensingLabelSelector},
 		&appsv1.Deployment{}: {Label: licensingLabelSelector},
 		&corev1.Pod{}:        {Label: licensingLabelSelector},
-		// cache only ibm-licensing-external-config ConfigMaps across all namespaces
-		// so that Watches can pick up excludeNamespace values published by UMS instances
+		// configMaps cached cluster-wide — required for both operator-owned CMs and UMS exclude-namespace CMs.
+		// watch triggers are filtered by name predicate in SetupWithManager
 		&corev1.ConfigMap{}: {
 			Namespaces: map[string]cache.Config{
-				cache.AllNamespaces: {FieldSelector: umsExcludeConfigMapFieldSelector},
+				cache.AllNamespaces: {},
 			},
 		},
 	}
