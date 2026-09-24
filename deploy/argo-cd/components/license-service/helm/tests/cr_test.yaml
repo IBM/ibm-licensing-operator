@@ -1,0 +1,116 @@
+---
+
+suite: ILS CR operand customization tests
+
+templates:
+  - templates/cr.yaml
+
+release:
+  namespace: test-ns
+
+set:
+  ibmLicensing.namespace: test-ns
+
+tests:
+  - it: renders the CR with the correct identity and defaults
+    asserts:
+      - equal:
+          path: apiVersion
+          value: operator.ibm.com/v1alpha1
+      - equal:
+          path: kind
+          value: IBMLicensing
+      - equal:
+          path: metadata.name
+          value: instance
+
+  - it: does not add spec.operand when no operand values are set
+    asserts:
+      - notExists:
+          path: spec.operand
+
+  - it: sets spec.operand.serviceAccountName when operand serviceAccount name is provided
+    set:
+      ibmLicensing.operand.serviceAccount.name: my-operand-sa
+    asserts:
+      - equal:
+          path: spec.operand.serviceAccountName
+          value: my-operand-sa
+
+  - it: sets spec.operand.nodeSelector when provided
+    set:
+      ibmLicensing.operand.nodeSelector:
+        kubernetes.io/os: linux
+    asserts:
+      - equal:
+          path: spec.operand.nodeSelector["kubernetes.io/os"]
+          value: linux
+
+  - it: sets spec.operand.affinity when provided
+    set:
+      ibmLicensing.operand.affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: ibm-licensing-service-instance
+                topologyKey: kubernetes.io/hostname
+    asserts:
+      - exists:
+          path: spec.operand.affinity.podAntiAffinity
+
+  - it: sets spec.operand.podAnnotations when provided
+    set:
+      ibmLicensing.operand.podAnnotations:
+        custom.io/scan: enabled
+    asserts:
+      - equal:
+          path: spec.operand.podAnnotations["custom.io/scan"]
+          value: enabled
+
+  - it: sets spec.operand.podLabels when provided
+    set:
+      ibmLicensing.operand.podLabels:
+        team: licensing
+    asserts:
+      - equal:
+          path: spec.operand.podLabels.team
+          value: licensing
+
+  - it: sets all operand fields together when all are provided
+    set:
+      ibmLicensing.operand.serviceAccount.name: custom-sa
+      ibmLicensing.operand.nodeSelector:
+        zone: eu-west
+      ibmLicensing.operand.podAnnotations:
+        custom.io/env: prod
+      ibmLicensing.operand.podLabels:
+        team: licensing
+    asserts:
+      - equal:
+          path: spec.operand.serviceAccountName
+          value: custom-sa
+      - equal:
+          path: spec.operand.nodeSelector.zone
+          value: eu-west
+      - equal:
+          path: spec.operand.podAnnotations["custom.io/env"]
+          value: prod
+      - equal:
+          path: spec.operand.podLabels.team
+          value: licensing
+
+  - it: operand config does not override arbitrary user spec fields
+    set:
+      ibmLicensing.spec.datasource: datacollector
+      ibmLicensing.operand.nodeSelector:
+        zone: eu-west
+    asserts:
+      - equal:
+          path: spec.datasource
+          value: datacollector
+      - equal:
+          path: spec.operand.nodeSelector.zone
+          value: eu-west

@@ -30,7 +30,8 @@ GOIMPORTS_VERSION ?= v0.43.0
 SHELLCHECK_VERSION ?= v0.11.0
 YAMLLINT_VERSION ?= 1.37.1
 MDL_VERSION      ?= 0.15.0
-HELM_VERSION     ?= v4.1.4
+HELM_VERSION          ?= v4.1.4
+HELM_UNITTEST_VERSION ?= v0.7.2
 
 # Local bin directory for all project tools (gitignored)
 LOCALBIN := $(PWD)/bin
@@ -394,6 +395,17 @@ unit-test: prepare-unit-test
 	export IBM_LICENSING_IMAGE=${REGISTRY}/${IBM_LICENSING_IMAGE}:${CSV_VERSION}; \
 	go test -v ./controllers/... -coverprofile cover.out -timeout 30m
 
+.PHONY: test/helm
+test/helm: helm install-helm-unittest ## Run helm unit tests
+	@$(HELM) unittest deploy/argo-cd/components/license-service/helm
+	@$(HELM) unittest helm-no-operator
+
+.PHONY: install-helm-unittest
+install-helm-unittest: helm ## Install helm-unittest plugin if not present
+	@$(HELM) plugin list | grep -q "unittest" && echo "helm-unittest already installed" || \
+		( echo "Installing helm-unittest $(HELM_UNITTEST_VERSION)..." && \
+		  $(HELM) plugin install https://github.com/helm-unittest/helm-unittest --version $(HELM_UNITTEST_VERSION) --verify=false )
+
 # Build manager binary
 manager: generate
 	go build -o bin/$(IMAGE_NAME) main.go
@@ -736,7 +748,7 @@ else
 PODMAN=podman
 endif
 
-.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard print-published-images
+.PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard print-published-images test/helm install-helm-unittest
 
 .PHONY: generate-yaml-argo-cd
 generate-yaml-argo-cd: kustomize yq
