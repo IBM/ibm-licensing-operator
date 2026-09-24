@@ -995,13 +995,13 @@ var _ = Describe("mergeExcludeNamespacesFromUmsConfigMaps", func() {
 		Expect(instance.Spec.Features.ExcludeNamespace).To(Equal("ums-namespace-1"))
 	})
 
-	It("should merge values from multiple ConfigMaps", func() {
+	It("should merge values from multiple ConfigMaps in sorted order", func() {
 		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
 			Features: &operatorv1alpha1.Features{},
 		}}
 		Expect(newReconciler(umsConfigMap("ums-ns-1", "ums-namespace-1"), umsConfigMap("ums-ns-2", "ums-namespace-2")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
-		Expect(instance.Spec.Features.ExcludeNamespace).To(ContainSubstring("ums-namespace-1"))
-		Expect(instance.Spec.Features.ExcludeNamespace).To(ContainSubstring("ums-namespace-2"))
+		// UMS values are sorted alphabetically — result must be deterministic regardless of List() order
+		Expect(instance.Spec.Features.ExcludeNamespace).To(Equal("ums-namespace-1,ums-namespace-2"))
 	})
 
 	It("should not deduplicate — dedup happens downstream in GetSanitizedExcludeNamespace()", func() {
@@ -1018,6 +1018,36 @@ var _ = Describe("mergeExcludeNamespacesFromUmsConfigMaps", func() {
 		}}
 		Expect(newReconciler(umsConfigMap("ums-ns-1", "ums-namespace-1")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
 		Expect(instance.Spec.Features.ExcludeNamespace).To(Equal("static-ns,ums-namespace-1"))
+	})
+
+	It("should sort multi-value UMS entries within a single ConfigMap", func() {
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{},
+		}}
+		// CM value itself is comma-separated — each entry must be split, sorted individually
+		Expect(newReconciler(umsConfigMap("ums-ns-1", "ns-b,ns-a,ns-c")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(Equal("ns-a,ns-b,ns-c"))
+	})
+
+	It("should trim whitespace from namespace entries", func() {
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{},
+		}}
+		// spaces around commas must be stripped before sorting and joining
+		Expect(newReconciler(umsConfigMap("ums-ns-1", "ns-b, ns-a , ns-c")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(Equal("ns-a,ns-b,ns-c"))
+	})
+
+	It("should ignore ConfigMap with a different name", func() {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{Name: "some-other-configmap", Namespace: "ums-ns-1"},
+			Data:       map[string]string{umsExcludeNamespaceDataKey: "ums-namespace-1"},
+		}
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{},
+		}}
+		Expect(newReconciler(cm).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(BeEmpty())
 	})
 
 	It("should ignore ConfigMap with empty excludeNamespace value", func() {
