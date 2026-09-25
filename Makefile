@@ -400,6 +400,9 @@ test/helm: helm install-helm-unittest ## Run helm unit tests
 	@$(HELM) unittest deploy/argo-cd/components/license-service/helm
 	@$(HELM) unittest helm-no-operator
 
+.PHONY: test/all
+test/all: unit-test test/helm ## Run all tests (unit + helm)
+
 .PHONY: install-helm-unittest
 install-helm-unittest: helm ## Install helm-unittest plugin if not present
 	@$(HELM) plugin list | grep -q "unittest" && echo "helm-unittest already installed" || \

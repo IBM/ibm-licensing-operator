@@ -102,7 +102,7 @@ tests:
           path: spec.operand.podLabels.team
           value: licensing
 
-  - it: operand config does not override arbitrary user spec fields
+  - it: does not allow operand config to shadow arbitrary user spec fields
     set:
       ibmLicensing.spec.datasource: datacollector
       ibmLicensing.operand.nodeSelector:
