@@ -316,3 +316,47 @@ func (spec *IBMLicensingSpec) IsSoftwareCentralEnabled() bool {
 	return spec.SoftwareCentral != nil &&
 		spec.SoftwareCentral.Enable
 }
+
+// GetServiceAccountName returns the service account name to use for the operand deployment.
+// Falls back to the nss-aware default when ServiceAccountName is not set.
+func (c *OperandPodConfig) GetServiceAccountName(nssEnabled bool) string {
+	if c != nil && c.ServiceAccountName != "" {
+		return c.ServiceAccountName
+	}
+	if nssEnabled {
+		return "ibm-license-service-restricted"
+	}
+	return "ibm-license-service"
+}
+
+// GetNodeSelector returns the node selector, or nil when OperandPodConfig is unset.
+func (c *OperandPodConfig) GetNodeSelector() map[string]string {
+	if c == nil {
+		return nil
+	}
+	return c.NodeSelector
+}
+
+// GetAffinity returns the affinity rules, or nil when OperandPodConfig is unset.
+func (c *OperandPodConfig) GetAffinity() *corev1.Affinity {
+	if c == nil {
+		return nil
+	}
+	return c.Affinity
+}
+
+// GetPodLabels returns the additional pod labels, or nil when OperandPodConfig is unset.
+func (c *OperandPodConfig) GetPodLabels() map[string]string {
+	if c == nil {
+		return nil
+	}
+	return c.PodLabels
+}
+
+// GetPodAnnotations returns the additional pod annotations, or nil when OperandPodConfig is unset.
+func (c *OperandPodConfig) GetPodAnnotations() map[string]string {
+	if c == nil {
+		return nil
+	}
+	return c.PodAnnotations
+}

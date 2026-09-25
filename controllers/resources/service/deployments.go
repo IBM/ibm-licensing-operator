@@ -41,39 +41,8 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 		}
 	}
 
-	// Build affinity — start with IBM-required node affinity, then merge in any user-provided rules
-	ibmNodeAffinity := &corev1.Affinity{
-		NodeAffinity: &corev1.NodeAffinity{
-			RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-				NodeSelectorTerms: []corev1.NodeSelectorTerm{
-					{
-						MatchExpressions: []corev1.NodeSelectorRequirement{
-							{
-								Key:      "kubernetes.io/arch",
-								Operator: corev1.NodeSelectorOpIn,
-								Values:   []string{"amd64", "ppc64le", "s390x"},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-	affinity := ibmNodeAffinity
-	if userAffinity := instance.Spec.Operand.GetAffinity(); userAffinity != nil {
-		// Merge user affinity on top; IBM NodeAffinity block always wins
-		merged := userAffinity.DeepCopy()
-		merged.NodeAffinity = ibmNodeAffinity.NodeAffinity
-		affinity = merged
-	}
-
-	// Build pod annotations — IBM base annotations always win over user-provided ones
-	podAnnotations := resources.AnnotationsForPod(instance)
-	for k, v := range instance.Spec.Operand.GetPodAnnotations() {
-		if _, exists := podAnnotations[k]; !exists {
-			podAnnotations[k] = v
-		}
-	}
+	affinity := AffinityForLicensingPod(instance)
+	podAnnotations := AnnotationsForLicensingPod(instance)
 
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{

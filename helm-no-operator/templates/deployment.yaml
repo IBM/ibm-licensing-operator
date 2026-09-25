@@ -39,7 +39,23 @@ spec:
         }}
         {{- toYaml (merge $ibmLabels .Values.ibmLicensing.operand.podLabels) | nindent 8 }}
     spec:
-      {{- $ibmAffinity := dict "nodeAffinity" (dict "requiredDuringSchedulingIgnoredDuringExecution" (dict "nodeSelectorTerms" (list (dict "matchExpressions" (list (dict "key" "kubernetes.io/arch" "operator" "In" "values" (list "amd64" "ppc64le" "s390x"))))))) }}
+      {{- $ibmAffinity := dict
+        "nodeAffinity" (dict
+          "requiredDuringSchedulingIgnoredDuringExecution" (dict
+            "nodeSelectorTerms" (list
+              (dict
+                "matchExpressions" (list
+                  (dict
+                    "key" "kubernetes.io/arch"
+                    "operator" "In"
+                    "values" (list "amd64" "ppc64le" "s390x")
+                  )
+                )
+              )
+            )
+          )
+        )
+      }}
       affinity:
         {{- toYaml (merge $ibmAffinity .Values.ibmLicensing.operand.affinity) | nindent 8 }}
       containers:
