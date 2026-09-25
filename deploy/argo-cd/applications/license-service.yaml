@@ -19,3 +19,15 @@ spec:
       path: deploy/argo-cd/components/license-service/helm
       helm:
         valuesObject: {}
+  ignoreDifferences:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: ibmlicensingdefinitions.operator.ibm.com
+      managedFieldsManagers:
+        - helm
+      jsonPointers:
+        - /metadata/labels/component-id
+        - /metadata/annotations/argocd.argoproj.io~1sync-wave
+        - /metadata/labels/app.kubernetes.io/managed-by
+        - /metadata/annotations/meta.helm.sh/release-namespace
+        - /metadata/annotations/meta.helm.sh/release-name
