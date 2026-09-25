@@ -26,4 +26,15 @@ spec:
     {{- $_ := set $imagePullData "features" (mergeOverwrite (default dict ((.Values.ibmLicensing.spec).features)) (dict "excludeNamespace" .Values.ibmLicensing.excludeNamespace)) -}}
   {{- end -}}
 
+  {{- /* Inject operand identity and scheduling from ibmLicensing.operand.* into spec.operand */ -}}
+  {{- $operandConfig := dict -}}
+  {{- with ((.Values.ibmLicensing.operand).serviceAccount).name -}}{{- $_ := set $operandConfig "serviceAccountName" . -}}{{- end -}}
+  {{- with .Values.ibmLicensing.operand.nodeSelector -}}{{- $_ := set $operandConfig "nodeSelector" . -}}{{- end -}}
+  {{- with .Values.ibmLicensing.operand.affinity -}}{{- $_ := set $operandConfig "affinity" . -}}{{- end -}}
+  {{- with .Values.ibmLicensing.operand.podAnnotations -}}{{- $_ := set $operandConfig "podAnnotations" . -}}{{- end -}}
+  {{- with .Values.ibmLicensing.operand.podLabels -}}{{- $_ := set $operandConfig "podLabels" . -}}{{- end -}}
+  {{- if $operandConfig -}}
+    {{- $_ := set $imagePullData "operand" $operandConfig -}}
+  {{- end -}}
+
   {{- toYaml (mergeOverwrite .Values.ibmLicensing.spec $imagePullData) | nindent 2 }}
