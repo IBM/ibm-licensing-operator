@@ -10,12 +10,22 @@ spec:
     server: https://kubernetes.default.svc
   sources:
     - repoURL: "https://github.com/IBM/ibm-licensing-operator"
-      targetRevision: "latest-4.x"
+      targetRevision: "test_argo_annotations"
       path: deploy/argo-cd/components/license-service/helm-cluster-scoped
       helm:
         valuesObject: {}
     - repoURL: "https://github.com/IBM/ibm-licensing-operator"
-      targetRevision: "latest-4.x"
+      targetRevision: "test_argo_annotations"
       path: deploy/argo-cd/components/license-service/helm
       helm:
         valuesObject: {}
+  ignoreDifferences:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      name: ibmlicensingdefinitions.operator.ibm.com
+      jsonPointers:
+        - /metadata/labels/component-id
+        - /metadata/annotations/argocd.argoproj.io~1sync-wave
+        - /metadata/labels/app.kubernetes.io/managed-by
+        - /metadata/annotations/meta.helm.sh/release-namespace
+        - /metadata/annotations/meta.helm.sh/release-name
