@@ -25,7 +25,9 @@ spec:
       name: ibmlicensingdefinitions.operator.ibm.com
       jsonPointers:
         - /metadata/labels/component-id
+        - /metadata/labels/app.kubernetes.io~1instance
+        - /metadata/labels/app.kubernetes.io~1name
         - /metadata/annotations/argocd.argoproj.io~1sync-wave
-        - /metadata/labels/app.kubernetes.io/managed-by
-        - /metadata/annotations/meta.helm.sh/release-namespace
-        - /metadata/annotations/meta.helm.sh/release-name
+        - /metadata/labels/app.kubernetes.io~1managed-by
+        - /metadata/annotations/meta.helm.sh~1release-namespace
+        - /metadata/annotations/meta.helm.sh~1release-name
