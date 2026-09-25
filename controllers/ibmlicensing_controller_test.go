@@ -958,7 +958,13 @@ var _ = Describe("mergeExcludeNamespacesFromUmsConfigMaps", func() {
 		for _, cm := range cms {
 			objs = append(objs, cm)
 		}
-		fakeClient := fake.NewClientBuilder().WithScheme(s).WithObjects(objs...).Build()
+		fakeClient := fake.NewClientBuilder().
+			WithScheme(s).
+			WithObjects(objs...).
+			WithIndex(&corev1.ConfigMap{}, "metadata.name", func(obj client.Object) []string {
+				return []string{obj.GetName()}
+			}).
+			Build()
 		return &IBMLicensingReconciler{Client: fakeClient, Log: ctrl.Log.WithName("test")}
 	}
 
