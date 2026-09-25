@@ -466,6 +466,15 @@ spec:
         - rules:
             - apiGroups:
                 - ""
+              resourceNames:
+                - ibm-licensing-external-config
+              resources:
+                - configmaps
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - ""
               resources:
                 - events
               verbs:

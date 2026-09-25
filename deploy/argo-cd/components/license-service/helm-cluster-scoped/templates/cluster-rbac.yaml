@@ -205,6 +205,15 @@ rules:
       - servicecas
     verbs:
       - list
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    resourceNames:
+      - ibm-licensing-external-config
+    verbs:
+      - get
+      - list
 {{- if not ((.Values.ibmLicensing.spec).features).nssEnabled }}
 ---
 # Binds the unrestricted operand ClusterRole to the ibm-license-service SA. Gated in lockstep with that ClusterRole so the binding never dangles.
