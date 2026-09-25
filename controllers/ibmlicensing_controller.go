@@ -1629,7 +1629,7 @@ func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instanc
 
 	// cluster-scope mode — collect excludeNamespace values from all UMS ConfigMaps across all namespaces
 	cmList := &corev1.ConfigMapList{}
-	if err := r.Client.List(context.TODO(), cmList); err != nil {
+	if err := r.Client.List(context.TODO(), cmList, client.MatchingFields{"metadata.name": UmsExcludeNamespaceConfigMapName}); err != nil {
 		return err
 	}
 
