@@ -24,15 +24,15 @@ import (
 	. "github.com/onsi/gomega"
 	routev1 "github.com/openshift/api/route/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	v1 "k8s.io/api/core/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	rhmp "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
@@ -963,7 +963,7 @@ var _ = Describe("mergeExcludeNamespacesFromUmsConfigMaps", func() {
 	}
 
 	umsConfigMap := func(ns, excludeNamespace string) *corev1.ConfigMap {
-		cm := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: umsExcludeNamespaceConfigMapName, Namespace: ns}}
+		cm := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: UmsExcludeNamespaceConfigMapName, Namespace: ns}}
 		if excludeNamespace != "" {
 			cm.Data = map[string]string{umsExcludeNamespaceDataKey: excludeNamespace}
 		}
@@ -1052,7 +1052,7 @@ var _ = Describe("mergeExcludeNamespacesFromUmsConfigMaps", func() {
 
 	It("should ignore ConfigMap with empty excludeNamespace value", func() {
 		cm := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{Name: umsExcludeNamespaceConfigMapName, Namespace: "ums-ns-1"},
+			ObjectMeta: metav1.ObjectMeta{Name: UmsExcludeNamespaceConfigMapName, Namespace: "ums-ns-1"},
 			Data:       map[string]string{umsExcludeNamespaceDataKey: ""},
 		}
 		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
@@ -1064,7 +1064,7 @@ var _ = Describe("mergeExcludeNamespacesFromUmsConfigMaps", func() {
 
 	It("should ignore ConfigMap without the excludeNamespace key", func() {
 		cm := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{Name: umsExcludeNamespaceConfigMapName, Namespace: "ums-ns-1"},
+			ObjectMeta: metav1.ObjectMeta{Name: UmsExcludeNamespaceConfigMapName, Namespace: "ums-ns-1"},
 			Data:       map[string]string{"someOtherKey": "some-value"},
 		}
 		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{

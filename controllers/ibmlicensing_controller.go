@@ -59,9 +59,9 @@ import (
 type reconcileLSFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
 
 const (
-	// name of the ConfigMap that UMS instances create
+	// UmsExcludeNamespaceConfigMapName is the name of the ConfigMap that UMS instances create
 	// to publish their excludeNamespace value to the licensing operator
-	umsExcludeNamespaceConfigMapName = "ibm-licensing-external-config"
+	UmsExcludeNamespaceConfigMapName = "ibm-licensing-external-config"
 
 	// key in the UMS ConfigMap that holds the excludeNamespace value
 	umsExcludeNamespaceDataKey = "excludeNamespace"
@@ -84,7 +84,7 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			&corev1.ConfigMap{},
 			handler.EnqueueRequestsFromMapFunc(r.enqueueAllIBMLicensing),
 			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
-				return obj.GetName() == umsExcludeNamespaceConfigMapName
+				return obj.GetName() == UmsExcludeNamespaceConfigMapName
 			})),
 		)
 
@@ -1636,7 +1636,7 @@ func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instanc
 	// flatten: each CM value may itself be a comma-separated list; split and trim all entries
 	var umsNamespaces []string
 	for _, cm := range cmList.Items {
-		if cm.Name == umsExcludeNamespaceConfigMapName {
+		if cm.Name == UmsExcludeNamespaceConfigMapName {
 			if val, ok := cm.Data[umsExcludeNamespaceDataKey]; ok && val != "" {
 				for _, ns := range strings.Split(val, ",") {
 					if trimmed := strings.TrimSpace(ns); trimmed != "" {

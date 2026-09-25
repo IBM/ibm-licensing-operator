@@ -35,6 +35,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -143,11 +144,14 @@ func main() {
 		&corev1.Secret{}:     {Label: licensingLabelSelector},
 		&appsv1.Deployment{}: {Label: licensingLabelSelector},
 		&corev1.Pod{}:        {Label: licensingLabelSelector},
-		// configMaps cached cluster-wide — required for both operator-owned CMs and UMS exclude-namespace CMs.
-		// watch triggers are filtered by name predicate in SetupWithManager
 		&corev1.ConfigMap{}: {
 			Namespaces: map[string]cache.Config{
-				cache.AllNamespaces: {},
+				// operator namespace — cache all ConfigMaps
+				operatorNamespace: {},
+				// all other namespaces — only cache UMS exclude-namespace ConfigMaps by name
+				cache.AllNamespaces: {
+					FieldSelector: fields.OneTermEqualSelector("metadata.name", controllers.UmsExcludeNamespaceConfigMapName),
+				},
 			},
 		},
 	}
