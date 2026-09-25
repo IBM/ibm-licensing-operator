@@ -403,12 +403,6 @@ test/helm: helm install-helm-unittest ## Run helm unit tests
 .PHONY: test/all
 test/all: unit-test test/helm ## Run all tests (unit + helm)
 
-.PHONY: install-helm-unittest
-install-helm-unittest: helm ## Install helm-unittest plugin if not present
-	@$(HELM) plugin list | grep -q "unittest" && echo "helm-unittest already installed" || \
-		( echo "Installing helm-unittest $(HELM_UNITTEST_VERSION)..." && \
-		  $(HELM) plugin install https://github.com/helm-unittest/helm-unittest --version $(HELM_UNITTEST_VERSION) --verify=false )
-
 # Build manager binary
 manager: generate
 	go build -o bin/$(IMAGE_NAME) main.go
@@ -744,6 +738,12 @@ $(HELM): $(LOCALBIN)
 	@test -x $(HELM) && [ "$$($(HELM) version --template='{{.Version}}')" = "$(HELM_VERSION)" ] && echo "helm $(HELM_VERSION) already installed" || \
 		( echo "Installing helm $(HELM_VERSION)..." && \
 		  bash common/scripts/install-helm.sh $(LOCALBIN) $(HELM_VERSION) $(TARGET_OS) $(LOCAL_ARCH) )
+
+.PHONY: install-helm-unittest
+install-helm-unittest: helm ## Install helm-unittest plugin if not present
+	@$(HELM) plugin list | grep -q "unittest" && echo "helm-unittest already installed" || \
+		( echo "Installing helm-unittest $(HELM_UNITTEST_VERSION)..." && \
+		  $(HELM) plugin install https://github.com/helm-unittest/helm-unittest --version $(HELM_UNITTEST_VERSION) --verify=false )
 
 ifeq (, $(shell which podman))
 PODMAN=docker
