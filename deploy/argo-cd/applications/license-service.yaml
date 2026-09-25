@@ -28,6 +28,6 @@ spec:
       jsonPointers:
         - /metadata/labels/component-id
         - /metadata/annotations/argocd.argoproj.io~1sync-wave
-        - /metadata/labels/app.kubernetes.io/managed-by
-        - /metadata/annotations/meta.helm.sh/release-namespace
-        - /metadata/annotations/meta.helm.sh/release-name
+        - /metadata/labels/app.kubernetes.io~1managed-by
+        - /metadata/annotations/meta.helm.sh~1release-namespace
+        - /metadata/annotations/meta.helm.sh~1release-name
