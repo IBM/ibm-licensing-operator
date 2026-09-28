@@ -41,13 +41,10 @@ const (
 )
 
 // GetLicensingRoute builds the OpenShift Route resource for IBM License Service.
-//
-// appsDomain is the cluster wildcard apps domain (e.g. "apps.example.com").
-// When non-empty, spec.host is set explicitly with the namespace segment truncated if necessary
-// to keep the first DNS label within the 63-character RFC 1123 limit (ILS-3012).
-// When empty (e.g. apps domain not yet discoverable), spec.host is left unset and OpenShift
-// will auto-generate it — which may fail on clusters with long namespace names.
-func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig, appsDomain string) *routev1.Route {
+// The Route name is computed by GetLicensingRouteName to ensure that OpenShift's auto-generated
+// spec.host (<routeName>-<namespace>.<apps-domain>) stays within the 63-character RFC 1123 DNS label limit
+// without requiring cluster-scoped Ingress permissions (ILS-3012).
+func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) *routev1.Route {
 	var tls *routev1.TLSConfig
 
 	if instance.Spec.RouteOptions != nil {
@@ -64,15 +61,10 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS 
 		}
 	}
 
-	routeName := GetResourceName(instance)
+	serviceName := GetResourceName(instance)
+	instanceName := instance.GetName()
 	namespace := instance.Spec.InstanceNamespace
-
-	// Explicitly set spec.host when the apps domain is known, ensuring the DNS label
-	// does not exceed 63 characters by truncating the namespace segment if needed.
-	var specHost string
-	if appsDomain != "" {
-		specHost = GetLicensingRouteHostname(routeName, namespace, appsDomain)
-	}
+	routeName := GetLicensingRouteName(instanceName, namespace)
 
 	return &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
@@ -80,10 +72,9 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS 
 			Namespace: namespace,
 		},
 		Spec: routev1.RouteSpec{
-			Host: specHost,
 			To: routev1.RouteTargetReference{
 				Kind: kindService,
-				Name: routeName,
+				Name: serviceName,
 			},
 			Port: &routev1.RoutePort{
 				TargetPort: licensingTargetPortName,
