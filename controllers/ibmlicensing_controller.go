@@ -191,7 +191,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get
-// +kubebuilder:rbac:groups="",resources=configmaps,resourceNames=ibm-licensing-external-config,verbs=get;list
+// +kubebuilder:rbac:groups="",resources=configmaps,resourceNames=ibm-licensing-external-config,verbs=get;list;watch
 
 func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Request) (reconcile.Result, error) {
 
