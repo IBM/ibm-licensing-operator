@@ -856,6 +856,11 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 	var rolloutPods bool
 
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
+		if len(instance.Spec.InstanceNamespace) > service.MaxNamespaceLengthForRouteProbe {
+			r.Log.Info("Skipping external certificate reconciliation: namespace length exceeds maximum supported for Route creation",
+				"namespace", instance.Spec.InstanceNamespace, "maxLength", service.MaxNamespaceLengthForRouteProbe)
+			return reconcile.Result{}, nil
+		}
 		// for backward compatibility, we treat the "ocp" HTTPSCertsSource same as "self-signed"
 		if instance.Spec.HTTPSCertsSource == "custom" {
 			r.Log.Info("Skipping external certificate reconciliation - custom certificate set")
@@ -899,6 +904,11 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 
 func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
+		if len(instance.Spec.InstanceNamespace) > service.MaxNamespaceLengthForRouteProbe {
+			r.Log.Info("Skipping route reconciliation with certificates: namespace length exceeds maximum supported for Route creation",
+				"namespace", instance.Spec.InstanceNamespace, "maxLength", service.MaxNamespaceLengthForRouteProbe)
+			return reconcile.Result{}, nil
+		}
 		r.Log.Info("Reconciling route with certificate")
 		externalCertSecret := corev1.Secret{}
 		var externalCertName string
@@ -951,7 +961,8 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 
 // discoverClusterAppsDomain discovers the cluster wildcard apps domain without needing cluster-scoped
 // Ingress permissions (Option 3). It first checks existing Routes in the namespace. If none have a host,
-// it creates a short temporary probe Route (ils-probe), reads the host assigned by OpenShift, and deletes it.
+// it creates an ultra-short temporary probe Route ("p", 1 char), reads the host assigned by OpenShift, and deletes it.
+// With a 1-character name, the probe label "p-<namespace>" fits namespaces up to 61 characters within the 63-char limit.
 func (r *IBMLicensingReconciler) discoverClusterAppsDomain(instance *operatorv1alpha1.IBMLicensing) string {
 	namespace := instance.Spec.InstanceNamespace
 	ctx := context.TODO()
@@ -960,7 +971,7 @@ func (r *IBMLicensingReconciler) discoverClusterAppsDomain(instance *operatorv1a
 	routeList := &routev1.RouteList{}
 	if err := r.Client.List(ctx, routeList, client.InNamespace(namespace)); err == nil {
 		for _, rt := range routeList.Items {
-			if rt.Name == "ils-probe" {
+			if rt.Name == "p" || rt.Name == "ils-probe" {
 				continue
 			}
 			host := rt.Spec.Host
@@ -976,8 +987,8 @@ func (r *IBMLicensingReconciler) discoverClusterAppsDomain(instance *operatorv1a
 		}
 	}
 
-	// 2. Probe Route approach: create a short temporary probe Route
-	probeName := "ils-probe"
+	// 2. Probe Route approach: create an ultra-short temporary probe Route "p"
+	probeName := "p"
 	probeNamespacedName := types.NamespacedName{Namespace: namespace, Name: probeName}
 	probeRoute := &routev1.Route{}
 
@@ -1048,6 +1059,11 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 	expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
 
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
+		if len(instance.Spec.InstanceNamespace) > service.MaxNamespaceLengthForRouteProbe {
+			r.Log.Info("Skipping route reconciliation: namespace length exceeds maximum supported for Route creation",
+				"namespace", instance.Spec.InstanceNamespace, "maxLength", service.MaxNamespaceLengthForRouteProbe)
+			return reconcile.Result{}, nil
+		}
 		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.GetResourceName(instance)}
 		if err := r.Client.Get(context.TODO(), routeNamespacedName, route); err != nil {
 			r.Log.Info("Route does not exist, reconciling route without certificates")
@@ -1070,6 +1086,11 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 
 func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
+		if len(instance.Spec.InstanceNamespace) > service.MaxNamespaceLengthForRouteProbe {
+			r.Log.Info("Skipping route reconciliation: namespace length exceeds maximum supported for Route creation",
+				"namespace", instance.Spec.InstanceNamespace, "maxLength", service.MaxNamespaceLengthForRouteProbe)
+			return reconcile.Result{}, nil
+		}
 		appsDomain := r.getClusterAppsDomain(instance)
 		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
 		foundRoute := &routev1.Route{}

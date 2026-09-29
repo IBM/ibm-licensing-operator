@@ -30,6 +30,12 @@ import (
 // maxDNSLabelLength is the maximum number of characters allowed in a single DNS label per RFC 1123.
 const maxDNSLabelLength = 63
 
+// MaxNamespaceLengthForRouteProbe is the maximum namespace character length (61) for which
+// an ultra-short 1-character probe Route ("p") can have its first DNS label ("p-<namespace>")
+// fit within the 63-character RFC 1123 limit (63 - 1 char probe name - 1 char hyphen).
+// Namespaces longer than this cannot be used with probe Route domain discovery.
+const MaxNamespaceLengthForRouteProbe = 61
+
 const (
 	LicensingResourceBase                = "ibm-licensing-service"
 	LicensingComponentName               = "ibm-licensing-service-svc"

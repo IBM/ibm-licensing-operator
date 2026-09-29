@@ -147,3 +147,12 @@ func TestGetLicensingRouteHostname_Split3LongNamespace(t *testing.T) {
 	assert.Equal(t, maxDNSLabelLength, len(label))
 	assert.True(t, strings.HasSuffix(hostname, "."+appsDomain))
 }
+
+// TestMaxNamespaceLengthForRouteProbe verifies that the constant MaxNamespaceLengthForRouteProbe is defined as 61,
+// allowing a 1-character probe Route ("p") plus hyphen ("p-") to fit within the 63-character limit (1 + 1 + 61 = 63).
+func TestMaxNamespaceLengthForRouteProbe(t *testing.T) {
+	probeName := "p"
+	maxAllowedProbeLabelLen := len(probeName) + 1 + MaxNamespaceLengthForRouteProbe
+	assert.Equal(t, maxDNSLabelLength, maxAllowedProbeLabelLen, "probe route label with MaxNamespaceLengthForRouteProbe must equal 63 chars")
+	assert.Equal(t, 61, MaxNamespaceLengthForRouteProbe)
+}
