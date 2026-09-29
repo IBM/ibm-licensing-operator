@@ -22,7 +22,7 @@ import (
 )
 
 // TestGetLicensingRouteName_NoTruncationNeeded verifies that when the standard route name + namespace
-// fits within the 63-char DNS label limit, the standard name "ibm-licensing-service-<instanceName>" is returned.
+// fits within the 63-char DNS label limit, the full name "ibm-licensing-service-<instanceName>" is returned.
 func TestGetLicensingRouteName_NoTruncationNeeded(t *testing.T) {
 	instanceName := "instance"
 	namespace := "ibm-licensing" // 31 + 1 + 13 = 45 <= 63
@@ -34,34 +34,33 @@ func TestGetLicensingRouteName_NoTruncationNeeded(t *testing.T) {
 	assert.LessOrEqual(t, len(label), maxDNSLabelLength)
 }
 
-// TestGetLicensingRouteName_ShortenedPrefixApplied verifies the ILS-3012 reproduction case:
+// TestGetLicensingRouteName_TruncationApplied verifies the ILS-3012 reproduction case:
 // namespace "prd-dti-infra-watsonx-ibm-licensing" (35 chars) with standard name (31 chars) gives 67 chars (> 63).
-// It should switch to shortened prefix "ibm-ils-instance" (16 chars), giving 16 + 1 + 35 = 52 chars (<= 63).
-func TestGetLicensingRouteName_ShortenedPrefixApplied(t *testing.T) {
+// "ibm-licensing-service-instance" is truncated to 63 - 35 - 1 = 27 chars ("ibm-licensing-service-insta").
+func TestGetLicensingRouteName_TruncationApplied(t *testing.T) {
 	instanceName := "instance"
 	namespace := "prd-dti-infra-watsonx-ibm-licensing"
 
 	result := GetLicensingRouteName(instanceName, namespace)
 
-	assert.Equal(t, "ibm-ils-instance", result)
 	label := result + "-" + namespace
 	assert.LessOrEqual(t, len(label), maxDNSLabelLength, "label must not exceed 63 characters")
-	assert.Equal(t, 52, len(label))
+	assert.True(t, strings.HasPrefix(LicensingResourceBase, result) || strings.HasPrefix(result, LicensingResourceBase))
+	assert.Equal(t, maxDNSLabelLength, len(label))
 }
 
 // TestGetLicensingRouteName_Split3LongNamespace verifies the user's test cluster scenario:
 // namespace "ibm-licensing-split3-very-long-name" (35 chars) with standard name gives 67 chars (> 63).
-// It switches to "ibm-ils-instance" (16 chars), giving 16 + 1 + 35 = 52 chars (<= 63).
+// Resulting label must be <= 63.
 func TestGetLicensingRouteName_Split3LongNamespace(t *testing.T) {
 	instanceName := "instance"
 	namespace := "ibm-licensing-split3-very-long-name"
 
 	result := GetLicensingRouteName(instanceName, namespace)
 
-	assert.Equal(t, "ibm-ils-instance", result)
 	label := result + "-" + namespace
 	assert.LessOrEqual(t, len(label), maxDNSLabelLength, "label must not exceed 63 characters")
-	assert.Equal(t, 52, len(label))
+	assert.Equal(t, maxDNSLabelLength, len(label))
 }
 
 // TestGetLicensingRouteName_ExtremelyLongNamespace verifies that when namespace is exceptionally long

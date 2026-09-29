@@ -32,7 +32,6 @@ const maxDNSLabelLength = 63
 
 const (
 	LicensingResourceBase                = "ibm-licensing-service"
-	ShortLicensingResourceBase           = "ibm-ils"
 	LicensingComponentName               = "ibm-licensing-service-svc"
 	LicensingReleaseName                 = "ibm-licensing-service"
 	LicenseServiceInternalCertName       = "ibm-license-service-cert-internal"
@@ -89,8 +88,8 @@ func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 //
 // To prevent this without needing cluster Ingress RBAC permissions to read the apps domain:
 // 1. If "ibm-licensing-service-<instanceName>-<namespace>" fits within 63 characters, standard name is used.
-// 2. Otherwise, switch to the shortened prefix "ibm-ils-<instanceName>".
-// 3. If namespace is exceptionally long, truncate the Route name further so len(routeName)+1+len(namespace) <= 63.
+// 2. If it exceeds 63 characters, "ibm-licensing-service-<instanceName>" is truncated so that
+//    len(routeName) + 1 + len(namespace) <= 63.
 func GetLicensingRouteName(instanceName, namespace string) string {
 	standardName := LicensingResourceBase + "-" + instanceName
 	separator := "-"
@@ -99,16 +98,11 @@ func GetLicensingRouteName(instanceName, namespace string) string {
 		return standardName
 	}
 
-	shortName := ShortLicensingResourceBase + "-" + instanceName
-	if len(shortName)+len(separator)+len(namespace) <= maxDNSLabelLength {
-		return shortName
-	}
-
 	maxNameLen := maxDNSLabelLength - len(namespace) - len(separator)
-	if maxNameLen > 0 && len(shortName) > maxNameLen {
-		return strings.TrimSuffix(shortName[:maxNameLen], "-")
+	if maxNameLen > 0 && len(standardName) > maxNameLen {
+		return strings.TrimSuffix(standardName[:maxNameLen], "-")
 	}
-	return shortName
+	return standardName
 }
 
 func GetServiceURL(instance *operatorv1alpha1.IBMLicensing) string {

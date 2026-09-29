@@ -822,7 +822,8 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 
 		r.Log.Info("Reconciling external certificate")
 
-		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.GetResourceName(instance)}
+		routeName := service.GetLicensingRouteName(instance.GetName(), instance.Spec.InstanceNamespace)
+		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: routeName}
 		route := &routev1.Route{}
 		if err := r.Client.Get(context.TODO(), routeNamespacedName, route); err != nil {
 			r.Log.Error(err, "Cannot get route")
