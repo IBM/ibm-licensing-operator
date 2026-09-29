@@ -1054,9 +1054,7 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 		InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
 	}
 
-	appsDomain := r.getClusterAppsDomain(instance)
 	route := &routev1.Route{}
-	expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
 
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
 		if len(instance.Spec.InstanceNamespace) > service.MaxNamespaceLengthForRouteProbe {
@@ -1076,6 +1074,8 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 		}
 	} else {
 		r.Log.Info("Route is disabled, deleting current route if exists")
+		appsDomain := r.getClusterAppsDomain(instance)
+		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
 		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedRoute, route)
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
