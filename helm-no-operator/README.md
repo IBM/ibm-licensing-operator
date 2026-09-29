@@ -29,7 +29,7 @@ Red Hat OpenShift Container Platform 4.10 or newer on Linux x86_64, ppc64le, and
 | `ibmLicensing.watchNamespace` | Namespace(s) watched for license data collection | `ibm-licensing` |
 | `ibmLicensing.excludeNamespace` | Comma-separated namespaces excluded from collection (ignored when `nssEnabled: true`) | `""` |
 | `ibmLicensing.imageRegistryNamespaceOperand` | Registry sub-path for the operand image | `cpopen/cpfs` |
-| `ibmLicensing.ibmLicensingVersion` | Operand image tag | `4.2.25` |
+| `ibmLicensing.ibmLicensingVersion` | Operand image tag | `4.2.26` |
 
 ### RBAC
 
