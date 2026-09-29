@@ -1,0 +1,160 @@
+---
+
+suite: ILS no-operator Deployment (operand) customization tests
+
+templates:
+  - templates/deployment.yaml
+
+release:
+  namespace: test-ns
+
+set:
+  ibmLicensing.namespace: test-ns
+
+tests:
+  - it: renders a Deployment
+    asserts:
+      - equal:
+          path: apiVersion
+          value: apps/v1
+      - equal:
+          path: kind
+          value: Deployment
+
+  # --- IBM-protected annotations always present ---
+
+  - it: always sets IBM-required pod annotations
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations.productID
+          value: 068a62892a1e4db39641342e592daa25
+      - equal:
+          path: spec.template.metadata.annotations.productMetric
+          value: FREE
+      - equal:
+          path: spec.template.metadata.annotations.productName
+          value: IBM Cloud Platform Common Services
+
+  # --- IBM-protected labels always present ---
+
+  - it: always sets IBM-required pod labels
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.app
+          value: ibm-licensing-service-instance
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/instance"]
+          value: ibm-licensing-service
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/name"]
+          value: ibm-licensing-service-instance
+
+  # --- operand.podAnnotations ---
+
+  - it: adds user-provided operand pod annotations
+    set:
+      ibmLicensing.operand.podAnnotations:
+        custom.io/env: staging
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["custom.io/env"]
+          value: staging
+
+  - it: IBM pod annotations cannot be overridden by user podAnnotations
+    set:
+      ibmLicensing.operand.podAnnotations:
+        productName: hacker-value
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations.productName
+          value: IBM Cloud Platform Common Services
+
+  # --- operand.podLabels ---
+
+  - it: adds user-provided operand pod labels
+    set:
+      ibmLicensing.operand.podLabels:
+        team: licensing
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: licensing
+
+  - it: IBM pod labels cannot be overridden by user podLabels
+    set:
+      ibmLicensing.operand.podLabels:
+        app: hacker-value
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.app
+          value: ibm-licensing-service-instance
+
+  # --- operand.nodeSelector ---
+
+  - it: does not render nodeSelector when not set
+    asserts:
+      - notExists:
+          path: spec.template.spec.nodeSelector
+
+  - it: applies operand nodeSelector when set
+    set:
+      ibmLicensing.operand.nodeSelector:
+        kubernetes.io/os: linux
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector["kubernetes.io/os"]
+          value: linux
+
+  # --- operand.affinity ---
+
+  - it: always sets IBM-required nodeAffinity for arch
+    asserts:
+      - equal:
+          path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key
+          value: kubernetes.io/arch
+      - contains:
+          path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values
+          content: amd64
+      - contains:
+          path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values
+          content: ppc64le
+      - contains:
+          path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values
+          content: s390x
+
+  - it: merges user-provided podAntiAffinity with IBM nodeAffinity
+    set:
+      ibmLicensing.operand.affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: ibm-licensing-service-instance
+                topologyKey: kubernetes.io/hostname
+    asserts:
+      - exists:
+          path: spec.template.spec.affinity.podAntiAffinity
+      - equal:
+          path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key
+          value: kubernetes.io/arch
+
+  - it: IBM nodeAffinity wins even when user provides conflicting nodeAffinity
+    set:
+      ibmLicensing.operand.affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - arm64
+    asserts:
+      - contains:
+          path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values
+          content: amd64
+      - notContains:
+          path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values
+          content: arm64

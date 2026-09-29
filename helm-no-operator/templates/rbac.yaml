@@ -80,7 +80,7 @@ roleRef:
   name: ibm-license-service
 subjects:
   - kind: ServiceAccount
-    name: ibm-license-service
+    name: {{ if not ((.Values.ibmLicensing.spec).features).nssEnabled }}{{ ((.Values.ibmLicensing.operand).serviceAccount).name | default "ibm-license-service" }}{{ else }}ibm-license-service{{ end }}
     namespace: {{ .Values.ibmLicensing.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -99,6 +99,6 @@ roleRef:
   name: ibm-license-service-restricted
 subjects:
   - kind: ServiceAccount
-    name: ibm-license-service-restricted
+    name: {{ if ((.Values.ibmLicensing.spec).features).nssEnabled }}{{ ((.Values.ibmLicensing.operand).serviceAccount).name | default "ibm-license-service-restricted" }}{{ else }}ibm-license-service-restricted{{ end }}
     namespace: {{ .Values.ibmLicensing.namespace }}
 {{- end }}

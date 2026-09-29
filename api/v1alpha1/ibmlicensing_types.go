@@ -119,6 +119,40 @@ type IBMLicensingSpec struct {
 	// Enabling collection of Instana metrics
 	// +optional
 	EnableInstanaMetricCollection bool `json:"enableInstanaMetricCollection,omitempty"`
+
+	// Operand pod scheduling and identity configuration.
+	// +optional
+	Operand *OperandPodConfig `json:"operand,omitempty"`
+}
+
+/*
+OperandPodConfig groups pod scheduling and identity settings for the operand deployment.
+*/
+// +kubebuilder:pruning:PreserveUnknownFields
+type OperandPodConfig struct {
+	// ServiceAccountName specifies the service account to use for the operand deployment pods.
+	// If not set, the default operand service account is used.
+	// +optional
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
+
+	// NodeSelector constrains the operand deployment to nodes matching the given labels.
+	// +optional
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+
+	// Affinity defines additional scheduling rules for the operand deployment pods.
+	// Merged with the IBM-required node affinity — user rules cannot remove IBM constraints.
+	// +optional
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// PodAnnotations defines additional annotations to add to the operand deployment pods.
+	// IBM-required annotations take precedence.
+	// +optional
+	PodAnnotations map[string]string `json:"podAnnotations,omitempty"`
+
+	// PodLabels defines additional labels to add to the operand deployment pods.
+	// IBM-required labels take precedence.
+	// +optional
+	PodLabels map[string]string `json:"podLabels,omitempty"`
 }
 
 type IBMLicensingChargebackSpec struct {

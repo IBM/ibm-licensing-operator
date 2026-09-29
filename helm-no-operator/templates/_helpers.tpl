@@ -15,11 +15,12 @@ limitations under the License.
 */}}
 
 {{/* The operand ServiceAccount in use: restricted when nss is on, default otherwise.
+     When operand.serviceAccount.name is set it overrides both defaults.
      Drives the cluster-monitoring-view binding subject so it follows the active SA. */}}
 {{- define "ibm-licensing.operandServiceAccount" -}}
 {{- if ((.Values.ibmLicensing.spec).features).nssEnabled -}}
-ibm-license-service-restricted
+{{- ((.Values.ibmLicensing.operand).serviceAccount).name | default "ibm-license-service-restricted" -}}
 {{- else -}}
-ibm-license-service
+{{- ((.Values.ibmLicensing.operand).serviceAccount).name | default "ibm-license-service" -}}
 {{- end -}}
 {{- end -}}
