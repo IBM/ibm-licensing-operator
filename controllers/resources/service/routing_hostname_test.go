@@ -25,7 +25,7 @@ import (
 // a label within the 63-character limit is returned unchanged.
 func TestTruncateForDNSLabel_NoTruncationNeeded(t *testing.T) {
 	routeName := "ibm-licensing-service-instance" // 30 chars
-	namespace := "short-ns"                        // 8 chars -> label = 39 chars (well under 63)
+	namespace := "short-ns"                       // 8 chars -> label = 39 chars (well under 63)
 
 	result := TruncateForDNSLabel(routeName, namespace)
 
