@@ -76,16 +76,6 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		panic("NamespaceScopeSemaphore must have capacity 1!")
 	}
 
-	// Register an in-memory field index on ConfigMap metadata.name so that
-	// client.MatchingFields{"metadata.name": ...} works in mergeExcludeNamespacesFromUmsConfigMaps.
-	// The manager cache already restricts which ConfigMaps are watched (see main.go ByObject), so
-	// this index is built over a very small set and adds negligible overhead.
-	if err := mgr.GetFieldIndexer().IndexField(context.TODO(), &corev1.ConfigMap{}, "metadata.name", func(obj client.Object) []string {
-		return []string{obj.GetName()}
-	}); err != nil {
-		return fmt.Errorf("failed to register ConfigMap metadata.name field index: %w", err)
-	}
-
 	watcher := ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.IBMLicensing{}).
 		Owns(&appsv1.Deployment{}).
@@ -1637,9 +1627,11 @@ func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instanc
 		return nil
 	}
 
-	// cluster-scope mode — collect excludeNamespace values from all UMS ConfigMaps across all namespaces
+	// cluster-scope mode — collect excludeNamespace values from all UMS ConfigMaps across all namespaces.
+	// The manager cache already limits the ConfigMap watch to only those named UmsExcludeNamespaceConfigMapName
+	// (via FieldSelector in main.go ByObject), so a plain List over the cache is sufficient and correct.
 	cmList := &corev1.ConfigMapList{}
-	if err := r.Client.List(context.TODO(), cmList, client.MatchingFields{"metadata.name": UmsExcludeNamespaceConfigMapName}); err != nil {
+	if err := r.Client.List(context.TODO(), cmList); err != nil {
 		return err
 	}
 
