@@ -87,9 +87,9 @@ func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 // OpenShift Route admission rejects the Route.
 //
 // To prevent this without needing cluster Ingress RBAC permissions to read the apps domain:
-// 1. If "ibm-licensing-service-<instanceName>-<namespace>" fits within 63 characters, standard name is used.
-// 2. If it exceeds 63 characters, "ibm-licensing-service-<instanceName>" is truncated so that
-//    len(routeName) + 1 + len(namespace) <= 63.
+//  1. If "ibm-licensing-service-<instanceName>-<namespace>" fits within 63 characters, standard name is used.
+//  2. If it exceeds 63 characters, "ibm-licensing-service-<instanceName>" is truncated so that
+//     len(routeName) + 1 + len(namespace) <= 63.
 func GetLicensingRouteName(instanceName, namespace string) string {
 	standardName := LicensingResourceBase + "-" + instanceName
 	separator := "-"
