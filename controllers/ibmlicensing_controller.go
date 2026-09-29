@@ -191,7 +191,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get
-// +kubebuilder:rbac:groups="",resources=configmaps,resourceNames=ibm-licensing-external-config,verbs=get;list
+// +kubebuilder:rbac:groups="",resources=configmaps,resourceNames=ibm-licensing-external-config,verbs=get;list;watch
 
 func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Request) (reconcile.Result, error) {
 
@@ -1627,9 +1627,11 @@ func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instanc
 		return nil
 	}
 
-	// cluster-scope mode — collect excludeNamespace values from all UMS ConfigMaps across all namespaces
+	// cluster-scope mode — collect excludeNamespace values from all UMS ConfigMaps across all namespaces.
+	// The manager cache already limits the ConfigMap watch to only those named UmsExcludeNamespaceConfigMapName
+	// (via FieldSelector in main.go ByObject), so a plain List over the cache is sufficient and correct.
 	cmList := &corev1.ConfigMapList{}
-	if err := r.Client.List(context.TODO(), cmList, client.MatchingFields{"metadata.name": UmsExcludeNamespaceConfigMapName}); err != nil {
+	if err := r.Client.List(context.TODO(), cmList); err != nil {
 		return err
 	}
 
