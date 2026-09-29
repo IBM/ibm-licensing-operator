@@ -822,8 +822,7 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 
 		r.Log.Info("Reconciling external certificate")
 
-		routeName := service.GetLicensingRouteName(instance.GetName(), instance.Spec.InstanceNamespace)
-		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: routeName}
+		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.GetResourceName(instance)}
 		route := &routev1.Route{}
 		if err := r.Client.Get(context.TODO(), routeNamespacedName, route); err != nil {
 			r.Log.Error(err, "Cannot get route")
@@ -908,18 +907,106 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 	return reconcile.Result{}, nil
 }
 
+// discoverClusterAppsDomain discovers the cluster wildcard apps domain without needing cluster-scoped
+// Ingress permissions (Option 3). It first checks existing Routes in the namespace. If none have a host,
+// it creates a short temporary probe Route (ils-probe), reads the host assigned by OpenShift, and deletes it.
+func (r *IBMLicensingReconciler) discoverClusterAppsDomain(instance *operatorv1alpha1.IBMLicensing) string {
+	namespace := instance.Spec.InstanceNamespace
+	ctx := context.TODO()
+
+	// 1. Try to find domain from any existing Route in the namespace
+	routeList := &routev1.RouteList{}
+	if err := r.Client.List(ctx, routeList, client.InNamespace(namespace)); err == nil {
+		for _, rt := range routeList.Items {
+			if rt.Name == "ils-probe" {
+				continue
+			}
+			host := rt.Spec.Host
+			if host == "" && len(rt.Status.Ingress) > 0 {
+				host = rt.Status.Ingress[0].Host
+			}
+			if host != "" {
+				parts := strings.SplitN(host, ".", 2)
+				if len(parts) == 2 && parts[1] != "" {
+					return parts[1]
+				}
+			}
+		}
+	}
+
+	// 2. Probe Route approach: create a short temporary probe Route
+	probeName := "ils-probe"
+	probeNamespacedName := types.NamespacedName{Namespace: namespace, Name: probeName}
+	probeRoute := &routev1.Route{}
+
+	if err := r.Client.Get(ctx, probeNamespacedName, probeRoute); err != nil {
+		if apierrors.IsNotFound(err) {
+			// Create the probe Route
+			probeRoute = &routev1.Route{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      probeName,
+					Namespace: namespace,
+				},
+				Spec: routev1.RouteSpec{
+					To: routev1.RouteTargetReference{
+						Kind: "Service",
+						Name: service.GetResourceName(instance),
+					},
+				},
+			}
+			if err := r.Client.Create(ctx, probeRoute); err != nil {
+				r.Log.Info("Could not create probe Route for domain discovery", "error", err.Error())
+				return ""
+			}
+			// Re-fetch to get auto-generated host from admission/controller
+			if err := r.Client.Get(ctx, probeNamespacedName, probeRoute); err != nil {
+				return ""
+			}
+		} else {
+			return ""
+		}
+	}
+
+	host := probeRoute.Spec.Host
+	if host == "" && len(probeRoute.Status.Ingress) > 0 {
+		host = probeRoute.Status.Ingress[0].Host
+	}
+
+	// Clean up the probe Route immediately
+	_ = r.Client.Delete(ctx, probeRoute)
+
+	if host != "" {
+		parts := strings.SplitN(host, ".", 2)
+		if len(parts) == 2 && parts[1] != "" {
+			return parts[1]
+		}
+	}
+
+	return ""
+}
+
+func (r *IBMLicensingReconciler) getClusterAppsDomain(instance *operatorv1alpha1.IBMLicensing) string {
+	routeName := service.GetResourceName(instance)
+	namespace := instance.Spec.InstanceNamespace
+	// Only discover domain if standard label would exceed 63 characters
+	if len(routeName)+1+len(namespace) > 63 {
+		return r.discoverClusterAppsDomain(instance)
+	}
+	return ""
+}
+
 func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	defaultRouteTLS := &routev1.TLSConfig{
 		Termination:                   routev1.TLSTerminationReencrypt,
 		InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyNone,
 	}
 
+	appsDomain := r.getClusterAppsDomain(instance)
 	route := &routev1.Route{}
-	expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
+	expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
 
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
-		routeName := service.GetLicensingRouteName(instance.GetName(), instance.Spec.InstanceNamespace)
-		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: routeName}
+		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.GetResourceName(instance)}
 		if err := r.Client.Get(context.TODO(), routeNamespacedName, route); err != nil {
 			r.Log.Info("Route does not exist, reconciling route without certificates")
 
@@ -941,7 +1028,8 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 
 func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
-		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
+		appsDomain := r.getClusterAppsDomain(instance)
+		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
 		foundRoute := &routev1.Route{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
 		if err != nil || reconcileResult.Requeue {
