@@ -1640,7 +1640,7 @@ func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instanc
 	for _, cm := range cmList.Items {
 		if cm.Name == UmsExcludeNamespaceConfigMapName {
 			if val, ok := cm.Data[umsExcludeNamespaceDataKey]; ok && val != "" {
-				for _, ns := range strings.Split(val, ",") {
+				for ns := range strings.SplitSeq(val, ",") {
 					if trimmed := strings.TrimSpace(ns); trimmed != "" {
 						umsNamespaces = append(umsNamespaces, trimmed)
 					}
@@ -1650,14 +1650,19 @@ func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instanc
 	}
 
 	if len(umsNamespaces) == 0 {
-		reqLogger.Info("No UMS exclude-namespace ConfigMaps found, skipping merge")
+		reqLogger.Info(fmt.Sprintf("No %q entries found across %s ConfigMaps, skipping excludeNamespace merge",
+			umsExcludeNamespaceDataKey, UmsExcludeNamespaceConfigMapName))
 		return nil
 	}
 
 	// sort UMS namespaces alphabetically to guarantee deterministic ordering across reconcile loops
 	sort.Strings(umsNamespaces)
 
-	// prepend the static CR value (if any) so it always comes first
+	reqLogger.Info(fmt.Sprintf("Collected namespaces to exclude from %s ConfigMaps: %v (duplicates will be dropped)",
+		UmsExcludeNamespaceConfigMapName, umsNamespaces))
+
+	// prepend the static CR value (if any) so it always comes first;
+	// deduplication is performed downstream by GetSanitizedExcludeNamespace
 	var collected []string
 	if instance.Spec.Features != nil && instance.Spec.Features.ExcludeNamespace != "" {
 		collected = append(collected, instance.Spec.Features.ExcludeNamespace)
@@ -1669,6 +1674,7 @@ func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instanc
 	}
 	instance.Spec.Features.ExcludeNamespace = strings.Join(collected, ",")
 
-	reqLogger.Info("Merged UMS exclude-namespace ConfigMaps into ExcludeNamespace", "value", instance.Spec.Features.ExcludeNamespace)
+	reqLogger.Info(fmt.Sprintf("Merged excludeNamespace from CR value and %s ConfigMaps; duplicates will be dropped",
+		UmsExcludeNamespaceConfigMapName))
 	return nil
 }
