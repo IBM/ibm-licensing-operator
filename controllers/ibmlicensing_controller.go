@@ -1674,7 +1674,7 @@ func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instanc
 	}
 	instance.Spec.Features.ExcludeNamespace = strings.Join(collected, ",")
 
-	reqLogger.Info(fmt.Sprintf("Set excludeNamespace to %q (merged from CR and %s ConfigMaps; duplicates will be dropped)",
-		instance.Spec.Features.ExcludeNamespace, UmsExcludeNamespaceConfigMapName))
+	reqLogger.Info(fmt.Sprintf("Merged excludeNamespace from CR value and %s ConfigMaps; duplicates will be dropped",
+		UmsExcludeNamespaceConfigMapName))
 	return nil
 }
