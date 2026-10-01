@@ -67,7 +67,11 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS 
 	namespace := instance.Spec.InstanceNamespace
 
 	var specHost string
-	// Only set specHost explicitly if the standard label exceeds 63 characters and appsDomain is known
+	/*
+	Set spec.host explicitly only when the standard DNS label (routeName+"-"+namespace) would
+	exceed the RFC 1123 63-character limit and the apps domain has been discovered.
+	When appsDomain is empty the label fits and OpenShift can generate the host automatically.
+	*/
 	if appsDomain != "" && len(routeName)+1+len(namespace) > maxDNSLabelLength {
 		specHost = GetLicensingRouteHostname(routeName, namespace, appsDomain)
 	}

@@ -959,93 +959,124 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 	return reconcile.Result{}, nil
 }
 
-// discoverClusterAppsDomain discovers the cluster wildcard apps domain without needing cluster-scoped
-// Ingress permissions (Option 3). It first checks existing Routes in the namespace. If none have a host,
-// it creates an ultra-short temporary probe Route ("p", 1 char), reads the host assigned by OpenShift, and deletes it.
-// With a 1-character name, the probe label "p-<namespace>" fits namespaces up to 61 characters within the 63-char limit.
-func (r *IBMLicensingReconciler) discoverClusterAppsDomain(instance *operatorv1alpha1.IBMLicensing) string {
+/*
+extractAppsDomain parses the apps wildcard domain from a Route host string of the form
+"<label>.<domain>" and returns the domain part. Returns an empty string if the host is
+empty or does not contain a dot separator.
+*/
+func extractAppsDomain(host string) string {
+	parts := strings.SplitN(host, ".", 2)
+	if len(parts) == 2 && parts[1] != "" {
+		return parts[1]
+	}
+	return ""
+}
+
+/*
+discoverClusterAppsDomain resolves the cluster wildcard apps domain without requiring
+cluster-scoped Ingress permissions. It first scans existing Routes in the namespace for
+a populated host — avoiding a probe creation on most reconcile passes. If no host is
+found, it creates an ultra-short temporary probe Route ("p"), waits for OpenShift
+admission to populate its host, reads the domain, and deletes the probe.
+
+The probe name "p" (1 character) ensures the first DNS label "p-<namespace>" fits
+namespaces up to 61 characters within the 63-character RFC 1123 limit.
+
+Returns the bare apps domain (e.g. "apps.example.com") and true when resolved,
+or an empty string and false when discovery is not yet possible (caller should requeue).
+*/
+func (r *IBMLicensingReconciler) discoverClusterAppsDomain(
+	instance *operatorv1alpha1.IBMLicensing,
+) (string, bool) {
 	namespace := instance.Spec.InstanceNamespace
 	ctx := context.TODO()
 
-	// 1. Try to find domain from any existing Route in the namespace
+	// 1. Try to read domain from any existing Route in the namespace.
+	// This avoids creating a probe Route on most reconcile passes.
 	routeList := &routev1.RouteList{}
 	if err := r.Client.List(ctx, routeList, client.InNamespace(namespace)); err == nil {
 		for _, rt := range routeList.Items {
-			if rt.Name == "p" || rt.Name == "ils-probe" {
+			if rt.Name == "p" {
 				continue
 			}
 			host := rt.Spec.Host
 			if host == "" && len(rt.Status.Ingress) > 0 {
 				host = rt.Status.Ingress[0].Host
 			}
-			if host != "" {
-				parts := strings.SplitN(host, ".", 2)
-				if len(parts) == 2 && parts[1] != "" {
-					return parts[1]
-				}
+			if domain := extractAppsDomain(host); domain != "" {
+				return domain, true
 			}
 		}
 	}
 
-	// 2. Probe Route approach: create an ultra-short temporary probe Route "p"
+	// 2. No existing Route with a host found — use the probe Route "p".
 	probeName := "p"
 	probeNamespacedName := types.NamespacedName{Namespace: namespace, Name: probeName}
 	probeRoute := &routev1.Route{}
 
 	if err := r.Client.Get(ctx, probeNamespacedName, probeRoute); err != nil {
-		if apierrors.IsNotFound(err) {
-			// Create the probe Route
-			probeRoute = &routev1.Route{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      probeName,
-					Namespace: namespace,
-				},
-				Spec: routev1.RouteSpec{
-					To: routev1.RouteTargetReference{
-						Kind: "Service",
-						Name: service.GetResourceName(instance),
-					},
-				},
-			}
-			if err := r.Client.Create(ctx, probeRoute); err != nil {
-				r.Log.Info("Could not create probe Route for domain discovery", "error", err.Error())
-				return ""
-			}
-			// Re-fetch to get auto-generated host from admission/controller
-			if err := r.Client.Get(ctx, probeNamespacedName, probeRoute); err != nil {
-				return ""
-			}
-		} else {
-			return ""
+		if !apierrors.IsNotFound(err) {
+			r.Log.Info("Failed to get probe Route for domain discovery", "error", err.Error())
+			return "", false
 		}
+		// Probe does not exist yet — create it and requeue so OpenShift admission
+		// has time to assign a host before we read it.
+		probeRoute = &routev1.Route{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      probeName,
+				Namespace: namespace,
+			},
+			Spec: routev1.RouteSpec{
+				To: routev1.RouteTargetReference{
+					Kind: "Service",
+					Name: service.GetResourceName(instance),
+				},
+			},
+		}
+		if err := r.Client.Create(ctx, probeRoute); err != nil {
+			r.Log.Info("Could not create probe Route for domain discovery", "error", err.Error())
+			return "", false
+		}
+		// Requeue — the host will not be populated until admission processes the Route.
+		return "", false
 	}
 
+	// Probe Route exists; read the host assigned by OpenShift admission.
 	host := probeRoute.Spec.Host
 	if host == "" && len(probeRoute.Status.Ingress) > 0 {
 		host = probeRoute.Status.Ingress[0].Host
 	}
 
-	// Clean up the probe Route immediately
-	_ = r.Client.Delete(ctx, probeRoute)
-
-	if host != "" {
-		parts := strings.SplitN(host, ".", 2)
-		if len(parts) == 2 && parts[1] != "" {
-			return parts[1]
-		}
+	// Clean up the probe Route. Retry on failure by requeuing rather than silently dropping.
+	if err := r.Client.Delete(ctx, probeRoute); err != nil && !apierrors.IsNotFound(err) {
+		r.Log.Info("Failed to delete probe Route; will retry on next reconcile", "error", err.Error())
+		return "", false
 	}
 
-	return ""
+	if domain := extractAppsDomain(host); domain != "" {
+		return domain, true
+	}
+
+	// Host still empty after probe creation — requeue to wait for admission.
+	return "", false
 }
 
-func (r *IBMLicensingReconciler) getClusterAppsDomain(instance *operatorv1alpha1.IBMLicensing) string {
+/*
+getClusterAppsDomain returns the cluster wildcard apps domain when the standard Route
+hostname label (routeName+"-"+namespace) would exceed the 63-character RFC 1123 limit,
+and domain discovery succeeds. Returns an empty string and false when discovery is not
+needed or not yet complete (caller should requeue in the latter case).
+*/
+func (r *IBMLicensingReconciler) getClusterAppsDomain(
+	instance *operatorv1alpha1.IBMLicensing,
+) (string, bool) {
 	routeName := service.GetResourceName(instance)
 	namespace := instance.Spec.InstanceNamespace
-	// Only discover domain if standard label would exceed 63 characters
-	if len(routeName)+1+len(namespace) > 63 {
-		return r.discoverClusterAppsDomain(instance)
+	// Domain discovery is only needed when the standard label would exceed 63 characters.
+	if len(routeName)+1+len(namespace) <= 63 {
+		return "", true
 	}
-	return ""
+	return r.discoverClusterAppsDomain(instance)
 }
 
 func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -1074,7 +1105,10 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 		}
 	} else {
 		r.Log.Info("Route is disabled, deleting current route if exists")
-		appsDomain := r.getClusterAppsDomain(instance)
+		appsDomain, ready := r.getClusterAppsDomain(instance)
+		if !ready {
+			return reconcile.Result{Requeue: true}, nil
+		}
 		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
 		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedRoute, route)
 		if err != nil || reconcileResult.Requeue {
@@ -1091,7 +1125,10 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 				"namespace", instance.Spec.InstanceNamespace, "maxLength", service.MaxNamespaceLengthForRouteProbe)
 			return reconcile.Result{}, nil
 		}
-		appsDomain := r.getClusterAppsDomain(instance)
+		appsDomain, ready := r.getClusterAppsDomain(instance)
+		if !ready {
+			return reconcile.Result{Requeue: true}, nil
+		}
 		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
 		foundRoute := &routev1.Route{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)

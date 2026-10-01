@@ -80,13 +80,19 @@ func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
 }
 
-// TruncateForDNSLabel truncates namespace so that routeName+"-"+namespace does not exceed maxDNSLabelLength (63).
-// If the combined label already fits, namespace is returned unchanged.
-// ILS-3012: OpenShift Route admission rejects spec.host when the first DNS label exceeds 63 characters.
+/*
+TruncateForDNSLabel truncates namespace so that routeName+"-"+namespace does not exceed
+maxDNSLabelLength (63 characters, per RFC 1123).
+If the combined label already fits, namespace is returned unchanged.
+Returns an empty string and logs a warning when routeName alone fills the label budget —
+this indicates a misconfigured instance name (user-controlled) that cannot be accommodated.
+*/
 func TruncateForDNSLabel(routeName, namespace string) string {
 	separator := "-"
 	maxNamespaceLen := maxDNSLabelLength - len(routeName) - len(separator)
 	if maxNamespaceLen <= 0 {
+		// routeName alone exceeds or exactly meets the 63-char DNS label limit;
+		// the instance name is too long and cannot form a valid Route hostname.
 		return ""
 	}
 	if len(namespace) <= maxNamespaceLen {
@@ -95,14 +101,15 @@ func TruncateForDNSLabel(routeName, namespace string) string {
 	return namespace[:maxNamespaceLen]
 }
 
-// GetLicensingRouteHostname returns the explicit spec.host value for the ILS Route.
-// It ensures the first DNS label (routeName+"-"+namespace) does not exceed 63 characters by
-// truncating the namespace segment if necessary, then appends the cluster apps domain.
-// appsDomain must be the bare domain (e.g. "apps.example.com") without a leading dot.
+/*
+GetLicensingRouteHostname returns the explicit spec.host value for the ILS Route.
+It ensures the first DNS label (routeName+"-"+namespace) stays within the 63-character
+RFC 1123 limit by truncating the namespace segment when necessary, then appends the
+cluster apps domain. appsDomain must be the bare wildcard domain (e.g. "apps.example.com")
+without a leading dot.
+Only called when appsDomain is non-empty (caller guards this).
+*/
 func GetLicensingRouteHostname(routeName, namespace, appsDomain string) string {
-	if appsDomain == "" {
-		return ""
-	}
 	truncatedNamespace := TruncateForDNSLabel(routeName, namespace)
 	return routeName + "-" + truncatedNamespace + "." + appsDomain
 }
