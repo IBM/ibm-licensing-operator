@@ -55,6 +55,9 @@ export KUBECONFIG=$HOME/.kube/config
 echo "Using KUBECONFIG: $KUBECONFIG"
 grep "server:" "$KUBECONFIG"
 make unit-test 2>&1 | tee ./unittest_logs.txt
+echo "Helm Unittests"
+make test/helm 2>&1 | tee ./helm_test_logs.txt
+
 
 echo "Check all pods"
 kubectl describe pods --all-namespaces  > ./pods.txt 2>&1
