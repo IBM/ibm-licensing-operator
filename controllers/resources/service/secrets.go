@@ -59,7 +59,7 @@ func GetServiceAccountSecret(instance *operatorv1alpha1.IBMLicensing) (*corev1.S
 			Name:        ServiceAccountSecretName,
 			Namespace:   instance.Spec.InstanceNamespace,
 			Labels:      LabelsForMeta(instance),
-			Annotations: map[string]string{ServiceAccountSecretAnnotationKey: GetServiceAccountName(instance)},
+			Annotations: map[string]string{ServiceAccountSecretAnnotationKey: instance.Spec.Operand.GetServiceAccountName(instance.Spec.IsNamespaceScopeEnabled())},
 		},
 		Type: corev1.SecretTypeServiceAccountToken,
 	}

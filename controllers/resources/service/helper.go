@@ -19,6 +19,7 @@ package service
 import (
 	"context"
 
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
@@ -65,13 +66,6 @@ const (
 	SchemeHTTP  = "http"
 	SchemeHTTPS = "https"
 )
-
-func GetServiceAccountName(instance *operatorv1alpha1.IBMLicensing) string {
-	if instance.Spec.IsNamespaceScopeEnabled() {
-		return LicensingServiceAccountRestricted
-	}
-	return LicensingServiceAccount
-}
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
@@ -138,7 +132,54 @@ func LabelsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]s
 	for key, value := range selectorLabels {
 		podLabels[key] = value
 	}
+	// Merge user-provided pod labels — IBM base labels always win
+	for k, v := range instance.Spec.Operand.GetPodLabels() {
+		if _, exists := podLabels[k]; !exists {
+			podLabels[k] = v
+		}
+	}
 	return podLabels
+}
+
+// AffinityForLicensingPod returns the affinity for the operand pod.
+// IBM-required arch node affinity is always set; user-provided rules are merged on top,
+// but user cannot override the IBM NodeAffinity block.
+func AffinityForLicensingPod(instance *operatorv1alpha1.IBMLicensing) *corev1.Affinity {
+	ibmNodeAffinity := &corev1.Affinity{
+		NodeAffinity: &corev1.NodeAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+				NodeSelectorTerms: []corev1.NodeSelectorTerm{
+					{
+						MatchExpressions: []corev1.NodeSelectorRequirement{
+							{
+								Key:      "kubernetes.io/arch",
+								Operator: corev1.NodeSelectorOpIn,
+								Values:   []string{"amd64", "ppc64le", "s390x"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	if userAffinity := instance.Spec.Operand.GetAffinity(); userAffinity != nil {
+		merged := userAffinity.DeepCopy()
+		merged.NodeAffinity = ibmNodeAffinity.NodeAffinity
+		return merged
+	}
+	return ibmNodeAffinity
+}
+
+// AnnotationsForLicensingPod returns the annotations for the operand pod.
+// IBM-required annotations always take precedence over user-provided ones.
+func AnnotationsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {
+	podAnnotations := res.AnnotationsForPod(instance)
+	for k, v := range instance.Spec.Operand.GetPodAnnotations() {
+		if _, exists := podAnnotations[k]; !exists {
+			podAnnotations[k] = v
+		}
+	}
+	return podAnnotations
 }
 
 func UpdateVersion(client client.Client, instance *operatorv1alpha1.IBMLicensing) error {
