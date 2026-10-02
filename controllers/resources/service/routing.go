@@ -40,7 +40,13 @@ const (
 	kindConfigMap           = "ConfigMap"
 )
 
-func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) *routev1.Route {
+// GetLicensingRoute builds the OpenShift Route resource for IBM License Service.
+//
+// appsDomain is the cluster wildcard apps domain (e.g. "apps.example.com").
+// When non-empty and the first DNS label exceeds 63 characters (ILS-3012), spec.host
+// is set explicitly with the namespace segment truncated so the first label stays within 63 chars.
+// When empty or label <= 63, spec.host is left unset and OpenShift auto-generates it.
+func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig, appsDomain string) *routev1.Route {
 	var tls *routev1.TLSConfig
 
 	if instance.Spec.RouteOptions != nil {
@@ -56,15 +62,30 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS 
 			tls = defaultRouteTLS
 		}
 	}
+
+	routeName := GetResourceName(instance)
+	namespace := instance.Spec.InstanceNamespace
+
+	var specHost string
+	/*
+	Set spec.host explicitly only when the standard DNS label (routeName+"-"+namespace) would
+	exceed the RFC 1123 63-character limit and the apps domain has been discovered.
+	When appsDomain is empty the label fits and OpenShift can generate the host automatically.
+	*/
+	if appsDomain != "" && len(routeName)+1+len(namespace) > maxDNSLabelLength {
+		specHost = GetLicensingRouteHostname(routeName, namespace, appsDomain)
+	}
+
 	return &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetResourceName(instance),
-			Namespace: instance.Spec.InstanceNamespace,
+			Name:      routeName,
+			Namespace: namespace,
 		},
 		Spec: routev1.RouteSpec{
+			Host: specHost,
 			To: routev1.RouteTargetReference{
 				Kind: kindService,
-				Name: GetResourceName(instance),
+				Name: routeName,
 			},
 			Port: &routev1.RoutePort{
 				TargetPort: licensingTargetPortName,
