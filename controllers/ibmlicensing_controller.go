@@ -596,6 +596,12 @@ func (r *IBMLicensingReconciler) reconcileDefaultReaderToken(instance *operatorv
 			RequeueAfter: time.Minute,
 		}, err
 	}
+	// When Kube RBAC auth is disabled the reader token serves no purpose.
+	// Delete it if it exists so the cluster is left clean.
+	if !instance.Spec.IsKubeRBACAuthEnabled() {
+		foundSecret := &corev1.Secret{}
+		return r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedSecret, foundSecret)
+	}
 	foundSecret := &corev1.Secret{}
 	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
 	if err != nil || result.Requeue {
@@ -618,36 +624,39 @@ func (r *IBMLicensingReconciler) reconcileDefaultReaderToken(instance *operatorv
 }
 
 func (r *IBMLicensingReconciler) reconcileServiceAccountToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	if instance.Spec.IsAlertingEnabled() {
-		reqLogger := r.Log.WithValues("reconcileServiceAccountToken", "Entry", "instance.GetName()", instance.GetName())
-		expectedSecret, err := service.GetServiceAccountSecret(instance)
-		if err != nil {
-			reqLogger.Info("Failed to get expected secret")
-			return reconcile.Result{
-				Requeue:      true,
-				RequeueAfter: time.Minute,
-			}, err
-		}
-		foundSecret := &corev1.Secret{}
-		result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
-		if err != nil || result.Requeue {
-			return result, err
-		}
-		if expectedSecret.Annotations[service.ServiceAccountSecretAnnotationKey] !=
-			foundSecret.Annotations[service.ServiceAccountSecretAnnotationKey] {
-			err = r.Client.Delete(context.TODO(), foundSecret)
-			if err != nil {
-				reqLogger.Error(err, "Failed to delete ServiceAccount secret due to wrong annotations.")
-				return reconcile.Result{}, err
-			}
-			return reconcile.Result{
-				Requeue:      true,
-				RequeueAfter: time.Minute,
-			}, err
-		}
-		return r.attachSpecLabelsAndAnnotations(instance, foundSecret, &reqLogger)
+	reqLogger := r.Log.WithValues("reconcileServiceAccountToken", "Entry", "instance.GetName()", instance.GetName())
+	expectedSecret, err := service.GetServiceAccountSecret(instance)
+	if err != nil {
+		reqLogger.Info("Failed to get expected secret")
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
 	}
-	return reconcile.Result{}, nil
+	// When alerting is disabled the service account token serves no purpose.
+	// Delete it if it exists so the cluster is left clean.
+	if !instance.Spec.IsAlertingEnabled() {
+		foundSecret := &corev1.Secret{}
+		return r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedSecret, foundSecret)
+	}
+	foundSecret := &corev1.Secret{}
+	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	if expectedSecret.Annotations[service.ServiceAccountSecretAnnotationKey] !=
+		foundSecret.Annotations[service.ServiceAccountSecretAnnotationKey] {
+		err = r.Client.Delete(context.TODO(), foundSecret)
+		if err != nil {
+			reqLogger.Error(err, "Failed to delete ServiceAccount secret due to wrong annotations.")
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
+	}
+	return r.attachSpecLabelsAndAnnotations(instance, foundSecret, &reqLogger)
 }
 
 func (r *IBMLicensingReconciler) reconcileUploadToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
