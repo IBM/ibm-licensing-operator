@@ -18,6 +18,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -26,6 +27,15 @@ import (
 	res "github.com/IBM/ibm-licensing-operator/controllers/resources"
 	"github.com/IBM/ibm-licensing-operator/version"
 )
+
+// maxDNSLabelLength is the maximum number of characters allowed in a single DNS label per RFC 1123.
+const maxDNSLabelLength = 63
+
+// MaxNamespaceLengthForRouteProbe is the maximum namespace character length (61) for which
+// an ultra-short 1-character probe Route ("p") can have its first DNS label ("p-<namespace>")
+// fit within the 63-character RFC 1123 limit (63 - 1 char probe name - 1 char hyphen).
+// Namespaces longer than this cannot be used with probe Route domain discovery.
+const MaxNamespaceLengthForRouteProbe = 61
 
 const (
 	LicensingResourceBase                = "ibm-licensing-service"
@@ -69,6 +79,42 @@ const (
 
 func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 	return LicensingResourceBase + "-" + instance.GetName()
+}
+
+/*
+TruncateForDNSLabel truncates namespace so that routeName+"-"+namespace does not exceed
+maxDNSLabelLength (63 characters, per RFC 1123).
+If the combined label already fits, namespace is returned unchanged.
+Returns an error when routeName alone exceeds or fills the 63-character budget — this
+indicates a user-supplied instance name that is too long to form any valid Route hostname.
+*/
+func TruncateForDNSLabel(routeName, namespace string) (string, error) {
+	separator := "-"
+	maxNamespaceLen := maxDNSLabelLength - len(routeName) - len(separator)
+	if maxNamespaceLen <= 0 {
+		return "", fmt.Errorf("instance name %q is too long: routeName %q fills the 63-character DNS label budget leaving no room for the namespace", routeName, routeName)
+	}
+	if len(namespace) <= maxNamespaceLen {
+		return namespace, nil
+	}
+	return namespace[:maxNamespaceLen], nil
+}
+
+/*
+GetLicensingRouteHostname returns the explicit spec.host value for the ILS Route.
+It ensures the first DNS label (routeName+"-"+namespace) stays within the 63-character
+RFC 1123 limit by truncating the namespace segment when necessary, then appends the
+cluster apps domain. appsDomain must be the bare wildcard domain (e.g. "apps.example.com")
+without a leading dot.
+Only called when appsDomain is non-empty (caller guards this).
+Returns an error when the instance name itself exhausts the DNS label budget.
+*/
+func GetLicensingRouteHostname(routeName, namespace, appsDomain string) (string, error) {
+	truncatedNamespace, err := TruncateForDNSLabel(routeName, namespace)
+	if err != nil {
+		return "", err
+	}
+	return routeName + "-" + truncatedNamespace + "." + appsDomain, nil
 }
 
 func GetServiceURL(instance *operatorv1alpha1.IBMLicensing) string {

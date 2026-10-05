@@ -17,6 +17,7 @@
 package service
 
 import (
+	"fmt"
 	"maps"
 
 	routev1 "github.com/openshift/api/route/v1"
@@ -40,7 +41,16 @@ const (
 	kindConfigMap           = "ConfigMap"
 )
 
-func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) *routev1.Route {
+/*
+GetLicensingRoute builds the OpenShift Route resource for IBM License Service.
+
+appsDomain is the cluster wildcard apps domain (e.g. "apps.example.com").
+When non-empty and the first DNS label exceeds 63 characters, spec.host is set explicitly
+with the namespace segment truncated so the first label stays within the RFC 1123 63-character limit.
+When empty or the label already fits, spec.host is left unset and OpenShift auto-generates it.
+Returns an error when the instance name itself exhausts the DNS label budget.
+*/
+func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig, appsDomain string) (*routev1.Route, error) {
 	var tls *routev1.TLSConfig
 
 	if instance.Spec.RouteOptions != nil {
@@ -56,22 +66,41 @@ func GetLicensingRoute(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS 
 			tls = defaultRouteTLS
 		}
 	}
+
+	routeName := GetResourceName(instance)
+	namespace := instance.Spec.InstanceNamespace
+
+	var specHost string
+	/*
+		Set spec.host explicitly only when the standard DNS label (routeName+"-"+namespace) would
+		exceed the RFC 1123 63-character limit and the apps domain has been discovered.
+		When appsDomain is empty the label fits and OpenShift can generate the host automatically.
+	*/
+	if appsDomain != "" && len(routeName)+1+len(namespace) > maxDNSLabelLength {
+		var err error
+		specHost, err = GetLicensingRouteHostname(routeName, namespace, appsDomain)
+		if err != nil {
+			return nil, fmt.Errorf("cannot build Route hostname: %w", err)
+		}
+	}
+
 	return &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetResourceName(instance),
-			Namespace: instance.Spec.InstanceNamespace,
+			Name:      routeName,
+			Namespace: namespace,
 		},
 		Spec: routev1.RouteSpec{
+			Host: specHost,
 			To: routev1.RouteTargetReference{
 				Kind: kindService,
-				Name: GetResourceName(instance),
+				Name: routeName,
 			},
 			Port: &routev1.RoutePort{
 				TargetPort: licensingTargetPortName,
 			},
 			TLS: tls,
 		},
-	}
+	}, nil
 }
 
 func newGatewayListener(name string, protocol gatewayv1.ProtocolType, port int32, tlsConfig *gatewayv1.ListenerTLSConfig) gatewayv1.Listener {
