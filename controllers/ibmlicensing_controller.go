@@ -65,6 +65,10 @@ const (
 
 	// key in the UMS ConfigMap that holds the excludeNamespace value
 	umsExcludeNamespaceDataKey = "excludeNamespace"
+
+	/* appsDomainDiscoveryRequeueDelay is the interval between requeues while waiting
+	for OpenShift admission to assign a host to the probe Route used for apps-domain discovery. */
+	appsDomainDiscoveryRequeueDelay = 3 * time.Second
 )
 
 func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -1114,7 +1118,7 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 		r.Log.Info("Route is disabled, deleting current route if exists")
 		appsDomain, ready := r.getClusterAppsDomain(instance)
 		if !ready {
-			return reconcile.Result{RequeueAfter: 5 * time.Second}, nil
+			return reconcile.Result{RequeueAfter: appsDomainDiscoveryRequeueDelay}, nil
 		}
 		expectedRoute, err := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
 		if err != nil {
@@ -1138,7 +1142,7 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 		}
 		appsDomain, ready := r.getClusterAppsDomain(instance)
 		if !ready {
-			return reconcile.Result{RequeueAfter: 5 * time.Second}, nil
+			return reconcile.Result{RequeueAfter: appsDomainDiscoveryRequeueDelay}, nil
 		}
 		expectedRoute, err := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
 		if err != nil {
