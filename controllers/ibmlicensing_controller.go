@@ -996,8 +996,8 @@ func (r *IBMLicensingReconciler) discoverClusterAppsDomain(
 	ctx := context.TODO()
 
 	/*
-	1. Try to read domain from any existing Route in the namespace.
-	This avoids creating a probe Route on most reconcile passes.
+		1. Try to read domain from any existing Route in the namespace.
+		This avoids creating a probe Route on most reconcile passes.
 	*/
 	routeList := &routev1.RouteList{}
 	if err := r.Client.List(ctx, routeList, client.InNamespace(namespace)); err == nil {
@@ -1026,8 +1026,8 @@ func (r *IBMLicensingReconciler) discoverClusterAppsDomain(
 			return "", false
 		}
 		/*
-		Probe does not exist yet — create it and requeue so OpenShift admission
-		has time to assign a host before we read it.
+			Probe does not exist yet — create it and requeue so OpenShift admission
+			has time to assign a host before we read it.
 		*/
 		probeRoute = &routev1.Route{
 			ObjectMeta: metav1.ObjectMeta{
@@ -1050,9 +1050,9 @@ func (r *IBMLicensingReconciler) discoverClusterAppsDomain(
 	}
 
 	/*
-	Probe Route exists — read the host assigned by OpenShift admission.
-	On the first reconcile after probe creation, admission may not have assigned a host yet;
-	host will be empty and we requeue below. This is expected and not an error.
+		Probe Route exists — read the host assigned by OpenShift admission.
+		On the first reconcile after probe creation, admission may not have assigned a host yet;
+		host will be empty and we requeue below. This is expected and not an error.
 	*/
 	host := probeRoute.Spec.Host
 	if host == "" && len(probeRoute.Status.Ingress) > 0 {
