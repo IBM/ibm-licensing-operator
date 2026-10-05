@@ -991,8 +991,10 @@ func (r *IBMLicensingReconciler) discoverClusterAppsDomain(
 	namespace := instance.Spec.InstanceNamespace
 	ctx := context.TODO()
 
-	// 1. Try to read domain from any existing Route in the namespace.
-	// This avoids creating a probe Route on most reconcile passes.
+	/*
+	1. Try to read domain from any existing Route in the namespace.
+	This avoids creating a probe Route on most reconcile passes.
+	*/
 	routeList := &routev1.RouteList{}
 	if err := r.Client.List(ctx, routeList, client.InNamespace(namespace)); err == nil {
 		for _, rt := range routeList.Items {
@@ -1009,7 +1011,7 @@ func (r *IBMLicensingReconciler) discoverClusterAppsDomain(
 		}
 	}
 
-	// 2. No existing Route with a host found — use the probe Route "p".
+	/* 2. No existing Route with a host found — use the probe Route "p". */
 	probeName := "p"
 	probeNamespacedName := types.NamespacedName{Namespace: namespace, Name: probeName}
 	probeRoute := &routev1.Route{}
@@ -1019,8 +1021,10 @@ func (r *IBMLicensingReconciler) discoverClusterAppsDomain(
 			r.Log.Info("Failed to get probe Route for domain discovery", "error", err.Error())
 			return "", false
 		}
-		// Probe does not exist yet — create it and requeue so OpenShift admission
-		// has time to assign a host before we read it.
+		/*
+		Probe does not exist yet — create it and requeue so OpenShift admission
+		has time to assign a host before we read it.
+		*/
 		probeRoute = &routev1.Route{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      probeName,
@@ -1037,27 +1041,30 @@ func (r *IBMLicensingReconciler) discoverClusterAppsDomain(
 			r.Log.Info("Could not create probe Route for domain discovery", "error", err.Error())
 			return "", false
 		}
-		// Requeue — the host will not be populated until admission processes the Route.
+		/* Requeue — the host will not be populated until admission processes the Route. */
 		return "", false
 	}
 
-	// Probe Route exists; read the host assigned by OpenShift admission.
+	/*
+	Probe Route exists — read the host assigned by OpenShift admission.
+	On the first reconcile after probe creation, admission may not have assigned a host yet;
+	host will be empty and we requeue below. This is expected and not an error.
+	*/
 	host := probeRoute.Spec.Host
 	if host == "" && len(probeRoute.Status.Ingress) > 0 {
 		host = probeRoute.Status.Ingress[0].Host
 	}
 
-	// Clean up the probe Route. Retry on failure by requeuing rather than silently dropping.
-	if err := r.Client.Delete(ctx, probeRoute); err != nil && !apierrors.IsNotFound(err) {
-		r.Log.Info("Failed to delete probe Route; will retry on next reconcile", "error", err.Error())
-		return "", false
-	}
-
 	if domain := extractAppsDomain(host); domain != "" {
+		/* Host is available — delete the probe and return the resolved domain. */
+		if err := r.Client.Delete(ctx, probeRoute); err != nil && !apierrors.IsNotFound(err) {
+			r.Log.Info("Failed to delete probe Route; will retry on next reconcile", "error", err.Error())
+			return "", false
+		}
 		return domain, true
 	}
 
-	// Host still empty after probe creation — requeue to wait for admission.
+	/* Host not yet assigned by admission — requeue to wait. */
 	return "", false
 }
 
@@ -1072,7 +1079,7 @@ func (r *IBMLicensingReconciler) getClusterAppsDomain(
 ) (string, bool) {
 	routeName := service.GetResourceName(instance)
 	namespace := instance.Spec.InstanceNamespace
-	// Domain discovery is only needed when the standard label would exceed 63 characters.
+	/* Domain discovery is only needed when the standard label would exceed 63 characters. */
 	if len(routeName)+1+len(namespace) <= 63 {
 		return "", true
 	}
@@ -1107,9 +1114,13 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 		r.Log.Info("Route is disabled, deleting current route if exists")
 		appsDomain, ready := r.getClusterAppsDomain(instance)
 		if !ready {
-			return reconcile.Result{Requeue: true}, nil
+			return reconcile.Result{RequeueAfter: 5 * time.Second}, nil
 		}
-		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
+		expectedRoute, err := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
+		if err != nil {
+			r.Log.Error(err, "Cannot build expected Route for deletion check")
+			return reconcile.Result{}, err
+		}
 		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedRoute, route)
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
@@ -1127,9 +1138,13 @@ func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha
 		}
 		appsDomain, ready := r.getClusterAppsDomain(instance)
 		if !ready {
-			return reconcile.Result{Requeue: true}, nil
+			return reconcile.Result{RequeueAfter: 5 * time.Second}, nil
 		}
-		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
+		expectedRoute, err := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
+		if err != nil {
+			r.Log.Error(err, "Cannot build expected Route")
+			return reconcile.Result{}, err
+		}
 		foundRoute := &routev1.Route{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
 		if err != nil || reconcileResult.Requeue {

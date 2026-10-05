@@ -18,6 +18,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -84,21 +85,19 @@ func GetResourceName(instance *operatorv1alpha1.IBMLicensing) string {
 TruncateForDNSLabel truncates namespace so that routeName+"-"+namespace does not exceed
 maxDNSLabelLength (63 characters, per RFC 1123).
 If the combined label already fits, namespace is returned unchanged.
-Returns an empty string and logs a warning when routeName alone fills the label budget —
-this indicates a misconfigured instance name (user-controlled) that cannot be accommodated.
+Returns an error when routeName alone exceeds or fills the 63-character budget — this
+indicates a user-supplied instance name that is too long to form any valid Route hostname.
 */
-func TruncateForDNSLabel(routeName, namespace string) string {
+func TruncateForDNSLabel(routeName, namespace string) (string, error) {
 	separator := "-"
 	maxNamespaceLen := maxDNSLabelLength - len(routeName) - len(separator)
 	if maxNamespaceLen <= 0 {
-		// routeName alone exceeds or exactly meets the 63-char DNS label limit;
-		// the instance name is too long and cannot form a valid Route hostname.
-		return ""
+		return "", fmt.Errorf("instance name %q is too long: routeName %q fills the 63-character DNS label budget leaving no room for the namespace", routeName, routeName)
 	}
 	if len(namespace) <= maxNamespaceLen {
-		return namespace
+		return namespace, nil
 	}
-	return namespace[:maxNamespaceLen]
+	return namespace[:maxNamespaceLen], nil
 }
 
 /*
@@ -108,10 +107,14 @@ RFC 1123 limit by truncating the namespace segment when necessary, then appends 
 cluster apps domain. appsDomain must be the bare wildcard domain (e.g. "apps.example.com")
 without a leading dot.
 Only called when appsDomain is non-empty (caller guards this).
+Returns an error when the instance name itself exhausts the DNS label budget.
 */
-func GetLicensingRouteHostname(routeName, namespace, appsDomain string) string {
-	truncatedNamespace := TruncateForDNSLabel(routeName, namespace)
-	return routeName + "-" + truncatedNamespace + "." + appsDomain
+func GetLicensingRouteHostname(routeName, namespace, appsDomain string) (string, error) {
+	truncatedNamespace, err := TruncateForDNSLabel(routeName, namespace)
+	if err != nil {
+		return "", err
+	}
+	return routeName + "-" + truncatedNamespace + "." + appsDomain, nil
 }
 
 func GetServiceURL(instance *operatorv1alpha1.IBMLicensing) string {
