@@ -596,13 +596,13 @@ func (r *IBMLicensingReconciler) reconcileDefaultReaderToken(instance *operatorv
 			RequeueAfter: time.Minute,
 		}, err
 	}
+
+	foundSecret := &corev1.Secret{}
 	// When Kube RBAC auth is disabled the reader token serves no purpose.
 	// Delete it if it exists so the cluster is left clean.
 	if !instance.Spec.IsKubeRBACAuthEnabled() {
-		foundSecret := &corev1.Secret{}
 		return r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedSecret, foundSecret)
 	}
-	foundSecret := &corev1.Secret{}
 	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
 	if err != nil || result.Requeue {
 		return result, err
