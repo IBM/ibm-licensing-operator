@@ -633,13 +633,13 @@ func (r *IBMLicensingReconciler) reconcileServiceAccountToken(instance *operator
 			RequeueAfter: time.Minute,
 		}, err
 	}
+
+	foundSecret := &corev1.Secret{}
 	// When alerting is disabled the service account token serves no purpose.
 	// Delete it if it exists so the cluster is left clean.
 	if !instance.Spec.IsAlertingEnabled() {
-		foundSecret := &corev1.Secret{}
 		return r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedSecret, foundSecret)
 	}
-	foundSecret := &corev1.Secret{}
 	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
 	if err != nil || result.Requeue {
 		return result, err
