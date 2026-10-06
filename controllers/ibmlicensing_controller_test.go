@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -27,6 +28,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -38,6 +40,7 @@ import (
 	rhmp "github.com/IBM/ibm-licensing-operator/pkg/rhmp/v1beta1"
 
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
+	"github.com/IBM/ibm-licensing-operator/api/v1alpha1/features"
 	"github.com/IBM/ibm-licensing-operator/controllers/resources/service"
 )
 
@@ -944,6 +947,152 @@ var _ = Describe("IBMLicensing controller", Ordered, func() {
 					labels["updated"] == "true" &&
 					annotations["description"] == "updated" &&
 					annotations["timestamp"] == "2026-03-24"
+			}, timeout, interval).Should(BeTrue())
+		})
+
+		It("Should NOT create default reader token when kubeRBACAuthEnabled is false", func() {
+			By("Creating IBMLicensing with kubeRBACAuthEnabled=false")
+			falseVal := false
+			instance = &operatorv1alpha1.IBMLicensing{
+				ObjectMeta: metav1.ObjectMeta{Name: name},
+				Spec: operatorv1alpha1.IBMLicensingSpec{
+					InstanceNamespace: namespace,
+					Datasource:        "datacollector",
+					Container:         operatorv1alpha1.Container{ImagePullPolicy: v1.PullAlways},
+					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
+						ImagePullSecrets: []string{"artifactory-token"},
+					},
+					License:  &operatorv1alpha1.License{Accept: true},
+					Features: &operatorv1alpha1.Features{KubeRBACAuthEnabled: &falseVal},
+				},
+			}
+			newInstance := &operatorv1alpha1.IBMLicensing{}
+			checkBasicRequirements(ctx, instance, newInstance)
+
+			By("Checking that default reader token secret does not exist")
+			Consistently(func() bool {
+				secret := &corev1.Secret{}
+				err := k8sClient.Get(ctx, types.NamespacedName{
+					Name:      service.DefaultReaderTokenName,
+					Namespace: namespace,
+				}, secret)
+				return apierrors.IsNotFound(err)
+			}, time.Second*30, interval).Should(BeTrue())
+		})
+
+		It("Should delete pre-existing default reader token when kubeRBACAuthEnabled is false", func() {
+			By("Pre-creating the reader token secret")
+			preExisting := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      service.DefaultReaderTokenName,
+					Namespace: namespace,
+					Annotations: map[string]string{
+						service.ServiceAccountSecretAnnotationKey: service.DefaultReaderServiceAccountName,
+					},
+				},
+				Type: corev1.SecretTypeServiceAccountToken,
+			}
+			Expect(k8sClient.Create(ctx, preExisting)).Should(Succeed())
+
+			By("Creating IBMLicensing with kubeRBACAuthEnabled=false")
+			falseVal := false
+			instance = &operatorv1alpha1.IBMLicensing{
+				ObjectMeta: metav1.ObjectMeta{Name: name},
+				Spec: operatorv1alpha1.IBMLicensingSpec{
+					InstanceNamespace: namespace,
+					Datasource:        "datacollector",
+					Container:         operatorv1alpha1.Container{ImagePullPolicy: v1.PullAlways},
+					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
+						ImagePullSecrets: []string{"artifactory-token"},
+					},
+					License:  &operatorv1alpha1.License{Accept: true},
+					Features: &operatorv1alpha1.Features{KubeRBACAuthEnabled: &falseVal},
+				},
+			}
+			newInstance := &operatorv1alpha1.IBMLicensing{}
+			checkBasicRequirements(ctx, instance, newInstance)
+
+			By("Checking that the pre-existing reader token secret was deleted")
+			Eventually(func() bool {
+				secret := &corev1.Secret{}
+				err := k8sClient.Get(ctx, types.NamespacedName{
+					Name:      service.DefaultReaderTokenName,
+					Namespace: namespace,
+				}, secret)
+				return apierrors.IsNotFound(err)
+			}, timeout, interval).Should(BeTrue())
+		})
+
+		It("Should NOT create service account token when alerting is disabled", func() {
+			By("Creating IBMLicensing with alerting disabled")
+			falseVal := false
+			instance = &operatorv1alpha1.IBMLicensing{
+				ObjectMeta: metav1.ObjectMeta{Name: name},
+				Spec: operatorv1alpha1.IBMLicensingSpec{
+					InstanceNamespace: namespace,
+					Datasource:        "datacollector",
+					Container:         operatorv1alpha1.Container{ImagePullPolicy: v1.PullAlways},
+					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
+						ImagePullSecrets: []string{"artifactory-token"},
+					},
+					License:  &operatorv1alpha1.License{Accept: true},
+					Features: &operatorv1alpha1.Features{Alerting: &features.Alerting{Enabled: &falseVal}},
+				},
+			}
+			newInstance := &operatorv1alpha1.IBMLicensing{}
+			checkBasicRequirements(ctx, instance, newInstance)
+
+			By("Checking that service account token secret does not exist")
+			Consistently(func() bool {
+				secret := &corev1.Secret{}
+				err := k8sClient.Get(ctx, types.NamespacedName{
+					Name:      service.ServiceAccountSecretName,
+					Namespace: namespace,
+				}, secret)
+				return apierrors.IsNotFound(err)
+			}, time.Second*30, interval).Should(BeTrue())
+		})
+
+		It("Should delete pre-existing service account token when alerting is disabled", func() {
+			By("Pre-creating the service account token secret")
+			preExisting := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      service.ServiceAccountSecretName,
+					Namespace: namespace,
+					Annotations: map[string]string{
+						service.ServiceAccountSecretAnnotationKey: "ibm-license-service",
+					},
+				},
+				Type: corev1.SecretTypeServiceAccountToken,
+			}
+			Expect(k8sClient.Create(ctx, preExisting)).Should(Succeed())
+
+			By("Creating IBMLicensing with alerting disabled")
+			falseVal := false
+			instance = &operatorv1alpha1.IBMLicensing{
+				ObjectMeta: metav1.ObjectMeta{Name: name},
+				Spec: operatorv1alpha1.IBMLicensingSpec{
+					InstanceNamespace: namespace,
+					Datasource:        "datacollector",
+					Container:         operatorv1alpha1.Container{ImagePullPolicy: v1.PullAlways},
+					IBMLicenseServiceBaseSpec: operatorv1alpha1.IBMLicenseServiceBaseSpec{
+						ImagePullSecrets: []string{"artifactory-token"},
+					},
+					License:  &operatorv1alpha1.License{Accept: true},
+					Features: &operatorv1alpha1.Features{Alerting: &features.Alerting{Enabled: &falseVal}},
+				},
+			}
+			newInstance := &operatorv1alpha1.IBMLicensing{}
+			checkBasicRequirements(ctx, instance, newInstance)
+
+			By("Checking that the pre-existing service account token secret was deleted")
+			Eventually(func() bool {
+				secret := &corev1.Secret{}
+				err := k8sClient.Get(ctx, types.NamespacedName{
+					Name:      service.ServiceAccountSecretName,
+					Namespace: namespace,
+				}, secret)
+				return apierrors.IsNotFound(err)
 			}, timeout, interval).Should(BeTrue())
 		})
 	})
