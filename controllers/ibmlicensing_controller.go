@@ -91,7 +91,8 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			&corev1.Secret{},
 			handler.EnqueueRequestsFromMapFunc(r.enqueueAllIBMLicensing),
 			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
-				return obj.GetName() == service.LicenseServiceInternalCertName
+				return obj.GetNamespace() == r.OperatorNamespace &&
+					obj.GetName() == service.LicenseServiceInternalCertName
 			})),
 		)
 

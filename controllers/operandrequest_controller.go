@@ -60,6 +60,8 @@ func (r *OperandRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	watcher := ctrl.NewControllerManagedBy(mgr).
 		For(&odlm.OperandRequest{}, builder.WithPredicates(ignoreDeletionPredicate())).
+		// Watch source ConfigMaps and Secrets including deletions, so that if a source is removed
+		// the controller requeues until it is recreated and the consumer copies are refreshed.
 		Watches(
 			&corev1.ConfigMap{},
 			handler.EnqueueRequestsFromMapFunc(r.enqueueAllOperandRequests),
