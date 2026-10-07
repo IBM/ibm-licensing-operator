@@ -86,6 +86,13 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
 				return obj.GetName() == UmsExcludeNamespaceConfigMapName
 			})),
+		).
+		Watches(
+			&corev1.Secret{},
+			handler.EnqueueRequestsFromMapFunc(r.enqueueAllIBMLicensing),
+			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
+				return obj.GetName() == service.LicenseServiceInternalCertName
+			})),
 		)
 
 	if res.IsGatewayAPI {
@@ -103,12 +110,12 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 // returns reconcile requests for all IBMLicensing instances
-// used as a Watch handler so that any change to a UMS exclude-namespace ConfigMap
-// triggers a reconcile of every IBMLicensing CR on the cluster
+// used as a Watch handler so that any change to a watched resource (e.g. UMS exclude-namespace ConfigMap,
+// or Service CA internal cert Secret) triggers a reconcile of every IBMLicensing CR on the cluster
 func (r *IBMLicensingReconciler) enqueueAllIBMLicensing(_ context.Context, _ client.Object) []reconcile.Request {
 	ibmLicensingList := &operatorv1alpha1.IBMLicensingList{}
 	if err := r.Client.List(context.TODO(), ibmLicensingList); err != nil {
-		r.Log.Error(err, "Failed to list IBMLicensing instances for UMS ConfigMap reconcile trigger")
+		r.Log.Error(err, "Failed to list IBMLicensing instances for reconcile trigger")
 		return nil
 	}
 	requests := make([]reconcile.Request, 0, len(ibmLicensingList.Items))
