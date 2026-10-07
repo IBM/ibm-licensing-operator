@@ -58,25 +58,37 @@ func (r *OperandRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		r.Log.Error(err, "Error during checking K8s API")
 	}
 
+	// confirmedDeletePredicate suppresses delete events whose final state is unknown,
+	// matching the DeleteFunc behaviour of ignoreDeletionPredicate for the source watches.
+	confirmedDeletePredicate := predicate.Funcs{
+		DeleteFunc: func(e event.DeleteEvent) bool { return !e.DeleteStateUnknown },
+	}
+
 	watcher := ctrl.NewControllerManagedBy(mgr).
 		For(&odlm.OperandRequest{}, builder.WithPredicates(ignoreDeletionPredicate())).
-		// Watch source ConfigMaps and Secrets including deletions, so that if a source is removed
-		// the controller requeues until it is recreated and the consumer copies are refreshed.
+		// Watch source ConfigMaps and Secrets so that updates and confirmed deletions trigger
+		// reconciliation and consumer copies are refreshed.
 		Watches(
 			&corev1.ConfigMap{},
 			handler.EnqueueRequestsFromMapFunc(r.enqueueAllOperandRequests),
-			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
-				return obj.GetNamespace() == r.OperatorNamespace &&
-					(obj.GetName() == svcres.LicensingUploadConfig || obj.GetName() == svcres.LicensingInfo)
-			})),
+			builder.WithPredicates(predicate.And(
+				predicate.NewPredicateFuncs(func(obj client.Object) bool {
+					return obj.GetNamespace() == r.OperatorNamespace &&
+						(obj.GetName() == svcres.LicensingUploadConfig || obj.GetName() == svcres.LicensingInfo)
+				}),
+				confirmedDeletePredicate,
+			)),
 		).
 		Watches(
 			&corev1.Secret{},
 			handler.EnqueueRequestsFromMapFunc(r.enqueueAllOperandRequests),
-			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
-				return obj.GetNamespace() == r.OperatorNamespace &&
-					(obj.GetName() == svcres.LicensingToken || obj.GetName() == svcres.LicensingUploadToken)
-			})),
+			builder.WithPredicates(predicate.And(
+				predicate.NewPredicateFuncs(func(obj client.Object) bool {
+					return obj.GetNamespace() == r.OperatorNamespace &&
+						(obj.GetName() == svcres.LicensingToken || obj.GetName() == svcres.LicensingUploadToken)
+				}),
+				confirmedDeletePredicate,
+			)),
 		)
 
 	return watcher.Complete(r)
