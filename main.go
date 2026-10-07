@@ -145,10 +145,6 @@ func main() {
 			Namespaces: map[string]cache.Config{
 				// operator namespace - cache all Secrets without label restriction (e.g. ServiceCA internal certs)
 				operatorNamespace: {},
-				// all other namespaces - cache Secrets with licensing release label
-				cache.AllNamespaces: {
-					LabelSelector: licensingLabelSelector,
-				},
 			},
 		},
 		&appsv1.Deployment{}: {Label: licensingLabelSelector},
