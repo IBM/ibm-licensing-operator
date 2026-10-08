@@ -110,9 +110,11 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return watcher.Complete(r)
 }
 
-// returns reconcile requests for all IBMLicensing instances
-// used as a Watch handler so that any change to a watched resource (e.g. UMS exclude-namespace ConfigMap,
-// or Service CA internal cert Secret) triggers a reconcile of every IBMLicensing CR on the cluster
+/*
+returns reconcile requests for all IBMLicensing instances
+used as a Watch handler so that any change to a watched resource (e.g. UMS exclude-namespace ConfigMap,
+or Service CA internal cert Secret) triggers a reconcile of every IBMLicensing CR on the cluster
+*/
 func (r *IBMLicensingReconciler) enqueueAllIBMLicensing(_ context.Context, _ client.Object) []reconcile.Request {
 	ibmLicensingList := &operatorv1alpha1.IBMLicensingList{}
 	if err := r.Client.List(context.TODO(), ibmLicensingList); err != nil {
