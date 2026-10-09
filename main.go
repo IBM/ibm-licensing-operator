@@ -141,14 +141,23 @@ func main() {
 	licensingLabelSelector, _ := labels.Parse("release in (ibm-licensing-service)")
 
 	byObject := map[client.Object]cache.ByObject{
-		&corev1.Secret{}:     {Label: licensingLabelSelector},
+		&corev1.Secret{}: {
+			Namespaces: map[string]cache.Config{
+				// operator namespace - cache all Secrets without label restriction (e.g. ServiceCA internal certs)
+				operatorNamespace: {},
+				// all other namespaces - cache Secrets with licensing release label
+				cache.AllNamespaces: {
+					LabelSelector: licensingLabelSelector,
+				},
+			},
+		},
 		&appsv1.Deployment{}: {Label: licensingLabelSelector},
 		&corev1.Pod{}:        {Label: licensingLabelSelector},
 		&corev1.ConfigMap{}: {
 			Namespaces: map[string]cache.Config{
-				// operator namespace — cache all ConfigMaps
+				// operator namespace - cache all ConfigMaps
 				operatorNamespace: {},
-				// all other namespaces — only cache UMS exclude-namespace ConfigMaps by name
+				// all other namespaces - only cache UMS exclude-namespace ConfigMaps by name
 				cache.AllNamespaces: {
 					FieldSelector: fields.OneTermEqualSelector("metadata.name", controllers.UmsExcludeNamespaceConfigMapName),
 				},
