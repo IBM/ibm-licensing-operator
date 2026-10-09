@@ -28,11 +28,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -58,58 +56,11 @@ func (r *OperandRequestReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		r.Log.Error(err, "Error during checking K8s API")
 	}
 
-	// confirmedDeletePredicate suppresses delete events whose final state is unknown,
-	// matching the DeleteFunc behaviour of ignoreDeletionPredicate for the source watches.
-	confirmedDeletePredicate := predicate.Funcs{
-		DeleteFunc: func(e event.DeleteEvent) bool { return !e.DeleteStateUnknown },
-	}
-
 	watcher := ctrl.NewControllerManagedBy(mgr).
-		For(&odlm.OperandRequest{}, builder.WithPredicates(ignoreDeletionPredicate())).
-		// Watch source ConfigMaps and Secrets so that updates and confirmed deletions trigger
-		// reconciliation and consumer copies are refreshed.
-		Watches(
-			&corev1.ConfigMap{},
-			handler.EnqueueRequestsFromMapFunc(r.enqueueAllOperandRequests),
-			builder.WithPredicates(predicate.And(
-				predicate.NewPredicateFuncs(func(obj client.Object) bool {
-					return obj.GetNamespace() == r.OperatorNamespace &&
-						(obj.GetName() == svcres.LicensingUploadConfig || obj.GetName() == svcres.LicensingInfo)
-				}),
-				confirmedDeletePredicate,
-			)),
-		).
-		Watches(
-			&corev1.Secret{},
-			handler.EnqueueRequestsFromMapFunc(r.enqueueAllOperandRequests),
-			builder.WithPredicates(predicate.And(
-				predicate.NewPredicateFuncs(func(obj client.Object) bool {
-					return obj.GetNamespace() == r.OperatorNamespace &&
-						(obj.GetName() == svcres.LicensingToken || obj.GetName() == svcres.LicensingUploadToken)
-				}),
-				confirmedDeletePredicate,
-			)),
-		)
+		For(&odlm.OperandRequest{}).
+		WithEventFilter(ignoreDeletionPredicate())
 
 	return watcher.Complete(r)
-}
-
-// returns reconcile requests for all OperandRequest instances binding to ibm-licensing-operator
-func (r *OperandRequestReconciler) enqueueAllOperandRequests(ctx context.Context, _ client.Object) []reconcile.Request {
-	opreqList := &odlm.OperandRequestList{}
-	if err := r.Client.List(ctx, opreqList); err != nil {
-		r.Log.Error(err, "Failed to list OperandRequest instances for reconcile trigger")
-		return nil
-	}
-	requests := make([]reconcile.Request, 0, len(opreqList.Items))
-	for _, item := range opreqList.Items {
-		if res.HasOperandRequestBindingForLicensing(item) {
-			requests = append(requests, reconcile.Request{
-				NamespacedName: types.NamespacedName{Name: item.Name, Namespace: item.Namespace},
-			})
-		}
-	}
-	return requests
 }
 
 func ignoreDeletionPredicate() predicate.Predicate {
