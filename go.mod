@@ -1,6 +1,6 @@
 module github.com/IBM/ibm-licensing-operator
 
-go 1.26.6
+go 1.26.9
 
 require (
 	emperror.dev/errors v0.8.1
