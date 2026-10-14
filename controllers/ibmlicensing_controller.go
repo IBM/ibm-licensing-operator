@@ -80,6 +80,8 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&operatorv1alpha1.IBMLicensing{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{}).
+		Owns(&corev1.Secret{}).
+		Owns(&corev1.ConfigMap{}).
 		Watches(
 			&corev1.ConfigMap{},
 			handler.EnqueueRequestsFromMapFunc(r.enqueueAllIBMLicensing),
@@ -171,10 +173,10 @@ type IBMLicensingReconciler struct {
 	// that reads objects from the cache and writes to the apiserver
 	client.Client
 	client.Reader
-	Log                     logr.Logger
-	Scheme                  *runtime.Scheme
-	Recorder                record.EventRecorder
-	OperatorNamespace       string
+	Log               logr.Logger
+	Scheme            *runtime.Scheme
+	Recorder          record.EventRecorder
+	OperatorNamespace string
 	// InstanceNamespace is the namespace where the License Service operand runs.
 	// It defaults to OperatorNamespace when not set in the CR spec, but may differ
 	// and must be considered when filtering watched resources.
