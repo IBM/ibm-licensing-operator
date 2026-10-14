@@ -91,7 +91,7 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			&corev1.Secret{},
 			handler.EnqueueRequestsFromMapFunc(r.enqueueAllIBMLicensing),
 			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
-				return obj.GetNamespace() == r.OperatorNamespace &&
+				return (obj.GetNamespace() == r.OperatorNamespace || obj.GetNamespace() == r.InstanceNamespace) &&
 					obj.GetName() == service.LicenseServiceInternalCertName
 			})),
 		)
@@ -175,6 +175,10 @@ type IBMLicensingReconciler struct {
 	Scheme                  *runtime.Scheme
 	Recorder                record.EventRecorder
 	OperatorNamespace       string
+	// InstanceNamespace is the namespace where the License Service operand runs.
+	// It defaults to OperatorNamespace when not set in the CR spec, but may differ
+	// and must be considered when filtering watched resources.
+	InstanceNamespace       string
 	NamespaceScopeSemaphore chan bool
 	OperandRequestsEnabled  bool
 }
