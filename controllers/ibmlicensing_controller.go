@@ -84,11 +84,21 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&operatorv1alpha1.IBMLicensing{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{}).
+		Owns(&corev1.Secret{}).
+		Owns(&corev1.ConfigMap{}).
 		Watches(
 			&corev1.ConfigMap{},
 			handler.EnqueueRequestsFromMapFunc(r.enqueueAllIBMLicensing),
 			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
 				return obj.GetName() == UmsExcludeNamespaceConfigMapName
+			})),
+		).
+		Watches(
+			&corev1.Secret{},
+			handler.EnqueueRequestsFromMapFunc(r.enqueueAllIBMLicensing),
+			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
+				return (obj.GetNamespace() == r.OperatorNamespace || obj.GetNamespace() == r.InstanceNamespace) &&
+					obj.GetName() == service.LicenseServiceInternalCertName
 			})),
 		)
 
@@ -106,13 +116,15 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return watcher.Complete(r)
 }
 
-// returns reconcile requests for all IBMLicensing instances
-// used as a Watch handler so that any change to a UMS exclude-namespace ConfigMap
-// triggers a reconcile of every IBMLicensing CR on the cluster
+/*
+returns reconcile requests for all IBMLicensing instances
+used as a Watch handler so that any change to a watched resource (e.g. UMS exclude-namespace ConfigMap,
+or Service CA internal cert Secret) triggers a reconcile of every IBMLicensing CR on the cluster
+*/
 func (r *IBMLicensingReconciler) enqueueAllIBMLicensing(_ context.Context, _ client.Object) []reconcile.Request {
 	ibmLicensingList := &operatorv1alpha1.IBMLicensingList{}
 	if err := r.Client.List(context.TODO(), ibmLicensingList); err != nil {
-		r.Log.Error(err, "Failed to list IBMLicensing instances for UMS ConfigMap reconcile trigger")
+		r.Log.Error(err, "Failed to list IBMLicensing instances for reconcile trigger")
 		return nil
 	}
 	requests := make([]reconcile.Request, 0, len(ibmLicensingList.Items))
@@ -165,10 +177,14 @@ type IBMLicensingReconciler struct {
 	// that reads objects from the cache and writes to the apiserver
 	client.Client
 	client.Reader
-	Log                     logr.Logger
-	Scheme                  *runtime.Scheme
-	Recorder                record.EventRecorder
-	OperatorNamespace       string
+	Log               logr.Logger
+	Scheme            *runtime.Scheme
+	Recorder          record.EventRecorder
+	OperatorNamespace string
+	// InstanceNamespace is the namespace where the License Service operand runs.
+	// It defaults to OperatorNamespace when not set in the CR spec, but may differ
+	// and must be considered when filtering watched resources.
+	InstanceNamespace       string
 	NamespaceScopeSemaphore chan bool
 	OperandRequestsEnabled  bool
 }

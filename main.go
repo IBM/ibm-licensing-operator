@@ -140,22 +140,6 @@ func main() {
 
 	licensingLabelSelector, _ := labels.Parse("release in (ibm-licensing-service)")
 
-	byObject := map[client.Object]cache.ByObject{
-		&corev1.Secret{}:     {Label: licensingLabelSelector},
-		&appsv1.Deployment{}: {Label: licensingLabelSelector},
-		&corev1.Pod{}:        {Label: licensingLabelSelector},
-		&corev1.ConfigMap{}: {
-			Namespaces: map[string]cache.Config{
-				// operator namespace — cache all ConfigMaps
-				operatorNamespace: {},
-				// all other namespaces — only cache UMS exclude-namespace ConfigMaps by name
-				cache.AllNamespaces: {
-					FieldSelector: fields.OneTermEqualSelector("metadata.name", controllers.UmsExcludeNamespaceConfigMapName),
-				},
-			},
-		},
-	}
-
 	restConfig := ctrl.GetConfigOrDie()
 	probeClient, err := client.New(restConfig, client.Options{Scheme: scheme})
 	if err != nil {
@@ -165,6 +149,44 @@ func main() {
 	if err := res.UpdateCacheClusterExtensions(probeClient, setupLog); err != nil {
 		setupLog.Error(err, "Error during checking K8s API")
 		os.Exit(1)
+	}
+
+	// Read instanceNamespace from the active CR so its resources are cached correctly.
+	// Defaults to operatorNamespace when no CR exists yet or when the field is unset.
+	instanceNamespace := startupInstanceNamespace(probeClient, operatorNamespace)
+
+	// Build per-namespace cache configs that cover both the operator and instance namespaces.
+	// When they are the same (the common case) the map contains a single entry.
+	secretNamespaces := map[string]cache.Config{
+		// operator / instance namespace(s) - cache all Secrets without label restriction
+		// (e.g. Service CA-managed internal cert secrets that carry no licensing label).
+		operatorNamespace: {},
+		// all other namespaces - cache only Secrets that carry the licensing release label
+		cache.AllNamespaces: {
+			LabelSelector: licensingLabelSelector,
+		},
+	}
+	if instanceNamespace != operatorNamespace {
+		secretNamespaces[instanceNamespace] = cache.Config{}
+	}
+
+	configMapNamespaces := map[string]cache.Config{
+		// operator / instance namespace(s) - cache all ConfigMaps
+		operatorNamespace: {},
+		// all other namespaces - only cache UMS exclude-namespace ConfigMaps by name
+		cache.AllNamespaces: {
+			FieldSelector: fields.OneTermEqualSelector("metadata.name", controllers.UmsExcludeNamespaceConfigMapName),
+		},
+	}
+	if instanceNamespace != operatorNamespace {
+		configMapNamespaces[instanceNamespace] = cache.Config{}
+	}
+
+	byObject := map[client.Object]cache.ByObject{
+		&corev1.Secret{}:     {Namespaces: secretNamespaces},
+		&appsv1.Deployment{}: {Label: licensingLabelSelector},
+		&corev1.Pod{}:        {Label: licensingLabelSelector},
+		&corev1.ConfigMap{}:  {Namespaces: configMapNamespaces},
 	}
 
 	// Gateway API resources (Gateway, HTTPRoute, BackendTLSPolicy) are only ever created by the operator
@@ -222,6 +244,7 @@ func main() {
 		Scheme:                  mgr.GetScheme(),
 		Recorder:                mgr.GetEventRecorderFor("IBMLicensing"),
 		OperatorNamespace:       operatorNamespace,
+		InstanceNamespace:       instanceNamespace,
 		NamespaceScopeSemaphore: nssEnabledSemaphore,
 		OperandRequestsEnabled:  operandRequestsEnabled,
 	}
@@ -347,4 +370,30 @@ func startupOperandRequestsEnabled(reader client.Reader) (bool, error) {
 	}
 
 	return active.Spec.IsOperandRequestsEnabled(), nil
+}
+
+/*
+startupInstanceNamespace reads the active IBMLicensing CR's spec.instanceNamespace so it can be
+included in the manager cache before the manager starts. It defaults to operatorNamespace when no
+CR exists yet or when the field is unset, matching the behavior of FillDefaultValues.
+*/
+func startupInstanceNamespace(reader client.Reader, operatorNamespace string) string {
+	ibmLicensingList := &operatoribmcomv1alpha1.IBMLicensingList{}
+	if err := reader.List(context.Background(), ibmLicensingList); err != nil {
+		setupLog.Error(err, "unable to list IBMLicensing CRs to determine instanceNamespace; defaulting to operatorNamespace")
+		return operatorNamespace
+	}
+
+	var active *operatoribmcomv1alpha1.IBMLicensing
+	for i := range ibmLicensingList.Items {
+		item := &ibmLicensingList.Items[i]
+		if active == nil || item.CreationTimestamp.Time.Before(active.CreationTimestamp.Time) {
+			active = item
+		}
+	}
+	if active == nil || active.Spec.InstanceNamespace == "" {
+		return operatorNamespace
+	}
+
+	return active.Spec.InstanceNamespace
 }

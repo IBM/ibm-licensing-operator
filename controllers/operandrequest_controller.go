@@ -383,7 +383,9 @@ func (r *OperandRequestReconciler) copyConfigMap(ctx context.Context, req reconc
 		if apierrors.IsAlreadyExists(err) {
 			// If already exist, update the ConfigMap
 			existingCm := corev1.ConfigMap{}
-			if err := r.Client.Get(ctx, types.NamespacedName{Namespace: targetNs, Name: targetName}, &existingCm); err != nil {
+			// Use Reader (bypasses cache) because target ConfigMaps in other namespaces
+			// are not cached by the ByObject cache.
+			if err := r.Reader.Get(ctx, types.NamespacedName{Namespace: targetNs, Name: targetName}, &existingCm); err != nil {
 				reqLogger.Error(err, "failed to get ConfigMap", "name", targetName, "namespace", targetNs)
 				return false, err
 			}
