@@ -89,6 +89,9 @@ const (
 	OcpCheckString           = "ocp-check-secret"
 	OcpPrometheusCheckString = "ocp-prometheus-check-secret"
 	OperatorName             = "ibm-licensing-operator"
+
+	// certSerialNumberBits is the size of the random serial number of generated certificates, RFC 5280 allows up to 159 bits
+	certSerialNumberBits = 128
 )
 
 var annotationsForServicesToCheck = [...]string{ocpCertSecretNameTag}
@@ -559,7 +562,12 @@ func areTLSCertsSame(expected, found routev1.TLSConfig) bool {
 }
 
 func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, dns []string) (*corev1.Secret, error) {
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	settings, err := GetSelfSignedCertSettings()
+	if err != nil {
+		return nil, err
+	}
+
+	key, err := rsa.GenerateKey(rand.Reader, settings.KeySize)
 	if err != nil {
 		return nil, err
 	}
@@ -576,11 +584,15 @@ func GenerateSelfSignedCertSecret(namespacedName types.NamespacedName, dns []str
 	}
 
 	// need to generate a different serial number each execution
-	serialNumber, _ := rand.Int(rand.Reader, big.NewInt(1000000))
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), certSerialNumberBits))
+	if err != nil {
+		return nil, err
+	}
 
+	now := time.Now()
 	tml := x509.Certificate{
-		NotBefore:    time.Now(),
-		NotAfter:     time.Now().AddDate(1, 0, 0),
+		NotBefore:    now,
+		NotAfter:     now.AddDate(0, 0, settings.ValidityDays),
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			CommonName:   commonName,

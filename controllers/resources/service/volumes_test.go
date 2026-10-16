@@ -77,7 +77,7 @@ func TestGetLicensingVolumeMountsCertsValidationEnabledWithoutCerts(t *testing.T
 	assert.Equal(t, 4, len(volumes), "Sender is enabled, 4 volume mounts should be created, ReporterCertsSecretName isn't set so additional volume mount is not created.")
 }
 
-func TestGetLicensingVolumeMountsCertsValidationDisabledWithCerts(t *testing.T) {
+func TestGetLicensingVolumeMountsCertsValidationFieldDisabledWithCerts(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
@@ -87,8 +87,8 @@ func TestGetLicensingVolumeMountsCertsValidationDisabledWithCerts(t *testing.T) 
 		},
 	}
 
-	volumes := getLicensingVolumes(spec)
-	assert.Equal(t, 4, len(volumes), "Sender is enabled, 4 volume mounts should be created despite setting ReporterCertsSecretName because validation is disabled.")
+	volumeMounts := getLicensingVolumeMounts(spec)
+	assert.Equal(t, 5, len(volumeMounts), "Reporter certificate validation is always enabled, 5 volume mounts should be created when ReporterCertsSecretName is set.")
 }
 
 func TestGetLicensingVolumesDisabled(t *testing.T) {
@@ -152,7 +152,7 @@ func TestGetLicensingVolumesCertsValidationEnabledWithoutCerts(t *testing.T) {
 	assert.Equal(t, 4, len(volumes), "Sender is enabled, 4 volumes should be created, ReporterCertsSecretName isn't set so additional volume is not created.")
 }
 
-func TestGetLicensingVolumesCertsValidationDisabledWithCerts(t *testing.T) {
+func TestGetLicensingVolumesCertsValidationFieldDisabledWithCerts(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
@@ -163,7 +163,7 @@ func TestGetLicensingVolumesCertsValidationDisabledWithCerts(t *testing.T) {
 	}
 
 	volumes := getLicensingVolumes(spec)
-	assert.Equal(t, 4, len(volumes), "Sender is enabled, 4 volumes should be created despite setting ReporterCertsSecretName because validation is disabled.")
+	assert.Equal(t, 5, len(volumes), "Reporter certificate validation is always enabled, 5 volumes should be created when ReporterCertsSecretName is set.")
 }
 
 // verifies that when SoftwareCentral is enabled, an additional volume mount for the entitlement key is added.

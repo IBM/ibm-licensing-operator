@@ -96,7 +96,7 @@ func getLicensingVolumeMounts(spec operatorv1alpha1.IBMLicensingSpec) []corev1.V
 		}...)
 
 		// volume mount for the license service reporter certificate used by sender
-		if spec.Sender.ReporterCertsSecretName != "" && spec.Sender.ValidateReporterCerts {
+		if spec.Sender.ReporterCertsSecretName != "" {
 			volumeMounts = append(volumeMounts, []corev1.VolumeMount{
 				{
 					Name:      ReporterHTTPSCertsVolumeName,
@@ -193,7 +193,7 @@ func getLicensingVolumes(spec operatorv1alpha1.IBMLicensingSpec) []corev1.Volume
 		})
 
 		// create volume containing internal certificate from reporter
-		if spec.Sender.ReporterCertsSecretName != "" && spec.Sender.ValidateReporterCerts {
+		if spec.Sender.ReporterCertsSecretName != "" {
 			volumes = append(volumes, corev1.Volume{
 				Name: ReporterHTTPSCertsVolumeName,
 				VolumeSource: corev1.VolumeSource{
