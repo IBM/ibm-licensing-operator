@@ -155,37 +155,33 @@ func main() {
 	// Defaults to operatorNamespace when no CR exists yet or when the field is unset.
 	instanceNamespace := startupInstanceNamespace(probeClient, operatorNamespace)
 
-	// Build per-namespace cache configs that cover both the operator and instance namespaces.
-	// When they are the same (the common case) the map contains a single entry.
+	// Secrets and ConfigMaps are cached only in the operator and instance namespaces, filtered
+	// by the licensing label selector
 	secretNamespaces := map[string]cache.Config{
-		// operator / instance namespace(s) - cache all Secrets without label restriction
-		// (e.g. Service CA-managed internal cert secrets that carry no licensing label).
-		operatorNamespace: {},
-		// all other namespaces - cache only Secrets that carry the licensing release label
-		cache.AllNamespaces: {
-			LabelSelector: licensingLabelSelector,
-		},
+		operatorNamespace: {LabelSelector: licensingLabelSelector},
 	}
 	if instanceNamespace != operatorNamespace {
-		secretNamespaces[instanceNamespace] = cache.Config{}
+		secretNamespaces[instanceNamespace] = cache.Config{LabelSelector: licensingLabelSelector}
 	}
 
+	// ConfigMaps also use the label selector in the operator and instance namespaces.
+	// In all other namespaces only the UMS exclude-namespace ConfigMap is cached by name
+	// (cluster-scoped list is permitted for ConfigMaps by the operator ClusterRole)
 	configMapNamespaces := map[string]cache.Config{
-		// operator / instance namespace(s) - cache all ConfigMaps
-		operatorNamespace: {},
+		operatorNamespace: {LabelSelector: licensingLabelSelector},
 		// all other namespaces - only cache UMS exclude-namespace ConfigMaps by name
 		cache.AllNamespaces: {
 			FieldSelector: fields.OneTermEqualSelector("metadata.name", controllers.UmsExcludeNamespaceConfigMapName),
 		},
 	}
 	if instanceNamespace != operatorNamespace {
-		configMapNamespaces[instanceNamespace] = cache.Config{}
+		configMapNamespaces[instanceNamespace] = cache.Config{LabelSelector: licensingLabelSelector}
 	}
 
 	byObject := map[client.Object]cache.ByObject{
-		&corev1.Secret{}:     {Namespaces: secretNamespaces},
 		&appsv1.Deployment{}: {Label: licensingLabelSelector},
 		&corev1.Pod{}:        {Label: licensingLabelSelector},
+		&corev1.Secret{}:     {Namespaces: secretNamespaces},
 		&corev1.ConfigMap{}:  {Namespaces: configMapNamespaces},
 	}
 
