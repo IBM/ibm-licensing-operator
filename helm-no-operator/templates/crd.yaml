@@ -74,9 +74,11 @@ spec:
                     type: string
                   type: array
                 scope:
+                  default: cluster
                   description: Scope of Custom Resource
                   enum:
                     - cluster
+                    - namespace
                   type: string
                 set:
                   additionalProperties:
@@ -86,7 +88,6 @@ spec:
               required:
                 - action
                 - condition
-                - scope
               type: object
               x-kubernetes-preserve-unknown-fields: true
             status:
