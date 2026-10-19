@@ -155,13 +155,15 @@ func main() {
 	// Defaults to operatorNamespace when no CR exists yet or when the field is unset.
 	instanceNamespace := startupInstanceNamespace(probeClient, operatorNamespace)
 
-	// Secrets and ConfigMaps are cached only in the operator and instance namespaces, filtered
-	// by the licensing label selector
+	// Secrets are cached in the operator and instance namespaces without a label selector so
+	// that unlabeled Secrets - in particular ibm-license-service-cert-internal, which is
+	// created by OpenShift Service CA and carries no licensing label - are present in the cache
+	// and can fire watch events
 	secretNamespaces := map[string]cache.Config{
-		operatorNamespace: {LabelSelector: licensingLabelSelector},
+		operatorNamespace: {},
 	}
 	if instanceNamespace != operatorNamespace {
-		secretNamespaces[instanceNamespace] = cache.Config{LabelSelector: licensingLabelSelector}
+		secretNamespaces[instanceNamespace] = cache.Config{}
 	}
 
 	// ConfigMaps also use the label selector in the operator and instance namespaces.
