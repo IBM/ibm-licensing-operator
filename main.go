@@ -352,4 +352,3 @@ func startupOperandRequestsEnabled(reader client.Reader) (bool, error) {
 
 	return active.Spec.IsOperandRequestsEnabled(), nil
 }
-
