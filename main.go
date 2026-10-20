@@ -140,11 +140,11 @@ func main() {
 
 	licensingLabelSelector, _ := labels.Parse("release in (ibm-licensing-service)")
 
-	// Secrets are cached in the operator namespace without a label selector so that unlabeled
-	// Secrets - in particular ibm-license-service-cert-internal, which is created by OpenShift
-	// Service CA and carries no licensing label, are present in the cache and can fire watch
-	// events
 	byObject := map[client.Object]cache.ByObject{
+		// Secrets are cached in the operator namespace without a label selector so that unlabeled
+		// Secrets, in particular ibm-license-service-cert-internal, which is created by OpenShift
+		// Service CA and carries no licensing label, are present in the cache and can fire watch
+		// events
 		&corev1.Secret{}:     {Namespaces: map[string]cache.Config{operatorNamespace: {}}},
 		&appsv1.Deployment{}: {Label: licensingLabelSelector},
 		&corev1.Pod{}:        {Label: licensingLabelSelector},
