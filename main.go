@@ -140,17 +140,6 @@ func main() {
 
 	licensingLabelSelector, _ := labels.Parse("release in (ibm-licensing-service)")
 
-	restConfig := ctrl.GetConfigOrDie()
-	probeClient, err := client.New(restConfig, client.Options{Scheme: scheme})
-	if err != nil {
-		setupLog.Error(err, "unable to create probe client for CRD discovery")
-		os.Exit(1)
-	}
-	if err := res.UpdateCacheClusterExtensions(probeClient, setupLog); err != nil {
-		setupLog.Error(err, "Error during checking K8s API")
-		os.Exit(1)
-	}
-
 	// Secrets are cached in the operator namespace without a label selector so that unlabeled
 	// Secrets - in particular ibm-license-service-cert-internal, which is created by OpenShift
 	// Service CA and carries no licensing label, are present in the cache and can fire watch
@@ -161,14 +150,25 @@ func main() {
 		&corev1.Pod{}:        {Label: licensingLabelSelector},
 		&corev1.ConfigMap{}: {
 			Namespaces: map[string]cache.Config{
-				// operator namespace — cache all ConfigMaps
+				// operator namespace - cache all ConfigMaps
 				operatorNamespace: {},
-				// all other namespaces — only cache UMS exclude-namespace ConfigMaps by name
+				// all other namespaces - only cache UMS exclude-namespace ConfigMaps by name
 				cache.AllNamespaces: {
 					FieldSelector: fields.OneTermEqualSelector("metadata.name", controllers.UmsExcludeNamespaceConfigMapName),
 				},
 			},
 		},
+	}
+
+	restConfig := ctrl.GetConfigOrDie()
+	probeClient, err := client.New(restConfig, client.Options{Scheme: scheme})
+	if err != nil {
+		setupLog.Error(err, "unable to create probe client for CRD discovery")
+		os.Exit(1)
+	}
+	if err := res.UpdateCacheClusterExtensions(probeClient, setupLog); err != nil {
+		setupLog.Error(err, "Error during checking K8s API")
+		os.Exit(1)
 	}
 
 	// Gateway API resources (Gateway, HTTPRoute, BackendTLSPolicy) are only ever created by the operator
