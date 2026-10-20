@@ -151,40 +151,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Read instanceNamespace from the active CR so its resources are cached correctly.
-	// Defaults to operatorNamespace when no CR exists yet or when the field is unset.
-	instanceNamespace := startupInstanceNamespace(probeClient, operatorNamespace)
-
-	// Secrets are cached in the operator and instance namespaces without a label selector so
-	// that unlabeled Secrets - in particular ibm-license-service-cert-internal, which is
-	// created by OpenShift Service CA and carries no licensing label - are present in the cache
-	// and can fire watch events
-	secretNamespaces := map[string]cache.Config{
-		operatorNamespace: {},
-	}
-	if instanceNamespace != operatorNamespace {
-		secretNamespaces[instanceNamespace] = cache.Config{}
-	}
-
-	// ConfigMaps also use the label selector in the operator and instance namespaces.
-	// In all other namespaces only the UMS exclude-namespace ConfigMap is cached by name
-	// (cluster-scoped list is permitted for ConfigMaps by the operator ClusterRole)
-	configMapNamespaces := map[string]cache.Config{
-		operatorNamespace: {LabelSelector: licensingLabelSelector},
-		// all other namespaces - only cache UMS exclude-namespace ConfigMaps by name
-		cache.AllNamespaces: {
-			FieldSelector: fields.OneTermEqualSelector("metadata.name", controllers.UmsExcludeNamespaceConfigMapName),
-		},
-	}
-	if instanceNamespace != operatorNamespace {
-		configMapNamespaces[instanceNamespace] = cache.Config{LabelSelector: licensingLabelSelector}
-	}
-
+	// Secrets are cached in the operator namespace without a label selector so that unlabeled
+	// Secrets - in particular ibm-license-service-cert-internal, which is created by OpenShift
+	// Service CA and carries no licensing label, are present in the cache and can fire watch
+	// events
 	byObject := map[client.Object]cache.ByObject{
+		&corev1.Secret{}:     {Namespaces: map[string]cache.Config{operatorNamespace: {}}},
 		&appsv1.Deployment{}: {Label: licensingLabelSelector},
 		&corev1.Pod{}:        {Label: licensingLabelSelector},
-		&corev1.Secret{}:     {Namespaces: secretNamespaces},
-		&corev1.ConfigMap{}:  {Namespaces: configMapNamespaces},
+		&corev1.ConfigMap{}: {
+			Namespaces: map[string]cache.Config{
+				// operator namespace — cache all ConfigMaps
+				operatorNamespace: {},
+				// all other namespaces — only cache UMS exclude-namespace ConfigMaps by name
+				cache.AllNamespaces: {
+					FieldSelector: fields.OneTermEqualSelector("metadata.name", controllers.UmsExcludeNamespaceConfigMapName),
+				},
+			},
+		},
 	}
 
 	// Gateway API resources (Gateway, HTTPRoute, BackendTLSPolicy) are only ever created by the operator
@@ -242,7 +226,6 @@ func main() {
 		Scheme:                  mgr.GetScheme(),
 		Recorder:                mgr.GetEventRecorderFor("IBMLicensing"),
 		OperatorNamespace:       operatorNamespace,
-		InstanceNamespace:       instanceNamespace,
 		NamespaceScopeSemaphore: nssEnabledSemaphore,
 		OperandRequestsEnabled:  operandRequestsEnabled,
 	}
@@ -370,28 +353,3 @@ func startupOperandRequestsEnabled(reader client.Reader) (bool, error) {
 	return active.Spec.IsOperandRequestsEnabled(), nil
 }
 
-/*
-startupInstanceNamespace reads the active IBMLicensing CR's spec.instanceNamespace so it can be
-included in the manager cache before the manager starts. It defaults to operatorNamespace when no
-CR exists yet or when the field is unset, matching the behavior of FillDefaultValues.
-*/
-func startupInstanceNamespace(reader client.Reader, operatorNamespace string) string {
-	ibmLicensingList := &operatoribmcomv1alpha1.IBMLicensingList{}
-	if err := reader.List(context.Background(), ibmLicensingList); err != nil {
-		setupLog.Error(err, "unable to list IBMLicensing CRs to determine instanceNamespace; defaulting to operatorNamespace")
-		return operatorNamespace
-	}
-
-	var active *operatoribmcomv1alpha1.IBMLicensing
-	for i := range ibmLicensingList.Items {
-		item := &ibmLicensingList.Items[i]
-		if active == nil || item.CreationTimestamp.Time.Before(active.CreationTimestamp.Time) {
-			active = item
-		}
-	}
-	if active == nil || active.Spec.InstanceNamespace == "" {
-		return operatorNamespace
-	}
-
-	return active.Spec.InstanceNamespace
-}
