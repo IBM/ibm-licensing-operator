@@ -189,7 +189,7 @@ helm:
 ```
 
 As a result, the operator and operand image registries are overwritten. For example, after applying the above changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator`
-becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.25`.
+becomes `<your-registry>/cpopen/ibm-licensing-operator:4.2.26`.
 
 To additionally modify the image registry namespace of either the operator or the operand, change the value of `cpfs.imageRegistryNamespaceOperator` or `cpfs.imageRegistryNamespaceOperand`, or both, in the relevant `Application.yaml` file:
 
@@ -203,7 +203,7 @@ helm:
 
 As a result, the operator and operand image registry namespaces are overwritten. For example, after applying the above
 changes to the `applications/license-service.yaml` file, the image of the `ibm-licensing-operator` becomes
-`icr.io/<your-operator-image-registry-namespace>/ibm-licensing-operator:4.2.25`.
+`icr.io/<your-operator-image-registry-namespace>/ibm-licensing-operator:4.2.26`.
 
 </details>
 
@@ -317,4 +317,4 @@ result in an unexpected state. Therefore, it is recommended to perform installat
 
 If you already have any Licensing components installed, use the `--take-ownership` flag, which is introduced in
 `helm` version `3.17.0`, when running the `install` commands.
-Specify `-n ${namespace}` (or `--namespace ${namespace}`) parameter to `helm` commands in order to provide namespace scope of these requests. 
+Specify `-n ${namespace}` (or `--namespace ${namespace}`) parameter to `helm` commands in order to provide namespace scope of these requests.

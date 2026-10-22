@@ -1,0 +1,31 @@
+---
+# Source: ibm-licensing/templates/cr.yaml
+apiVersion: operator.ibm.com/v1alpha1
+kind: IBMLicensing
+metadata:
+  labels:
+    app.kubernetes.io/instance: ibm-licensing-operator
+    app.kubernetes.io/managed-by: ibm-licensing-operator
+    app.kubernetes.io/name: ibm-licensing
+    component-id: ibm-licensing
+  name: instance
+  annotations:
+    argocd.argoproj.io/sync-options: ServerSideApply=true
+spec:
+  datasource: datacollector
+  enableInstanaMetricCollection: false
+  features:
+    alerting:
+      enabled: false
+    customResourcesEnabled: true
+    kubeRBACAuthEnabled: true
+    nodeCpuCappingEnabled: true
+    nssEnabled: false
+    operandRequestsEnabled: true
+  httpsEnable: true
+  imagePullSecrets:
+  - ibm-entitlement-key
+  license:
+    accept: true
+  version: 4.2.26
+

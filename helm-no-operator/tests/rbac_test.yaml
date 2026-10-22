@@ -1,0 +1,78 @@
+---
+
+suite: ILS no-operator RBAC serviceAccount customization tests
+
+templates:
+  - templates/rbac.yaml
+
+release:
+  namespace: test-ns
+
+set:
+  ibmLicensing.namespace: test-ns
+  ibmLicensing.createRBAC: true
+
+tests:
+  # --- operand RoleBinding (nssEnabled: false) ---
+
+  - it: operand RoleBinding uses default service account name when nssEnabled is false
+    asserts:
+      - contains:
+          path: subjects
+          content:
+            kind: ServiceAccount
+            name: ibm-license-service
+            namespace: test-ns
+        documentIndex: 2
+
+  - it: operand RoleBinding uses overridden service account name when nssEnabled is false
+    set:
+      ibmLicensing.operand.serviceAccount.name: my-operand-sa
+    asserts:
+      - contains:
+          path: subjects
+          content:
+            kind: ServiceAccount
+            name: my-operand-sa
+            namespace: test-ns
+        documentIndex: 2
+
+  # --- operand RoleBinding (nssEnabled: true) ---
+
+  - it: operand RoleBinding uses ibm-license-service-restricted default when nssEnabled is true
+    set:
+      ibmLicensing.spec.features.nssEnabled: true
+    asserts:
+      - contains:
+          path: subjects
+          content:
+            kind: ServiceAccount
+            name: ibm-license-service-restricted
+            namespace: test-ns
+        documentIndex: 3
+
+  - it: operand RoleBinding uses overridden service account name when nssEnabled is true
+    set:
+      ibmLicensing.spec.features.nssEnabled: true
+      ibmLicensing.operand.serviceAccount.name: my-restricted-sa
+    asserts:
+      - contains:
+          path: subjects
+          content:
+            kind: ServiceAccount
+            name: my-restricted-sa
+            namespace: test-ns
+        documentIndex: 3
+
+  - it: non-nss RoleBinding keeps ibm-license-service when nssEnabled is true
+    set:
+      ibmLicensing.spec.features.nssEnabled: true
+      ibmLicensing.operand.serviceAccount.name: my-restricted-sa
+    asserts:
+      - contains:
+          path: subjects
+          content:
+            kind: ServiceAccount
+            name: ibm-license-service
+            namespace: test-ns
+        documentIndex: 2

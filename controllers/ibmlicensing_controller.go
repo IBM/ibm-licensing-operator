@@ -40,8 +40,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -55,6 +58,19 @@ import (
 
 type reconcileLSFunctionType = func(*operatorv1alpha1.IBMLicensing) (reconcile.Result, error)
 
+const (
+	// UmsExcludeNamespaceConfigMapName is the name of the ConfigMap that UMS instances create
+	// to publish their excludeNamespace value to the licensing operator
+	UmsExcludeNamespaceConfigMapName = "ibm-licensing-external-config"
+
+	// key in the UMS ConfigMap that holds the excludeNamespace value
+	umsExcludeNamespaceDataKey = "excludeNamespace"
+
+	/* appsDomainDiscoveryRequeueDelay is the interval between requeues while waiting
+	for OpenShift admission to assign a host to the probe Route used for apps-domain discovery. */
+	appsDomainDiscoveryRequeueDelay = 3 * time.Second
+)
+
 func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := res.UpdateCacheClusterExtensions(mgr.GetAPIReader(), r.Log); err != nil {
 		r.Log.Error(err, "Error during checking K8s API")
@@ -67,7 +83,14 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	watcher := ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.IBMLicensing{}).
 		Owns(&appsv1.Deployment{}).
-		Owns(&corev1.Service{})
+		Owns(&corev1.Service{}).
+		Watches(
+			&corev1.ConfigMap{},
+			handler.EnqueueRequestsFromMapFunc(r.enqueueAllIBMLicensing),
+			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
+				return obj.GetName() == UmsExcludeNamespaceConfigMapName
+			})),
+		)
 
 	if res.IsGatewayAPI {
 		watcher = watcher.
@@ -81,6 +104,24 @@ func (r *IBMLicensingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return watcher.Complete(r)
+}
+
+// returns reconcile requests for all IBMLicensing instances
+// used as a Watch handler so that any change to a UMS exclude-namespace ConfigMap
+// triggers a reconcile of every IBMLicensing CR on the cluster
+func (r *IBMLicensingReconciler) enqueueAllIBMLicensing(_ context.Context, _ client.Object) []reconcile.Request {
+	ibmLicensingList := &operatorv1alpha1.IBMLicensingList{}
+	if err := r.Client.List(context.TODO(), ibmLicensingList); err != nil {
+		r.Log.Error(err, "Failed to list IBMLicensing instances for UMS ConfigMap reconcile trigger")
+		return nil
+	}
+	requests := make([]reconcile.Request, 0, len(ibmLicensingList.Items))
+	for _, item := range ibmLicensingList.Items {
+		requests = append(requests, reconcile.Request{
+			NamespacedName: types.NamespacedName{Name: item.Name, Namespace: item.Namespace},
+		})
+	}
+	return requests
 }
 
 func (r *IBMLicensingReconciler) createDefaultInstanceAfterCheck() error {
@@ -154,6 +195,7 @@ type IBMLicensingReconciler struct {
 // +kubebuilder:rbac:groups=operator.ibm.com,resources=ibmlicensings;ibmlicensings/status;ibmlicensings/finalizers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get
+// +kubebuilder:rbac:groups="",resources=configmaps,resourceNames=ibm-licensing-external-config,verbs=get;list;watch
 
 func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Request) (reconcile.Result, error) {
 
@@ -253,6 +295,10 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 	r.controllerStatus(instance)
 
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
+
+	if err = r.mergeExcludeNamespacesFromUmsConfigMaps(instance, reqLogger); err != nil {
+		reqLogger.Error(err, "Failed to read UMS exclude-namespace ConfigMaps, proceeding with existing excludeNamespace value")
+	}
 
 	var recResult reconcile.Result
 
@@ -554,7 +600,13 @@ func (r *IBMLicensingReconciler) reconcileDefaultReaderToken(instance *operatorv
 			RequeueAfter: time.Minute,
 		}, err
 	}
+
 	foundSecret := &corev1.Secret{}
+	// When Kube RBAC auth is disabled the reader token serves no purpose.
+	// Delete it if it exists so the cluster is left clean.
+	if !instance.Spec.IsKubeRBACAuthEnabled() {
+		return r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedSecret, foundSecret)
+	}
 	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
 	if err != nil || result.Requeue {
 		return result, err
@@ -576,36 +628,39 @@ func (r *IBMLicensingReconciler) reconcileDefaultReaderToken(instance *operatorv
 }
 
 func (r *IBMLicensingReconciler) reconcileServiceAccountToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
-	if instance.Spec.IsAlertingEnabled() {
-		reqLogger := r.Log.WithValues("reconcileServiceAccountToken", "Entry", "instance.GetName()", instance.GetName())
-		expectedSecret, err := service.GetServiceAccountSecret(instance)
-		if err != nil {
-			reqLogger.Info("Failed to get expected secret")
-			return reconcile.Result{
-				Requeue:      true,
-				RequeueAfter: time.Minute,
-			}, err
-		}
-		foundSecret := &corev1.Secret{}
-		result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
-		if err != nil || result.Requeue {
-			return result, err
-		}
-		if expectedSecret.Annotations[service.ServiceAccountSecretAnnotationKey] !=
-			foundSecret.Annotations[service.ServiceAccountSecretAnnotationKey] {
-			err = r.Client.Delete(context.TODO(), foundSecret)
-			if err != nil {
-				reqLogger.Error(err, "Failed to delete ServiceAccount secret due to wrong annotations.")
-				return reconcile.Result{}, err
-			}
-			return reconcile.Result{
-				Requeue:      true,
-				RequeueAfter: time.Minute,
-			}, err
-		}
-		return r.attachSpecLabelsAndAnnotations(instance, foundSecret, &reqLogger)
+	reqLogger := r.Log.WithValues("reconcileServiceAccountToken", "Entry", "instance.GetName()", instance.GetName())
+	expectedSecret, err := service.GetServiceAccountSecret(instance)
+	if err != nil {
+		reqLogger.Info("Failed to get expected secret")
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
 	}
-	return reconcile.Result{}, nil
+
+	foundSecret := &corev1.Secret{}
+	// When alerting is disabled the service account token serves no purpose.
+	// Delete it if it exists so the cluster is left clean.
+	if !instance.Spec.IsAlertingEnabled() {
+		return r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedSecret, foundSecret)
+	}
+	result, err := r.reconcileResourceNamespacedExistence(instance, expectedSecret, foundSecret)
+	if err != nil || result.Requeue {
+		return result, err
+	}
+	if expectedSecret.Annotations[service.ServiceAccountSecretAnnotationKey] !=
+		foundSecret.Annotations[service.ServiceAccountSecretAnnotationKey] {
+		err = r.Client.Delete(context.TODO(), foundSecret)
+		if err != nil {
+			reqLogger.Error(err, "Failed to delete ServiceAccount secret due to wrong annotations.")
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{
+			Requeue:      true,
+			RequeueAfter: time.Minute,
+		}, err
+	}
+	return r.attachSpecLabelsAndAnnotations(instance, foundSecret, &reqLogger)
 }
 
 func (r *IBMLicensingReconciler) reconcileUploadToken(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
@@ -814,6 +869,11 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 	var rolloutPods bool
 
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
+		if len(instance.Spec.InstanceNamespace) > service.MaxNamespaceLengthForRouteProbe {
+			r.Log.Info("Skipping external certificate reconciliation: namespace length exceeds maximum supported for Route creation",
+				"namespace", instance.Spec.InstanceNamespace, "maxLength", service.MaxNamespaceLengthForRouteProbe)
+			return reconcile.Result{}, nil
+		}
 		// for backward compatibility, we treat the "ocp" HTTPSCertsSource same as "self-signed"
 		if instance.Spec.HTTPSCertsSource == "custom" {
 			r.Log.Info("Skipping external certificate reconciliation - custom certificate set")
@@ -857,6 +917,11 @@ func (r *IBMLicensingReconciler) reconcileCertificateSecrets(instance *operatorv
 
 func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
+		if len(instance.Spec.InstanceNamespace) > service.MaxNamespaceLengthForRouteProbe {
+			r.Log.Info("Skipping route reconciliation with certificates: namespace length exceeds maximum supported for Route creation",
+				"namespace", instance.Spec.InstanceNamespace, "maxLength", service.MaxNamespaceLengthForRouteProbe)
+			return reconcile.Result{}, nil
+		}
 		r.Log.Info("Reconciling route with certificate")
 		externalCertSecret := corev1.Secret{}
 		var externalCertName string
@@ -907,6 +972,133 @@ func (r *IBMLicensingReconciler) reconcileRouteWithCertificates(instance *operat
 	return reconcile.Result{}, nil
 }
 
+/*
+extractAppsDomain parses the apps wildcard domain from a Route host string of the form
+"<label>.<domain>" and returns the domain part. Returns an empty string if the host is
+empty or does not contain a dot separator.
+*/
+func extractAppsDomain(host string) string {
+	parts := strings.SplitN(host, ".", 2)
+	if len(parts) == 2 && parts[1] != "" {
+		return parts[1]
+	}
+	return ""
+}
+
+/*
+discoverClusterAppsDomain resolves the cluster wildcard apps domain without requiring
+cluster-scoped Ingress permissions. It first scans existing Routes in the namespace for
+a populated host — avoiding a probe creation on most reconcile passes. If no host is
+found, it creates an ultra-short temporary probe Route ("p"), waits for OpenShift
+admission to populate its host, reads the domain, and deletes the probe.
+
+The probe name "p" (1 character) ensures the first DNS label "p-<namespace>" fits
+namespaces up to 61 characters within the 63-character RFC 1123 limit.
+
+Returns the bare apps domain (e.g. "apps.example.com") and true when resolved,
+or an empty string and false when discovery is not yet possible (caller should requeue).
+*/
+func (r *IBMLicensingReconciler) discoverClusterAppsDomain(
+	instance *operatorv1alpha1.IBMLicensing,
+) (string, bool) {
+	namespace := instance.Spec.InstanceNamespace
+	ctx := context.TODO()
+
+	/*
+		1. Try to read domain from any existing Route in the namespace.
+		This avoids creating a probe Route on most reconcile passes.
+	*/
+	routeList := &routev1.RouteList{}
+	if err := r.Client.List(ctx, routeList, client.InNamespace(namespace)); err == nil {
+		for _, rt := range routeList.Items {
+			if rt.Name == "p" {
+				continue
+			}
+			host := rt.Spec.Host
+			if host == "" && len(rt.Status.Ingress) > 0 {
+				host = rt.Status.Ingress[0].Host
+			}
+			if domain := extractAppsDomain(host); domain != "" {
+				return domain, true
+			}
+		}
+	}
+
+	/* 2. No existing Route with a host found — use the probe Route "p". */
+	probeName := "p"
+	probeNamespacedName := types.NamespacedName{Namespace: namespace, Name: probeName}
+	probeRoute := &routev1.Route{}
+
+	if err := r.Client.Get(ctx, probeNamespacedName, probeRoute); err != nil {
+		if !apierrors.IsNotFound(err) {
+			r.Log.Info("Failed to get probe Route for domain discovery", "error", err.Error())
+			return "", false
+		}
+		/*
+			Probe does not exist yet — create it and requeue so OpenShift admission
+			has time to assign a host before we read it.
+		*/
+		probeRoute = &routev1.Route{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      probeName,
+				Namespace: namespace,
+			},
+			Spec: routev1.RouteSpec{
+				To: routev1.RouteTargetReference{
+					Kind: "Service",
+					Name: service.GetResourceName(instance),
+				},
+			},
+		}
+		if err := r.Client.Create(ctx, probeRoute); err != nil {
+			r.Log.Info("Could not create probe Route for domain discovery", "error", err.Error())
+			return "", false
+		}
+		/* Requeue — the host will not be populated until admission processes the Route. */
+		return "", false
+	}
+
+	/*
+		Probe Route exists — read the host assigned by OpenShift admission.
+		On the first reconcile after probe creation, admission may not have assigned a host yet;
+		host will be empty and we requeue below. This is expected and not an error.
+	*/
+	host := probeRoute.Spec.Host
+	if host == "" && len(probeRoute.Status.Ingress) > 0 {
+		host = probeRoute.Status.Ingress[0].Host
+	}
+
+	if domain := extractAppsDomain(host); domain != "" {
+		/* Host is available — delete the probe and return the resolved domain. */
+		if err := r.Client.Delete(ctx, probeRoute); err != nil && !apierrors.IsNotFound(err) {
+			r.Log.Info("Failed to delete probe Route; will retry on next reconcile", "error", err.Error())
+			return "", false
+		}
+		return domain, true
+	}
+
+	/* Host not yet assigned by admission — requeue to wait. */
+	return "", false
+}
+
+/*
+getClusterAppsDomain returns the cluster wildcard apps domain when the standard Route
+hostname label (routeName+"-"+namespace) would exceed the 63-character RFC 1123 limit,
+and domain discovery succeeds. Returns an empty string and false when discovery is not
+needed or not yet complete (caller should requeue in the latter case).
+*/
+func (r *IBMLicensingReconciler) getClusterAppsDomain(
+	instance *operatorv1alpha1.IBMLicensing,
+) (string, bool) {
+	routeName := service.GetResourceName(instance)
+	namespace := instance.Spec.InstanceNamespace
+	/* Domain discovery is only needed when the standard label would exceed 63 characters. */
+	if len(routeName)+1+len(namespace) <= 63 {
+		return "", true
+	}
+	return r.discoverClusterAppsDomain(instance)
+}
+
 func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	defaultRouteTLS := &routev1.TLSConfig{
 		Termination:                   routev1.TLSTerminationReencrypt,
@@ -914,9 +1106,13 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 	}
 
 	route := &routev1.Route{}
-	expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
 
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
+		if len(instance.Spec.InstanceNamespace) > service.MaxNamespaceLengthForRouteProbe {
+			r.Log.Info("Skipping route reconciliation: namespace length exceeds maximum supported for Route creation",
+				"namespace", instance.Spec.InstanceNamespace, "maxLength", service.MaxNamespaceLengthForRouteProbe)
+			return reconcile.Result{}, nil
+		}
 		routeNamespacedName := types.NamespacedName{Namespace: instance.Spec.InstanceNamespace, Name: service.GetResourceName(instance)}
 		if err := r.Client.Get(context.TODO(), routeNamespacedName, route); err != nil {
 			r.Log.Info("Route does not exist, reconciling route without certificates")
@@ -929,6 +1125,15 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 		}
 	} else {
 		r.Log.Info("Route is disabled, deleting current route if exists")
+		appsDomain, ready := r.getClusterAppsDomain(instance)
+		if !ready {
+			return reconcile.Result{RequeueAfter: appsDomainDiscoveryRequeueDelay}, nil
+		}
+		expectedRoute, err := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
+		if err != nil {
+			r.Log.Error(err, "Cannot build expected Route for deletion check")
+			return reconcile.Result{}, err
+		}
 		reconcileResult, err := r.reconcileNamespacedResourceWhichShouldNotExist(instance, expectedRoute, route)
 		if err != nil || reconcileResult.Requeue {
 			return reconcileResult, err
@@ -939,7 +1144,20 @@ func (r *IBMLicensingReconciler) reconcileRouteWithoutCertificates(instance *ope
 
 func (r *IBMLicensingReconciler) reconcileRouteWithTLS(instance *operatorv1alpha1.IBMLicensing, defaultRouteTLS *routev1.TLSConfig) (reconcile.Result, error) {
 	if res.IsRouteAPI && instance.Spec.IsRouteEnabled() {
-		expectedRoute := service.GetLicensingRoute(instance, defaultRouteTLS)
+		if len(instance.Spec.InstanceNamespace) > service.MaxNamespaceLengthForRouteProbe {
+			r.Log.Info("Skipping route reconciliation: namespace length exceeds maximum supported for Route creation",
+				"namespace", instance.Spec.InstanceNamespace, "maxLength", service.MaxNamespaceLengthForRouteProbe)
+			return reconcile.Result{}, nil
+		}
+		appsDomain, ready := r.getClusterAppsDomain(instance)
+		if !ready {
+			return reconcile.Result{RequeueAfter: appsDomainDiscoveryRequeueDelay}, nil
+		}
+		expectedRoute, err := service.GetLicensingRoute(instance, defaultRouteTLS, appsDomain)
+		if err != nil {
+			r.Log.Error(err, "Cannot build expected Route")
+			return reconcile.Result{}, err
+		}
 		foundRoute := &routev1.Route{}
 		reconcileResult, err := r.reconcileResourceNamespacedExistence(instance, expectedRoute, foundRoute)
 		if err != nil || reconcileResult.Requeue {
@@ -1573,4 +1791,66 @@ func (r *IBMLicensingReconciler) handleLicenseNotAccepted(instance *operatorv1al
 	fmt.Printf("%s ERROR "+operatorv1alpha1.LicenseNotAcceptedMessage+"\n", timestamp)
 	// Publish an event with error message
 	r.Recorder.Event(instance, "Warning", "LicenseNotAccepted", operatorv1alpha1.LicenseNotAcceptedMessage)
+}
+
+// mergeExcludeNamespacesFromUmsConfigMaps collects excludeNamespace values from all UMS-created
+// ibm-licensing-external-config ConfigMaps and merges them into instance.Spec.Features.ExcludeNamespace,
+// prepending any value already set in the CR
+func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instance *operatorv1alpha1.IBMLicensing, reqLogger logr.Logger) error {
+	// in NSS mode the operand already receives WATCH_NAMESPACE and is restricted to those namespaces
+	// EXCLUDE_NAMESPACE is not set for the operand in NSS mode, so there is nothing to merge
+	if instance.Spec.IsNamespaceScopeEnabled() {
+		return nil
+	}
+
+	// cluster-scope mode — collect excludeNamespace values from all UMS ConfigMaps across all namespaces.
+	// The manager cache already limits the ConfigMap watch to only those named UmsExcludeNamespaceConfigMapName
+	// (via FieldSelector in main.go ByObject), so a plain List over the cache is sufficient and correct.
+	cmList := &corev1.ConfigMapList{}
+	if err := r.Client.List(context.TODO(), cmList); err != nil {
+		return err
+	}
+
+	// flatten: each CM value may itself be a comma-separated list; split and trim all entries
+	var umsNamespaces []string
+	for _, cm := range cmList.Items {
+		if cm.Name == UmsExcludeNamespaceConfigMapName {
+			if val, ok := cm.Data[umsExcludeNamespaceDataKey]; ok && val != "" {
+				for ns := range strings.SplitSeq(val, ",") {
+					if trimmed := strings.TrimSpace(ns); trimmed != "" {
+						umsNamespaces = append(umsNamespaces, trimmed)
+					}
+				}
+			}
+		}
+	}
+
+	if len(umsNamespaces) == 0 {
+		reqLogger.Info(fmt.Sprintf("No %q entries found across %s ConfigMaps, skipping excludeNamespace merge",
+			umsExcludeNamespaceDataKey, UmsExcludeNamespaceConfigMapName))
+		return nil
+	}
+
+	// sort UMS namespaces alphabetically to guarantee deterministic ordering across reconcile loops
+	sort.Strings(umsNamespaces)
+
+	reqLogger.Info(fmt.Sprintf("Collected namespaces to exclude from %s ConfigMaps: %v (duplicates will be dropped)",
+		UmsExcludeNamespaceConfigMapName, umsNamespaces))
+
+	// prepend the static CR value (if any) so it always comes first;
+	// deduplication is performed downstream by GetSanitizedExcludeNamespace
+	var collected []string
+	if instance.Spec.Features != nil && instance.Spec.Features.ExcludeNamespace != "" {
+		collected = append(collected, instance.Spec.Features.ExcludeNamespace)
+	}
+	collected = append(collected, umsNamespaces...)
+
+	if instance.Spec.Features == nil {
+		instance.Spec.Features = &operatorv1alpha1.Features{}
+	}
+	instance.Spec.Features.ExcludeNamespace = strings.Join(collected, ",")
+
+	reqLogger.Info(fmt.Sprintf("Merged excludeNamespace from CR value and %s ConfigMaps; duplicates will be dropped",
+		UmsExcludeNamespaceConfigMapName))
+	return nil
 }
