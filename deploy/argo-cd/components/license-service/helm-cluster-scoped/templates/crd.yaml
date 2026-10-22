@@ -6,7 +6,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
     argocd.argoproj.io/sync-wave: "-1"
-    licensing.ibm.com/version: 4.2.26
+    licensing.ibm.com/version: 4.2.27
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
@@ -78,9 +78,11 @@ spec:
                     type: string
                   type: array
                 scope:
+                  default: cluster
                   description: Scope of Custom Resource
                   enum:
                     - cluster
+                    - namespace
                   type: string
                 set:
                   additionalProperties:
@@ -90,7 +92,6 @@ spec:
               required:
                 - action
                 - condition
-                - scope
               type: object
               x-kubernetes-preserve-unknown-fields: true
             status:
@@ -108,7 +109,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
     argocd.argoproj.io/sync-wave: "-1"
-    licensing.ibm.com/version: 4.2.26
+    licensing.ibm.com/version: 4.2.27
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
@@ -191,7 +192,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
     argocd.argoproj.io/sync-wave: "-1"
-    licensing.ibm.com/version: 4.2.26
+    licensing.ibm.com/version: 4.2.27
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator
@@ -270,7 +271,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
     argocd.argoproj.io/sync-wave: "-1"
-    licensing.ibm.com/version: 4.2.26
+    licensing.ibm.com/version: 4.2.27
   labels:
     app.kubernetes.io/instance: ibm-licensing-operator
     app.kubernetes.io/managed-by: ibm-licensing-operator

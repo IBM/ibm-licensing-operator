@@ -39,8 +39,9 @@ type IBMLicensingDefinitionSpec struct {
 	Condition IBMLicensingDefinitionCondition `json:"condition"`
 
 	// Scope of Custom Resource
-	// +kubebuilder:validation:Enum=cluster
-	Scope string `json:"scope"`
+	// +kubebuilder:validation:Enum=cluster;namespace
+	// +kubebuilder:default:=cluster
+	Scope string `json:"scope,omitempty"`
 
 	// List of annotations that matched pod would be extended
 	Set map[string]string `json:"set,omitempty"`
