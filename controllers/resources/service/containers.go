@@ -219,14 +219,13 @@ func getLicensingEnvironmentVariables(spec operatorv1alpha1.IBMLicensingSpec) []
 			},
 		}...)
 
-		if spec.Sender.ValidateReporterCerts {
-			environmentVariables = append(environmentVariables, []corev1.EnvVar{
-				{
-					Name:  "VALIDATE_REPORTER_CERTS",
-					Value: "true",
-				},
-			}...)
-		}
+		// Reporter certificate validation is always enabled. The ValidateReporterCerts field is retained for CRD compatibility only.
+		environmentVariables = append(environmentVariables, []corev1.EnvVar{
+			{
+				Name:  "VALIDATE_REPORTER_CERTS",
+				Value: "true",
+			},
+		}...)
 
 		// If workloads reporting feature is enabled, pass the env vars marking this to the operand
 		if spec.Sender.Frequency != "" {
