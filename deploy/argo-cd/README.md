@@ -5,6 +5,7 @@ Learn how to install IBM Licensing components as Argo CD applications. This proc
 - [Prerequisites](#prerequisites): Preparing for the installation.
 - [Configuring](#configuring) (optional): Configuring the components to ensure that the Licensing suite is functional.
 - [Installing](#installing): Installation of IBM License Service and IBM License Service Reporter.
+- [Upgrading](#upgrading): Upgrading IBM License Service and IBM License Service Reporter.
 
 ## Prerequisites
 
@@ -227,6 +228,16 @@ As a result, the `imagePullSecrets` field of the operator and the operand includ
 
 </details>
 
+## Upgrading
+
+To upgrade IBM Licensing components managed as Argo CD applications, follow the same steps as described in [Installing](#installing).
+
+Before re-applying, update the repository to the desired version — either by pulling the latest changes or by changing the `targetRevision` field in the `Application` .yaml files to the target tag or commit.
+
+Argo CD will compute the diff between the new desired state and the live cluster, and apply only the necessary changes.
+
+**Note:** For the direct Helm path (alpha), use `helm upgrade` in place of `helm install`, as noted in [Installation with helm](#installation-with-helm).
+
 ## Installing
 
 ### Installing all components
@@ -312,8 +323,9 @@ helm install reporter-cluster-scoped ./components/reporter/helm-cluster-scoped
 helm install reporter ./components/reporter/helm
 ```
 
-Commands such as `helm upgrade` should be functional. However, due to the alpha stage of the development, they can
-result in an unexpected state. Therefore, it is recommended to perform installation on a clean-state cluster.
+Commands such as `helm upgrade` should be functional to perform upgrades.
+If you want to use single command for helm installation and upgrade use `helm upgrade --install`.
+
 
 If you already have any Licensing components installed, use the `--take-ownership` flag, which is introduced in
 `helm` version `3.17.0`, when running the `install` commands.
