@@ -95,3 +95,48 @@ func GetCrdReconcileInterval() (time.Duration, error) {
 	}
 	return defaultReconcileInterval, nil
 }
+
+const (
+	selfSignedCertKeySizeEnvVar      = "SELF_SIGNED_CERT_KEY_SIZE"
+	selfSignedCertValidityDaysEnvVar = "SELF_SIGNED_CERT_VALIDITY_DAYS"
+
+	// DefaultSelfSignedCertKeySize is the RSA key size in bits used for generated self-signed certificates.
+	DefaultSelfSignedCertKeySize = 3072
+	// MinSelfSignedCertKeySize is the smallest RSA key size in bits accepted for generated self-signed certificates.
+	MinSelfSignedCertKeySize = 2048
+	// DefaultSelfSignedCertValidityDays is the validity of generated self-signed certificates in days.
+	DefaultSelfSignedCertValidityDays = 365
+)
+
+// SelfSignedCertSettings holds the parameters used to generate self-signed certificates.
+type SelfSignedCertSettings struct {
+	KeySize      int
+	ValidityDays int
+}
+
+// GetSelfSignedCertSettings returns self-signed certificate parameters. The defaults are secure and need no configuration,
+// they can be overridden with SELF_SIGNED_CERT_KEY_SIZE and SELF_SIGNED_CERT_VALIDITY_DAYS environment variables.
+func GetSelfSignedCertSettings() (SelfSignedCertSettings, error) {
+	settings := SelfSignedCertSettings{
+		KeySize:      DefaultSelfSignedCertKeySize,
+		ValidityDays: DefaultSelfSignedCertValidityDays,
+	}
+
+	if env, found := os.LookupEnv(selfSignedCertKeySizeEnvVar); found {
+		keySize, err := strconv.Atoi(env)
+		if err != nil || keySize < MinSelfSignedCertKeySize {
+			return settings, fmt.Errorf("%s must be a number not smaller than %d", selfSignedCertKeySizeEnvVar, MinSelfSignedCertKeySize)
+		}
+		settings.KeySize = keySize
+	}
+
+	if env, found := os.LookupEnv(selfSignedCertValidityDaysEnvVar); found {
+		validityDays, err := strconv.Atoi(env)
+		if err != nil || validityDays < 1 {
+			return settings, fmt.Errorf("%s must be a positive number", selfSignedCertValidityDaysEnvVar)
+		}
+		settings.ValidityDays = validityDays
+	}
+
+	return settings, nil
+}

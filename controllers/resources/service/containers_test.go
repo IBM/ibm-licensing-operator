@@ -26,7 +26,7 @@ import (
 	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 )
 
-func TestGetLicensingEnvironmentVariablesCertsValidationDisabledWithCerts(t *testing.T) {
+func TestGetLicensingEnvironmentVariablesCertsValidationAlwaysEnabledWhenFieldDisabled(t *testing.T) {
 	spec := operatorv1alpha1.IBMLicensingSpec{
 		InstanceNamespace: "namespace",
 		Datasource:        "datacollector",
@@ -42,7 +42,22 @@ func TestGetLicensingEnvironmentVariablesCertsValidationDisabledWithCerts(t *tes
 	}
 
 	envVars := getLicensingEnvironmentVariables(spec)
-	assert.False(t, Contains(envVars, validateReporterCertsEnv), "Sender ValidateReporterCerts is disabled, 'VALIDATE_REPORTER_CERTS' environemnt variable should not be added to Licensing pod.")
+	assert.True(t, Contains(envVars, validateReporterCertsEnv), "Reporter certificate validation is always enabled, 'VALIDATE_REPORTER_CERTS' environment variable should be added to Licensing pod even if ValidateReporterCerts is disabled.")
+}
+
+func TestGetLicensingEnvironmentVariablesCertsValidationNotSetWithoutSender(t *testing.T) {
+	spec := operatorv1alpha1.IBMLicensingSpec{
+		InstanceNamespace: "namespace",
+		Datasource:        "datacollector",
+	}
+
+	validateReporterCertsEnv := corev1.EnvVar{
+		Name:  "VALIDATE_REPORTER_CERTS",
+		Value: "true",
+	}
+
+	envVars := getLicensingEnvironmentVariables(spec)
+	assert.False(t, Contains(envVars, validateReporterCertsEnv), "Sender is not configured, 'VALIDATE_REPORTER_CERTS' environment variable should not be added to Licensing pod.")
 }
 
 func TestGetLicensingEnvironmentVariablesCertsValidationEnabledWithCerts(t *testing.T) {
