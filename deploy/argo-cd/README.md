@@ -230,9 +230,10 @@ As a result, the `imagePullSecrets` field of the operator and the operand includ
 
 ## Upgrading
 
-To upgrade IBM Licensing components managed as Argo CD applications, follow the same steps as described in [Installing](#installing).
+To upgrade IBM Licensing components managed as Argo CD applications, perform the following steps.
 
-Before re-applying, update the repository to the desired version — either by pulling the latest changes or by changing the `targetRevision` field in the `Application` .yaml files to the target tag or commit.
+1. Update the repository to the desired version. You can pull the latest changes or change the `targetRevision` field in the `Application.yaml` files to the target tag or commit.
+2. Follow the same steps as described in [Installing](#installing).
 
 Argo CD will compute the diff between the new desired state and the live cluster, and apply only the necessary changes.
 
