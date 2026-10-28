@@ -56,8 +56,7 @@ kubectl apply -f <path-to-cloned-repo>/prerequisites --recursive
 
 To automate the deployment of prerequisites, include the .yaml files from the `prerequisites` directory in your
 Argo CD applications' paths. To make sure that they are applied before the IBM Licensing components are installed,
-you can use [sync waves](https://argo-cd.readthedocs.io/en/latest/user-guide/sync-waves/). For example, through
-annotating the required resources with the `PreSync` phase.
+you can use [sync phases and waves](https://argo-cd.readthedocs.io/en/latest/user-guide/sync-waves/). For example, by annotating the required resources with a sync wave or a `PreSync hook`.
 
 ## Configuring
 
@@ -251,7 +250,7 @@ To install all components, perform the following steps.
     - For EKS, by default `argocd`
 
     ```shell
-    kubectl project shift-gitops
+    oc project openshift-gitops
     ```
 
 2. Run the following command.
@@ -275,7 +274,7 @@ To install selected components separately, for example to install *IBM License S
     - For EKS, by default `argocd`
 
     ```shell
-    kubectl project shift-gitops
+    oc project openshift-gitops
     ```
 
 2. Run the following command.
