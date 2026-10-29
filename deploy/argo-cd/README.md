@@ -5,6 +5,7 @@ Learn how to install IBM Licensing components as Argo CD applications. This proc
 - [Prerequisites](#prerequisites): Preparing for the installation.
 - [Configuring](#configuring) (optional): Configuring the components to ensure that the Licensing suite is functional.
 - [Installing](#installing): Installation of IBM License Service and IBM License Service Reporter.
+- [Upgrading](#upgrading): Upgrading IBM License Service and IBM License Service Reporter.
 
 ## Prerequisites
 
@@ -55,8 +56,7 @@ kubectl apply -f <path-to-cloned-repo>/prerequisites --recursive
 
 To automate the deployment of prerequisites, include the .yaml files from the `prerequisites` directory in your
 Argo CD applications' paths. To make sure that they are applied before the IBM Licensing components are installed,
-you can use [sync waves](https://argo-cd.readthedocs.io/en/latest/user-guide/sync-waves/). For example, through
-annotating the required resources with the `PreSync` phase.
+you can use [sync phases and waves](https://argo-cd.readthedocs.io/en/latest/user-guide/sync-waves/). For example, by annotating the required resources with a sync wave or a `PreSync hook`.
 
 ## Configuring
 
@@ -227,6 +227,17 @@ As a result, the `imagePullSecrets` field of the operator and the operand includ
 
 </details>
 
+## Upgrading
+
+To upgrade IBM Licensing components managed as Argo CD applications, perform the following steps.
+
+1. Update the repository to the desired version. You can pull the latest changes or change the `targetRevision` field in the `Application.yaml` files to the target tag or commit.
+2. Follow the same steps as described in [Installing](#installing).
+
+Argo CD will compute the diff between the new desired state and the live cluster, and apply only the necessary changes.
+
+**Note:** For the direct Helm path (alpha), use `helm upgrade` in place of `helm install`, as noted in [Installation with helm](#installation-with-helm).
+
 ## Installing
 
 ### Installing all components
@@ -239,7 +250,7 @@ To install all components, perform the following steps.
     - For EKS, by default `argocd`
 
     ```shell
-    kubectl project shift-gitops
+    oc project openshift-gitops
     ```
 
 2. Run the following command.
@@ -263,7 +274,7 @@ To install selected components separately, for example to install *IBM License S
     - For EKS, by default `argocd`
 
     ```shell
-    kubectl project shift-gitops
+    oc project openshift-gitops
     ```
 
 2. Run the following command.
@@ -312,8 +323,9 @@ helm install reporter-cluster-scoped ./components/reporter/helm-cluster-scoped
 helm install reporter ./components/reporter/helm
 ```
 
-Commands such as `helm upgrade` should be functional. However, due to the alpha stage of the development, they can
-result in an unexpected state. Therefore, it is recommended to perform installation on a clean-state cluster.
+Commands such as `helm upgrade` should be functional to perform upgrades.
+If you want to use single command for helm installation and upgrade use `helm upgrade --install`.
+
 
 If you already have any Licensing components installed, use the `--take-ownership` flag, which is introduced in
 `helm` version `3.17.0`, when running the `install` commands.
