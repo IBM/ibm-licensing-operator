@@ -106,6 +106,9 @@ template_deployment() {
     
     # Remove imagePullSecrets (will be added conditionally later)
     $YQ -i 'del(.spec.template.spec.imagePullSecrets)' "$OUTPUT_DIR/deployment.yaml"
+
+    # Remove tolerations (will be added conditionally later)
+    $YQ -i 'del(.spec.template.spec.tolerations)' "$OUTPUT_DIR/deployment.yaml"
     
     # Replace environment variables in main container
     $YQ -i '.spec.template.spec.containers[0].env[0].value = "sed-me-namespace"' "$OUTPUT_DIR/deployment.yaml"
@@ -181,6 +184,9 @@ template_deployment() {
     # Replace serviceAccountName with helper template
     sed -i '' 's/serviceAccountName: ibm-license-service$/serviceAccountName: {{ include "ibm-licensing.operandServiceAccount" . }}/g' "$OUTPUT_DIR/deployment.yaml"
     
+    # Append conditional tolerations section (user list or IBM default tolerations)
+    cat "${PROJECT_ROOT}/common/makefile-generate/yaml-deployment-tolerations-part" >> "$OUTPUT_DIR/deployment.yaml"
+
     # Append conditional imagePullSecrets section
     cat "${PROJECT_ROOT}/common/makefile-generate/yaml-deployment-pull-secrets-part" >> "$OUTPUT_DIR/deployment.yaml"
     

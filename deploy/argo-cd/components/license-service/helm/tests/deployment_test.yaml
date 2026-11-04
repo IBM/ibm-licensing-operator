@@ -198,3 +198,75 @@ tests:
       - notContains:
           path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values
           content: arm64
+
+  # --- operator.tolerations ---
+
+  - it: does not render tolerations by default
+    asserts:
+      - notExists:
+          path: spec.template.spec.tolerations
+
+  - it: does not render tolerations when the list is empty
+    set:
+      ibmLicensing.operator.tolerations: []
+    asserts:
+      - notExists:
+          path: spec.template.spec.tolerations
+
+  - it: renders operator tolerations when set
+    set:
+      ibmLicensing.operator.tolerations:
+        - key: dedicated
+          operator: Equal
+          value: ils
+          effect: NoSchedule
+        - key: CriticalAddonsOnly
+          operator: Exists
+    asserts:
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - key: dedicated
+              operator: Equal
+              value: ils
+              effect: NoSchedule
+            - key: CriticalAddonsOnly
+              operator: Exists
+
+  - it: operand tolerations do not affect the operator Deployment
+    set:
+      ibmLicensing.operand.tolerations:
+        - key: dedicated
+          operator: Exists
+    asserts:
+      - notExists:
+          path: spec.template.spec.tolerations
+
+  - it: operator tolerations do not change nodeSelector, affinity, annotations, labels or service account
+    set:
+      ibmLicensing.operator.tolerations:
+        - key: dedicated
+          operator: Exists
+      ibmLicensing.operator.nodeSelector:
+        node-role: licensing
+      ibmLicensing.operator.podAnnotations:
+        custom.io/env: staging
+      ibmLicensing.operator.podLabels:
+        team: platform
+      ibmLicensing.operator.serviceAccount.name: my-operator-sa
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector["node-role"]
+          value: licensing
+      - equal:
+          path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key
+          value: kubernetes.io/arch
+      - equal:
+          path: spec.template.metadata.annotations["custom.io/env"]
+          value: staging
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: platform
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: my-operator-sa

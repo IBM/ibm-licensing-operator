@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
 )
 
 func TestIsNodeCpuCappingEnabledNil(t *testing.T) {
@@ -92,4 +93,30 @@ func TestGetSanitizedExcludeNamespaceWhitespaceOnlyEntry(t *testing.T) {
 	spec := &IBMLicensingSpec{Features: &Features{ExcludeNamespace: "namespace-a,   ,namespace-b"}}
 	assert.Equal(t, "namespace-a,namespace-b", spec.GetSanitizedExcludeNamespace(),
 		"Whitespace-only entries should be treated as empty and dropped.")
+}
+
+func TestGetTolerationsNilReceiver(t *testing.T) {
+	var config *OperandPodConfig
+	assert.Nil(t, config.GetTolerations(), "GetTolerations on a nil OperandPodConfig should return nil.")
+}
+
+func TestGetTolerations(t *testing.T) {
+	tolerations := []corev1.Toleration{
+		{Key: "dedicated", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoSchedule},
+	}
+
+	tests := []struct {
+		name   string
+		config *OperandPodConfig
+		want   []corev1.Toleration
+	}{
+		{"unset tolerations", &OperandPodConfig{}, nil},
+		{"empty tolerations", &OperandPodConfig{Tolerations: []corev1.Toleration{}}, []corev1.Toleration{}},
+		{"set tolerations are returned unchanged", &OperandPodConfig{Tolerations: tolerations}, tolerations},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.config.GetTolerations())
+		})
+	}
 }

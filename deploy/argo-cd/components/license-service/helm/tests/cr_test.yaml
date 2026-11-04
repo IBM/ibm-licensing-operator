@@ -114,3 +114,71 @@ tests:
       - equal:
           path: spec.operand.nodeSelector.zone
           value: eu-west
+
+  # --- operand.tolerations ---
+
+  - it: sets spec.operand.tolerations when provided
+    set:
+      ibmLicensing.operand.tolerations:
+        - key: dedicated
+          operator: Equal
+          value: ils
+          effect: NoSchedule
+    asserts:
+      - equal:
+          path: spec.operand.tolerations
+          value:
+            - key: dedicated
+              operator: Equal
+              value: ils
+              effect: NoSchedule
+
+  - it: does not add spec.operand.tolerations by default
+    asserts:
+      - notExists:
+          path: spec.operand.tolerations
+
+  - it: does not add spec.operand.tolerations when the list is empty
+    set:
+      ibmLicensing.operand.tolerations: []
+    asserts:
+      - notExists:
+          path: spec.operand
+
+  - it: operator tolerations do not affect the CR
+    set:
+      ibmLicensing.operator.tolerations:
+        - key: dedicated
+          operator: Exists
+    asserts:
+      - notExists:
+          path: spec.operand
+
+  - it: operand tolerations do not change the other operand fields
+    set:
+      ibmLicensing.operand.tolerations:
+        - key: dedicated
+          operator: Exists
+      ibmLicensing.operand.serviceAccount.name: custom-sa
+      ibmLicensing.operand.nodeSelector:
+        zone: eu-west
+      ibmLicensing.operand.podAnnotations:
+        custom.io/env: prod
+      ibmLicensing.operand.podLabels:
+        team: licensing
+    asserts:
+      - equal:
+          path: spec.operand.serviceAccountName
+          value: custom-sa
+      - equal:
+          path: spec.operand.nodeSelector.zone
+          value: eu-west
+      - equal:
+          path: spec.operand.podAnnotations["custom.io/env"]
+          value: prod
+      - equal:
+          path: spec.operand.podLabels.team
+          value: licensing
+      - equal:
+          path: spec.operand.tolerations[0].key
+          value: dedicated
