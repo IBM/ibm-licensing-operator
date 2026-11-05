@@ -9,7 +9,7 @@ Red Hat OpenShift Container Platform 4.10 or newer on Linux x86_64, ppc64le, and
 ## Prerequisites
 
 - Helm 3
-- Cluster-admin rights (CRDs and ClusterRoles are installed by this chart)
+- Cluster-admin rights (ClusterRoles are installed by this chart, and CRDs as well when `ibmLicensing.spec.features.customResourcesEnabled` is `true`)
 - An image pull secret in the target namespace (default name: `ibm-entitlement-key`)
 
 ## Configuration
@@ -50,7 +50,7 @@ Red Hat OpenShift Container Platform 4.10 or newer on Linux x86_64, ppc64le, and
 | `ibmLicensing.spec.features.nssEnabled` | Enable namespace-scope mode. When `true`, the restricted service account and per-namespace RBAC are used | `false` |
 | `ibmLicensing.spec.features.nodeCpuCappingEnabled` | Include node-level CPU capping | `true` |
 | `ibmLicensing.spec.features.kubeRBACAuthEnabled` | Protect the API with kube RBAC token review | `true` |
-| `ibmLicensing.spec.features.customResourcesEnabled` | Read `IBMLicensing*` custom resources | `true` |
+| `ibmLicensing.spec.features.customResourcesEnabled` | Install the `IBMLicensing*` CRDs and read the `IBMLicensing*` custom resources. When `false`, the CRDs are not installed and the related RBAC rules are skipped. Changing it from `true` to `false` on an existing release makes Helm remove the CRDs, which deletes all existing `IBMLicensing*` custom resources | `true` |
 
 ### Resources
 
