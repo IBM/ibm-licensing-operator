@@ -216,6 +216,36 @@ func AffinityForLicensingPod(instance *operatorv1alpha1.IBMLicensing) *corev1.Af
 	return ibmNodeAffinity
 }
 
+/*
+DefaultTolerationsForLicensingPod returns the IBM default tolerations of the operand pod.
+They are used when the user does not set any tolerations.
+*/
+func DefaultTolerationsForLicensingPod() []corev1.Toleration {
+	return []corev1.Toleration{
+		{
+			Key:      "dedicated",
+			Operator: corev1.TolerationOpExists,
+			Effect:   corev1.TaintEffectNoSchedule,
+		},
+		{
+			Key:      "CriticalAddonsOnly",
+			Operator: corev1.TolerationOpExists,
+		},
+	}
+}
+
+/*
+TolerationsForLicensingPod returns the tolerations for the operand pod.
+A non-empty user list replaces the IBM default tolerations and is returned unchanged.
+An unset or empty user list gives the IBM default tolerations.
+*/
+func TolerationsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) []corev1.Toleration {
+	if userTolerations := instance.Spec.Operand.GetTolerations(); len(userTolerations) > 0 {
+		return userTolerations
+	}
+	return DefaultTolerationsForLicensingPod()
+}
+
 // AnnotationsForLicensingPod returns the annotations for the operand pod.
 // IBM-required annotations always take precedence over user-provided ones.
 func AnnotationsForLicensingPod(instance *operatorv1alpha1.IBMLicensing) map[string]string {

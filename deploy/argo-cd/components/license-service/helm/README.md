@@ -64,6 +64,7 @@ helm install ibm-licensing ./helm --namespace ibm-licensing
 | `ibmLicensing.operator.podLabels` | Extra labels added to the operator pod. IBM selector labels cannot be overridden | `{}` |
 | `ibmLicensing.operator.affinity` | Additional affinity rules merged with the IBM default `kubernetes.io/arch` node affinity | `{}` |
 | `ibmLicensing.operator.nodeSelector` | Node selector for the operator pod | `{}` |
+| `ibmLicensing.operator.tolerations` | Tolerations for the operator pod. The operator pod has no default tolerations | `[]` |
 | `ibmLicensing.operator.serviceAccount.name` | Override the operator service account name. Use with `createRBAC: false` for pre-created service accounts | `""` |
 | `ibmLicensing.operator.annotations` | *(Legacy)* Extra annotations for the operator pod — use `operator.podAnnotations` instead | `{}` |
 | `ibmLicensing.operator.labels` | *(Legacy)* Extra labels for the operator pod — use `operator.podLabels` instead | `{}` |
@@ -72,3 +73,4 @@ helm install ibm-licensing ./helm --namespace ibm-licensing
 | `ibmLicensing.operand.podLabels` | Extra labels added to the operand pod. IBM selector labels cannot be overridden | `{}` |
 | `ibmLicensing.operand.affinity` | Additional affinity rules merged with the IBM default `kubernetes.io/arch` node affinity for the operand pod | `{}` |
 | `ibmLicensing.operand.nodeSelector` | Node selector for the operand pod | `{}` |
+| `ibmLicensing.operand.tolerations` | Tolerations for the operand pod, set as `spec.operand.tolerations` in the `IBMLicensing` CR. A non-empty list **replaces** the IBM default tolerations (`dedicated:NoSchedule` and `CriticalAddonsOnly`), so list them again if you still need them. An empty list keeps the defaults | `[]` |

@@ -225,11 +225,15 @@ spec:
         {{- toYaml .Values.ibmLicensing.operand.nodeSelector | nindent 8 }}
       {{- end }}
       tolerations:
+        {{- if .Values.ibmLicensing.operand.tolerations }}
+        {{- toYaml .Values.ibmLicensing.operand.tolerations | nindent 8 }}
+        {{- else }}
         - effect: NoSchedule
           key: dedicated
           operator: Exists
         - key: CriticalAddonsOnly
           operator: Exists
+        {{- end }}
       volumes:
         - name: api-token
           secret:

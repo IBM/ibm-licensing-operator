@@ -19,6 +19,7 @@ ibmLicensing:
     podLabels: {}
     nodeSelector: {}
     affinity: {}
+    tolerations: []
     # Legacy — kept for backward compatibility; use operator.podAnnotations/podLabels instead
     annotations: {}
     labels: {}
@@ -29,6 +30,7 @@ ibmLicensing:
     podLabels: {}
     nodeSelector: {}
     affinity: {}
+    tolerations: []
   spec:
     version: 4.2.27
     datasource: datacollector

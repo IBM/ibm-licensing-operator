@@ -345,6 +345,16 @@ func (c *OperandPodConfig) GetAffinity() *corev1.Affinity {
 	return c.Affinity
 }
 
+/*
+GetTolerations returns the user-defined tolerations, or nil when OperandPodConfig is unset.
+*/
+func (c *OperandPodConfig) GetTolerations() []corev1.Toleration {
+	if c == nil {
+		return nil
+	}
+	return c.Tolerations
+}
+
 // GetPodLabels returns the additional pod labels, or nil when OperandPodConfig is unset.
 func (c *OperandPodConfig) GetPodLabels() map[string]string {
 	if c == nil {

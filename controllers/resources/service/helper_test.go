@@ -32,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
@@ -158,4 +159,40 @@ func TestUpdateResourceDoesNotRemoveExistingLabelsAndAnnotations(t *testing.T) {
 	assert.Equal(t, "expected-value", foundDeployment.GetLabels()["expected-label"])
 	assert.Equal(t, "existing-value", foundDeployment.GetAnnotations()["existing-annotation"])
 	assert.Equal(t, "expected-value", foundDeployment.GetAnnotations()["expected-annotation"])
+}
+
+func TestTolerationsForLicensingPod(t *testing.T) {
+	ibmDefaults := []corev1.Toleration{
+		{Key: "dedicated", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoSchedule},
+		{Key: "CriticalAddonsOnly", Operator: corev1.TolerationOpExists},
+	}
+	userTolerations := []corev1.Toleration{
+		{Key: "ils-only", Operator: corev1.TolerationOpEqual, Value: "true", Effect: corev1.TaintEffectNoSchedule},
+		{Key: "node.kubernetes.io/unreachable", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoExecute},
+	}
+
+	tests := []struct {
+		name    string
+		operand *operatorv1alpha1.OperandPodConfig
+		want    []corev1.Toleration
+	}{
+		{"operand config unset gives the IBM defaults", nil, ibmDefaults},
+		{"nil user list gives the IBM defaults", &operatorv1alpha1.OperandPodConfig{}, ibmDefaults},
+		{
+			"empty user list gives the IBM defaults",
+			&operatorv1alpha1.OperandPodConfig{Tolerations: []corev1.Toleration{}},
+			ibmDefaults,
+		},
+		{
+			"non-empty user list replaces the IBM defaults and keeps its order",
+			&operatorv1alpha1.OperandPodConfig{Tolerations: userTolerations},
+			userTolerations,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{Operand: tt.operand}}
+			assert.Equal(t, tt.want, TolerationsForLicensingPod(instance))
+		})
+	}
 }

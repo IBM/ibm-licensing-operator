@@ -158,3 +158,92 @@ tests:
       - notContains:
           path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values
           content: arm64
+
+  # --- operand.tolerations ---
+
+  - it: renders exactly the two IBM default tolerations when not set
+    asserts:
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - effect: NoSchedule
+              key: dedicated
+              operator: Exists
+            - key: CriticalAddonsOnly
+              operator: Exists
+
+  - it: renders the IBM default tolerations when the list is empty
+    set:
+      ibmLicensing.operand.tolerations: []
+    asserts:
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - effect: NoSchedule
+              key: dedicated
+              operator: Exists
+            - key: CriticalAddonsOnly
+              operator: Exists
+
+  - it: user tolerations replace the IBM default tolerations
+    set:
+      ibmLicensing.operand.tolerations:
+        - key: ils-only
+          operator: Equal
+          value: "true"
+          effect: NoExecute
+          tolerationSeconds: 300
+    asserts:
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - key: ils-only
+              operator: Equal
+              value: "true"
+              effect: NoExecute
+              tolerationSeconds: 300
+
+  - it: a user list that contains an IBM entry is not extended
+    set:
+      ibmLicensing.operand.tolerations:
+        - key: dedicated
+          operator: Exists
+          effect: NoSchedule
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.tolerations
+          count: 1
+      - notContains:
+          path: spec.template.spec.tolerations
+          content:
+            key: CriticalAddonsOnly
+            operator: Exists
+
+  - it: tolerations do not change nodeSelector, affinity, annotations, labels or service account
+    set:
+      ibmLicensing.operand.tolerations:
+        - key: ils-only
+          operator: Exists
+      ibmLicensing.operand.nodeSelector:
+        kubernetes.io/os: linux
+      ibmLicensing.operand.podAnnotations:
+        custom.io/env: staging
+      ibmLicensing.operand.podLabels:
+        team: licensing
+      ibmLicensing.operand.serviceAccount.name: my-operand-sa
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector["kubernetes.io/os"]
+          value: linux
+      - equal:
+          path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key
+          value: kubernetes.io/arch
+      - equal:
+          path: spec.template.metadata.annotations["custom.io/env"]
+          value: staging
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: licensing
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: my-operand-sa
