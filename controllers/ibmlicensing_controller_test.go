@@ -1226,6 +1226,32 @@ var _ = Describe("mergeExcludeNamespacesFromUmsConfigMaps", func() {
 		Expect(instance.Spec.Features.ExcludeNamespace).To(BeEmpty())
 	})
 
+	It("should ignore wildcard, regex and other non-namespace entries", func() {
+		for _, bad := range []string{".*", ".+", "(.*)", "[a-z]+", "^.*$", `\w+`, "ns.with.dots", "UPPER", "-bad", "a_b"} {
+			instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+				Features: &operatorv1alpha1.Features{},
+			}}
+			Expect(newReconciler(umsConfigMap("tenant-a", bad)).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+			Expect(instance.Spec.Features.ExcludeNamespace).To(BeEmpty(), "entry %q must be rejected", bad)
+		}
+	})
+
+	It("should keep valid entries and drop invalid ones from the same value", func() {
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{},
+		}}
+		Expect(newReconciler(umsConfigMap("tenant-a", "ns-b,.*,ns-a")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(Equal("ns-a,ns-b"))
+	})
+
+	It("should not change the CR value when a ConfigMap only contains a wildcard", func() {
+		instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{
+			Features: &operatorv1alpha1.Features{ExcludeNamespace: "products-[a-z]+"},
+		}}
+		Expect(newReconciler(umsConfigMap("tenant-a", ".*")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
+		Expect(instance.Spec.Features.ExcludeNamespace).To(Equal("products-[a-z]+"))
+	})
+
 	It("should initialize nil Features and set ExcludeNamespace", func() {
 		instance := &operatorv1alpha1.IBMLicensing{} // Features is nil
 		Expect(newReconciler(umsConfigMap("ums-ns-1", "ums-namespace-1")).mergeExcludeNamespacesFromUmsConfigMaps(instance, ctrl.Log)).To(Succeed())
