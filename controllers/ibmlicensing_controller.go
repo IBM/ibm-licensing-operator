@@ -38,6 +38,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -1823,15 +1824,26 @@ func (r *IBMLicensingReconciler) mergeExcludeNamespacesFromUmsConfigMaps(instanc
 		return err
 	}
 
-	// flatten: each CM value may itself be a comma-separated list; split and trim all entries
+	// flatten: each CM value may itself be a comma-separated list; split and trim all entries.
+	// Only literal namespace names (DNS-1123 labels) are accepted, so wildcards and regex patterns
+	// (e.g. ".*") coming from these ConfigMaps are ignored
 	var umsNamespaces []string
 	for _, cm := range cmList.Items {
 		if cm.Name == UmsExcludeNamespaceConfigMapName {
 			if val, ok := cm.Data[umsExcludeNamespaceDataKey]; ok && val != "" {
 				for ns := range strings.SplitSeq(val, ",") {
-					if trimmed := strings.TrimSpace(ns); trimmed != "" {
-						umsNamespaces = append(umsNamespaces, trimmed)
+					trimmed := strings.TrimSpace(ns)
+					if trimmed == "" {
+						continue
 					}
+					// IsDNS1123Label returns validation errors; non-empty means the entry is not a valid
+					// namespace name (lowercase alphanumerics and '-', max 63 chars), e.g. a wildcard or regex
+					if len(validation.IsDNS1123Label(trimmed)) > 0 {
+						reqLogger.Info(fmt.Sprintf("Ignoring %q entry %q from %s ConfigMap in namespace %s: not a valid namespace name",
+							umsExcludeNamespaceDataKey, trimmed, UmsExcludeNamespaceConfigMapName, cm.Namespace))
+						continue
+					}
+					umsNamespaces = append(umsNamespaces, trimmed)
 				}
 			}
 		}
