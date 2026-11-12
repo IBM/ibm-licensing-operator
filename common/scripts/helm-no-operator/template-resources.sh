@@ -205,9 +205,13 @@ template_service() {
 template_crds() {
     log_info "Templating CRDs..."
     
-    # CRDs are cluster-scoped resources and typically don't need templating
-    # Just copy them directly to the output directory
-    cp "$INPUT_DIR/crd.yaml" "$OUTPUT_DIR/crd.yaml"
+    # CRDs are cluster-scoped resources and don't need value templating,
+    # but they are rendered only when custom resources are enabled
+    {
+        echo '{{- if ((.Values.ibmLicensing.spec).features).customResourcesEnabled }}'
+        cat "$INPUT_DIR/crd.yaml"
+        echo '{{- end }}'
+    } > "$OUTPUT_DIR/crd.yaml"
     
     log_info "crd.yaml created"
 }

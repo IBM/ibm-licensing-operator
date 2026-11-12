@@ -1,0 +1,58 @@
+---
+
+suite: ILS no-operator CRD rendering tests
+
+templates:
+  - templates/crd.yaml
+
+release:
+  namespace: test-ns
+
+tests:
+  - it: renders the three CRDs by default
+    asserts:
+      - hasDocuments:
+          count: 3
+      - isKind:
+          of: CustomResourceDefinition
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: ibmlicensingdefinitions.operator.ibm.com
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: ibmlicensingmetadatas.operator.ibm.com
+        documentIndex: 1
+      - equal:
+          path: metadata.name
+          value: ibmlicensingquerysources.operator.ibm.com
+        documentIndex: 2
+
+  - it: renders the three CRDs when customResourcesEnabled is true
+    set:
+      ibmLicensing.spec.features.customResourcesEnabled: true
+    asserts:
+      - hasDocuments:
+          count: 3
+
+  - it: renders no CRDs when customResourcesEnabled is false
+    set:
+      ibmLicensing.spec.features.customResourcesEnabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders no CRDs when ibmLicensing.spec is not set
+    set:
+      ibmLicensing.spec: null
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders no CRDs when ibmLicensing.spec.features is not set
+    set:
+      ibmLicensing.spec.features: null
+    asserts:
+      - hasDocuments:
+          count: 0
