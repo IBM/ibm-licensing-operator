@@ -45,6 +45,15 @@ rules:
     verbs:
       - get
       - list
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    resourceNames:
+      - ibm-licensing-external-config
+    verbs:
+      - get
+      - list
   {{- if ((.Values.ibmLicensing.spec).features).customResourcesEnabled }}
   - apiGroups:
       - operator.ibm.com
