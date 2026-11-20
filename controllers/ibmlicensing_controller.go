@@ -304,12 +304,6 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		return reconcile.Result{}, fmt.Errorf("spec.softwareCentral.entitlementKeySecret must be set when Software Central integration is enabled")
 	}
 
-	// Reject invalid tolerations before any resource is touched, so the running Deployment is kept intact
-	if err = instance.Spec.Operand.ValidateTolerations(); err != nil {
-		reqLogger.Error(err, "Invalid spec.operand.tolerations, existing resources are left unchanged")
-		return reconcile.Result{}, fmt.Errorf("invalid spec.operand.tolerations: %w", err)
-	}
-
 	r.controllerStatus(instance)
 
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
@@ -850,6 +844,13 @@ func (r *IBMLicensingReconciler) reconcileNetworkPolicy(instance *operatorv1alph
 
 func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
+
+	// Reject invalid tolerations before the Deployment is touched, so the running one is kept intact
+	if err := instance.Spec.Operand.ValidateTolerations(); err != nil {
+		reqLogger.Error(err, "Invalid spec.operand.tolerations, the existing Deployment is left unchanged")
+		return reconcile.Result{}, fmt.Errorf("invalid spec.operand.tolerations: %w", err)
+	}
+
 	expectedDeployment := service.GetLicensingDeployment(instance)
 
 	foundDeployment := &appsv1.Deployment{}
