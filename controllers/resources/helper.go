@@ -182,6 +182,14 @@ func UpdateResource(reqLogger *logr.Logger, client c.Client,
 
 	err := client.Update(context.TODO(), expectedResource)
 	if err != nil {
+		// Delete and create is only safe when the expected resource can be created. Otherwise the delete would
+		// remove the working resource (e.g. a running Deployment) and the create would fail with the same error.
+		if dryRunErr := dryRunCreate(client, expectedResource); dryRunErr != nil {
+			(*reqLogger).Error(dryRunErr, "Could not update "+resTypeString+" and the expected resource is not valid, "+
+				"keeping the existing one", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
+			return reconcile.Result{}, fmt.Errorf("expected %s is rejected by the API server, the existing one is left unchanged: %w", resTypeString, dryRunErr)
+		}
+
 		// only need to delete resource as new will be recreated on next reconciliation
 		(*reqLogger).Info("Could not update "+resTypeString+", due to having not compatible changes between expected and updated resource, "+
 			"will try to delete it and create new one...", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
@@ -202,6 +210,22 @@ func UpdateResource(reqLogger *logr.Logger, client c.Client,
 	(*reqLogger).Info("Updated "+resTypeString+" successfully", "Namespace", expectedResource.GetNamespace(), "Name", expectedResource.GetName())
 	// Resource updated - return and do not requeue as it might not consider extra values
 	return reconcile.Result{}, nil
+}
+
+// dryRunCreate asks the API server to validate the resource as if it were created, without persisting it.
+// The resource still exists at this point, so AlreadyExists is the expected answer for a valid resource:
+// the API server validates the object before it checks for existence.
+func dryRunCreate(client c.Client, resource ResourceObject) error {
+	toCreate, ok := resource.DeepCopyObject().(c.Object)
+	if !ok {
+		return nil
+	}
+	toCreate.SetResourceVersion("")
+	err := client.Create(context.TODO(), toCreate, c.DryRunAll)
+	if err == nil || apierrors.IsAlreadyExists(err) {
+		return nil
+	}
+	return err
 }
 
 func UpdateServiceIfNeeded(reqLogger *logr.Logger, client c.Client, expectedService *corev1.Service, foundService *corev1.Service) (reconcile.Result, error) {

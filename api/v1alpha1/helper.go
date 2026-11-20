@@ -28,6 +28,7 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 const (
@@ -353,6 +354,58 @@ func (c *OperandPodConfig) GetTolerations() []corev1.Toleration {
 		return nil
 	}
 	return c.Tolerations
+}
+
+/*
+ValidateTolerations checks the user-defined tolerations with the same rules the Kubernetes API server applies
+to pod tolerations. It lets the operator reject an invalid value before it touches the existing Deployment.
+*/
+func (c *OperandPodConfig) ValidateTolerations() error {
+	var errs []error
+	for i, t := range c.GetTolerations() {
+		path := fmt.Sprintf("spec.operand.tolerations[%d]", i)
+
+		// an empty operator defaults to Equal in Kubernetes
+		operator := t.Operator
+		if operator == "" {
+			operator = corev1.TolerationOpEqual
+		}
+
+		switch operator {
+		case corev1.TolerationOpEqual:
+			if t.Key == "" {
+				errs = append(errs, fmt.Errorf("%s.operator: operator must be Exists when key is empty", path))
+			}
+			for _, msg := range validation.IsValidLabelValue(t.Value) {
+				errs = append(errs, fmt.Errorf("%s.value: %s", path, msg))
+			}
+		case corev1.TolerationOpExists:
+			if t.Value != "" {
+				errs = append(errs, fmt.Errorf("%s.value: value must be empty when operator is Exists", path))
+			}
+		default:
+			errs = append(errs, fmt.Errorf("%s.operator: unsupported value %q, supported values: %q, %q",
+				path, t.Operator, corev1.TolerationOpEqual, corev1.TolerationOpExists))
+		}
+
+		if t.Key != "" {
+			for _, msg := range validation.IsQualifiedName(t.Key) {
+				errs = append(errs, fmt.Errorf("%s.key: %s", path, msg))
+			}
+		}
+
+		switch t.Effect {
+		case "", corev1.TaintEffectNoSchedule, corev1.TaintEffectPreferNoSchedule, corev1.TaintEffectNoExecute:
+		default:
+			errs = append(errs, fmt.Errorf("%s.effect: unsupported value %q, supported values: %q, %q, %q",
+				path, t.Effect, corev1.TaintEffectNoSchedule, corev1.TaintEffectPreferNoSchedule, corev1.TaintEffectNoExecute))
+		}
+
+		if t.TolerationSeconds != nil && t.Effect != corev1.TaintEffectNoExecute {
+			errs = append(errs, fmt.Errorf("%s.effect: effect must be NoExecute when tolerationSeconds is set", path))
+		}
+	}
+	return errors.Join(errs...)
 }
 
 // GetPodLabels returns the additional pod labels, or nil when OperandPodConfig is unset.

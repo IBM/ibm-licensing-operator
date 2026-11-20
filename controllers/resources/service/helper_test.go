@@ -161,6 +161,61 @@ func TestUpdateResourceDoesNotRemoveExistingLabelsAndAnnotations(t *testing.T) {
 	assert.Equal(t, "expected-value", foundDeployment.GetAnnotations()["expected-annotation"])
 }
 
+// Simulates an API server that rejects the object on update and, like the real one, validates it on dry-run create.
+type rejectingClient struct {
+	client.Client
+	rejected bool
+}
+
+func (c *rejectingClient) Update(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error {
+	if c.rejected {
+		return fmt.Errorf("update rejected")
+	}
+	return c.Client.Update(ctx, obj, opts...)
+}
+
+func (c *rejectingClient) Create(ctx context.Context, obj client.Object, opts ...client.CreateOption) error {
+	if c.rejected {
+		return fmt.Errorf("spec.template.spec.tolerations[0].operator: Unsupported value: \"Foo\"")
+	}
+	return c.Client.Create(ctx, obj, opts...)
+}
+
+func TestUpdateResourceKeepsExistingResourceWhenExpectedOneIsInvalid(t *testing.T) {
+	logger := zap.New(zap.UseFlagOptions(&zap.Options{Development: true, TimeEncoder: zapcore.RFC3339TimeEncoder}))
+	key := types.NamespacedName{Namespace: "test", Name: "deployment"}
+
+	newDeployment := func() *appsv1.Deployment {
+		return &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: key.Name, Namespace: key.Namespace}}
+	}
+
+	t.Run("invalid expected resource does not delete the existing one", func(t *testing.T) {
+		fakeClient := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(newDeployment()).Build()
+		wrapped := &rejectingClient{Client: fakeClient, rejected: true}
+		found := newDeployment()
+		assert.NoError(t, fakeClient.Get(context.TODO(), key, found))
+
+		_, err := resources.UpdateResource(&logger, wrapped, newDeployment(), found)
+
+		assert.ErrorContains(t, err, "existing one is left unchanged")
+		assert.NoError(t, fakeClient.Get(context.TODO(), key, &appsv1.Deployment{}), "existing deployment must not be deleted")
+	})
+
+	t.Run("valid expected resource is still recreated when update fails", func(t *testing.T) {
+		fakeClient := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(newDeployment()).Build()
+		found := newDeployment()
+		assert.NoError(t, fakeClient.Get(context.TODO(), key, found))
+		expected := newDeployment()
+		expected.Labels = map[string]string{"fail-update": "true"}
+
+		_, err := resources.UpdateResource(&logger, &failUpdateWrapper{fakeClient}, expected, found)
+
+		assert.NoError(t, err)
+		err = fakeClient.Get(context.TODO(), key, &appsv1.Deployment{})
+		assert.NoError(t, err, "deployment is recreated after the delete")
+	})
+}
+
 func TestTolerationsForLicensingPod(t *testing.T) {
 	ibmDefaults := []corev1.Toleration{
 		{Key: "dedicated", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoSchedule},

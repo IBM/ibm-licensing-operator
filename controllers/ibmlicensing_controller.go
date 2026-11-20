@@ -304,6 +304,12 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		return reconcile.Result{}, fmt.Errorf("spec.softwareCentral.entitlementKeySecret must be set when Software Central integration is enabled")
 	}
 
+	// Reject invalid tolerations before any resource is touched, so the running Deployment is kept intact
+	if err = instance.Spec.Operand.ValidateTolerations(); err != nil {
+		reqLogger.Error(err, "Invalid spec.operand.tolerations, existing resources are left unchanged")
+		return reconcile.Result{}, fmt.Errorf("invalid spec.operand.tolerations: %w", err)
+	}
+
 	r.controllerStatus(instance)
 
 	reqLogger.Info("got IBM License Service application, version=" + instance.Spec.Version)
