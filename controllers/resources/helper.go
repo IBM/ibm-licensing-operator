@@ -184,10 +184,10 @@ func UpdateResource(reqLogger *logr.Logger, client c.Client,
 	if err != nil {
 		// Delete and create is only safe when the expected resource can be created. Otherwise the delete would
 		// remove the working resource (e.g. a running Deployment) and the create would fail with the same error.
+		// The error is only returned, not logged: controller-runtime logs it once as "Reconciler error".
 		if dryRunErr := dryRunCreate(client, expectedResource); dryRunErr != nil {
-			(*reqLogger).Error(dryRunErr, "Could not update "+resTypeString+" and the expected resource is not valid, "+
-				"keeping the existing one", "Namespace", foundResource.GetNamespace(), "Name", foundResource.GetName())
-			return reconcile.Result{}, fmt.Errorf("expected %s is rejected by the API server, the existing one is left unchanged: %w", resTypeString, dryRunErr)
+			return reconcile.Result{}, fmt.Errorf("could not update %s %s/%s and the expected resource is rejected by the API server, "+
+				"the existing one is left unchanged: %w", resTypeString, foundResource.GetNamespace(), foundResource.GetName(), dryRunErr)
 		}
 
 		// only need to delete resource as new will be recreated on next reconciliation
