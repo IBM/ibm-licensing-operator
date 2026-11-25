@@ -845,12 +845,6 @@ func (r *IBMLicensingReconciler) reconcileNetworkPolicy(instance *operatorv1alph
 func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
 
-	// Reject invalid tolerations before the Deployment is touched, so the running one is kept intact.
-	// The error is only returned, not logged: controller-runtime logs it once as "Reconciler error".
-	if err := instance.Spec.Operand.ValidateTolerations(); err != nil {
-		return reconcile.Result{}, fmt.Errorf("invalid spec.operand.tolerations, the existing Deployment is left unchanged: %w", err)
-	}
-
 	expectedDeployment := service.GetLicensingDeployment(instance)
 
 	foundDeployment := &appsv1.Deployment{}
