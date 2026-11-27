@@ -162,9 +162,11 @@ func TestUpdateResourceDoesNotRemoveExistingLabelsAndAnnotations(t *testing.T) {
 }
 
 // Simulates an API server that rejects the object on update and, like the real one, validates it on dry-run create.
+// Non-dry-run creates are passed through and counted, so tests can assert that no real object was created.
 type rejectingClient struct {
 	client.Client
-	rejected bool
+	rejected    bool
+	realCreates int
 }
 
 func (c *rejectingClient) Update(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error {
@@ -175,6 +177,14 @@ func (c *rejectingClient) Update(ctx context.Context, obj client.Object, opts ..
 }
 
 func (c *rejectingClient) Create(ctx context.Context, obj client.Object, opts ...client.CreateOption) error {
+	createOpts := &client.CreateOptions{}
+	createOpts.ApplyOptions(opts)
+	dryRun := len(createOpts.DryRun) == 1 && createOpts.DryRun[0] == metav1.DryRunAll
+
+	if !dryRun {
+		c.realCreates++
+		return c.Client.Create(ctx, obj, opts...)
+	}
 	if c.rejected {
 		return fmt.Errorf("spec.template.spec.tolerations[0].operator: Unsupported value: \"Foo\"")
 	}
@@ -198,6 +208,7 @@ func TestUpdateResourceKeepsExistingResourceWhenExpectedOneIsInvalid(t *testing.
 		_, err := resources.UpdateResource(&logger, wrapped, newDeployment(), found)
 
 		assert.ErrorContains(t, err, "existing one is left unchanged")
+		assert.Zero(t, wrapped.realCreates, "validation must use a dry-run create, not a real one")
 		assert.NoError(t, fakeClient.Get(context.TODO(), key, &appsv1.Deployment{}), "existing deployment must not be deleted")
 	})
 
