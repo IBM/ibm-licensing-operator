@@ -753,6 +753,10 @@ endif
 
 .PHONY: all opm build bundle-build bundle pre-bundle kustomize catalogsource controller-gen generate docker-build docker-push deploy manifests run install uninstall code-dev check lint test coverage-kind coverage build multiarch-image csv clean help operator-sdk yq golangci-lint goimports shellcheck yamllint hadolint mdl install-all-tools install-operator-sdk install-opm install-controller-gen install-kustomize install-yq install-detect-secrets install-goimports install-linters verify-installed-tools audit scorecard print-published-images test/helm install-helm-unittest
 
+# NOTE: deploy/argo-cd/components/license-service/helm/templates/deployment.yaml is maintained by hand and no longer
+# matches the output of this target (operator nodeSelector, tolerations, affinity merge, podAnnotations, podLabels,
+# serviceAccount.name). Do not copy the generated argo-cd/deployment.yaml over it.
+
 .PHONY: generate-yaml-argo-cd
 generate-yaml-argo-cd: kustomize yq
 	@mkdir -p argo-cd && $(KUSTOMIZE) build config/manifests > argo-cd/tmp.yaml

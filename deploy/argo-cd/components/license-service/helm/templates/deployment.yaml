@@ -99,6 +99,10 @@ spec:
       nodeSelector:
         {{- toYaml .Values.ibmLicensing.operator.nodeSelector | nindent 8 }}
       {{- end }}
+      {{- if .Values.ibmLicensing.operator.tolerations }}
+      tolerations:
+        {{- toYaml .Values.ibmLicensing.operator.tolerations | nindent 8 }}
+      {{- end }}
       {{ if .Values.global.imagePullSecret }}
       imagePullSecrets:
         - name: {{ .Values.global.imagePullSecret }}

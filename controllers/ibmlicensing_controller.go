@@ -338,11 +338,9 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 		r.reconcileMeterDefinition,
 	}
 
-	for _, reconcileFunction := range reconcileFunctions {
-		recResult, err = reconcileFunction.(reconcileLSFunctionType)(instance)
-		if err != nil || recResult.Requeue {
-			return recResult, err
-		}
+	recResult, err = r.runReconcileFunctions(instance, reconcileFunctions)
+	if err != nil || recResult.Requeue {
+		return recResult, err
 	}
 
 	// Using 1-size channel
@@ -361,6 +359,23 @@ func (r *IBMLicensingReconciler) Reconcile(_ context.Context, req reconcile.Requ
 
 	// Update status logic, using foundInstance, because we do not want to add filled default values to yaml
 	return r.updateStatus(foundInstance, reqLogger)
+}
+
+// runReconcileFunctions runs the steps in order and stops at the first error or requeue.
+// A failed step is also reported as a Warning event on the CR, so the cause is visible with kubectl describe
+// or in Argo CD, not only in the operator log.
+func (r *IBMLicensingReconciler) runReconcileFunctions(instance *operatorv1alpha1.IBMLicensing,
+	reconcileFunctions []interface{}) (reconcile.Result, error) {
+	for _, reconcileFunction := range reconcileFunctions {
+		recResult, err := reconcileFunction.(reconcileLSFunctionType)(instance)
+		if err != nil {
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReconcileFailed", err.Error())
+		}
+		if err != nil || recResult.Requeue {
+			return recResult, err
+		}
+	}
+	return reconcile.Result{}, nil
 }
 
 func (r *IBMLicensingReconciler) findAndMarkActiveIBMLicensing(ibmlicensingList *operatorv1alpha1.IBMLicensingList) error {
@@ -845,6 +860,7 @@ func (r *IBMLicensingReconciler) reconcileNetworkPolicy(instance *operatorv1alph
 
 func (r *IBMLicensingReconciler) reconcileDeployment(instance *operatorv1alpha1.IBMLicensing) (reconcile.Result, error) {
 	reqLogger := r.Log.WithValues("reconcileDeployment", "Entry", "instance.GetName()", instance.GetName())
+
 	expectedDeployment := service.GetLicensingDeployment(instance)
 
 	foundDeployment := &appsv1.Deployment{}

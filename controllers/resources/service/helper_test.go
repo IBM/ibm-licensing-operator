@@ -32,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	operatorv1alpha1 "github.com/IBM/ibm-licensing-operator/api/v1alpha1"
 	"github.com/IBM/ibm-licensing-operator/controllers/resources"
 )
 
@@ -158,4 +159,106 @@ func TestUpdateResourceDoesNotRemoveExistingLabelsAndAnnotations(t *testing.T) {
 	assert.Equal(t, "expected-value", foundDeployment.GetLabels()["expected-label"])
 	assert.Equal(t, "existing-value", foundDeployment.GetAnnotations()["existing-annotation"])
 	assert.Equal(t, "expected-value", foundDeployment.GetAnnotations()["expected-annotation"])
+}
+
+// Simulates an API server that rejects the object on update and, like the real one, validates it on dry-run create.
+// Non-dry-run creates are passed through and counted, so tests can assert that no real object was created.
+type rejectingClient struct {
+	client.Client
+	rejected    bool
+	realCreates int
+}
+
+func (c *rejectingClient) Update(ctx context.Context, obj client.Object, opts ...client.UpdateOption) error {
+	if c.rejected {
+		return fmt.Errorf("update rejected")
+	}
+	return c.Client.Update(ctx, obj, opts...)
+}
+
+func (c *rejectingClient) Create(ctx context.Context, obj client.Object, opts ...client.CreateOption) error {
+	createOpts := &client.CreateOptions{}
+	createOpts.ApplyOptions(opts)
+	dryRun := len(createOpts.DryRun) == 1 && createOpts.DryRun[0] == metav1.DryRunAll
+
+	if !dryRun {
+		c.realCreates++
+		return c.Client.Create(ctx, obj, opts...)
+	}
+	if c.rejected {
+		return fmt.Errorf("spec.template.spec.tolerations[0].operator: Unsupported value: \"Foo\"")
+	}
+	return c.Client.Create(ctx, obj, opts...)
+}
+
+func TestUpdateResourceKeepsExistingResourceWhenExpectedOneIsInvalid(t *testing.T) {
+	logger := zap.New(zap.UseFlagOptions(&zap.Options{Development: true, TimeEncoder: zapcore.RFC3339TimeEncoder}))
+	key := types.NamespacedName{Namespace: "test", Name: "deployment"}
+
+	newDeployment := func() *appsv1.Deployment {
+		return &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: key.Name, Namespace: key.Namespace}}
+	}
+
+	t.Run("invalid expected resource does not delete the existing one", func(t *testing.T) {
+		fakeClient := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(newDeployment()).Build()
+		wrapped := &rejectingClient{Client: fakeClient, rejected: true}
+		found := newDeployment()
+		assert.NoError(t, fakeClient.Get(context.TODO(), key, found))
+
+		_, err := resources.UpdateResource(&logger, wrapped, newDeployment(), found)
+
+		assert.ErrorContains(t, err, "existing one is left unchanged")
+		assert.Zero(t, wrapped.realCreates, "validation must use a dry-run create, not a real one")
+		assert.NoError(t, fakeClient.Get(context.TODO(), key, &appsv1.Deployment{}), "existing deployment must not be deleted")
+	})
+
+	t.Run("valid expected resource is still recreated when update fails", func(t *testing.T) {
+		fakeClient := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(newDeployment()).Build()
+		found := newDeployment()
+		assert.NoError(t, fakeClient.Get(context.TODO(), key, found))
+		expected := newDeployment()
+		expected.Labels = map[string]string{"fail-update": "true"}
+
+		_, err := resources.UpdateResource(&logger, &failUpdateWrapper{fakeClient}, expected, found)
+
+		assert.NoError(t, err)
+		err = fakeClient.Get(context.TODO(), key, &appsv1.Deployment{})
+		assert.NoError(t, err, "deployment is recreated after the delete")
+	})
+}
+
+func TestTolerationsForLicensingPod(t *testing.T) {
+	ibmDefaults := []corev1.Toleration{
+		{Key: "dedicated", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoSchedule},
+		{Key: "CriticalAddonsOnly", Operator: corev1.TolerationOpExists},
+	}
+	userTolerations := []corev1.Toleration{
+		{Key: "ils-only", Operator: corev1.TolerationOpEqual, Value: "true", Effect: corev1.TaintEffectNoSchedule},
+		{Key: "node.kubernetes.io/unreachable", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoExecute},
+	}
+
+	tests := []struct {
+		name    string
+		operand *operatorv1alpha1.OperandPodConfig
+		want    []corev1.Toleration
+	}{
+		{"operand config unset gives the IBM defaults", nil, ibmDefaults},
+		{"nil user list gives the IBM defaults", &operatorv1alpha1.OperandPodConfig{}, ibmDefaults},
+		{
+			"empty user list gives the IBM defaults",
+			&operatorv1alpha1.OperandPodConfig{Tolerations: []corev1.Toleration{}},
+			ibmDefaults,
+		},
+		{
+			"non-empty user list replaces the IBM defaults and keeps its order",
+			&operatorv1alpha1.OperandPodConfig{Tolerations: userTolerations},
+			userTolerations,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			instance := &operatorv1alpha1.IBMLicensing{Spec: operatorv1alpha1.IBMLicensingSpec{Operand: tt.operand}}
+			assert.Equal(t, tt.want, TolerationsForLicensingPod(instance))
+		})
+	}
 }

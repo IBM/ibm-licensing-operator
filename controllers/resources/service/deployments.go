@@ -42,6 +42,7 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 	}
 
 	affinity := AffinityForLicensingPod(instance)
+	tolerations := TolerationsForLicensingPod(instance)
 	podAnnotations := AnnotationsForLicensingPod(instance)
 
 	return &appsv1.Deployment{
@@ -70,17 +71,7 @@ func GetLicensingDeployment(instance *operatorv1alpha1.IBMLicensing) *appsv1.Dep
 					ImagePullSecrets:              imagePullSecrets,
 					Affinity:                      affinity,
 					NodeSelector:                  instance.Spec.Operand.GetNodeSelector(),
-					Tolerations: []corev1.Toleration{
-						{
-							Key:      "dedicated",
-							Operator: corev1.TolerationOpExists,
-							Effect:   corev1.TaintEffectNoSchedule,
-						},
-						{
-							Key:      "CriticalAddonsOnly",
-							Operator: corev1.TolerationOpExists,
-						},
-					},
+					Tolerations:                   tolerations,
 				},
 			},
 		},

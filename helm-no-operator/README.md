@@ -68,6 +68,7 @@ Red Hat OpenShift Container Platform 4.10 or newer on Linux x86_64, ppc64le, and
 |-----------|-------------|---------|
 | `ibmLicensing.operand.serviceAccount.name` | Service account name override. Default resolves to `ibm-license-service` (or `ibm-license-service-restricted` when `nssEnabled: true`). Intended for use with `createRBAC: false` when the SA is pre-created | `""` |
 | `ibmLicensing.operand.nodeSelector` | Node selector key/value pairs | `{}` |
+| `ibmLicensing.operand.tolerations` | Tolerations for the operand pod. A non-empty list **replaces** the IBM default tolerations (`dedicated:NoSchedule` and `CriticalAddonsOnly`), so list them again if you still need them. An empty list keeps the defaults | `[]` |
 | `ibmLicensing.operand.affinity` | Affinity rules **merged** with the IBM default `kubernetes.io/arch` node affinity. User rules take precedence on key conflicts | `{}` |
 
 ### Pod metadata

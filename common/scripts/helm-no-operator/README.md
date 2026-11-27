@@ -64,7 +64,7 @@ After running the build process, you need to check what was generated in helm-no
 | File | Source |
 | --- | --- |
 | `secrets.yaml` | generated |
-| `deployment.yaml` | generated |
+| `deployment.yaml` | generated, then extended by hand |
 | `service.yaml` | generated |
 | `crd.yaml` | generated |
 | `cluster-rbac.yaml` | hand-maintained / IBM Bob |
@@ -72,6 +72,8 @@ After running the build process, you need to check what was generated in helm-no
 | `rbac.yaml` | hand-maintained / IBM Bob |
 | `serviceaccounts.yaml` | hand-maintained / IBM Bob |
 | `_helpers.tpl` | hand-maintained / IBM Bob |
+
+The generator does not produce the operand `nodeSelector`, `podAnnotations`, `podLabels` and the `affinity` merge in `deployment.yaml`. After re-running the build, restore them from the previous version of the file (`git diff`).
 
 ## Testing the Generated Chart
 

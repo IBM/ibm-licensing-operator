@@ -123,6 +123,10 @@ func ShouldUpdateDeployment(
 		(*reqLogger).Info("Deployment has wrong volumes")
 	} else if !apieq.Semantic.DeepEqual(foundSpec.Spec.Affinity, expectedSpec.Spec.Affinity) {
 		(*reqLogger).Info("Deployment has wrong affinity")
+	} else if !apieq.Semantic.DeepEqual(foundSpec.Spec.NodeSelector, expectedSpec.Spec.NodeSelector) {
+		(*reqLogger).Info("Deployment has wrong node selector")
+	} else if !apieq.Semantic.DeepEqual(foundSpec.Spec.Tolerations, expectedSpec.Spec.Tolerations) {
+		(*reqLogger).Info("Deployment has wrong tolerations")
 	} else if foundSpec.Spec.ServiceAccountName != expectedSpec.Spec.ServiceAccountName {
 		(*reqLogger).Info("Deployment wrong service account name")
 	} else if !apieq.Semantic.DeepEqual(foundSpec.Annotations, expectedSpec.Annotations) {

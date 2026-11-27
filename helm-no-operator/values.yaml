@@ -20,6 +20,7 @@ ibmLicensing:
     podLabels: {}
     nodeSelector: {}
     affinity: {}
+    tolerations: []
   spec:
     datasource: datacollector
     httpsEnable: true

@@ -144,6 +144,12 @@ type OperandPodConfig struct {
 	// +optional
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
 
+	// Tolerations defines the tolerations of the operand deployment pods.
+	// A non-empty list replaces the default tolerations (dedicated:NoSchedule and CriticalAddonsOnly).
+	// When unset or empty, the default tolerations are used.
+	// +optional
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
 	// PodAnnotations defines additional annotations to add to the operand deployment pods.
 	// IBM-required annotations take precedence.
 	// +optional
