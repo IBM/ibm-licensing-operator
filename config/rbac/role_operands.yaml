@@ -35,6 +35,15 @@ rules:
       - get
       - list
   - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    resourceNames:
+      - ibm-licensing-external-config
+    verbs:
+      - get
+      - list
+  - apiGroups:
       - operator.ibm.com
     resources:
       - ibmlicensingmetadatas

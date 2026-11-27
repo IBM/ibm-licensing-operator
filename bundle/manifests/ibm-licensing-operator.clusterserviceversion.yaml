@@ -466,16 +466,6 @@ spec:
         - rules:
             - apiGroups:
                 - ""
-              resourceNames:
-                - ibm-licensing-external-config
-              resources:
-                - configmaps
-              verbs:
-                - get
-                - list
-                - watch
-            - apiGroups:
-                - ""
               resources:
                 - events
               verbs:
@@ -549,6 +539,15 @@ spec:
                 - metrics.k8s.io
               resources:
                 - pods
+              verbs:
+                - get
+                - list
+            - apiGroups:
+                - ""
+              resourceNames:
+                - ibm-licensing-external-config
+              resources:
+                - configmaps
               verbs:
                 - get
                 - list

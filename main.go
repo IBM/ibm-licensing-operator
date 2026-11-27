@@ -35,7 +35,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -148,16 +147,6 @@ func main() {
 		&corev1.Secret{}:     {Namespaces: map[string]cache.Config{operatorNamespace: {}}},
 		&appsv1.Deployment{}: {Label: licensingLabelSelector},
 		&corev1.Pod{}:        {Label: licensingLabelSelector},
-		&corev1.ConfigMap{}: {
-			Namespaces: map[string]cache.Config{
-				// operator namespace - cache all ConfigMaps
-				operatorNamespace: {},
-				// all other namespaces - only cache UMS exclude-namespace ConfigMaps by name
-				cache.AllNamespaces: {
-					FieldSelector: fields.OneTermEqualSelector("metadata.name", controllers.UmsExcludeNamespaceConfigMapName),
-				},
-			},
-		},
 	}
 
 	restConfig := ctrl.GetConfigOrDie()
